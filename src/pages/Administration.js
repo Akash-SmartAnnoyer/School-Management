@@ -1,11 +1,138 @@
-import React from 'react';
-import { Tabs, Card, Table, Button, Space, Form, Input, Select, DatePicker, List, Tag, Upload } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, CarOutlined, BookOutlined, HomeOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Tabs, Card, Table, Button, Space, Form, Input, Select, DatePicker, List, Tag, Upload, Modal, message, Row, Col, Statistic } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, CarOutlined, BookOutlined, HomeOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
+import { subscribeToCollection, getStudents, getClasses, getTeachers, addUser, updateUser, deleteUser } from '../firebase/services';
 
 const { TabPane } = Tabs;
 const { Dragger } = Upload;
+const { Option } = Select;
 
 const Administration = () => {
+  const [users, setUsers] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [editingUser, setEditingUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribeUsers = subscribeToCollection('users', (data) => {
+      setUsers(data);
+    });
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+    });
+    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
+      setTeachers(data);
+    });
+    return () => {
+      unsubscribeUsers();
+      unsubscribeStudents();
+      unsubscribeClasses();
+      unsubscribeTeachers();
+    };
+  }, []);
+
+  const handleAdd = () => {
+    setEditingUser(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    setEditingUser(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (userId) => {
+    try {
+      await deleteUser(userId);
+      message.success('User deleted successfully');
+    } catch (error) {
+      message.error('Error deleting user');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const userData = {
+        ...values,
+        createdAt: new Date().toISOString()
+      };
+
+      if (editingUser) {
+        await updateUser(editingUser.id, userData);
+        message.success('User updated successfully');
+      } else {
+        await addUser(userData);
+        message.success('User added successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      message.error('Error saving user');
+    }
+  };
+
+  const columns = [
+    {
+      title: 'Username',
+      dataIndex: 'username',
+      key: 'username',
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role) => (
+        <Tag color={
+          role === 'Admin' ? 'red' :
+          role === 'Teacher' ? 'blue' :
+          role === 'Staff' ? 'green' :
+          'orange'
+        }>
+          {role}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'Active' ? 'green' : 'red'}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+        </Space>
+      ),
+    },
+  ];
+
   // Fee Management
   const feeColumns = [
     {
@@ -126,6 +253,118 @@ const Administration = () => {
 
   return (
     <div>
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Total Users"
+              value={users.length}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Active Users"
+              value={users.filter(u => u.status === 'Active').length}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Administrators"
+              value={users.filter(u => u.role === 'Admin').length}
+              valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card
+        title="User Management"
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Add User
+          </Button>
+        }
+      >
+        <Table columns={columns} dataSource={users} rowKey="id" />
+      </Card>
+
+      <Modal
+        title={editingUser ? 'Edit User' : 'Add User'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="username"
+            label="Username"
+            rules={[{ required: true, message: 'Please input username!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="name"
+            label="Full Name"
+            rules={[{ required: true, message: 'Please input full name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please input email!' },
+              { type: 'email', message: 'Please enter a valid email!' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: 'Please select role!' }]}
+          >
+            <Select>
+              <Option value="Admin">Administrator</Option>
+              <Option value="Teacher">Teacher</Option>
+              <Option value="Staff">Staff</Option>
+              <Option value="Parent">Parent</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status!' }]}
+          >
+            <Select>
+              <Option value="Active">Active</Option>
+              <Option value="Inactive">Inactive</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="permissions"
+            label="Permissions"
+            rules={[{ required: true, message: 'Please select permissions!' }]}
+          >
+            <Select mode="multiple" placeholder="Select permissions">
+              <Option value="manage_users">Manage Users</Option>
+              <Option value="manage_students">Manage Students</Option>
+              <Option value="manage_teachers">Manage Teachers</Option>
+              <Option value="manage_classes">Manage Classes</Option>
+              <Option value="manage_attendance">Manage Attendance</Option>
+              <Option value="manage_finance">Manage Finance</Option>
+              <Option value="view_reports">View Reports</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
       <Tabs defaultActiveKey="1">
         <TabPane tab="Fee Management" key="1">
           <Card
