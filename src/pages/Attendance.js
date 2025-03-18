@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tag, Select, DatePicker, Card, message, Row, Col, Statistic, Switch } from 'antd';
-import { CheckOutlined, CloseOutlined, SaveOutlined, CheckCircleOutlined, CloseCircleOutlined, TeamOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import { addAttendance, getAttendance, subscribeToCollection, getStudents, getClasses } from '../firebase/services';
 import moment from 'moment';
 
@@ -95,21 +95,24 @@ const Attendance = () => {
       dataIndex: 'rollNumber',
       key: 'rollNumber',
       width: 100,
+      fixed: 'left',
     },
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      fixed: 'left',
     },
     {
       title: 'Attendance',
       key: 'attendance',
       render: (_, record) => (
-        <Space>
+        <Space wrap>
           <Button
             type={attendanceStatus[record.id] === 'Present' ? 'primary' : 'default'}
             icon={<CheckCircleOutlined />}
             onClick={() => handleAttendanceChange(record.id, 'Present')}
+            size="small"
           >
             Present
           </Button>
@@ -117,6 +120,7 @@ const Attendance = () => {
             type={attendanceStatus[record.id] === 'Absent' ? 'primary' : 'default'}
             icon={<CloseCircleOutlined />}
             onClick={() => handleAttendanceChange(record.id, 'Absent')}
+            size="small"
           >
             Absent
           </Button>
@@ -130,55 +134,63 @@ const Attendance = () => {
   const absentCount = totalCount - presentCount;
 
   return (
-    <div>
+    <div style={{ padding: '16px' }}>
       <Card style={{ marginBottom: 16 }}>
-        <Space size="large">
-          <DatePicker
-            value={selectedDate}
-            onChange={setSelectedDate}
-            format="YYYY-MM-DD"
-          />
-          <Select
-            style={{ width: 200 }}
-            placeholder="Select Class"
-            onChange={handleClassChange}
-            value={selectedClass}
-          >
-            {classes.map(cls => (
-              <Option key={cls.id} value={cls.id}>
-                {cls.className} - {cls.section}
-              </Option>
-            ))}
-          </Select>
-          <Button
-            type="primary"
-            onClick={handleSaveAttendance}
-            loading={loading}
-            disabled={!selectedClass}
-          >
-            Save Attendance
-          </Button>
-        </Space>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={8}>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+              format="YYYY-MM-DD"
+              style={{ width: '100%' }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Select
+              style={{ width: '100%' }}
+              placeholder="Select Class"
+              onChange={handleClassChange}
+              value={selectedClass}
+            >
+              {classes.map(cls => (
+                <Option key={cls.id} value={cls.id}>
+                  {cls.className} - {cls.section}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={24} md={8}>
+            <Button
+              type="primary"
+              onClick={handleSaveAttendance}
+              loading={loading}
+              disabled={!selectedClass}
+              style={{ width: '100%' }}
+            >
+              Save Attendance
+            </Button>
+          </Col>
+        </Row>
       </Card>
 
       {selectedClass && (
         <Card style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col span={8}>
+          <Row gutter={[16, 16]}>
+            <Col xs={12} sm={8}>
               <Statistic
                 title="Present"
                 value={presentCount}
                 prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
               />
             </Col>
-            <Col span={8}>
+            <Col xs={12} sm={8}>
               <Statistic
                 title="Absent"
                 value={absentCount}
                 prefix={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
               />
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={8}>
               <Statistic
                 title="Total"
                 value={totalCount}
@@ -189,12 +201,15 @@ const Attendance = () => {
         </Card>
       )}
 
-      <Table
-        columns={columns}
-        dataSource={students.filter(student => student.classId === selectedClass)}
-        rowKey="id"
-        pagination={false}
-      />
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={students.filter(student => student.classId === selectedClass)}
+          rowKey="id"
+          pagination={false}
+          scroll={{ x: true }}
+        />
+      </Card>
     </div>
   );
 };
