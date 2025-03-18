@@ -1,22 +1,71 @@
-import React, { useState } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Select, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { addClass, updateClass, deleteClass, subscribeToCollection } from '../firebase/services';
+
+const { Option } = Select;
 
 const Classes = () => {
+  const [classes, setClasses] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const [editingId, setEditingId] = useState(null);
+  const [editingClass, setEditingClass] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleAdd = () => {
+    setEditingClass(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    setEditingClass(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (classId) => {
+    try {
+      await deleteClass(classId);
+      message.success('Class deleted successfully');
+    } catch (error) {
+      message.error('Error deleting class');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      if (editingClass) {
+        await updateClass(editingClass.id, values);
+        message.success('Class updated successfully');
+      } else {
+        await addClass(values);
+        message.success('Class added successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      message.error('Error saving class');
+    }
+  };
 
   const columns = [
     {
       title: 'Class ID',
-      dataIndex: 'id',
-      key: 'id',
+      dataIndex: 'classId',
+      key: 'classId',
     },
     {
       title: 'Class Name',
-      dataIndex: 'name',
-      key: 'name',
+      dataIndex: 'className',
+      key: 'className',
     },
     {
       title: 'Section',
@@ -24,9 +73,9 @@ const Classes = () => {
       key: 'section',
     },
     {
-      title: 'Class Teacher',
-      dataIndex: 'classTeacher',
-      key: 'classTeacher',
+      title: 'Teacher',
+      dataIndex: 'teacher',
+      key: 'teacher',
     },
     {
       title: 'Capacity',
@@ -34,80 +83,52 @@ const Classes = () => {
       key: 'capacity',
     },
     {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'Active' ? 'green' : 'red'}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => handleDelete(record.id)}
-          />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
         </Space>
       ),
     },
   ];
 
-  const sections = ['A', 'B', 'C', 'D', 'E'];
-
-  const handleAdd = () => {
-    setEditingId(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingId(record.id);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = (id) => {
-    // Implement delete functionality
-    message.success('Class deleted successfully');
-  };
-
-  const handleModalOk = () => {
-    form.validateFields().then((values) => {
-      // Implement save functionality
-      setIsModalVisible(false);
-      form.resetFields();
-      message.success('Class saved successfully');
-    });
-  };
-
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Add Class
         </Button>
       </div>
-      <Table
-        columns={columns}
-        dataSource={[]}
-        rowKey="id"
-      />
+      <Table columns={columns} dataSource={classes} rowKey="id" />
+
       <Modal
-        title={editingId ? 'Edit Class' : 'Add Class'}
+        title={editingClass ? 'Edit Class' : 'Add Class'}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={() => setIsModalVisible(false)}
       >
-        <Form
-          form={form}
-          layout="vertical"
-        >
+        <Form form={form} layout="vertical">
           <Form.Item
-            name="name"
+            name="classId"
+            label="Class ID"
+            rules={[{ required: true, message: 'Please input class ID!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="className"
             label="Class Name"
             rules={[{ required: true, message: 'Please input class name!' }]}
           >
@@ -116,20 +137,14 @@ const Classes = () => {
           <Form.Item
             name="section"
             label="Section"
-            rules={[{ required: true, message: 'Please select section!' }]}
+            rules={[{ required: true, message: 'Please input section!' }]}
           >
-            <Select>
-              {sections.map(section => (
-                <Select.Option key={section} value={section}>
-                  {section}
-                </Select.Option>
-              ))}
-            </Select>
+            <Input />
           </Form.Item>
           <Form.Item
-            name="classTeacher"
-            label="Class Teacher"
-            rules={[{ required: true, message: 'Please input class teacher!' }]}
+            name="teacher"
+            label="Teacher"
+            rules={[{ required: true, message: 'Please input teacher name!' }]}
           >
             <Input />
           </Form.Item>
@@ -139,6 +154,16 @@ const Classes = () => {
             rules={[{ required: true, message: 'Please input capacity!' }]}
           >
             <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status!' }]}
+          >
+            <Select>
+              <Option value="Active">Active</Option>
+              <Option value="Inactive">Inactive</Option>
+            </Select>
           </Form.Item>
         </Form>
       </Modal>

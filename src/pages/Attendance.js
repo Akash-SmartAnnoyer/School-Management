@@ -1,40 +1,122 @@
-import React, { useState } from 'react';
-import { Table, Select, Button, DatePicker, Space, message } from 'antd';
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Space, Tag, Select, DatePicker, Card, message, Row, Col, Statistic, Switch } from 'antd';
+import { CheckOutlined, CloseOutlined, SaveOutlined, CheckCircleOutlined, CloseCircleOutlined, TeamOutlined } from '@ant-design/icons';
+import { addAttendance, getAttendance, subscribeToCollection, getStudents, getClasses } from '../firebase/services';
+import moment from 'moment';
+
+const { Option } = Select;
 
 const Attendance = () => {
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(moment());
   const [selectedClass, setSelectedClass] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [attendanceData, setAttendanceData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState({});
+
+  useEffect(() => {
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+    });
+    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    const unsubscribeAttendance = subscribeToCollection('attendance', (data) => {
+      setAttendance(data);
+    });
+    return () => {
+      unsubscribeStudents();
+      unsubscribeClasses();
+      unsubscribeAttendance();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedDate && selectedClass) {
+      const dateStr = selectedDate.format('YYYY-MM-DD');
+      const classAttendance = attendance.filter(
+        record => record.date === dateStr && record.classId === selectedClass
+      );
+      
+      const statusMap = {};
+      classAttendance.forEach(record => {
+        statusMap[record.studentId] = record.status;
+      });
+      setAttendanceStatus(statusMap);
+    }
+  }, [selectedDate, selectedClass, attendance]);
+
+  const handleClassChange = (classId) => {
+    setSelectedClass(classId);
+  };
+
+  const handleAttendanceChange = (studentId, status) => {
+    setAttendanceStatus(prev => ({
+      ...prev,
+      [studentId]: status
+    }));
+  };
+
+  const handleSaveAttendance = async () => {
+    if (!selectedClass) {
+      message.error('Please select a class');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const dateStr = selectedDate.format('YYYY-MM-DD');
+      const classStudents = students.filter(s => s.classId === selectedClass);
+      
+      // Create attendance records for all students in the class
+      const attendanceRecords = classStudents.map(student => ({
+        studentId: student.id,
+        classId: selectedClass,
+        date: dateStr,
+        status: attendanceStatus[student.id] || 'Absent',
+        timestamp: new Date().toISOString()
+      }));
+
+      // Save all attendance records
+      await Promise.all(attendanceRecords.map(record => addAttendance(record)));
+      
+      message.success('Attendance saved successfully');
+    } catch (error) {
+      message.error('Error saving attendance');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const columns = [
     {
       title: 'Roll Number',
       dataIndex: 'rollNumber',
       key: 'rollNumber',
+      width: 100,
     },
     {
-      title: 'Student Name',
+      title: 'Name',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status, record) => (
+      title: 'Attendance',
+      key: 'attendance',
+      render: (_, record) => (
         <Space>
           <Button
-            type={status === 'present' ? 'primary' : 'default'}
-            icon={<CheckOutlined />}
-            onClick={() => handleStatusChange(record, 'present')}
+            type={attendanceStatus[record.id] === 'Present' ? 'primary' : 'default'}
+            icon={<CheckCircleOutlined />}
+            onClick={() => handleAttendanceChange(record.id, 'Present')}
           >
             Present
           </Button>
           <Button
-            type={status === 'absent' ? 'primary' : 'default'}
-            icon={<CloseOutlined />}
-            onClick={() => handleStatusChange(record, 'absent')}
+            type={attendanceStatus[record.id] === 'Absent' ? 'primary' : 'default'}
+            icon={<CloseCircleOutlined />}
+            onClick={() => handleAttendanceChange(record.id, 'Absent')}
           >
             Absent
           </Button>
@@ -43,69 +125,75 @@ const Attendance = () => {
     },
   ];
 
-  const handleClassChange = (value) => {
-    setSelectedClass(value);
-    // Fetch students for selected class
-    // This is a mock data
-    setAttendanceData([
-      { id: 1, rollNumber: '001', name: 'John Doe', status: 'present' },
-      { id: 2, rollNumber: '002', name: 'Jane Smith', status: 'absent' },
-      { id: 3, rollNumber: '003', name: 'Mike Johnson', status: 'present' },
-    ]);
-  };
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
-
-  const handleStatusChange = (record, status) => {
-    const newData = attendanceData.map(item => {
-      if (item.id === record.id) {
-        return { ...item, status };
-      }
-      return item;
-    });
-    setAttendanceData(newData);
-  };
-
-  const handleSaveAttendance = () => {
-    if (!selectedClass || !selectedDate) {
-      message.error('Please select class and date');
-      return;
-    }
-    // Implement save functionality
-    message.success('Attendance saved successfully');
-  };
+  const presentCount = Object.values(attendanceStatus).filter(status => status === 'Present').length;
+  const totalCount = students.filter(s => s.classId === selectedClass).length;
+  const absentCount = totalCount - presentCount;
 
   return (
     <div>
-      <Space style={{ marginBottom: 16 }}>
-        <Select
-          style={{ width: 200 }}
-          placeholder="Select Class"
-          onChange={handleClassChange}
-        >
-          <Select.Option value="1">Class 1</Select.Option>
-          <Select.Option value="2">Class 2</Select.Option>
-          <Select.Option value="3">Class 3</Select.Option>
-          <Select.Option value="4">Class 4</Select.Option>
-          <Select.Option value="5">Class 5</Select.Option>
-        </Select>
-        <DatePicker
-          onChange={handleDateChange}
-          placeholder="Select Date"
-        />
-        <Button
-          type="primary"
-          onClick={handleSaveAttendance}
-        >
-          Save Attendance
-        </Button>
-      </Space>
+      <Card style={{ marginBottom: 16 }}>
+        <Space size="large">
+          <DatePicker
+            value={selectedDate}
+            onChange={setSelectedDate}
+            format="YYYY-MM-DD"
+          />
+          <Select
+            style={{ width: 200 }}
+            placeholder="Select Class"
+            onChange={handleClassChange}
+            value={selectedClass}
+          >
+            {classes.map(cls => (
+              <Option key={cls.id} value={cls.id}>
+                {cls.className} - {cls.section}
+              </Option>
+            ))}
+          </Select>
+          <Button
+            type="primary"
+            onClick={handleSaveAttendance}
+            loading={loading}
+            disabled={!selectedClass}
+          >
+            Save Attendance
+          </Button>
+        </Space>
+      </Card>
+
+      {selectedClass && (
+        <Card style={{ marginBottom: 16 }}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Statistic
+                title="Present"
+                value={presentCount}
+                prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              />
+            </Col>
+            <Col span={8}>
+              <Statistic
+                title="Absent"
+                value={absentCount}
+                prefix={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+              />
+            </Col>
+            <Col span={8}>
+              <Statistic
+                title="Total"
+                value={totalCount}
+                prefix={<TeamOutlined />}
+              />
+            </Col>
+          </Row>
+        </Card>
+      )}
+
       <Table
         columns={columns}
-        dataSource={attendanceData}
+        dataSource={students.filter(student => student.classId === selectedClass)}
         rowKey="id"
+        pagination={false}
       />
     </div>
   );

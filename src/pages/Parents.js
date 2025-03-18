@@ -1,19 +1,78 @@
-import React from 'react';
-import { Tabs, Card, Table, Button, Space, Form, Input, Select, DatePicker, List, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Tabs, Card, Table, Button, Space, Form, Input, Select, DatePicker, List, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, MessageOutlined, CalendarOutlined } from '@ant-design/icons';
+import { addParent, updateParent, deleteParent, subscribeToCollection, getStudents } from '../firebase/services';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 const Parents = () => {
+  const [parents, setParents] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [editingParent, setEditingParent] = useState(null);
+
+  useEffect(() => {
+    const unsubscribeParents = subscribeToCollection('parents', (data) => {
+      setParents(data);
+    });
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+    });
+    return () => {
+      unsubscribeParents();
+      unsubscribeStudents();
+    };
+  }, []);
+
+  const handleAdd = () => {
+    setEditingParent(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    setEditingParent(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (parentId) => {
+    try {
+      await deleteParent(parentId);
+      message.success('Parent deleted successfully');
+    } catch (error) {
+      message.error('Error deleting parent');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const parentData = {
+        ...values,
+        createdAt: new Date().toISOString()
+      };
+
+      if (editingParent) {
+        await updateParent(editingParent.id, parentData);
+        message.success('Parent updated successfully');
+      } else {
+        await addParent(parentData);
+        message.success('Parent added successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      message.error('Error saving parent');
+    }
+  };
+
   // Parent Information
   const parentColumns = [
     {
-      title: 'Parent ID',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: 'Name',
+      title: 'Parent Name',
       dataIndex: 'name',
       key: 'name',
     },
@@ -28,17 +87,34 @@ const Parents = () => {
       key: 'email',
     },
     {
-      title: 'Children',
-      dataIndex: 'children',
-      key: 'children',
+      title: 'Students',
+      dataIndex: 'studentIds',
+      key: 'studentIds',
+      render: (studentIds) => {
+        if (!studentIds) return 'N/A';
+        return studentIds.map(id => {
+          const student = students.find(s => s.id === id);
+          return student ? student.name : 'N/A';
+        }).join(', ');
+      }
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'Active' ? 'green' : 'red'}>
+          {status}
+        </Tag>
+      ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
         </Space>
       ),
     },
@@ -89,12 +165,12 @@ const Parents = () => {
           <Card
             title="Parent Directory"
             extra={
-              <Button type="primary" icon={<PlusOutlined />}>
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
                 Add Parent
               </Button>
             }
           >
-            <Table columns={parentColumns} dataSource={[]} rowKey="id" />
+            <Table columns={parentColumns} dataSource={parents} rowKey="id" />
           </Card>
         </TabPane>
 
@@ -203,6 +279,63 @@ const Parents = () => {
           </Card>
         </TabPane>
       </Tabs>
+
+      <Modal
+        title={editingParent ? 'Edit Parent' : 'Add Parent'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Parent Name"
+            rules={[{ required: true, message: 'Please input parent name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="contact"
+            label="Contact Number"
+            rules={[{ required: true, message: 'Please input contact number!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: 'Please input email!' },
+              { type: 'email', message: 'Please enter a valid email!' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="studentIds"
+            label="Students"
+            rules={[{ required: true, message: 'Please select students!' }]}
+          >
+            <Select mode="multiple" placeholder="Select students">
+              {students.map(student => (
+                <Option key={student.id} value={student.id}>
+                  {student.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status!' }]}
+          >
+            <Select>
+              <Option value="Active">Active</Option>
+              <Option value="Inactive">Inactive</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

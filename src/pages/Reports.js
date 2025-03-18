@@ -1,318 +1,254 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, DatePicker, Select, Space, Row, Col, Statistic } from 'antd';
-import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, DatePicker, Card, message, Row, Col, Statistic } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
+import { generateReport, getReport, updateReport, deleteReport, subscribeToCollection, getStudents, getClasses, getTeachers } from '../firebase/services';
 
+const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('academic');
+  const [reports, setReports] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [editingReport, setEditingReport] = useState(null);
   const [dateRange, setDateRange] = useState(null);
 
-  // Sample data - replace with actual data from Firestore
-  const academicPerformanceData = [
-    {
-      key: '1',
-      studentId: 'ST001',
-      name: 'John Doe',
-      class: '10A',
-      subject: 'Mathematics',
-      marks: 85,
-      grade: 'A',
-      attendance: '95%',
-    },
-    // Add more sample data
-  ];
+  useEffect(() => {
+    const unsubscribeReports = subscribeToCollection('reports', (data) => {
+      setReports(data);
+    });
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+    });
+    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
+      setTeachers(data);
+    });
+    return () => {
+      unsubscribeReports();
+      unsubscribeStudents();
+      unsubscribeClasses();
+      unsubscribeTeachers();
+    };
+  }, []);
 
-  const attendanceData = [
-    {
-      key: '1',
-      date: '2024-03-01',
-      class: '10A',
-      totalStudents: 40,
-      present: 38,
-      absent: 2,
-      late: 1,
-    },
-    // Add more sample data
-  ];
+  const handleAdd = () => {
+    setEditingReport(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
 
-  const financialData = [
-    {
-      key: '1',
-      month: 'March 2024',
-      income: 50000,
-      expenses: 35000,
-      balance: 15000,
-      status: 'Positive',
-    },
-    // Add more sample data
-  ];
+  const handleEdit = (record) => {
+    setEditingReport(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
 
-  const academicColumns = [
+  const handleDelete = async (reportId) => {
+    try {
+      await deleteReport(reportId);
+      message.success('Report deleted successfully');
+    } catch (error) {
+      message.error('Error deleting report');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const reportData = {
+        ...values,
+        createdAt: new Date().toISOString()
+      };
+
+      if (editingReport) {
+        await updateReport(editingReport.id, reportData);
+        message.success('Report updated successfully');
+      } else {
+        await generateReport(reportData);
+        message.success('Report generated successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      message.error('Error generating report');
+    }
+  };
+
+  const handleDownload = async (reportId) => {
+    try {
+      const report = await getReport(reportId);
+      if (report) {
+        // Implement download functionality
+        message.success('Report downloaded successfully');
+      }
+    } catch (error) {
+      message.error('Error downloading report');
+    }
+  };
+
+  const columns = [
     {
-      title: 'Student ID',
-      dataIndex: 'studentId',
-      key: 'studentId',
-    },
-    {
-      title: 'Name',
+      title: 'Report Name',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Class',
-      dataIndex: 'class',
-      key: 'class',
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type) => (
+        <Tag color={
+          type === 'Academic' ? 'blue' :
+          type === 'Attendance' ? 'green' :
+          type === 'Financial' ? 'orange' :
+          'purple'
+        }>
+          {type}
+        </Tag>
+      ),
     },
     {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
+      title: 'Date Range',
+      dataIndex: 'dateRange',
+      key: 'dateRange',
+      render: (dateRange) => {
+        if (!dateRange) return 'N/A';
+        return `${new Date(dateRange.start).toLocaleDateString()} - ${new Date(dateRange.end).toLocaleDateString()}`;
+      }
     },
     {
-      title: 'Marks',
-      dataIndex: 'marks',
-      key: 'marks',
+      title: 'Generated By',
+      dataIndex: 'generatedBy',
+      key: 'generatedBy',
     },
-    {
-      title: 'Grade',
-      dataIndex: 'grade',
-      key: 'grade',
-    },
-    {
-      title: 'Attendance',
-      dataIndex: 'attendance',
-      key: 'attendance',
-    },
-  ];
-
-  const attendanceColumns = [
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => new Date(date).toLocaleString(),
     },
     {
-      title: 'Class',
-      dataIndex: 'class',
-      key: 'class',
-    },
-    {
-      title: 'Total Students',
-      dataIndex: 'totalStudents',
-      key: 'totalStudents',
-    },
-    {
-      title: 'Present',
-      dataIndex: 'present',
-      key: 'present',
-    },
-    {
-      title: 'Absent',
-      dataIndex: 'absent',
-      key: 'absent',
-    },
-    {
-      title: 'Late',
-      dataIndex: 'late',
-      key: 'late',
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button icon={<DownloadOutlined />} onClick={() => handleDownload(record.id)} />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
+        </Space>
+      ),
     },
   ];
-
-  const financialColumns = [
-    {
-      title: 'Month',
-      dataIndex: 'month',
-      key: 'month',
-    },
-    {
-      title: 'Income',
-      dataIndex: 'income',
-      key: 'income',
-      render: (text) => `₹${text.toLocaleString()}`,
-    },
-    {
-      title: 'Expenses',
-      dataIndex: 'expenses',
-      key: 'expenses',
-      render: (text) => `₹${text.toLocaleString()}`,
-    },
-    {
-      title: 'Balance',
-      dataIndex: 'balance',
-      key: 'balance',
-      render: (text) => `₹${text.toLocaleString()}`,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-    },
-  ];
-
-  const handleExport = (format) => {
-    // Implement export functionality
-    console.log(`Exporting ${reportType} report in ${format} format`);
-  };
 
   return (
-    <div className="reports-page">
-      <Card title="Reports" className="reports-card">
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <Row gutter={16} align="middle">
-            <Col>
-              <Select
-                defaultValue="academic"
-                style={{ width: 200 }}
-                onChange={setReportType}
-                options={[
-                  { value: 'academic', label: 'Academic Performance' },
-                  { value: 'attendance', label: 'Attendance' },
-                  { value: 'financial', label: 'Financial' },
-                ]}
-              />
-            </Col>
-            <Col>
-              <RangePicker onChange={setDateRange} />
-            </Col>
-            <Col>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<FileExcelOutlined />}
-                  onClick={() => handleExport('excel')}
-                >
-                  Export Excel
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<FilePdfOutlined />}
-                  onClick={() => handleExport('pdf')}
-                >
-                  Export PDF
-                </Button>
-              </Space>
-            </Col>
-          </Row>
+    <div>
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Total Reports"
+              value={reports.length}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Academic Reports"
+              value={reports.filter(r => r.type === 'Academic').length}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="Financial Reports"
+              value={reports.filter(r => r.type === 'Financial').length}
+              valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-          {reportType === 'academic' && (
-            <>
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Average Score"
-                      value={85}
-                      suffix="%"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Pass Rate"
-                      value={92}
-                      suffix="%"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Top Performers"
-                      value={15}
-                      suffix="students"
-                    />
-                  </Card>
-                </Col>
-              </Row>
-              <Table
-                columns={academicColumns}
-                dataSource={academicPerformanceData}
-                scroll={{ x: true }}
-              />
-            </>
-          )}
-
-          {reportType === 'attendance' && (
-            <>
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Average Attendance"
-                      value={95}
-                      suffix="%"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Total Absences"
-                      value={45}
-                      suffix="days"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Late Arrivals"
-                      value={12}
-                      suffix="times"
-                    />
-                  </Card>
-                </Col>
-              </Row>
-              <Table
-                columns={attendanceColumns}
-                dataSource={attendanceData}
-                scroll={{ x: true }}
-              />
-            </>
-          )}
-
-          {reportType === 'financial' && (
-            <>
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Total Income"
-                      value={500000}
-                      prefix="₹"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Total Expenses"
-                      value={350000}
-                      prefix="₹"
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Net Balance"
-                      value={150000}
-                      prefix="₹"
-                    />
-                  </Card>
-                </Col>
-              </Row>
-              <Table
-                columns={financialColumns}
-                dataSource={financialData}
-                scroll={{ x: true }}
-              />
-            </>
-          )}
-        </Space>
+      <Card
+        title="Reports Management"
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Generate Report
+          </Button>
+        }
+      >
+        <Table columns={columns} dataSource={reports} rowKey="id" />
       </Card>
+
+      <Modal
+        title={editingReport ? 'Edit Report' : 'Generate Report'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Report Name"
+            rules={[{ required: true, message: 'Please input report name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="Report Type"
+            rules={[{ required: true, message: 'Please select report type!' }]}
+          >
+            <Select>
+              <Option value="Academic">Academic Report</Option>
+              <Option value="Attendance">Attendance Report</Option>
+              <Option value="Financial">Financial Report</Option>
+              <Option value="Performance">Performance Report</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="dateRange"
+            label="Date Range"
+            rules={[{ required: true, message: 'Please select date range!' }]}
+          >
+            <RangePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="parameters"
+            label="Report Parameters"
+            rules={[{ required: true, message: 'Please select parameters!' }]}
+          >
+            <Select mode="multiple" placeholder="Select parameters">
+              <Option value="students">Students</Option>
+              <Option value="classes">Classes</Option>
+              <Option value="teachers">Teachers</Option>
+              <Option value="attendance">Attendance</Option>
+              <Option value="grades">Grades</Option>
+              <Option value="finance">Finance</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="format"
+            label="Report Format"
+            rules={[{ required: true, message: 'Please select format!' }]}
+          >
+            <Select>
+              <Option value="pdf">PDF</Option>
+              <Option value="excel">Excel</Option>
+              <Option value="csv">CSV</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

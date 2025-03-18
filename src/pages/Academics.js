@@ -1,10 +1,83 @@
-import React from 'react';
-import { Tabs, Card, Table, Button, Space, Modal, Form, Input, Select, DatePicker } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Tabs, Card, Table, Button, Space, Modal, Form, Input, Select, DatePicker, Tag, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { addExam, updateExam, deleteExam, subscribeToCollection, getStudents, getClasses } from '../firebase/services';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 const Academics = () => {
+  const [exams, setExams] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [editingExam, setEditingExam] = useState(null);
+
+  useEffect(() => {
+    const unsubscribeExams = subscribeToCollection('exams', (data) => {
+      setExams(data);
+    });
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+    });
+    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    return () => {
+      unsubscribeExams();
+      unsubscribeStudents();
+      unsubscribeClasses();
+    };
+  }, []);
+
+  const handleAdd = () => {
+    setEditingExam(null);
+    form.resetFields();
+    setIsModalVisible(true);
+  };
+
+  const handleEdit = (record) => {
+    setEditingExam(record);
+    form.setFieldsValue({
+      ...record,
+      date: record.date ? new Date(record.date) : null
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleDelete = async (examId) => {
+    try {
+      await deleteExam(examId);
+      message.success('Exam deleted successfully');
+    } catch (error) {
+      message.error('Error deleting exam');
+    }
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const examData = {
+        ...values,
+        date: values.date ? values.date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      };
+
+      if (editingExam) {
+        await updateExam(editingExam.id, examData);
+        message.success('Exam updated successfully');
+      } else {
+        await addExam(examData);
+        message.success('Exam added successfully');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error) {
+      message.error('Error saving exam');
+    }
+  };
+
   // Course Management
   const courseColumns = [
     {
@@ -40,11 +113,20 @@ const Academics = () => {
   ];
 
   // Examination Management
-  const examColumns = [
+  const columns = [
     {
       title: 'Exam Name',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: 'Class',
+      dataIndex: 'classId',
+      key: 'classId',
+      render: (classId) => {
+        const classInfo = classes.find(c => c.id === classId);
+        return classInfo ? `${classInfo.className} - ${classInfo.section}` : 'N/A';
+      }
     },
     {
       title: 'Subject',
@@ -60,14 +142,25 @@ const Academics = () => {
       title: 'Duration',
       dataIndex: 'duration',
       key: 'duration',
+      render: (duration) => `${duration} minutes`,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'Scheduled' ? 'blue' : status === 'Completed' ? 'green' : 'red'}>
+          {status}
+        </Tag>
+      ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
         </Space>
       ),
     },
@@ -125,14 +218,14 @@ const Academics = () => {
 
         <TabPane tab="Examination Management" key="2">
           <Card
-            title="Examinations"
+            title="Exams Management"
             extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Examination
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                Add Exam
               </Button>
             }
           >
-            <Table columns={examColumns} dataSource={[]} rowKey="id" />
+            <Table columns={columns} dataSource={exams} rowKey="id" />
           </Card>
         </TabPane>
 
@@ -206,6 +299,68 @@ const Academics = () => {
           </Card>
         </TabPane>
       </Tabs>
+
+      <Modal
+        title={editingExam ? 'Edit Exam' : 'Add Exam'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="Exam Name"
+            rules={[{ required: true, message: 'Please input exam name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="classId"
+            label="Class"
+            rules={[{ required: true, message: 'Please select class!' }]}
+          >
+            <Select>
+              {classes.map(cls => (
+                <Option key={cls.id} value={cls.id}>
+                  {cls.className} - {cls.section}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="subject"
+            label="Subject"
+            rules={[{ required: true, message: 'Please input subject!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="date"
+            label="Date"
+            rules={[{ required: true, message: 'Please select date!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="duration"
+            label="Duration (minutes)"
+            rules={[{ required: true, message: 'Please input duration!' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status!' }]}
+          >
+            <Select>
+              <Option value="Scheduled">Scheduled</Option>
+              <Option value="Completed">Completed</Option>
+              <Option value="Cancelled">Cancelled</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
