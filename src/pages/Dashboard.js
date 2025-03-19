@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress } from 'antd';
+import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress, List } from 'antd';
 import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined } from '@ant-design/icons';
 import { subscribeToCollection, getStudents, getTeachers, getClasses, getAttendance } from '../firebase/services';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { uploadSampleData } from '../utils/sampleData';
 import moment from 'moment';
 import './Dashboard.css';
 import { Pie, Column, Line } from '@ant-design/plots';
-
-
+import { getCalendarEvents, initializeSampleData } from '../services/localStorage';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [students, setStudents] = useState([]);
@@ -15,6 +17,8 @@ const Dashboard = () => {
   const [classes, setClasses] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [finance, setFinance] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Subscribe to real-time updates for all collections
@@ -37,6 +41,10 @@ const Dashboard = () => {
     const unsubscribeFinance = subscribeToCollection('finance', (data) => {
       setFinance(data);
     });
+
+    // Initialize and load calendar events from local storage
+    initializeSampleData();
+    setCalendarEvents(getCalendarEvents());
 
     return () => {
       unsubscribeStudents();
@@ -118,6 +126,17 @@ const Dashboard = () => {
     }, {});
 
   const financeChartData = Object.values(monthlyFinanceData);
+
+  const getNextHoliday = () => {
+    const today = moment();
+    const upcomingHolidays = calendarEvents
+      .filter(event => event.type === 'HOLIDAY' && moment(event.date).isAfter(today))
+      .sort((a, b) => moment(a.date).diff(moment(b.date)));
+
+    return upcomingHolidays[0];
+  };
+
+  const nextHoliday = getNextHoliday();
 
   return (
     <div className="dashboard-container">
@@ -233,21 +252,97 @@ const Dashboard = () => {
                 </div>
               </Col>
             </Row>
+            <Row gutter={[16, 16]} className="quick-actions-row">
+              <Col span={12}>
+                <Card 
+                  className="quick-action-card"
+                  onClick={() => navigate('/students')}
+                  hoverable
+                >
+                  <div className="quick-action-content">
+                    <UserOutlined className="quick-action-icon" />
+                    <div className="quick-action-text">
+                      <h3>Add New Student</h3>
+                      <p>Register a new student in the school</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card 
+                  className="quick-action-card"
+                  onClick={() => navigate('/teachers')}
+                  hoverable
+                >
+                  <div className="quick-action-content">
+                    <TeamOutlined className="quick-action-icon" />
+                    <div className="quick-action-text">
+                      <h3>Add New Teacher</h3>
+                      <p>Add a new teacher to the staff</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card 
-            title="Recent Transactions" 
-            className="finance-card"
-          >
-            <Table 
-              columns={transactionColumns} 
-              dataSource={recentTransactions} 
-              rowKey="id"
-              pagination={false}
-              size="small"
-            />
-          </Card>
+          <div className="dashboard-side-cards">
+            <Card 
+              title="Recent Transactions" 
+              className="finance-card"
+            >
+              <Table 
+                columns={transactionColumns} 
+                dataSource={recentTransactions} 
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
+            </Card>
+            {nextHoliday && (
+              <Card 
+                title="Next Holiday" 
+                className="next-holiday-card"
+              >
+                <div className="next-holiday-info">
+                  <h3>{nextHoliday.title}</h3>
+                  <p>{moment(nextHoliday.date).format('MMMM D, YYYY')}</p>
+                  <p>{moment(nextHoliday.date).diff(moment(), 'days')} days remaining</p>
+                </div>
+              </Card>
+            )}
+            <Card 
+              title="Upcoming Events" 
+              className="upcoming-events-card"
+            >
+              <List
+                dataSource={calendarEvents
+                  .filter(event => moment(event.date).isAfter(moment()))
+                  .sort((a, b) => moment(a.date).diff(moment(b.date)))
+                  .slice(0, 5)}
+                renderItem={event => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={
+                        <span>
+                          <Tag color={
+                            event.type === 'HOLIDAY' ? 'red' :
+                            event.type === 'EXAM' ? 'blue' :
+                            'green'
+                          }>
+                            {event.type}
+                          </Tag>
+                          {event.title}
+                        </span>
+                      }
+                      description={moment(event.date).format('MMMM D, YYYY')}
+                    />
+                  </List.Item>
+                )}
+              />
+            </Card>
+          </div>
         </Col>
       </Row>
 

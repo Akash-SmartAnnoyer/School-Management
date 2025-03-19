@@ -208,7 +208,7 @@
 .finance-card .ant-card-body,
 .chart-card .ant-card-body {
   padding: 20px;
-  height: calc(100% - 57px); /* Account for card header height */
+  height: calc(100% - 57px);
 }
 
 .dashboard-charts {
@@ -354,4 +354,107 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+.next-holiday-card {
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+}
+
+.next-holiday-info {
+  text-align: center;
+  padding: 16px;
+}
+
+.next-holiday-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.next-holiday-info p {
+  margin: 4px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.upcoming-events-card {
+  margin-bottom: 16px;
+}
+
+.upcoming-events-card .ant-list-item {
+  padding: 8px 0;
+}
+
+.upcoming-events-card .ant-tag {
+  margin-right: 8px;
+}
+
+.dashboard-side-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-side-cards .ant-card {
+  margin-bottom: 0;
+}
+
+.dashboard-quick-actions {
+  margin-top: 24px;
+}
+
+.quick-actions-row {
+  margin-top: 24px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 24px;
+}
+
+.quick-action-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: none;
+  overflow: hidden;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.quick-action-content {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.quick-action-icon {
+  font-size: 28px;
+  color: #1890ff;
+  background: #e6f7ff;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.quick-action-text {
+  flex: 1;
+}
+
+.quick-action-text h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1f1f1f;
+  font-weight: 600;
+}
+
+.quick-action-text p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #666;
 } 

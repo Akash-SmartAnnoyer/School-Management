@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Button, Typography, Input, Space, Avatar, Badge, Dropdown, Tooltip, ConfigProvider, message } from 'antd';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -26,10 +26,12 @@ import {
   SearchOutlined,
   PlusOutlined,
   FileAddOutlined,
-  NotificationOutlined
+  NotificationOutlined,
+  FormatPainterOutlined
 } from '@ant-design/icons';
 import './App.css';
 import GlobalSearch from './components/GlobalSearch';
+import ThemeConfigurator from './components/ThemeConfigurator';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -47,6 +49,8 @@ import Communication from './pages/Communication';
 import Profile from './pages/Profile';
 import AuthProvider, { useAuth, ROLES } from './contexts/AuthContext';
 import ExamManagement from './pages/ExamManagement';
+import AcademicCalendar from './pages/AcademicCalendar';
+import TeacherAttendance from './pages/TeacherAttendance';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -71,26 +75,61 @@ function MainLayout() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [themeVisible, setThemeVisible] = useState(false);
+
+  // Add useEffect to load saved theme colors
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('themeColors');
+    if (savedTheme) {
+      const themeColors = JSON.parse(savedTheme);
+      Object.entries(themeColors).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(`--${key}`, value);
+      });
+    } else {
+      // Set default theme if no saved theme exists
+      const defaultTheme = {
+        'primary-color': '#FF6B6B',
+        'secondary-color': '#4ECDC4',
+        'accent-color': '#FFE66D',
+        'background-color': '#f7f9fc',
+        'surface-color': '#ffffff',
+        'text-primary': '#2D3436',
+        'text-secondary': '#636E72',
+        'border-color': '#DFE6E9',
+        'hover-color': '#f1f2f6',
+        'success-color': '#00B894',
+        'warning-color': '#FDCB6E',
+        'error-color': '#FF7675',
+        'side-menu-bg': '#001529',
+      };
+      Object.entries(defaultTheme).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(`--${key}`, value);
+      });
+      localStorage.setItem('themeColors', JSON.stringify(defaultTheme));
+    }
+  }, []);
 
   const menuItems = [
     { key: '1', label: 'Dashboard', icon: <DashboardOutlined />, path: '/' },
-    { key: '2', label: 'Students', icon: <UserOutlined />, path: '/students' },
-    { key: '3', label: 'Teachers', icon: <TeamOutlined />, path: '/teachers' },
-    { key: '4', label: 'Classes', icon: <BookOutlined />, path: '/classes' },
-    { key: '5', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
-    { key: '6', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
-    { key: '7', label: 'Parents', icon: <HomeOutlined />, path: '/parents' },
-    { key: '8', label: 'Administration', icon: <SettingOutlined />, path: '/administration' },
-    { key: '9', label: 'Finance', icon: <WalletOutlined />, path: '/finance' },
-    { key: '10', label: 'Reports', icon: <BarChartOutlined />, path: '/reports' },
-    { key: '11', label: 'Communication', icon: <MessageOutlined />, path: '/communication' },
+    { key: '2', label: 'Academic Calendar', icon: <CalendarOutlined />, path: '/academic-calendar' },
+    { key: '3', label: 'Students', icon: <UserOutlined />, path: '/students' },
+    { key: '4', label: 'Teachers', icon: <TeamOutlined />, path: '/teachers' },
+    { key: '5', label: 'Classes', icon: <BookOutlined />, path: '/classes' },
+    { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
+    { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
+    { key: '8', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
+    { key: '9', label: 'Parents', icon: <HomeOutlined />, path: '/parents' },
+    { key: '10', label: 'Administration', icon: <SettingOutlined />, path: '/administration' },
+    { key: '11', label: 'Finance', icon: <WalletOutlined />, path: '/finance' },
+    { key: '12', label: 'Reports', icon: <BarChartOutlined />, path: '/reports' },
+    { key: '13', label: 'Communication', icon: <MessageOutlined />, path: '/communication' },
   ].filter(item => {
     // Filter menu items based on user role
     if (currentUser.role === ROLES.TEACHER) {
-      return !['teachers', 'administration', 'finance'].includes(item.path.slice(1));
+      return !['teachers', 'administration', 'finance', 'teacher-attendance'].includes(item.path.slice(1));
     }
     if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return ['/', '/attendance', '/academics', '/communication'].includes(item.path);
+      return ['/', '/academic-calendar', '/attendance', '/academics', '/communication'].includes(item.path);
     }
     return true; // Show all items for PRINCIPAL
   });
@@ -142,18 +181,33 @@ function MainLayout() {
       onClick: () => navigate('/attendance'),
     },
     {
+      key: 'addEvent',
+      icon: <CalendarOutlined />,
+      label: 'Add Calendar Event',
+      onClick: () => navigate('/academic-calendar'),
+    },
+    {
       key: 'addNotice',
       icon: <NotificationOutlined />,
       label: 'Add Notice',
       onClick: () => navigate('/communication'),
     },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'theme',
+      icon: <FormatPainterOutlined />,
+      label: 'Theme Settings',
+      onClick: () => setThemeVisible(true),
+    },
   ].filter(action => {
     // Filter quick actions based on user role
     if (currentUser.role === ROLES.TEACHER) {
-      return ['markAttendance', 'addNotice'].includes(action.key);
+      return ['markAttendance', 'addNotice', 'theme'].includes(action.key);
     }
     if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return false;
+      return ['theme'].includes(action.key);
     }
     return true; // Show all actions for PRINCIPAL
   });
@@ -186,6 +240,40 @@ function MainLayout() {
     },
   ];
 
+  const handleThemeChange = (field, value) => {
+    if (field === 'reset') {
+      // Reset to default theme
+      const defaultTheme = {
+        'primary-color': '#FF6B6B',
+        'secondary-color': '#4ECDC4',
+        'accent-color': '#FFE66D',
+        'background-color': '#f7f9fc',
+        'surface-color': '#ffffff',
+        'text-primary': '#2D3436',
+        'text-secondary': '#636E72',
+        'border-color': '#DFE6E9',
+        'hover-color': '#f1f2f6',
+        'success-color': '#00B894',
+        'warning-color': '#FDCB6E',
+        'error-color': '#FF7675',
+        'side-menu-bg': '#001529',
+      };
+      Object.entries(defaultTheme).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(`--${key}`, value);
+      });
+      localStorage.setItem('themeColors', JSON.stringify(defaultTheme));
+    } else {
+      // Update specific color
+      const cssVar = field.replace(/([A-Z])/g, '-$1').toLowerCase();
+      document.documentElement.style.setProperty(`--${cssVar}`, value);
+      
+      // Save to localStorage
+      const savedTheme = JSON.parse(localStorage.getItem('themeColors') || '{}');
+      savedTheme[cssVar] = value;
+      localStorage.setItem('themeColors', JSON.stringify(savedTheme));
+    }
+  };
+
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
@@ -210,6 +298,7 @@ function MainLayout() {
           top: 0,
           bottom: 0,
           boxShadow: '2px 0 8px 0 rgba(29, 35, 41, 0.05)',
+          background: 'var(--side-menu-bg)',
         }}
       >
         <div 
@@ -236,10 +325,11 @@ function MainLayout() {
               opacity: collapsed ? 0 : 1,
               transition: 'opacity 0.3s',
               fontSize: collapsed ? '0' : '18px',
-              textAlign: 'center'
+              textAlign: 'center',
+              borderRadius: '16px'
             }}
           >
-            Smart School
+            Smart Schooling
           </Title>
         </div>
         <Menu
@@ -258,7 +348,9 @@ function MainLayout() {
           }}
           style={{
             borderRight: 'none',
-            padding: '0 4px'
+            padding: '0 4px',
+            background: 'var(--side-menu-bg)',
+            color: '#fff'
           }}
         />
       </Sider>
@@ -428,17 +520,17 @@ function MainLayout() {
             <Route path="/communication" element={<Communication />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
-            <Route
-              path="teacher/exams"
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
-                  <ExamManagement />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="exam-management" element={<ExamManagement />} />
+            <Route path="academic-calendar" element={<AcademicCalendar />} />
+            <Route path="teacher-attendance" element={<TeacherAttendance />} />
           </Routes>
         </Content>
       </Layout>
+      <ThemeConfigurator 
+        visible={themeVisible}
+        onClose={() => setThemeVisible(false)}
+        onThemeChange={handleThemeChange}
+      />
     </Layout>
   );
 }
@@ -464,7 +556,7 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
-                path="/*"
+                path="/"
                 element={
                   <ProtectedRoute>
                     <MainLayout />
@@ -474,18 +566,18 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="students" element={<Students />} />
                 <Route path="teachers" element={<Teachers />} />
+                <Route path="classes" element={<Classes />} />
                 <Route path="attendance" element={<Attendance />} />
+                <Route path="academics" element={<Academics />} />
+                <Route path="parents" element={<Parents />} />
+                <Route path="administration" element={<Administration />} />
                 <Route path="finance" element={<Finance />} />
+                <Route path="reports" element={<Reports />} />
                 <Route path="communication" element={<Communication />} />
                 <Route path="profile" element={<Profile />} />
-                <Route
-                  path="teacher/exams"
-                  element={
-                    <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
-                      <ExamManagement />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="exam-management" element={<ExamManagement />} />
+                <Route path="academic-calendar" element={<AcademicCalendar />} />
+                <Route path="teacher-attendance" element={<TeacherAttendance />} />
               </Route>
             </Routes>
           </Router>

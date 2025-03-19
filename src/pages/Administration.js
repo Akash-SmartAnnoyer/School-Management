@@ -1,515 +1,533 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Card, Table, Button, Space, Form, Input, Select, DatePicker, List, Tag, Upload, Modal, message, Row, Col, Statistic } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, CarOutlined, BookOutlined, HomeOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
-import { subscribeToCollection, getStudents, getClasses, getTeachers, addUser, updateUser, deleteUser } from '../firebase/services';
-
-const { TabPane } = Tabs;
-const { Dragger } = Upload;
-const { Option } = Select;
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Tab,
+  Tabs,
+  IconButton,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+  Alert,
+  Snackbar,
+  List,
+  ListItem,
+  ListItemText
+} from '@mui/material';
+import {
+  Settings as SettingsIcon,
+  People as PeopleIcon,
+  Security as SecurityIcon,
+  School as SchoolIcon,
+  Assessment as AssessmentIcon,
+  Event as EventIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
+import {
+  getUsers,
+  addUser,
+  updateUser,
+  deleteUser,
+  getUserRole,
+  updateSchoolSettings,
+  getSchoolSettings
+} from '../firebase/services';
 
 const Administration = () => {
+  const [activeTab, setActiveTab] = useState(0);
   const [users, setUsers] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [editingUser, setEditingUser] = useState(null);
+  const [schoolSettings, setSchoolSettings] = useState({
+    name: '',
+    address: '',
+    contact: '',
+    email: '',
+    website: '',
+    academicYear: '',
+    termDates: {
+      start: '',
+      end: ''
+    }
+  });
+  
+  // Dialog states
+  const [openUserDialog, setOpenUserDialog] = useState(false);
+  const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
+  
+  // Form states
+  const [userForm, setUserForm] = useState({
+    name: '',
+    email: '',
+    role: '',
+    department: '',
+    status: 'active'
+  });
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   useEffect(() => {
-    const unsubscribeUsers = subscribeToCollection('users', (data) => {
-      setUsers(data);
-    });
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-    return () => {
-      unsubscribeUsers();
-      unsubscribeStudents();
-      unsubscribeClasses();
-      unsubscribeTeachers();
-    };
+    loadData();
   }, []);
 
-  const handleAdd = () => {
-    setEditingUser(null);
-    form.resetFields();
-    setIsModalVisible(true);
+  const loadData = async () => {
+    try {
+      const [usersData, settingsData] = await Promise.all([
+        getUsers(),
+        getSchoolSettings()
+      ]);
+      
+      setUsers(usersData);
+      if (settingsData) {
+        setSchoolSettings(settingsData);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showNotification('Error loading data', 'error');
+    }
   };
 
-  const handleEdit = (record) => {
-    setEditingUser(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  const handleDelete = async (userId) => {
+  const handleAddUser = async () => {
+    try {
+      await addUser(userForm);
+      setOpenUserDialog(false);
+      setUserForm({
+        name: '',
+        email: '',
+        role: '',
+        department: '',
+        status: 'active'
+      });
+      loadData();
+      showNotification('User added successfully', 'success');
+    } catch (error) {
+      console.error('Error adding user:', error);
+      showNotification('Error adding user', 'error');
+    }
+  };
+
+  const handleUpdateSettings = async () => {
+    try {
+      await updateSchoolSettings(schoolSettings);
+      setOpenSettingsDialog(false);
+      loadData();
+      showNotification('School settings updated successfully', 'success');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      showNotification('Error updating settings', 'error');
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
     try {
       await deleteUser(userId);
-      message.success('User deleted successfully');
+      loadData();
+      showNotification('User deleted successfully', 'success');
     } catch (error) {
-      message.error('Error deleting user');
+      console.error('Error deleting user:', error);
+      showNotification('Error deleting user', 'error');
     }
   };
 
-  const handleModalOk = async () => {
+  const handleUpdateUserStatus = async (userId, newStatus) => {
     try {
-      const values = await form.validateFields();
-      const userData = {
-        ...values,
-        createdAt: new Date().toISOString()
-      };
-
-      if (editingUser) {
-        await updateUser(editingUser.id, userData);
-        message.success('User updated successfully');
-      } else {
-        await addUser(userData);
-        message.success('User added successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
+      await updateUser(userId, { status: newStatus });
+      showNotification('User status updated successfully', 'success');
     } catch (error) {
-      message.error('Error saving user');
+      console.error('Error updating user status:', error);
+      showNotification('Error updating user status', 'error');
     }
   };
 
-  const columns = [
-    {
-      title: 'Username',
-      dataIndex: 'username',
-      key: 'username',
-    },
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => (
-        <Tag color={
-          role === 'Admin' ? 'red' :
-          role === 'Teacher' ? 'blue' :
-          role === 'Staff' ? 'green' :
-          'orange'
-        }>
-          {role}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-        </Space>
-      ),
-    },
-  ];
-
-  // Fee Management
-  const feeColumns = [
-    {
-      title: 'Student ID',
-      dataIndex: 'studentId',
-      key: 'studentId',
-    },
-    {
-      title: 'Student Name',
-      dataIndex: 'studentName',
-      key: 'studentName',
-    },
-    {
-      title: 'Fee Type',
-      dataIndex: 'feeType',
-      key: 'feeType',
-    },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-    },
-    {
-      title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'paid' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
-        </Space>
-      ),
-    },
-  ];
-
-  // Inventory Management
-  const inventoryColumns = [
-    {
-      title: 'Item ID',
-      dataIndex: 'id',
-      key: 'id',
-    },
-    {
-      title: 'Item Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
-    },
-    {
-      title: 'Quantity',
-      dataIndex: 'quantity',
-      key: 'quantity',
-    },
-    {
-      title: 'Unit',
-      dataIndex: 'unit',
-      key: 'unit',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'in_stock' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
-        </Space>
-      ),
-    },
-  ];
-
-  // Transport Routes
-  const routes = [
-    {
-      id: 1,
-      name: 'Route A',
-      driver: 'John Smith',
-      vehicle: 'Bus 101',
-      capacity: 40,
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Route B',
-      driver: 'Sarah Johnson',
-      vehicle: 'Bus 102',
-      capacity: 35,
-      status: 'active',
-    },
-  ];
+  const showNotification = (message, severity = 'success') => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
+  };
 
   return (
-    <div>
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Total Users"
-              value={users.length}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Active Users"
-              value={users.filter(u => u.status === 'Active').length}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Administrators"
-              value={users.filter(u => u.role === 'Admin').length}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Administration
+      </Typography>
 
-      <Card
-        title="User Management"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Add User
-          </Button>
-        }
-      >
-        <Table columns={columns} dataSource={users} rowKey="id" />
-      </Card>
-
-      <Modal
-        title={editingUser ? 'Edit User' : 'Add User'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="username"
-            label="Username"
-            rules={[{ required: true, message: 'Please input username!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="name"
-            label="Full Name"
-            rules={[{ required: true, message: 'Please input full name!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, message: 'Please input email!' },
-              { type: 'email', message: 'Please enter a valid email!' }
-            ]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="role"
-            label="Role"
-            rules={[{ required: true, message: 'Please select role!' }]}
-          >
-            <Select>
-              <Option value="Admin">Administrator</Option>
-              <Option value="Teacher">Teacher</Option>
-              <Option value="Staff">Staff</Option>
-              <Option value="Parent">Parent</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
-          >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="permissions"
-            label="Permissions"
-            rules={[{ required: true, message: 'Please select permissions!' }]}
-          >
-            <Select mode="multiple" placeholder="Select permissions">
-              <Option value="manage_users">Manage Users</Option>
-              <Option value="manage_students">Manage Students</Option>
-              <Option value="manage_teachers">Manage Teachers</Option>
-              <Option value="manage_classes">Manage Classes</Option>
-              <Option value="manage_attendance">Manage Attendance</Option>
-              <Option value="manage_finance">Manage Finance</Option>
-              <Option value="view_reports">View Reports</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Fee Management" key="1">
-          <Card
-            title="Fee Records"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Fee Record
-              </Button>
-            }
-          >
-            <Table columns={feeColumns} dataSource={[]} rowKey="studentId" />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Inventory Management" key="2">
-          <Card
-            title="Inventory"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Item
-              </Button>
-            }
-          >
-            <Table columns={inventoryColumns} dataSource={[]} rowKey="id" />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Transport Management" key="3">
-          <Card
-            title="Transport Routes"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Route
-              </Button>
-            }
-          >
-            <List
-              dataSource={routes}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <Button key="edit" icon={<EditOutlined />} />,
-                    <Button key="delete" icon={<DeleteOutlined />} danger />,
-                  ]}
-                >
-                  <List.Item.Meta
-                    title={item.name}
-                    description={`Driver: ${item.driver} | Vehicle: ${item.vehicle} | Capacity: ${item.capacity}`}
-                    avatar={<CarOutlined style={{ fontSize: 24 }} />}
-                  />
-                  <Tag color={item.status === 'active' ? 'green' : 'red'}>
-                    {item.status}
-                  </Tag>
-                </List.Item>
-              )}
-            />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Library Management" key="4">
-          <Card title="Library">
-            <Form layout="vertical">
-              <Form.Item label="Book Title">
-                <Input />
-              </Form.Item>
-              <Form.Item label="Author">
-                <Input />
-              </Form.Item>
-              <Form.Item label="ISBN">
-                <Input />
-              </Form.Item>
-              <Form.Item label="Category">
-                <Select>
-                  <Select.Option value="fiction">Fiction</Select.Option>
-                  <Select.Option value="non-fiction">Non-Fiction</Select.Option>
-                  <Select.Option value="textbook">Textbook</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Quantity">
-                <Input type="number" />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary">Add Book</Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Hostel Management" key="5">
-          <Card title="Hostel">
-            <Form layout="vertical">
-              <Form.Item label="Room Number">
-                <Input />
-              </Form.Item>
-              <Form.Item label="Capacity">
-                <Input type="number" />
-              </Form.Item>
-              <Form.Item label="Type">
-                <Select>
-                  <Select.Option value="boys">Boys Hostel</Select.Option>
-                  <Select.Option value="girls">Girls Hostel</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Facilities">
-                <Select mode="multiple">
-                  <Select.Option value="ac">AC</Select.Option>
-                  <Select.Option value="heater">Heater</Select.Option>
-                  <Select.Option value="wifi">WiFi</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary">Add Room</Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Calendar & Events" key="6">
-          <Card title="Event Calendar">
-            <Form layout="vertical">
-              <Form.Item label="Event Title">
-                <Input />
-              </Form.Item>
-              <Form.Item label="Event Type">
-                <Select>
-                  <Select.Option value="academic">Academic</Select.Option>
-                  <Select.Option value="sports">Sports</Select.Option>
-                  <Select.Option value="cultural">Cultural</Select.Option>
-                  <Select.Option value="holiday">Holiday</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Date">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-              <Form.Item label="Description">
-                <Input.TextArea rows={4} />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary">Add Event</Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </TabPane>
+      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+        <Tab icon={<SettingsIcon />} label="School Settings" />
+        <Tab icon={<PeopleIcon />} label="User Management" />
+        <Tab icon={<SecurityIcon />} label="Access Control" />
+        <Tab icon={<SchoolIcon />} label="Academic Calendar" />
       </Tabs>
-    </div>
+
+      {/* School Settings Tab */}
+      {activeTab === 0 && (
+        <Box>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">School Information</Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  onClick={() => setOpenSettingsDialog(true)}
+                >
+                  Edit Settings
+                </Button>
+              </Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">School Name</Typography>
+                  <Typography>{schoolSettings.name}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Contact</Typography>
+                  <Typography>{schoolSettings.contact}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Email</Typography>
+                  <Typography>{schoolSettings.email}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Website</Typography>
+                  <Typography>{schoolSettings.website}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Academic Year</Typography>
+                  <Typography>{schoolSettings.academicYear}</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Term Dates</Typography>
+                  <Typography>
+                    {schoolSettings.termDates.start} - {schoolSettings.termDates.end}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+
+      {/* User Management Tab */}
+      {activeTab === 1 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6">User Management</Typography>
+            <Button
+              variant="contained"
+              startIcon={<PeopleIcon />}
+              onClick={() => setOpenUserDialog(true)}
+            >
+              Add User
+            </Button>
+          </Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Department</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>{user.department}</TableCell>
+                    <TableCell>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={user.status === 'active'}
+                            onChange={() => handleUpdateUserStatus(user.id, user.status === 'active' ? 'inactive' : 'active')}
+                          />
+                        }
+                        label={user.status}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit">
+                        <IconButton>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton onClick={() => handleDeleteUser(user.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* Access Control Tab */}
+      {activeTab === 2 && (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Role Permissions
+          </Typography>
+          <Grid container spacing={3}>
+            {['Admin', 'Teacher', 'Staff', 'Parent'].map((role) => (
+              <Grid item xs={12} md={6} key={role}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {role}
+                    </Typography>
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="View Dashboard"
+                    />
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="Manage Students"
+                    />
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="Manage Classes"
+                    />
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="Manage Attendance"
+                    />
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="Manage Exams"
+                    />
+                    <FormControlLabel
+                      control={<Switch defaultChecked />}
+                      label="Generate Reports"
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Academic Calendar Tab */}
+      {activeTab === 3 && (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Academic Calendar
+          </Typography>
+          <Card>
+            <CardContent>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Current Term</Typography>
+                  <Typography>
+                    {schoolSettings.termDates.start} - {schoolSettings.termDates.end}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle1">Upcoming Events</Typography>
+                  <List>
+                    <ListItem>
+                      <ListItemText
+                        primary="Parent-Teacher Meeting"
+                        secondary="March 25, 2024"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Annual Sports Day"
+                        secondary="April 15, 2024"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="School Annual Day"
+                        secondary="May 5, 2024"
+                      />
+                    </ListItem>
+                  </List>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+
+      {/* Add User Dialog */}
+      <Dialog open={openUserDialog} onClose={() => setOpenUserDialog(false)}>
+        <DialogTitle>Add New User</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Name"
+            fullWidth
+            value={userForm.name}
+            onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Email"
+            type="email"
+            fullWidth
+            value={userForm.email}
+            onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={userForm.role}
+              onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+            >
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="teacher">Teacher</MenuItem>
+              <MenuItem value="staff">Staff</MenuItem>
+              <MenuItem value="parent">Parent</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            label="Department"
+            fullWidth
+            value={userForm.department}
+            onChange={(e) => setUserForm({ ...userForm, department: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenUserDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddUser} variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* School Settings Dialog */}
+      <Dialog open={openSettingsDialog} onClose={() => setOpenSettingsDialog(false)}>
+        <DialogTitle>Edit School Settings</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="School Name"
+            fullWidth
+            value={schoolSettings.name}
+            onChange={(e) => setSchoolSettings({ ...schoolSettings, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Contact"
+            fullWidth
+            value={schoolSettings.contact}
+            onChange={(e) => setSchoolSettings({ ...schoolSettings, contact: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Email"
+            type="email"
+            fullWidth
+            value={schoolSettings.email}
+            onChange={(e) => setSchoolSettings({ ...schoolSettings, email: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Website"
+            fullWidth
+            value={schoolSettings.website}
+            onChange={(e) => setSchoolSettings({ ...schoolSettings, website: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Academic Year"
+            fullWidth
+            value={schoolSettings.academicYear}
+            onChange={(e) => setSchoolSettings({ ...schoolSettings, academicYear: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Term Start Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={schoolSettings.termDates.start}
+            onChange={(e) => setSchoolSettings({
+              ...schoolSettings,
+              termDates: { ...schoolSettings.termDates, start: e.target.value }
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Term End Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={schoolSettings.termDates.end}
+            onChange={(e) => setSchoolSettings({
+              ...schoolSettings,
+              termDates: { ...schoolSettings.termDates, end: e.target.value }
+            })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSettingsDialog(false)}>Cancel</Button>
+          <Button onClick={handleUpdateSettings} variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
+      >
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

@@ -14,7 +14,9 @@ import {
   Row,
   Col,
   Statistic,
-  Input as AntInput
+  Input as AntInput,
+  Divider,
+  DatePicker
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined, TeamOutlined, BookOutlined, SearchOutlined } from '@ant-design/icons';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
@@ -28,7 +30,16 @@ import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
 import { MessageContext } from '../App';
 import { subscribeToCollection, getClasses, getTeachers } from '../firebase/services';
 import { useLocation, useNavigate } from 'react-router-dom';
-  
+import moment from 'moment';
+import { message } from 'antd';
+import { 
+  addStudent, 
+  getStudents, 
+  updateStudent, 
+  deleteStudent,
+  getSectionsByClass
+} from '../firebase/services';
+
 const { Option } = Select;
 const { Search } = AntInput;
 
@@ -37,6 +48,387 @@ const cld = new Cloudinary({
     cloudName: 'dyr02bpil'
   }
 });
+
+const StudentForm = ({ visible, onCancel, onSubmit, initialValues }) => {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+
+  useEffect(() => {
+    loadClasses();
+    if (initialValues) {
+      form.setFieldsValue(initialValues);
+    }
+  }, [initialValues]);
+
+  const loadClasses = async () => {
+    try {
+      const classesData = await getClasses();
+      setClasses(classesData);
+    } catch (error) {
+      message.error('Failed to load classes');
+    }
+  };
+
+  const handleClassChange = async (classId) => {
+    try {
+      const sectionsData = await getSectionsByClass(classId);
+      setSections(sectionsData);
+      form.setFieldValue('section', undefined);
+    } catch (error) {
+      message.error('Failed to load sections');
+    }
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      setLoading(true);
+      await onSubmit(values);
+      form.resetFields();
+      onCancel();
+    } catch (error) {
+      message.error('Failed to save student');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      title={initialValues ? "Edit Student" : "New Student Admission"}
+      open={visible}
+      onCancel={onCancel}
+      footer={null}
+      width={800}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{
+          status: 'active',
+          admissionDate: moment(),
+          ...initialValues
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="admissionNo"
+              label="Admission Number"
+              rules={[{ required: true, message: 'Please input admission number!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="admissionDate"
+              label="Admission Date"
+              rules={[{ required: true, message: 'Please select admission date!' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider>Personal Information</Divider>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="firstName"
+              label="First Name"
+              rules={[{ required: true, message: 'Please input first name!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="lastName"
+              label="Last Name"
+              rules={[{ required: true, message: 'Please input last name!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="dateOfBirth"
+              label="Date of Birth"
+              rules={[{ required: true, message: 'Please select date of birth!' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="gender"
+              label="Gender"
+              rules={[{ required: true, message: 'Please select gender!' }]}
+            >
+              <Select>
+                <Option value="male">Male</Option>
+                <Option value="female">Female</Option>
+                <Option value="other">Other</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="bloodGroup"
+              label="Blood Group"
+              rules={[{ required: true, message: 'Please select blood group!' }]}
+            >
+              <Select>
+                <Option value="A+">A+</Option>
+                <Option value="A-">A-</Option>
+                <Option value="B+">B+</Option>
+                <Option value="B-">B-</Option>
+                <Option value="O+">O+</Option>
+                <Option value="O-">O-</Option>
+                <Option value="AB+">AB+</Option>
+                <Option value="AB-">AB-</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="nationality"
+              label="Nationality"
+              rules={[{ required: true, message: 'Please input nationality!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider>Contact Information</Divider>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'Please input email!' },
+                { type: 'email', message: 'Please enter a valid email!' }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="phone"
+              label="Phone Number"
+              rules={[{ required: true, message: 'Please input phone number!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="address"
+          label="Address"
+          rules={[{ required: true, message: 'Please input address!' }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+
+        <Divider>Academic Information</Divider>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="class"
+              label="Class"
+              rules={[{ required: true, message: 'Please select class!' }]}
+            >
+              <Select onChange={handleClassChange}>
+                {classes.map(cls => (
+                  <Option key={cls.id} value={cls.id}>{cls.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="section"
+              label="Section"
+              rules={[{ required: true, message: 'Please select section!' }]}
+            >
+              <Select>
+                {sections.map(section => (
+                  <Option key={section.id} value={section.id}>{section.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="previousSchool"
+              label="Previous School"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="lastGrade"
+              label="Last Grade Attended"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Divider>Parent/Guardian Information</Divider>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="fatherName"
+              label="Father's Name"
+              rules={[{ required: true, message: 'Please input father\'s name!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="fatherOccupation"
+              label="Father's Occupation"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="motherName"
+              label="Mother's Name"
+              rules={[{ required: true, message: 'Please input mother\'s name!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="motherOccupation"
+              label="Mother's Occupation"
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="parentEmail"
+              label="Parent's Email"
+              rules={[
+                { required: true, message: 'Please input parent\'s email!' },
+                { type: 'email', message: 'Please enter a valid email!' }
+              ]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="parentPhone"
+              label="Parent's Phone"
+              rules={[{ required: true, message: 'Please input parent\'s phone!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="parentAddress"
+          label="Parent's Address"
+          rules={[{ required: true, message: 'Please input parent\'s address!' }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+
+        <Divider>Emergency Contact</Divider>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="emergencyContactName"
+              label="Emergency Contact Name"
+              rules={[{ required: true, message: 'Please input emergency contact name!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="emergencyContactPhone"
+              label="Emergency Contact Phone"
+              rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="emergencyContactRelation"
+          label="Relation with Student"
+          rules={[{ required: true, message: 'Please input relation with student!' }]}
+        >
+          <Input />
+        </Form.Item>
+
+        <Divider>Additional Information</Divider>
+        <Form.Item
+          name="medicalConditions"
+          label="Medical Conditions"
+        >
+          <Input.TextArea rows={2} />
+        </Form.Item>
+
+        <Form.Item
+          name="allergies"
+          label="Allergies"
+        >
+          <Input.TextArea rows={2} />
+        </Form.Item>
+
+        <Form.Item
+          name="remarks"
+          label="Remarks"
+        >
+          <Input.TextArea rows={2} />
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              {initialValues ? 'Update' : 'Admit Student'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
 
 const Students = () => {
   const messageApi = useContext(MessageContext);
@@ -186,14 +578,22 @@ const Students = () => {
   const columns = [
     {
       title: 'Photo',
-      dataIndex: 'profilePublicId',
+      dataIndex: 'photoPublicId',
       key: 'photo',
       width: 80,
-      render: (profilePublicId, record) => {
-        if (profilePublicId) {
+      render: (photoPublicId, record) => {
+        console.log('Student photo data:', {
+          photoPublicId,
+          photoURL: record.photoURL,
+          record
+        });
+        
+        if (photoPublicId) {
+          const cldImg = getCloudinaryImage(photoPublicId);
+          console.log('Cloudinary image:', cldImg);
           return (
             <AdvancedImage 
-              cldImg={getCloudinaryImage(profilePublicId)}
+              cldImg={cldImg}
               style={{ width: 40, height: 40, borderRadius: '50%' }}
             />
           );
@@ -323,91 +723,12 @@ const Students = () => {
         rowClassName={(record) => record.id === highlightedId ? 'highlighted-row' : ''}
       />
 
-      <Modal
-        title={editingStudent ? 'Edit Student' : 'Add Student'}
-        open={modalVisible}
-        onOk={form.submit}
+      <StudentForm
+        visible={modalVisible}
         onCancel={() => setModalVisible(false)}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="rollNumber"
-            label="Roll Number"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="classId"
-            label="Class"
-            rules={[{ required: true, message: 'Please select class!' }]}
-          >
-            <Select>
-              {classes
-                .filter(cls => cls.status === 'Active')
-                .map(cls => (
-                  <Option key={cls.id} value={cls.id}>
-                    {cls.className} - Section {cls.section}
-                  </Option>
-                ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="gender"
-            label="Gender"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Option value="Male">Male</Option>
-              <Option value="Female">Female</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true },
-              { type: 'email' }
-            ]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="phone"
-            label="Phone"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSubmit={handleSubmit}
+        initialValues={editingStudent}
+      />
 
       <StudentDetailsDrawer
         visible={drawerVisible}

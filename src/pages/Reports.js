@@ -1,255 +1,517 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, DatePicker, Card, message, Row, Col, Statistic } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DownloadOutlined } from '@ant-design/icons';
-import { generateReport, getReport, updateReport, deleteReport, subscribeToCollection, getStudents, getClasses, getTeachers } from '../firebase/services';
-
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Tab,
+  Tabs,
+  IconButton,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Snackbar,
+  Chip,
+  CircularProgress
+} from '@mui/material';
+import {
+  Assessment as AssessmentIcon,
+  School as SchoolIcon,
+  Person as PersonIcon,
+  TrendingUp as TrendingUpIcon,
+  Download as DownloadIcon,
+  Print as PrintIcon,
+  FilterList as FilterListIcon
+} from '@mui/icons-material';
+import {
+  getStudents,
+  getTeachers,
+  getClasses,
+  getAttendance,
+  getMarks,
+  getFees,
+  getPayments,
+  getExpenses,
+  generateReport
+} from '../firebase/services';
 
 const Reports = () => {
-  const [reports, setReports] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [editingReport, setEditingReport] = useState(null);
-  const [dateRange, setDateRange] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [reportType, setReportType] = useState('');
+  const [dateRange, setDateRange] = useState({
+    start: '',
+    end: ''
+  });
+  
+  // Dialog states
+  const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openFilterDialog, setOpenFilterDialog] = useState(false);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    class: '',
+    section: '',
+    subject: '',
+    examType: '',
+    feeType: '',
+    expenseCategory: ''
+  });
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-  useEffect(() => {
-    const unsubscribeReports = subscribeToCollection('reports', (data) => {
-      setReports(data);
-    });
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-    return () => {
-      unsubscribeReports();
-      unsubscribeStudents();
-      unsubscribeClasses();
-      unsubscribeTeachers();
-    };
-  }, []);
-
-  const handleAdd = () => {
-    setEditingReport(null);
-    form.resetFields();
-    setIsModalVisible(true);
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
-  const handleEdit = (record) => {
-    setEditingReport(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = async (reportId) => {
+  const handleGenerateReport = async () => {
     try {
-      await deleteReport(reportId);
-      message.success('Report deleted successfully');
+      setLoading(true);
+      const data = await generateReport(reportType, dateRange, filters);
+      setReportData(data);
+      setOpenReportDialog(false);
+      showNotification('Report generated successfully', 'success');
     } catch (error) {
-      message.error('Error deleting report');
+      console.error('Error generating report:', error);
+      showNotification('Error generating report', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const reportData = {
-        ...values,
-        createdAt: new Date().toISOString()
-      };
-
-      if (editingReport) {
-        await updateReport(editingReport.id, reportData);
-        message.success('Report updated successfully');
-      } else {
-        await generateReport(reportData);
-        message.success('Report generated successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-    } catch (error) {
-      message.error('Error generating report');
-    }
+  const handleDownloadReport = () => {
+    // Implement report download functionality
+    showNotification('Report downloaded successfully', 'success');
   };
 
-  const handleDownload = async (reportId) => {
-    try {
-      const report = await getReport(reportId);
-      if (report) {
-        // Implement download functionality
-        message.success('Report downloaded successfully');
-      }
-    } catch (error) {
-      message.error('Error downloading report');
-    }
+  const handlePrintReport = () => {
+    // Implement report printing functionality
+    showNotification('Report printed successfully', 'success');
   };
 
-  const columns = [
-    {
-      title: 'Report Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => (
-        <Tag color={
-          type === 'Academic' ? 'blue' :
-          type === 'Attendance' ? 'green' :
-          type === 'Financial' ? 'orange' :
-          'purple'
-        }>
-          {type}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Date Range',
-      dataIndex: 'dateRange',
-      key: 'dateRange',
-      render: (dateRange) => {
-        if (!dateRange) return 'N/A';
-        return `${new Date(dateRange.start).toLocaleDateString()} - ${new Date(dateRange.end).toLocaleDateString()}`;
-      }
-    },
-    {
-      title: 'Generated By',
-      dataIndex: 'generatedBy',
-      key: 'generatedBy',
-    },
-    {
-      title: 'Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<DownloadOutlined />} onClick={() => handleDownload(record.id)} />
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-        </Space>
-      ),
-    },
-  ];
+  const showNotification = (message, severity = 'success') => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const renderReportContent = () => {
+    if (!reportData) return null;
+
+    switch (reportType) {
+      case 'academic':
+        return (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Student ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Class</TableCell>
+                  <TableCell>Subject</TableCell>
+                  <TableCell>Exam</TableCell>
+                  <TableCell>Marks</TableCell>
+                  <TableCell>Grade</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reportData.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{record.studentId}</TableCell>
+                    <TableCell>{record.studentName}</TableCell>
+                    <TableCell>{record.class}</TableCell>
+                    <TableCell>{record.subject}</TableCell>
+                    <TableCell>{record.exam}</TableCell>
+                    <TableCell>{record.marks}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={record.grade}
+                        color={
+                          record.grade === 'A' ? 'success' :
+                          record.grade === 'B' ? 'primary' :
+                          record.grade === 'C' ? 'warning' :
+                          'error'
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        );
+
+      case 'attendance':
+        return (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Class</TableCell>
+                  <TableCell>Total Students</TableCell>
+                  <TableCell>Present</TableCell>
+                  <TableCell>Absent</TableCell>
+                  <TableCell>Late</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reportData.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{record.class}</TableCell>
+                    <TableCell>{record.totalStudents}</TableCell>
+                    <TableCell>{record.present}</TableCell>
+                    <TableCell>{record.absent}</TableCell>
+                    <TableCell>{record.late}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        );
+
+      case 'financial':
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Fee Collection Summary
+                  </Typography>
+                  <Table>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Total Fees</TableCell>
+                        <TableCell>₹{reportData.totalFees.toLocaleString()}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Collected</TableCell>
+                        <TableCell>₹{reportData.collectedFees.toLocaleString()}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Pending</TableCell>
+                        <TableCell>₹{reportData.pendingFees.toLocaleString()}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Expense Summary
+                  </Typography>
+                  <Table>
+                    <TableBody>
+                      {Object.entries(reportData.expenses).map(([category, amount]) => (
+                        <TableRow key={category}>
+                          <TableCell>{category}</TableCell>
+                          <TableCell>₹{amount.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        );
+
+      case 'performance':
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Class Performance
+                  </Typography>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Class</TableCell>
+                        <TableCell>Average Score</TableCell>
+                        <TableCell>Pass Rate</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {reportData.classPerformance.map((record) => (
+                        <TableRow key={record.class}>
+                          <TableCell>{record.class}</TableCell>
+                          <TableCell>{record.averageScore}%</TableCell>
+                          <TableCell>{record.passRate}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Subject Performance
+                  </Typography>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Subject</TableCell>
+                        <TableCell>Average Score</TableCell>
+                        <TableCell>Pass Rate</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {reportData.subjectPerformance.map((record) => (
+                        <TableRow key={record.subject}>
+                          <TableCell>{record.subject}</TableCell>
+                          <TableCell>{record.averageScore}%</TableCell>
+                          <TableCell>{record.passRate}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div>
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Total Reports"
-              value={reports.length}
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Academic Reports"
-              value={reports.filter(r => r.type === 'Academic').length}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic
-              title="Financial Reports"
-              value={reports.filter(r => r.type === 'Financial').length}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
-        </Col>
-      </Row>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Reports & Analytics
+      </Typography>
 
-      <Card
-        title="Reports Management"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Generate Report
+      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+        <Tab icon={<AssessmentIcon />} label="Academic Reports" />
+        <Tab icon={<SchoolIcon />} label="Attendance Reports" />
+        <Tab icon={<TrendingUpIcon />} label="Financial Reports" />
+        <Tab icon={<PersonIcon />} label="Performance Analytics" />
+      </Tabs>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Button
+          variant="contained"
+          startIcon={<AssessmentIcon />}
+          onClick={() => setOpenReportDialog(true)}
+        >
+          Generate Report
+        </Button>
+        <Box>
+          <Tooltip title="Download Report">
+            <IconButton onClick={handleDownloadReport}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Print Report">
+            <IconButton onClick={handlePrintReport}>
+              <PrintIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Filter Report">
+            <IconButton onClick={() => setOpenFilterDialog(true)}>
+              <FilterListIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        renderReportContent()
+      )}
+
+      {/* Generate Report Dialog */}
+      <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)}>
+        <DialogTitle>Generate Report</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Report Type</InputLabel>
+            <Select
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+            >
+              <MenuItem value="academic">Academic Report</MenuItem>
+              <MenuItem value="attendance">Attendance Report</MenuItem>
+              <MenuItem value="financial">Financial Report</MenuItem>
+              <MenuItem value="performance">Performance Analytics</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            label="Start Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={dateRange.start}
+            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="End Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={dateRange.end}
+            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenReportDialog(false)}>Cancel</Button>
+          <Button onClick={handleGenerateReport} variant="contained">
+            Generate
           </Button>
-        }
-      >
-        <Table columns={columns} dataSource={reports} rowKey="id" />
-      </Card>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        title={editingReport ? 'Edit Report' : 'Generate Report'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+      {/* Filter Dialog */}
+      <Dialog open={openFilterDialog} onClose={() => setOpenFilterDialog(false)}>
+        <DialogTitle>Filter Report</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Class</InputLabel>
+            <Select
+              value={filters.class}
+              onChange={(e) => setFilters({ ...filters, class: e.target.value })}
+            >
+              <MenuItem value="">All Classes</MenuItem>
+              <MenuItem value="1">Class 1</MenuItem>
+              <MenuItem value="2">Class 2</MenuItem>
+              <MenuItem value="3">Class 3</MenuItem>
+              {/* Add more classes */}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Section</InputLabel>
+            <Select
+              value={filters.section}
+              onChange={(e) => setFilters({ ...filters, section: e.target.value })}
+            >
+              <MenuItem value="">All Sections</MenuItem>
+              <MenuItem value="A">Section A</MenuItem>
+              <MenuItem value="B">Section B</MenuItem>
+              <MenuItem value="C">Section C</MenuItem>
+              {/* Add more sections */}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Subject</InputLabel>
+            <Select
+              value={filters.subject}
+              onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
+            >
+              <MenuItem value="">All Subjects</MenuItem>
+              <MenuItem value="math">Mathematics</MenuItem>
+              <MenuItem value="science">Science</MenuItem>
+              <MenuItem value="english">English</MenuItem>
+              {/* Add more subjects */}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Exam Type</InputLabel>
+            <Select
+              value={filters.examType}
+              onChange={(e) => setFilters({ ...filters, examType: e.target.value })}
+            >
+              <MenuItem value="">All Exams</MenuItem>
+              <MenuItem value="midterm">Mid-term</MenuItem>
+              <MenuItem value="final">Final</MenuItem>
+              <MenuItem value="quiz">Quiz</MenuItem>
+              {/* Add more exam types */}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Fee Type</InputLabel>
+            <Select
+              value={filters.feeType}
+              onChange={(e) => setFilters({ ...filters, feeType: e.target.value })}
+            >
+              <MenuItem value="">All Fees</MenuItem>
+              <MenuItem value="tuition">Tuition Fee</MenuItem>
+              <MenuItem value="transport">Transport Fee</MenuItem>
+              <MenuItem value="hostel">Hostel Fee</MenuItem>
+              {/* Add more fee types */}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Expense Category</InputLabel>
+            <Select
+              value={filters.expenseCategory}
+              onChange={(e) => setFilters({ ...filters, expenseCategory: e.target.value })}
+            >
+              <MenuItem value="">All Categories</MenuItem>
+              <MenuItem value="utilities">Utilities</MenuItem>
+              <MenuItem value="salaries">Salaries</MenuItem>
+              <MenuItem value="maintenance">Maintenance</MenuItem>
+              {/* Add more categories */}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenFilterDialog(false)}>Cancel</Button>
+          <Button onClick={() => {
+            setOpenFilterDialog(false);
+            handleGenerateReport();
+          }} variant="contained">
+            Apply Filters
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification({ ...notification, open: false })}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
-            label="Report Name"
-            rules={[{ required: true, message: 'Please input report name!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="Report Type"
-            rules={[{ required: true, message: 'Please select report type!' }]}
-          >
-            <Select>
-              <Option value="Academic">Academic Report</Option>
-              <Option value="Attendance">Attendance Report</Option>
-              <Option value="Financial">Financial Report</Option>
-              <Option value="Performance">Performance Report</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="dateRange"
-            label="Date Range"
-            rules={[{ required: true, message: 'Please select date range!' }]}
-          >
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="parameters"
-            label="Report Parameters"
-            rules={[{ required: true, message: 'Please select parameters!' }]}
-          >
-            <Select mode="multiple" placeholder="Select parameters">
-              <Option value="students">Students</Option>
-              <Option value="classes">Classes</Option>
-              <Option value="teachers">Teachers</Option>
-              <Option value="attendance">Attendance</Option>
-              <Option value="grades">Grades</Option>
-              <Option value="finance">Finance</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="format"
-            label="Report Format"
-            rules={[{ required: true, message: 'Please select format!' }]}
-          >
-            <Select>
-              <Option value="pdf">PDF</Option>
-              <Option value="excel">Excel</Option>
-              <Option value="csv">CSV</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
