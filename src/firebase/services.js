@@ -185,9 +185,9 @@ export const deleteClass = async (classId) => {
 // Attendance Collection
 export const attendanceCollection = collection(db, 'attendance');
 
-export const addAttendance = async (attendanceData) => {
+export const addAttendance = async (attendanceData, collectionName = 'attendance') => {
   try {
-    const docRef = await addDoc(collection(db, 'attendance'), {
+    const docRef = await addDoc(collection(db, collectionName), {
       ...attendanceData,
       createdAt: new Date().toISOString()
     });
@@ -198,13 +198,21 @@ export const addAttendance = async (attendanceData) => {
   }
 };
 
-export const getAttendance = async (date, classId) => {
+export const getAttendance = async (date, classId, collectionName = 'attendance') => {
   try {
-    const q = query(
-      collection(db, 'attendance'),
-      where('date', '==', date),
-      where('classId', '==', classId)
-    );
+    let q;
+    if (collectionName === 'attendance') {
+      q = query(
+        collection(db, collectionName),
+        where('date', '==', date),
+        where('classId', '==', classId)
+      );
+    } else {
+      q = query(
+        collection(db, collectionName),
+        where('date', '==', date)
+      );
+    }
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
@@ -268,7 +276,38 @@ export const deleteTransaction = async (transactionId) => {
   }
 };
 
-// Academics
+// Subjects Collection
+export const subjectsCollection = collection(db, 'subjects');
+
+export const addSubject = async (subjectData) => {
+  try {
+    const docRef = await addDoc(collection(db, 'subjects'), {
+      ...subjectData,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding subject:', error);
+    throw error;
+  }
+};
+
+export const getSubjects = async () => {
+  try {
+    const querySnapshot = await getDocs(subjectsCollection);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting subjects:', error);
+    throw error;
+  }
+};
+
+// Exams Collection
+export const examsCollection = collection(db, 'exams');
+
 export const addExam = async (examData) => {
   try {
     const docRef = await addDoc(collection(db, 'exams'), {
@@ -282,27 +321,165 @@ export const addExam = async (examData) => {
   }
 };
 
-export const updateExam = async (examId, examData) => {
+export const getExams = async () => {
   try {
-    const examRef = doc(db, 'exams', examId);
-    await updateDoc(examRef, {
-      ...examData,
-      updatedAt: new Date().toISOString()
-    });
+    const querySnapshot = await getDocs(examsCollection);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
-    console.error('Error updating exam:', error);
+    console.error('Error getting exams:', error);
     throw error;
   }
 };
 
-export const deleteExam = async (examId) => {
+export const getExamsByClass = async (classId) => {
   try {
-    const examRef = doc(db, 'exams', examId);
-    await deleteDoc(examRef);
+    const q = query(
+      collection(db, 'exams'),
+      where('classId', '==', classId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
-    console.error('Error deleting exam:', error);
+    console.error('Error getting exams by class:', error);
     throw error;
   }
+};
+
+// Marks Collection
+export const marksCollection = collection(db, 'marks');
+
+export const addMarks = async (marksData) => {
+  try {
+    const docRef = await addDoc(collection(db, 'marks'), {
+      ...marksData,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding marks:', error);
+    throw error;
+  }
+};
+
+export const getMarksByExam = async (examId) => {
+  try {
+    const q = query(
+      collection(db, 'marks'),
+      where('examId', '==', examId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting marks by exam:', error);
+    throw error;
+  }
+};
+
+export const getStudentMarks = async (studentId) => {
+  try {
+    const q = query(
+      collection(db, 'marks'),
+      where('studentId', '==', studentId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting student marks:', error);
+    throw error;
+  }
+};
+
+// Report Cards Collection
+export const reportCardsCollection = collection(db, 'reportCards');
+
+export const addReportCard = async (reportCardData) => {
+  try {
+    const docRef = await addDoc(collection(db, 'reportCards'), {
+      ...reportCardData,
+      createdAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding report card:', error);
+    throw error;
+  }
+};
+
+export const getReportCard = async (studentId, academicYear) => {
+  try {
+    const q = query(
+      collection(db, 'reportCards'),
+      where('studentId', '==', studentId),
+      where('academicYear', '==', academicYear)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting report card:', error);
+    throw error;
+  }
+};
+
+export const generateReportCard = async (studentId, academicYear) => {
+  try {
+    // Get all marks for the student in the academic year
+    const marks = await getStudentMarks(studentId);
+    
+    // Calculate performance metrics
+    const performance = calculatePerformance(marks);
+    
+    // Create report card
+    const reportCardData = {
+      studentId,
+      academicYear,
+      performance,
+      marks,
+      generatedAt: new Date().toISOString()
+    };
+    
+    return await addReportCard(reportCardData);
+  } catch (error) {
+    console.error('Error generating report card:', error);
+    throw error;
+  }
+};
+
+// Helper function to calculate performance metrics
+const calculatePerformance = (marks) => {
+  const totalMarks = marks.reduce((sum, mark) => sum + mark.score, 0);
+  const maxMarks = marks.reduce((sum, mark) => sum + mark.maxScore, 0);
+  const percentage = (totalMarks / maxMarks) * 100;
+  
+  return {
+    totalMarks,
+    maxMarks,
+    percentage,
+    grade: calculateGrade(percentage)
+  };
+};
+
+const calculateGrade = (percentage) => {
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 80) return 'A';
+  if (percentage >= 70) return 'B+';
+  if (percentage >= 60) return 'B';
+  if (percentage >= 50) return 'C';
+  return 'F';
 };
 
 // Parents
@@ -509,13 +686,21 @@ export const updateProfile = async (userId, profileData) => {
 };
 
 // School Settings
-export const updateSchoolSettings = async (userId, settingsData) => {
+export const getSchoolSettings = async () => {
   try {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
-      ...settingsData,
-      updatedAt: new Date().toISOString()
-    });
+    const docRef = doc(db, 'settings', 'school');
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  } catch (error) {
+    console.error('Error getting school settings:', error);
+    throw error;
+  }
+};
+
+export const updateSchoolSettings = async (settings) => {
+  try {
+    const docRef = doc(db, 'settings', 'school');
+    await setDoc(docRef, settings, { merge: true });
   } catch (error) {
     console.error('Error updating school settings:', error);
     throw error;
@@ -523,32 +708,288 @@ export const updateSchoolSettings = async (userId, settingsData) => {
 };
 
 // User Management
-export const createUserDocument = async (user, role = 'user') => {
+export const getUsers = async () => {
   try {
-    const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
-      email: user.email,
-      role: role,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-    return userRef.id;
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
-    console.error('Error creating user document:', error);
+    console.error('Error getting users:', error);
     throw error;
   }
 };
 
-export const getUserRole = async (userId) => {
+// Announcements
+export const getAnnouncements = async () => {
   try {
-    const userRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()) {
-      return userDoc.data().role;
-    }
-    return null;
+    const announcementsRef = collection(db, 'announcements');
+    const q = query(announcementsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   } catch (error) {
-    console.error('Error getting user role:', error);
+    console.error('Error getting announcements:', error);
+    throw error;
+  }
+};
+
+export const addAnnouncement = async (announcementData) => {
+  try {
+    const announcementsRef = collection(db, 'announcements');
+    const docRef = await addDoc(announcementsRef, {
+      ...announcementData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding announcement:', error);
+    throw error;
+  }
+};
+
+export const deleteAnnouncement = async (announcementId) => {
+  try {
+    await deleteDoc(doc(db, 'announcements', announcementId));
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    throw error;
+  }
+};
+
+// Messages
+export const getMessages = async (userId) => {
+  try {
+    const messagesRef = collection(db, 'messages');
+    const q = query(
+      messagesRef,
+      where('recipientId', '==', userId),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting messages:', error);
+    throw error;
+  }
+};
+
+export const sendMessage = async (messageData) => {
+  try {
+    const messagesRef = collection(db, 'messages');
+    const docRef = await addDoc(messagesRef, {
+      ...messageData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
+  }
+};
+
+// Events
+export const getEvents = async () => {
+  try {
+    const eventsRef = collection(db, 'events');
+    const q = query(eventsRef, orderBy('date', 'asc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting events:', error);
+    throw error;
+  }
+};
+
+export const addEvent = async (eventData) => {
+  try {
+    const eventsRef = collection(db, 'events');
+    const docRef = await addDoc(eventsRef, {
+      ...eventData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding event:', error);
+    throw error;
+  }
+};
+
+export const deleteEvent = async (eventId) => {
+  try {
+    await deleteDoc(doc(db, 'events', eventId));
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    throw error;
+  }
+};
+
+// Financial Management
+export const getFees = async () => {
+  try {
+    const feesRef = collection(db, 'fees');
+    const q = query(feesRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting fees:', error);
+    throw error;
+  }
+};
+
+export const getPayments = async () => {
+  try {
+    const paymentsRef = collection(db, 'payments');
+    const q = query(paymentsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting payments:', error);
+    throw error;
+  }
+};
+
+export const getExpenses = async () => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const q = query(expensesRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting expenses:', error);
+    throw error;
+  }
+};
+
+export const generateFinancialReport = async (startDate, endDate) => {
+  try {
+    const paymentsRef = collection(db, 'payments');
+    const expensesRef = collection(db, 'expenses');
+
+    const paymentsQuery = query(
+      paymentsRef,
+      where('createdAt', '>=', startDate),
+      where('createdAt', '<=', endDate)
+    );
+    const expensesQuery = query(
+      expensesRef,
+      where('createdAt', '>=', startDate),
+      where('createdAt', '<=', endDate)
+    );
+
+    const [paymentsSnapshot, expensesSnapshot] = await Promise.all([
+      getDocs(paymentsQuery),
+      getDocs(expensesQuery)
+    ]);
+
+    const payments = paymentsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    const expenses = expensesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    const totalRevenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const netBalance = totalRevenue - totalExpenses;
+
+    return {
+      payments,
+      expenses,
+      totalRevenue,
+      totalExpenses,
+      netBalance
+    };
+  } catch (error) {
+    console.error('Error generating financial report:', error);
+    throw error;
+  }
+};
+
+export const addFee = async (feeData) => {
+  try {
+    const feesRef = collection(db, 'fees');
+    const docRef = await addDoc(feesRef, {
+      ...feeData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding fee:', error);
+    throw error;
+  }
+};
+
+export const addPayment = async (paymentData) => {
+  try {
+    const paymentsRef = collection(db, 'payments');
+    const docRef = await addDoc(paymentsRef, {
+      ...paymentData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding payment:', error);
+    throw error;
+  }
+};
+
+export const addExpense = async (expenseData) => {
+  try {
+    const expensesRef = collection(db, 'expenses');
+    const docRef = await addDoc(expensesRef, {
+      ...expenseData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding expense:', error);
+    throw error;
+  }
+};
+
+export const deleteFee = async (feeId) => {
+  try {
+    await deleteDoc(doc(db, 'fees', feeId));
+  } catch (error) {
+    console.error('Error deleting fee:', error);
+    throw error;
+  }
+};
+
+export const deleteExpense = async (expenseId) => {
+  try {
+    await deleteDoc(doc(db, 'expenses', expenseId));
+  } catch (error) {
+    console.error('Error deleting expense:', error);
     throw error;
   }
 };
@@ -685,6 +1126,21 @@ export const initializeDatabase = async () => {
     return true;
   } catch (error) {
     console.error('Error initializing database:', error);
+    throw error;
+  }
+};
+
+export const getSectionsByClass = async (classId) => {
+  try {
+    const sectionsRef = collection(db, 'sections');
+    const q = query(sectionsRef, where('classId', '==', classId));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting sections:', error);
     throw error;
   }
 }; 

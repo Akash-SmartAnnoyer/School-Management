@@ -1,367 +1,511 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Card, Table, Button, Space, Modal, Form, Input, Select, DatePicker, Tag, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { addExam, updateExam, deleteExam, subscribeToCollection, getStudents, getClasses } from '../firebase/services';
-
-const { TabPane } = Tabs;
-const { Option } = Select;
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Tab,
+  Tabs,
+  IconButton,
+  Tooltip
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Assessment as AssessmentIcon,
+  School as SchoolIcon,
+  Grade as GradeIcon,
+  Description as DescriptionIcon
+} from '@mui/icons-material';
+import {
+  getSubjects,
+  addSubject,
+  getExams,
+  addExam,
+  getMarksByExam,
+  addMarks,
+  getReportCard,
+  generateReportCard
+} from '../firebase/services';
+import { getStudents } from '../firebase/services';
+import { getClasses } from '../firebase/services';
 
 const Academics = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [subjects, setSubjects] = useState([]);
   const [exams, setExams] = useState([]);
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [editingExam, setEditingExam] = useState(null);
+  const [marks, setMarks] = useState([]);
+  const [reportCards, setReportCards] = useState([]);
+  
+  // Dialog states
+  const [openSubjectDialog, setOpenSubjectDialog] = useState(false);
+  const [openExamDialog, setOpenExamDialog] = useState(false);
+  const [openMarksDialog, setOpenMarksDialog] = useState(false);
+  const [openReportCardDialog, setOpenReportCardDialog] = useState(false);
+  
+  // Form states
+  const [subjectForm, setSubjectForm] = useState({
+    name: '',
+    code: '',
+    description: ''
+  });
+  const [examForm, setExamForm] = useState({
+    name: '',
+    subjectId: '',
+    classId: '',
+    date: '',
+    maxScore: ''
+  });
+  const [marksForm, setMarksForm] = useState({
+    examId: '',
+    studentId: '',
+    score: ''
+  });
 
   useEffect(() => {
-    const unsubscribeExams = subscribeToCollection('exams', (data) => {
-      setExams(data);
-    });
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    return () => {
-      unsubscribeExams();
-      unsubscribeStudents();
-      unsubscribeClasses();
-    };
+    loadData();
   }, []);
 
-  const handleAdd = () => {
-    setEditingExam(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingExam(record);
-    form.setFieldsValue({
-      ...record,
-      date: record.date ? new Date(record.date) : null
-    });
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = async (examId) => {
+  const loadData = async () => {
     try {
-      await deleteExam(examId);
-      message.success('Exam deleted successfully');
+      const subjectsData = await getSubjects();
+      const examsData = await getExams();
+      const studentsData = await getStudents();
+      const classesData = await getClasses();
+      
+      setSubjects(subjectsData);
+      setExams(examsData);
+      setStudents(studentsData);
+      setClasses(classesData);
     } catch (error) {
-      message.error('Error deleting exam');
+      console.error('Error loading data:', error);
     }
   };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const examData = {
-        ...values,
-        date: values.date ? values.date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      };
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
-      if (editingExam) {
-        await updateExam(editingExam.id, examData);
-        message.success('Exam updated successfully');
-      } else {
-        await addExam(examData);
-        message.success('Exam added successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
+  // Subject Management
+  const handleAddSubject = async () => {
+    try {
+      await addSubject(subjectForm);
+      setOpenSubjectDialog(false);
+      setSubjectForm({ name: '', code: '', description: '' });
+      loadData();
     } catch (error) {
-      message.error('Error saving exam');
+      console.error('Error adding subject:', error);
     }
   };
 
-  // Course Management
-  const courseColumns = [
-    {
-      title: 'Course Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
-      title: 'Course Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
-      title: 'Teacher',
-      dataIndex: 'teacher',
-      key: 'teacher',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
-        </Space>
-      ),
-    },
-  ];
+  // Exam Management
+  const handleAddExam = async () => {
+    try {
+      await addExam(examForm);
+      setOpenExamDialog(false);
+      setExamForm({ name: '', subjectId: '', classId: '', date: '', maxScore: '' });
+      loadData();
+    } catch (error) {
+      console.error('Error adding exam:', error);
+    }
+  };
 
-  // Examination Management
-  const columns = [
-    {
-      title: 'Exam Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Class',
-      dataIndex: 'classId',
-      key: 'classId',
-      render: (classId) => {
-        const classInfo = classes.find(c => c.id === classId);
-        return classInfo ? `${classInfo.className} - ${classInfo.section}` : 'N/A';
-      }
-    },
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-    },
-    {
-      title: 'Duration',
-      dataIndex: 'duration',
-      key: 'duration',
-      render: (duration) => `${duration} minutes`,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'Scheduled' ? 'blue' : status === 'Completed' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-        </Space>
-      ),
-    },
-  ];
+  // Marks Management
+  const handleAddMarks = async () => {
+    try {
+      await addMarks(marksForm);
+      setOpenMarksDialog(false);
+      setMarksForm({ examId: '', studentId: '', score: '' });
+      loadData();
+    } catch (error) {
+      console.error('Error adding marks:', error);
+    }
+  };
 
-  // Homework Management
-  const homeworkColumns = [
-    {
-      title: 'Title',
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
-      title: 'Class',
-      dataIndex: 'class',
-      key: 'class',
-    },
-    {
-      title: 'Due Date',
-      dataIndex: 'dueDate',
-      key: 'dueDate',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} />
-          <Button icon={<DeleteOutlined />} danger />
-        </Space>
-      ),
-    },
-  ];
+  // Report Card Management
+  const handleGenerateReportCard = async (studentId) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      await generateReportCard(studentId, currentYear);
+      const reportCard = await getReportCard(studentId, currentYear);
+      setReportCards([...reportCards, reportCard]);
+    } catch (error) {
+      console.error('Error generating report card:', error);
+    }
+  };
 
   return (
-    <div>
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Course Management" key="1">
-          <Card
-            title="Courses"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Course
-              </Button>
-            }
-          >
-            <Table columns={courseColumns} dataSource={[]} rowKey="code" />
-          </Card>
-        </TabPane>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Academics Management
+      </Typography>
 
-        <TabPane tab="Examination Management" key="2">
-          <Card
-            title="Exams Management"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                Add Exam
-              </Button>
-            }
-          >
-            <Table columns={columns} dataSource={exams} rowKey="id" />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Homework & Assignments" key="3">
-          <Card
-            title="Homework & Assignments"
-            extra={
-              <Button type="primary" icon={<PlusOutlined />}>
-                Add Homework
-              </Button>
-            }
-          >
-            <Table columns={homeworkColumns} dataSource={[]} rowKey="id" />
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Curriculum Planning" key="4">
-          <Card title="Curriculum Planning">
-            <Form layout="vertical">
-              <Form.Item label="Academic Year">
-                <Select>
-                  <Select.Option value="2024-25">2024-25</Select.Option>
-                  <Select.Option value="2023-24">2023-24</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Class">
-                <Select>
-                  <Select.Option value="1">Class 1</Select.Option>
-                  <Select.Option value="2">Class 2</Select.Option>
-                  <Select.Option value="3">Class 3</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Subject">
-                <Select>
-                  <Select.Option value="math">Mathematics</Select.Option>
-                  <Select.Option value="science">Science</Select.Option>
-                  <Select.Option value="english">English</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Curriculum Content">
-                <Input.TextArea rows={4} />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary">Save Curriculum</Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Report Cards" key="5">
-          <Card title="Report Card Generation">
-            <Form layout="vertical">
-              <Form.Item label="Class">
-                <Select>
-                  <Select.Option value="1">Class 1</Select.Option>
-                  <Select.Option value="2">Class 2</Select.Option>
-                  <Select.Option value="3">Class 3</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Term">
-                <Select>
-                  <Select.Option value="1">First Term</Select.Option>
-                  <Select.Option value="2">Second Term</Select.Option>
-                  <Select.Option value="3">Final Term</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary">Generate Report Cards</Button>
-              </Form.Item>
-            </Form>
-          </Card>
-        </TabPane>
+      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
+        <Tab icon={<SchoolIcon />} label="Subjects" />
+        <Tab icon={<AssessmentIcon />} label="Exams" />
+        <Tab icon={<GradeIcon />} label="Marks" />
+        <Tab icon={<DescriptionIcon />} label="Report Cards" />
       </Tabs>
 
-      <Modal
-        title={editingExam ? 'Edit Exam' : 'Add Exam'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="name"
+      {/* Subjects Tab */}
+      {activeTab === 0 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6">Subjects</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenSubjectDialog(true)}
+            >
+              Add Subject
+            </Button>
+          </Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Code</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {subjects.map((subject) => (
+                  <TableRow key={subject.id}>
+                    <TableCell>{subject.code}</TableCell>
+                    <TableCell>{subject.name}</TableCell>
+                    <TableCell>{subject.description}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit">
+                        <IconButton>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* Exams Tab */}
+      {activeTab === 1 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6">Exams</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenExamDialog(true)}
+            >
+              Add Exam
+            </Button>
+          </Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Subject</TableCell>
+                  <TableCell>Class</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Max Score</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {exams.map((exam) => (
+                  <TableRow key={exam.id}>
+                    <TableCell>{exam.name}</TableCell>
+                    <TableCell>
+                      {subjects.find(s => s.id === exam.subjectId)?.name}
+                    </TableCell>
+                    <TableCell>
+                      {classes.find(c => c.id === exam.classId)?.name}
+                    </TableCell>
+                    <TableCell>{exam.date}</TableCell>
+                    <TableCell>{exam.maxScore}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit">
+                        <IconButton>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* Marks Tab */}
+      {activeTab === 2 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6">Marks</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenMarksDialog(true)}
+            >
+              Add Marks
+            </Button>
+          </Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Student</TableCell>
+                  <TableCell>Exam</TableCell>
+                  <TableCell>Score</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {marks.map((mark) => (
+                  <TableRow key={mark.id}>
+                    <TableCell>
+                      {students.find(s => s.id === mark.studentId)?.name}
+                    </TableCell>
+                    <TableCell>
+                      {exams.find(e => e.id === mark.examId)?.name}
+                    </TableCell>
+                    <TableCell>{mark.score}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Edit">
+                        <IconButton>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
+
+      {/* Report Cards Tab */}
+      {activeTab === 3 && (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Report Cards
+          </Typography>
+          <Grid container spacing={3}>
+            {students.map((student) => (
+              <Grid item xs={12} md={6} key={student.id}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">{student.name}</Typography>
+                    <Typography color="textSecondary">
+                      Class: {classes.find(c => c.id === student.classId)?.name}
+                    </Typography>
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleGenerateReportCard(student.id)}
+                      >
+                        Generate Report Card
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+
+      {/* Add Subject Dialog */}
+      <Dialog open={openSubjectDialog} onClose={() => setOpenSubjectDialog(false)}>
+        <DialogTitle>Add Subject</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Subject Name"
+            fullWidth
+            value={subjectForm.name}
+            onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Subject Code"
+            fullWidth
+            value={subjectForm.code}
+            onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={subjectForm.description}
+            onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSubjectDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddSubject} variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Exam Dialog */}
+      <Dialog open={openExamDialog} onClose={() => setOpenExamDialog(false)}>
+        <DialogTitle>Add Exam</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
             label="Exam Name"
-            rules={[{ required: true, message: 'Please input exam name!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="classId"
-            label="Class"
-            rules={[{ required: true, message: 'Please select class!' }]}
-          >
-            <Select>
-              {classes.map(cls => (
-                <Option key={cls.id} value={cls.id}>
-                  {cls.className} - {cls.section}
-                </Option>
+            fullWidth
+            value={examForm.name}
+            onChange={(e) => setExamForm({ ...examForm, name: e.target.value })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Subject</InputLabel>
+            <Select
+              value={examForm.subjectId}
+              onChange={(e) => setExamForm({ ...examForm, subjectId: e.target.value })}
+            >
+              {subjects.map((subject) => (
+                <MenuItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </MenuItem>
               ))}
             </Select>
-          </Form.Item>
-          <Form.Item
-            name="subject"
-            label="Subject"
-            rules={[{ required: true, message: 'Please input subject!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="date"
-            label="Date"
-            rules={[{ required: true, message: 'Please select date!' }]}
-          >
-            <DatePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="duration"
-            label="Duration (minutes)"
-            rules={[{ required: true, message: 'Please input duration!' }]}
-          >
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
-          >
-            <Select>
-              <Option value="Scheduled">Scheduled</Option>
-              <Option value="Completed">Completed</Option>
-              <Option value="Cancelled">Cancelled</Option>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Class</InputLabel>
+            <Select
+              value={examForm.classId}
+              onChange={(e) => setExamForm({ ...examForm, classId: e.target.value })}
+            >
+              {classes.map((cls) => (
+                <MenuItem key={cls.id} value={cls.id}>
+                  {cls.name}
+                </MenuItem>
+              ))}
             </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+          </FormControl>
+          <TextField
+            margin="dense"
+            label="Date"
+            type="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={examForm.date}
+            onChange={(e) => setExamForm({ ...examForm, date: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Max Score"
+            type="number"
+            fullWidth
+            value={examForm.maxScore}
+            onChange={(e) => setExamForm({ ...examForm, maxScore: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenExamDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddExam} variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Marks Dialog */}
+      <Dialog open={openMarksDialog} onClose={() => setOpenMarksDialog(false)}>
+        <DialogTitle>Add Marks</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Exam</InputLabel>
+            <Select
+              value={marksForm.examId}
+              onChange={(e) => setMarksForm({ ...marksForm, examId: e.target.value })}
+            >
+              {exams.map((exam) => (
+                <MenuItem key={exam.id} value={exam.id}>
+                  {exam.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Student</InputLabel>
+            <Select
+              value={marksForm.studentId}
+              onChange={(e) => setMarksForm({ ...marksForm, studentId: e.target.value })}
+            >
+              {students.map((student) => (
+                <MenuItem key={student.id} value={student.id}>
+                  {student.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            label="Score"
+            type="number"
+            fullWidth
+            value={marksForm.score}
+            onChange={(e) => setMarksForm({ ...marksForm, score: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenMarksDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddMarks} variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

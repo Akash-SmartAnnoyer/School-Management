@@ -1,15 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD7kNb7kNb7kNb7kNb7kNb7kNb7kNb7kNb",
-  authDomain: "school-management-c78c6.firebaseapp.com",
-  projectId: "school-management-c78c6",
-  storageBucket: "school-management-c78c6.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: "demo-api-key",
+  authDomain: "demo.firebaseapp.com",
+  projectId: "demo-project",
+  storageBucket: "demo.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef1234567890"
 };
 
 // Initialize Firebase
@@ -17,9 +16,6 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore
 export const db = getFirestore(app);
-
-// Initialize Auth
-export const auth = getAuth(app);
 
 // Initialize Storage
 export const storage = getStorage(app);

@@ -11,7 +11,11 @@ import {
   Upload,
   Avatar,
   message,
-  Input as AntInput
+  Input as AntInput,
+  Divider,
+  DatePicker,
+  Row,
+  Col
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined, SearchOutlined } from '@ant-design/icons';
 import { 
@@ -324,45 +328,266 @@ const Teachers = () => {
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={() => setIsModalVisible(false)}
+        width={800}
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            status: 'Active',
+            ...editingTeacher
+          }}
+        >
+          <Divider>Personal Information</Divider>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="firstName"
+                label="First Name"
+                rules={[{ required: true, message: 'Please input first name!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="lastName"
+                label="Last Name"
+                rules={[{ required: true, message: 'Please input last name!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="dateOfBirth"
+                label="Date of Birth"
+                rules={[{ required: true, message: 'Please select date of birth!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="gender"
+                label="Gender"
+                rules={[{ required: true, message: 'Please select gender!' }]}
+              >
+                <Select>
+                  <Option value="male">Male</Option>
+                  <Option value="female">Female</Option>
+                  <Option value="other">Other</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="nationality"
+                label="Nationality"
+                rules={[{ required: true, message: 'Please input nationality!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="bloodGroup"
+                label="Blood Group"
+                rules={[{ required: true, message: 'Please select blood group!' }]}
+              >
+                <Select>
+                  <Option value="A+">A+</Option>
+                  <Option value="A-">A-</Option>
+                  <Option value="B+">B+</Option>
+                  <Option value="B-">B-</Option>
+                  <Option value="O+">O+</Option>
+                  <Option value="O-">O-</Option>
+                  <Option value="AB+">AB+</Option>
+                  <Option value="AB-">AB-</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider>Contact Information</Divider>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[
+                  { required: true, message: 'Please input email!' },
+                  { type: 'email', message: 'Please enter a valid email!' }
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="phone"
+                label="Phone Number"
+                rules={[{ required: true, message: 'Please input phone number!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please input teacher name!' }]}
+            name="address"
+            label="Address"
+            rules={[{ required: true, message: 'Please input address!' }]}
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Divider>Professional Information</Divider>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="employeeId"
+                label="Employee ID"
+                rules={[{ required: true, message: 'Please input employee ID!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="joiningDate"
+                label="Joining Date"
+                rules={[{ required: true, message: 'Please select joining date!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="subject"
+                label="Subject"
+                rules={[{ required: true, message: 'Please input subject!' }]}
+              >
+                <Select>
+                  <Option value="Mathematics">Mathematics</Option>
+                  <Option value="Science">Science</Option>
+                  <Option value="English">English</Option>
+                  <Option value="History">History</Option>
+                  <Option value="Geography">Geography</Option>
+                  <Option value="Computer Science">Computer Science</Option>
+                  <Option value="Physical Education">Physical Education</Option>
+                  <Option value="Art">Art</Option>
+                  <Option value="Music">Music</Option>
+                  <Option value="Languages">Languages</Option>
+                  <Option value="Economics">Economics</Option>
+                  <Option value="Business Studies">Business Studies</Option>
+                  <Option value="Accountancy">Accountancy</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="qualification"
+                label="Qualification"
+                rules={[{ required: true, message: 'Please input qualification!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="experience"
+                label="Years of Experience"
+                rules={[{ required: true, message: 'Please input years of experience!' }]}
+              >
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="classId"
+                label="Assigned Class (Optional)"
+                rules={[{ required: false }]}
+              >
+                <Select allowClear>
+                  <Option value="">Not Assigned</Option>
+                  {classes
+                    .filter(cls => cls.status === 'Active')
+                    .map(cls => (
+                      <Option key={cls.id} value={cls.id}>
+                        {cls.className} - Section {cls.section}
+                      </Option>
+                    ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="specialization"
+            label="Specialization"
+            rules={[{ required: true, message: 'Please input specialization!' }]}
           >
             <Input />
           </Form.Item>
+
           <Form.Item
-            name="subject"
-            label="Subject"
-            rules={[{ required: true, message: 'Please input subject!' }]}
+            name="previousSchools"
+            label="Previous Schools"
+          >
+            <Input.TextArea rows={2} placeholder="List previous schools with years" />
+          </Form.Item>
+
+          <Divider>Emergency Contact</Divider>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="emergencyContactName"
+                label="Emergency Contact Name"
+                rules={[{ required: true, message: 'Please input emergency contact name!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="emergencyContactPhone"
+                label="Emergency Contact Phone"
+                rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="emergencyContactRelation"
+            label="Relation with Teacher"
+            rules={[{ required: true, message: 'Please input relation with teacher!' }]}
           >
             <Input />
           </Form.Item>
+
+          <Divider>Additional Information</Divider>
           <Form.Item
-            name="qualification"
-            label="Qualification"
-            rules={[{ required: true, message: 'Please input qualification!' }]}
+            name="medicalConditions"
+            label="Medical Conditions"
           >
-            <Input />
+            <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item
-            name="classId"
-            label="Class (Optional)"
-            rules={[{ required: false }]}
-          >
-            <Select allowClear>
-              <Option value="">Not Assigned</Option>
-              {classes
-                .filter(cls => cls.status === 'Active')
-                .map(cls => (
-                  <Option key={cls.id} value={cls.id}>
-                    {cls.className} - Section {cls.section}
-                  </Option>
-                ))}
-            </Select>
-          </Form.Item>
+
           <Form.Item
             name="status"
             label="Status"
@@ -372,30 +597,6 @@ const Teachers = () => {
               <Option value="Active">Active</Option>
               <Option value="Inactive">Inactive</Option>
             </Select>
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, message: 'Please input email!' },
-              { type: 'email', message: 'Please enter a valid email!' }
-            ]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="Phone"
-            rules={[{ required: true, message: 'Please input phone number!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="experience"
-            label="Years of Experience"
-            rules={[{ required: true, message: 'Please input years of experience!' }]}
-          >
-            <Input type="number" min={0} />
           </Form.Item>
         </Form>
       </Modal>

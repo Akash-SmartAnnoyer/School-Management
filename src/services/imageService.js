@@ -13,12 +13,18 @@ const cld = new Cloudinary({
 });
 
 export const getCloudinaryImage = (publicId) => {
-  if (!publicId) return null;
-  return cld
+  if (!publicId) {
+    console.log('No publicId provided to getCloudinaryImage');
+    return null;
+  }
+  console.log('Generating Cloudinary image for publicId:', publicId);
+  const image = cld
     .image(publicId)
     .format('auto')
     .quality('auto')
     .resize(auto().gravity(autoGravity()).width(100).height(100));
+  console.log('Generated Cloudinary image:', image);
+  return image;
 };
 
 export const uploadImage = async (file) => {

@@ -1,160 +1,467 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, DatePicker, Card, message, List, Avatar } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SendOutlined, UserOutlined } from '@ant-design/icons';
-import { addMessage, updateMessage, deleteMessage, subscribeToCollection, getStudents, getParents, getTeachers } from '../firebase/services';
+import {
+  Box,
+  Card,
+  Grid,
+  Typography,
+  Button,
+  Dialog,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar,
+  Alert
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Send as SendIcon,
+  Event as EventIcon
+} from '@mui/icons-material';
+import {
+  getAnnouncements,
+  addAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  getMessages,
+  sendMessage,
+  deleteMessage,
+  getEvents,
+  addEvent,
+  updateEvent,
+  deleteEvent,
+  getUsers
+} from '../firebase/services';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SendOutlined,
+  NotificationOutlined,
+  MessageOutlined,
+  CalendarOutlined,
+  UserOutlined,
+  BankOutlined
+} from '@ant-design/icons';
+import {
+  Tabs,
+  List,
+  Avatar,
+  Tag,
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  TimePicker,
+  Space,
+  message
+} from 'antd';
 
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 const Communication = () => {
+  const [activeTab, setActiveTab] = useState('1');
+  const [announcements, setAnnouncements] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [parents, setParents] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [editingMessage, setEditingMessage] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [users, setUsers] = useState([]);
+  
+  // Modal states
+  const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
+  const [messageModalVisible, setMessageModalVisible] = useState(false);
+  const [eventModalVisible, setEventModalVisible] = useState(false);
+  
+  // Form instances
+  const [announcementForm] = Form.useForm();
+  const [messageForm] = Form.useForm();
+  const [eventForm] = Form.useForm();
 
   useEffect(() => {
-    const unsubscribeMessages = subscribeToCollection('messages', (data) => {
-      setMessages(data);
-    });
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeParents = subscribeToCollection('parents', (data) => {
-      setParents(data);
-    });
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-    return () => {
-      unsubscribeMessages();
-      unsubscribeStudents();
-      unsubscribeParents();
-      unsubscribeTeachers();
-    };
+    loadData();
   }, []);
 
-  const handleAdd = () => {
-    setEditingMessage(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingMessage(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = async (messageId) => {
+  const loadData = async () => {
     try {
-      await deleteMessage(messageId);
-      message.success('Message deleted successfully');
+      const [announcementsData, messagesData, eventsData, usersData] = await Promise.all([
+        getAnnouncements(),
+        getMessages(),
+        getEvents(),
+        getUsers()
+      ]);
+      
+      setAnnouncements(announcementsData);
+      setMessages(messagesData);
+      setEvents(eventsData);
+      setUsers(usersData);
     } catch (error) {
-      message.error('Error deleting message');
+      console.error('Error loading data:', error);
+      message.error('Error loading data');
     }
   };
 
-  const handleModalOk = async () => {
+  const handleAddAnnouncement = async (values) => {
     try {
-      const values = await form.validateFields();
-      const messageData = {
-        ...values,
-        createdAt: new Date().toISOString()
-      };
-
-      if (editingMessage) {
-        await updateMessage(editingMessage.id, messageData);
-        message.success('Message updated successfully');
-      } else {
-        await addMessage(messageData);
-        message.success('Message sent successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
+      await addAnnouncement(values);
+      setAnnouncementModalVisible(false);
+      announcementForm.resetFields();
+      loadData();
+      message.success('Announcement added successfully');
     } catch (error) {
+      console.error('Error adding announcement:', error);
+      message.error('Error adding announcement');
+    }
+  };
+
+  const handleAddMessage = async (values) => {
+    try {
+      await sendMessage(values);
+      setMessageModalVisible(false);
+      messageForm.resetFields();
+      loadData();
+      message.success('Message sent successfully');
+    } catch (error) {
+      console.error('Error sending message:', error);
       message.error('Error sending message');
     }
   };
 
-  const columns = [
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => (
-        <Tag color={type === 'Announcement' ? 'blue' : type === 'Notification' ? 'green' : 'orange'}>
-          {type}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Recipients',
-      dataIndex: 'recipients',
-      key: 'recipients',
-      render: (recipients) => {
-        if (!recipients) return 'All';
-        return recipients.map(id => {
-          const student = students.find(s => s.id === id);
-          const parent = parents.find(p => p.id === id);
-          const teacher = teachers.find(t => t.id === id);
-          return student ? student.name : parent ? parent.name : teacher ? teacher.name : 'N/A';
-        }).join(', ');
-      }
-    },
-    {
-      title: 'Date',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => new Date(date).toLocaleString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(record.id)} />
-        </Space>
-      ),
-    },
-  ];
+  const handleAddEvent = async (values) => {
+    try {
+      await addEvent(values);
+      setEventModalVisible(false);
+      eventForm.resetFields();
+      loadData();
+      message.success('Event added successfully');
+    } catch (error) {
+      console.error('Error adding event:', error);
+      message.error('Error adding event');
+    }
+  };
+
+  const handleDeleteAnnouncement = async (announcementId) => {
+    try {
+      await deleteAnnouncement(announcementId);
+      loadData();
+      message.success('Announcement deleted successfully');
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      message.error('Error deleting announcement');
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      await deleteMessage(messageId);
+      loadData();
+      message.success('Message deleted successfully');
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      message.error('Error deleting message');
+    }
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      await deleteEvent(eventId);
+      loadData();
+      message.success('Event deleted successfully');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      message.error('Error deleting event');
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'high': return 'red';
+      case 'medium': return 'orange';
+      default: return 'green';
+    }
+  };
 
   return (
-    <div>
-      <Card
-        title="Communication Management"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            New Message
-          </Button>
-        }
-      >
-        <Table columns={columns} dataSource={messages} rowKey="id" />
-      </Card>
+    <div style={{ padding: '24px' }}>
+      <Title level={2}>Communication</Title>
 
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs.TabPane
+          tab={
+            <span>
+              <NotificationOutlined />
+              Announcements
+            </span>
+          }
+          key="1"
+        >
+          <Space style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setAnnouncementModalVisible(true)}
+            >
+              Add Announcement
+            </Button>
+          </Space>
+          <List
+            itemLayout="horizontal"
+            dataSource={announcements}
+            renderItem={announcement => (
+              <List.Item
+                actions={[
+                  <Button type="text" icon={<EditOutlined />} />,
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteAnnouncement(announcement.id)}
+                  />
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Avatar icon={<NotificationOutlined />} />
+                  }
+                  title={
+                    <Space>
+                      <Text strong>{announcement.title}</Text>
+                      <Tag color={getPriorityColor(announcement.priority)}>
+                        {announcement.priority}
+                      </Tag>
+                    </Space>
+                  }
+                  description={
+                    <>
+                      <Text>{announcement.content}</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {new Date(announcement.createdAt).toLocaleString()}
+                      </Text>
+                    </>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        </Tabs.TabPane>
+
+        <Tabs.TabPane
+          tab={
+            <span>
+              <MessageOutlined />
+              Messages
+            </span>
+          }
+          key="2"
+        >
+          <Space style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setMessageModalVisible(true)}
+            >
+              New Message
+            </Button>
+          </Space>
+          <List
+            itemLayout="horizontal"
+            dataSource={messages}
+            renderItem={message => (
+              <List.Item
+                actions={[
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteMessage(message.id)}
+                  />
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Avatar icon={<UserOutlined />} />
+                  }
+                  title={
+                    <Space>
+                      <Text strong>{message.subject}</Text>
+                      <Tag color={message.status === 'read' ? 'green' : 'blue'}>
+                        {message.status}
+                      </Tag>
+                    </Space>
+                  }
+                  description={
+                    <>
+                      <Text>{message.content}</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        From: {message.sender} | {new Date(message.createdAt).toLocaleString()}
+                      </Text>
+                    </>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        </Tabs.TabPane>
+
+        <Tabs.TabPane
+          tab={
+            <span>
+              <CalendarOutlined />
+              Events
+            </span>
+          }
+          key="3"
+        >
+          <Space style={{ marginBottom: 16 }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setEventModalVisible(true)}
+            >
+              Add Event
+            </Button>
+          </Space>
+          <List
+            grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 4, xxl: 4 }}
+            dataSource={events}
+            renderItem={event => (
+              <List.Item>
+                <Card
+                  actions={[
+                    <Button type="text" icon={<EditOutlined />} />,
+                    <Button
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleDeleteEvent(event.id)}
+                    />
+                  ]}
+                >
+                  <Card.Meta
+                    title={event.title}
+                    description={
+                      <>
+                        <Text>{event.description}</Text>
+                        <br />
+                        <Space>
+                          <CalendarOutlined />
+                          <Text type="secondary">
+                            {new Date(event.date).toLocaleDateString()} at {event.time}
+                          </Text>
+                        </Space>
+                        <br />
+                        <Space>
+                          <BankOutlined />
+                          <Text type="secondary">{event.location}</Text>
+                        </Space>
+                        <br />
+                        <Tag color="blue">{event.type}</Tag>
+                      </>
+                    }
+                  />
+                </Card>
+              </List.Item>
+            )}
+          />
+        </Tabs.TabPane>
+      </Tabs>
+
+      {/* Add Announcement Modal */}
       <Modal
-        title={editingMessage ? 'Edit Message' : 'New Message'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        title="Add New Announcement"
+        open={announcementModalVisible}
+        onCancel={() => setAnnouncementModalVisible(false)}
+        footer={null}
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={announcementForm}
+          layout="vertical"
+          onFinish={handleAddAnnouncement}
+        >
           <Form.Item
-            name="type"
-            label="Message Type"
-            rules={[{ required: true, message: 'Please select message type!' }]}
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: 'Please input announcement title!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="content"
+            label="Content"
+            rules={[{ required: true, message: 'Please input announcement content!' }]}
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item
+            name="priority"
+            label="Priority"
+            rules={[{ required: true, message: 'Please select priority!' }]}
           >
             <Select>
-              <Option value="Announcement">Announcement</Option>
-              <Option value="Notification">Notification</Option>
-              <Option value="Message">Message</Option>
+              <Option value="high">High</Option>
+              <Option value="medium">Medium</Option>
+              <Option value="normal">Normal</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="targetAudience"
+            label="Target Audience"
+            rules={[{ required: true, message: 'Please select target audience!' }]}
+          >
+            <Select>
+              <Option value="all">All</Option>
+              <Option value="students">Students</Option>
+              <Option value="teachers">Teachers</Option>
+              <Option value="parents">Parents</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button onClick={() => setAnnouncementModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit">
+                Add
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Add Message Modal */}
+      <Modal
+        title="New Message"
+        open={messageModalVisible}
+        onCancel={() => setMessageModalVisible(false)}
+        footer={null}
+      >
+        <Form
+          form={messageForm}
+          layout="vertical"
+          onFinish={handleAddMessage}
+        >
+          <Form.Item
+            name="recipient"
+            label="Recipient"
+            rules={[{ required: true, message: 'Please select recipient!' }]}
+          >
+            <Select>
+              {users.map((user) => (
+                <Option key={user.id} value={user.id}>
+                  {user.name} ({user.role})
+                </Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item
@@ -165,40 +472,93 @@ const Communication = () => {
             <Input />
           </Form.Item>
           <Form.Item
-            name="recipients"
-            label="Recipients"
-            rules={[{ required: true, message: 'Please select recipients!' }]}
-          >
-            <Select mode="multiple" placeholder="Select recipients">
-              <Select.OptGroup label="Students">
-                {students.map(student => (
-                  <Option key={`student-${student.id}`} value={student.id}>
-                    {student.name}
-                  </Option>
-                ))}
-              </Select.OptGroup>
-              <Select.OptGroup label="Parents">
-                {parents.map(parent => (
-                  <Option key={`parent-${parent.id}`} value={parent.id}>
-                    {parent.name}
-                  </Option>
-                ))}
-              </Select.OptGroup>
-              <Select.OptGroup label="Teachers">
-                {teachers.map(teacher => (
-                  <Option key={`teacher-${teacher.id}`} value={teacher.id}>
-                    {teacher.name}
-                  </Option>
-                ))}
-              </Select.OptGroup>
-            </Select>
-          </Form.Item>
-          <Form.Item
             name="content"
-            label="Message Content"
+            label="Message"
             rules={[{ required: true, message: 'Please input message content!' }]}
           >
             <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button onClick={() => setMessageModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" icon={<SendOutlined />}>
+                Send
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Add Event Modal */}
+      <Modal
+        title="Add New Event"
+        open={eventModalVisible}
+        onCancel={() => setEventModalVisible(false)}
+        footer={null}
+      >
+        <Form
+          form={eventForm}
+          layout="vertical"
+          onFinish={handleAddEvent}
+        >
+          <Form.Item
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: 'Please input event title!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please input event description!' }]}
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item
+            name="date"
+            label="Date"
+            rules={[{ required: true, message: 'Please select date!' }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="time"
+            label="Time"
+            rules={[{ required: true, message: 'Please select time!' }]}
+          >
+            <TimePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="location"
+            label="Location"
+            rules={[{ required: true, message: 'Please input location!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="Event Type"
+            rules={[{ required: true, message: 'Please select event type!' }]}
+          >
+            <Select>
+              <Option value="academic">Academic</Option>
+              <Option value="sports">Sports</Option>
+              <Option value="cultural">Cultural</Option>
+              <Option value="holiday">Holiday</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button onClick={() => setEventModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit">
+                Add
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>
