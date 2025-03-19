@@ -8,9 +8,15 @@ import {
   Select, 
   Upload,
   Avatar,
-  Space
+  Space,
+  Tag,
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Input as AntInput
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined, TeamOutlined, BookOutlined, SearchOutlined } from '@ant-design/icons';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
@@ -20,8 +26,11 @@ import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
 import { MessageContext } from '../App';
+import { subscribeToCollection, getClasses, getTeachers } from '../firebase/services';
+import { useLocation, useNavigate } from 'react-router-dom';
   
 const { Option } = Select;
+const { Search } = AntInput;
 
 const cld = new Cloudinary({
   cloud: {
@@ -31,6 +40,8 @@ const cld = new Cloudinary({
 
 const Students = () => {
   const messageApi = useContext(MessageContext);
+  const location = useLocation();
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -38,27 +49,49 @@ const Students = () => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [highlightedId, setHighlightedId] = useState(null);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    fetchStudents();
-  }, []);
+    // Get URL parameters
+    const params = new URLSearchParams(location.search);
+    const viewId = params.get('view');
+    const highlight = params.get('highlight') === 'true';
 
-  const fetchStudents = async () => {
-    try {
-      const q = query(collection(db, 'students'));
-      const querySnapshot = await getDocs(q);
-      const studentsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setStudents(studentsData);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      messageApi.error('Failed to fetch students');
-    } finally {
-      setLoading(false);
+    if (viewId && highlight) {
+      setHighlightedId(viewId);
+      // Remove highlight parameter after 3 seconds
+      const timer = setTimeout(() => {
+        setHighlightedId(null);
+        navigate(location.pathname + '?view=' + viewId, { replace: true });
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  };
+
+    // Subscribe to students collection
+    const unsubscribeStudents = subscribeToCollection('students', (data) => {
+      setStudents(data);
+      setLoading(false);
+    });
+
+    // Subscribe to classes collection
+    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+
+    // Subscribe to teachers collection
+    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
+      setTeachers(data);
+    });
+
+    return () => {
+      unsubscribeStudents();
+      unsubscribeClasses();
+      unsubscribeTeachers();
+    };
+  }, [location, navigate]);
 
   const handleAddStudent = () => {
     setEditingStudent(null);
@@ -76,7 +109,6 @@ const Students = () => {
     try {
       await deleteDoc(doc(db, 'students', studentId));
       messageApi.success('Student deleted successfully');
-      fetchStudents();
     } catch (error) {
       console.error('Error deleting student:', error);
       messageApi.error('Failed to delete student');
@@ -87,9 +119,8 @@ const Students = () => {
     try {
       const studentData = {
         ...values,
-        className: values.className,
-        section: values.section,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       if (editingStudent) {
@@ -101,7 +132,7 @@ const Students = () => {
       }
 
       setModalVisible(false);
-      fetchStudents();
+      form.resetFields();
     } catch (error) {
       console.error('Error saving student:', error);
       messageApi.error('Failed to save student');
@@ -155,15 +186,14 @@ const Students = () => {
   const columns = [
     {
       title: 'Photo',
-      dataIndex: 'photoURL',
+      dataIndex: 'profilePublicId',
       key: 'photo',
       width: 80,
-      render: (photoURL, record) => {
-        if (record.photoPublicId) {
-          const cldImg = getCloudinaryImage(record.photoPublicId);
+      render: (profilePublicId, record) => {
+        if (profilePublicId) {
           return (
             <AdvancedImage 
-              cldImg={cldImg}
+              cldImg={getCloudinaryImage(profilePublicId)}
               style={{ width: 40, height: 40, borderRadius: '50%' }}
             />
           );
@@ -182,12 +212,17 @@ const Students = () => {
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => (
-        <Button type="link" onClick={() => {
+        <span style={{
+          fontWeight: record.id === highlightedId ? 'bold' : 'normal',
+          color: record.id === highlightedId ? '#1890ff' : 'inherit',
+          transition: 'all 0.3s ease',
+          cursor: 'pointer'
+        }} onClick={() => {
           setSelectedStudent(record);
           setDrawerVisible(true);
         }}>
           {text}
-        </Button>
+        </span>
       ),
     },
     {
@@ -197,13 +232,12 @@ const Students = () => {
     },
     {
       title: 'Class',
-      dataIndex: 'className',
-      key: 'className',
-    },
-    {
-      title: 'Section',
-      dataIndex: 'section',
-      key: 'section',
+      dataIndex: 'classId',
+      key: 'classId',
+      render: (classId) => {
+        const classInfo = classes.find(c => c.id === classId);
+        return classInfo ? `${classInfo.className} - Section ${classInfo.section}` : '-';
+      },
     },
     {
       title: 'Gender',
@@ -247,22 +281,46 @@ const Students = () => {
     },
   ];
 
+  // Add search filter function
+  const filteredStudents = students.filter(student =>
+    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.rollNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.email.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <div style={{ padding: 24 }}>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAddStudent}
-        style={{ marginBottom: 16 }}
-      >
-        Add Student
-      </Button>
+      <div style={{ 
+        marginBottom: 16, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        gap: '16px'
+      }}>
+        <Search
+          placeholder="Search students..."
+          allowClear
+          enterButton={<SearchOutlined />}
+          size="small"
+          style={{ width: 300 }}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleAddStudent}
+          size="small"
+        >
+          Add Student
+        </Button>
+      </div>
 
       <Table
         columns={columns}
-        dataSource={students}
+        dataSource={filteredStudents}
         loading={loading}
         rowKey="id"
+        rowClassName={(record) => record.id === highlightedId ? 'highlighted-row' : ''}
       />
 
       <Modal
@@ -293,19 +351,19 @@ const Students = () => {
           </Form.Item>
 
           <Form.Item
-            name="className"
+            name="classId"
             label="Class"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: 'Please select class!' }]}
           >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="section"
-            label="Section"
-            rules={[{ required: true }]}
-          >
-            <Input />
+            <Select>
+              {classes
+                .filter(cls => cls.status === 'Active')
+                .map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {cls.className} - Section {cls.section}
+                  </Option>
+                ))}
+            </Select>
           </Form.Item>
 
           <Form.Item

@@ -36,3 +36,37 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes highlightRow {
+  0% {
+    background-color: #e6f7ff;
+  }
+  50% {
+    background-color: #bae7ff;
+  }
+  100% {
+    background-color: #e6f7ff;
+  }
+}
+
+.highlighted-row {
+  animation: highlightRow 3s ease-in-out;
+}
+
+.highlighted-row td {
+  background-color: transparent !important;
+}
+
+/* Add a subtle border to make the highlight more visible */
+.highlighted-row td:first-child {
+  border-left: 2px solid #1890ff;
+}
+
+.highlighted-row td:last-child {
+  border-right: 2px solid #1890ff;
+}
+
+/* Ensure the highlight is visible on hover */
+.highlighted-row:hover td {
+  background-color: #e6f7ff !important;
+}

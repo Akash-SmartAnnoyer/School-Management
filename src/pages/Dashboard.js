@@ -209,8 +209,12 @@ const Dashboard = () => {
                     colorField="type"
                     radius={0.8}
                     label={{
-                      type: 'outer',
-                      content: '{name} {percentage}%'
+                      content: '{name} {percentage}%',
+                      style: {
+                        fontSize: 14,
+                        textAlign: 'center',
+                        fill: '#fff'
+                      }
                     }}
                     color={['#52c41a', '#ff4d4f']}
                   />

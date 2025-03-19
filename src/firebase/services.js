@@ -551,4 +551,140 @@ export const getUserRole = async (userId) => {
     console.error('Error getting user role:', error);
     throw error;
   }
+};
+
+export const deleteAllFromCollection = async (collectionName) => {
+  try {
+    const collectionRef = collection(db, collectionName);
+    const querySnapshot = await getDocs(collectionRef);
+    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting all documents from ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+export const initializeDatabase = async () => {
+  try {
+    // First, delete all existing data
+    await deleteAllFromCollection('teachers');
+    await deleteAllFromCollection('classes');
+    await deleteAllFromCollection('students');
+    await deleteAllFromCollection('attendance');
+    await deleteAllFromCollection('fees');
+    await deleteAllFromCollection('exams');
+    await deleteAllFromCollection('examResults');
+
+    // Sample data for teachers
+    const subjects = [
+      'Mathematics', 'Science', 'English', 'History', 'Geography', 
+      'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Economics',
+      'Political Science', 'Sociology', 'Psychology', 'Physical Education',
+      'Art', 'Music', 'Languages', 'Environmental Science', 'Business Studies'
+    ];
+
+    const qualifications = [
+      'M.Sc. Mathematics', 'M.Sc. Physics', 'M.A. English', 'M.A. History',
+      'M.Sc. Chemistry', 'M.Sc. Biology', 'M.Tech Computer Science',
+      'M.A. Economics', 'M.A. Political Science', 'M.A. Sociology',
+      'M.A. Psychology', 'M.P.Ed', 'M.F.A', 'M.Music', 'M.A. Languages',
+      'M.Sc. Environmental Science', 'M.B.A', 'Ph.D. Mathematics',
+      'Ph.D. Physics', 'Ph.D. English'
+    ];
+
+    // Generate 20 teachers
+    const teachers = Array.from({ length: 20 }, (_, index) => ({
+      name: `Teacher ${index + 1}`,
+      subject: subjects[index % subjects.length],
+      qualification: qualifications[index % qualifications.length],
+      email: `teacher${index + 1}@school.com`,
+      phone: `1234567${String(index + 1).padStart(4, '0')}`,
+      experience: Math.floor(Math.random() * 15) + 1,
+      status: 'Active',
+      // Using UI Faces for teacher profile images
+      photoURL: `https://i.pravatar.cc/150?img=${index + 1}`,
+      photoPublicId: `teacher-${index + 1}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
+
+    // Create teachers first and store their IDs
+    const createdTeachers = [];
+    for (const teacher of teachers) {
+      const teacherId = await addTeacher(teacher);
+      createdTeachers.push({ id: teacherId, ...teacher });
+    }
+
+    // Generate 20 classes (10 classes with 2 sections each)
+    const classes = [];
+    for (let i = 1; i <= 10; i++) {
+      for (let section of ['A', 'B']) {
+        // Randomly select a teacher from the created teachers
+        const randomTeacher = createdTeachers[Math.floor(Math.random() * createdTeachers.length)];
+        
+        classes.push({
+          className: `Class ${i}`,
+          section: section,
+          teacherId: randomTeacher.id,
+          capacity: 40,
+          status: 'Active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }
+
+    // Create classes and store their IDs
+    const createdClasses = [];
+    for (const cls of classes) {
+      const classId = await addClass(cls);
+      createdClasses.push({ id: classId, ...cls });
+    }
+
+    // Generate 100 students
+    const firstNames = [
+      'Aarav', 'Aditya', 'Aisha', 'Akash', 'Ananya', 'Arjun', 'Avni', 'Bharat',
+      'Chandra', 'Deepak', 'Esha', 'Farhan', 'Gita', 'Harsh', 'Isha', 'Jatin',
+      'Kavita', 'Lakshmi', 'Madhav', 'Neha', 'Om', 'Priya', 'Rahul', 'Sneha',
+      'Tanvi', 'Umesh', 'Varsha', 'Yash', 'Zara'
+    ];
+
+    const lastNames = [
+      'Sharma', 'Patel', 'Singh', 'Kumar', 'Verma', 'Gupta', 'Reddy', 'Mishra',
+      'Iyer', 'Nair', 'Menon', 'Pillai', 'Nambiar', 'Krishnan', 'Rajan', 'Nair',
+      'Menon', 'Pillai', 'Nambiar', 'Krishnan', 'Rajan', 'Nair', 'Menon', 'Pillai',
+      'Nambiar', 'Krishnan', 'Rajan', 'Nair', 'Menon', 'Pillai'
+    ];
+
+    // Create students
+    for (let i = 0; i < 100; i++) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const randomClass = createdClasses[Math.floor(Math.random() * createdClasses.length)];
+
+      const student = {
+        name: `${firstName} ${lastName}`,
+        rollNumber: `ROLL${String(i + 1).padStart(4, '0')}`,
+        classId: randomClass.id,
+        gender: Math.random() > 0.5 ? 'Male' : 'Female',
+        email: `${firstName.toLowerCase()}${i + 1}@school.com`,
+        phone: `9876543${String(i + 1).padStart(4, '0')}`,
+        status: 'Active',
+        // Using UI Faces for student profile images
+        photoURL: `https://i.pravatar.cc/150?img=${i + 100}`,
+        photoPublicId: `student-${i + 1}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      await addStudent(student);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
 }; 
