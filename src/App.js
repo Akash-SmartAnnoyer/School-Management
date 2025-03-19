@@ -29,6 +29,7 @@ import {
   NotificationOutlined
 } from '@ant-design/icons';
 import './App.css';
+import GlobalSearch from './components/GlobalSearch';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -238,7 +239,7 @@ function MainLayout() {
               textAlign: 'center'
             }}
           >
-            School Management
+            Smart School
           </Title>
         </div>
         <Menu
@@ -263,71 +264,143 @@ function MainLayout() {
       </Sider>
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{ 
+          padding: '0 24px', 
           background: '#fff', 
-          padding: '0 16px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1,
-          display: 'flex',
-          alignItems: 'center',
+          display: 'flex', 
+          alignItems: 'center', 
           justifyContent: 'space-between',
           boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
-          height: '64px'
+          height: '64px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Left Section */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            flex: '1'
+          }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: '16px',
-                width: 40,
-                height: 40,
+              style={{ 
+                fontSize: '16px', 
+                width: 48, 
+                height: 48,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              minWidth: '200px'
+            }}>
               <img 
                 src={currentUser?.schoolLogo || "https://via.placeholder.com/40"} 
                 alt="School Logo" 
-                style={{ width: 40, height: 40, borderRadius: '50%' }}
+                style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
               />
-              <Title level={5} style={{ margin: 0 }}>{currentUser?.schoolName || 'School Name'}</Title>
+              <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+                {currentUser?.schoolName || 'School Name'}
+              </Title>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Search
-              placeholder="Search students, teachers..."
-              allowClear
-              style={{ width: 300 }}
-              prefix={<SearchOutlined />}
-            />
-            
+          {/* Center Section - Search */}
+          <div style={{ 
+            flex: '2',
+            maxWidth: '300px',
+            margin: '0 24px',
+            marginTop: '40px'
+          }}>
+            <GlobalSearch />
+          </div>
+
+          {/* Right Section */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px',
+            flex: '1',
+            justifyContent: 'flex-end'
+          }}>
             <Space>
               <Dropdown menu={{ items: quickActions }} placement="bottomRight">
-                <Button type="primary" icon={<PlusOutlined />}>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px'
+                  }}
+                  size="small"
+                >
                   Quick Actions
                 </Button>
               </Dropdown>
               
-              <Badge count={5}>
-                <Button type="text" icon={<BellOutlined />} />
-              </Badge>
+              {/* <Badge count={5}>
+                <Button 
+                  type="text" 
+                  icon={<BellOutlined />}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                />
+              </Badge> */}
               
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <Space style={{ cursor: 'pointer' }}>
+                <Space style={{ 
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'background-color 0.3s',
+                  ':hover': {
+                    backgroundColor: '#f5f5f5'
+                  }
+                }}>
                   {currentUser?.profilePublicId ? (
                     <AdvancedImage 
                       cldImg={getCloudinaryImage(currentUser.profilePublicId)}
-                      style={{ width: 32, height: 32, borderRadius: '50%' }}
+                      style={{ 
+                        width: 32, 
+                        height: 32, 
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
                     />
                   ) : (
-                    <Avatar icon={<UserOutlined />} />
+                    <Avatar 
+                      icon={<UserOutlined />}
+                      style={{ 
+                        backgroundColor: '#1890ff',
+                        width: 32,
+                        height: 32
+                      }}
+                    />
                   )}
-                  <span>{currentUser?.name || 'Admin'}</span>
+                  <span style={{ 
+                    color: '#1f1f1f',
+                    fontWeight: 500
+                  }}>
+                    {currentUser?.name || 'Admin'}
+                  </span>
                 </Space>
               </Dropdown>
             </Space>

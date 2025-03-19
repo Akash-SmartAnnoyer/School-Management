@@ -130,7 +130,7 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
                     smooth
                     point={{
                       size: 5,
-                      shape: 'diamond',
+                      shape: 'circle',
                     }}
                     label={{
                       style: {
