@@ -9,7 +9,8 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  setDoc
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -477,6 +478,77 @@ export const getUser = async (userId) => {
     return null;
   } catch (error) {
     console.error('Error getting user:', error);
+    throw error;
+  }
+};
+
+// Update Profile
+export const updateProfile = async (userId, profileData) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      // Create the document if it doesn't exist
+      await setDoc(userRef, {
+        ...profileData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    } else {
+      // Update the existing document
+      await updateDoc(userRef, {
+        ...profileData,
+        updatedAt: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
+// School Settings
+export const updateSchoolSettings = async (userId, settingsData) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      ...settingsData,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating school settings:', error);
+    throw error;
+  }
+};
+
+// User Management
+export const createUserDocument = async (user, role = 'user') => {
+  try {
+    const userRef = doc(db, 'users', user.uid);
+    await setDoc(userRef, {
+      email: user.email,
+      role: role,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    return userRef.id;
+  } catch (error) {
+    console.error('Error creating user document:', error);
+    throw error;
+  }
+};
+
+export const getUserRole = async (userId) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      return userDoc.data().role;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user role:', error);
     throw error;
   }
 }; 

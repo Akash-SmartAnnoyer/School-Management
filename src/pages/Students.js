@@ -1,107 +1,209 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
-  addStudent, 
-  getStudents, 
-  updateStudent, 
-  deleteStudent, 
-  subscribeToCollection,
-  getClasses 
-} from '../firebase/services';
-
+  Table, 
+  Button, 
+  Modal, 
+  Form, 
+  Input, 
+  Select, 
+  Upload,
+  Avatar,
+  Space
+} from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined } from '@ant-design/icons';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { uploadImage, getCloudinaryImage } from '../services/imageService';
+import { Cloudinary } from '@cloudinary/url-gen';
+import { AdvancedImage } from '@cloudinary/react';
+import { auto } from '@cloudinary/url-gen/actions/resize';
+import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
+import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
+import { MessageContext } from '../App';
+  
 const { Option } = Select;
 
+const cld = new Cloudinary({
+  cloud: {
+    cloudName: 'dyr02bpil'
+  }
+});
+
 const Students = () => {
+  const messageApi = useContext(MessageContext);
   const [students, setStudents] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingStudent, setEditingStudent] = useState(null);
-  const [classes, setClasses] = useState([]);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
-    // Subscribe to real-time updates for students
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-
-    // Subscribe to real-time updates for classes
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-
-    return () => {
-      unsubscribeStudents();
-      unsubscribeClasses();
-    };
+    fetchStudents();
   }, []);
 
-  const handleAdd = () => {
-    setEditingStudent(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (record) => {
-    setEditingStudent(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
-  };
-
-  const handleDelete = async (studentId) => {
+  const fetchStudents = async () => {
     try {
-      await deleteStudent(studentId);
-      message.success('Student deleted successfully');
+      const q = query(collection(db, 'students'));
+      const querySnapshot = await getDocs(q);
+      const studentsData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setStudents(studentsData);
     } catch (error) {
-      message.error('Error deleting student');
+      console.error('Error fetching students:', error);
+      messageApi.error('Failed to fetch students');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleModalOk = async () => {
+  const handleAddStudent = () => {
+    setEditingStudent(null);
+    form.resetFields();
+    setModalVisible(true);
+  };
+
+  const handleEditStudent = (student) => {
+    setEditingStudent(student);
+    form.setFieldsValue(student);
+    setModalVisible(true);
+  };
+
+  const handleDeleteStudent = async (studentId) => {
     try {
-      const values = await form.validateFields();
-      if (editingStudent) {
-        await updateStudent(editingStudent.id, values);
-        message.success('Student updated successfully');
-      } else {
-        // Generate roll number based on class and section
-        const classInfo = classes.find(c => c.id === values.classId);
-        if (classInfo) {
-          // Get existing students in the same class to determine next roll number
-          const classStudents = students.filter(s => s.classId === values.classId);
-          const nextRollNumber = classStudents.length + 1;
-          values.rollNumber = `${classInfo.className.slice(-1)}${classInfo.section}${String(nextRollNumber).padStart(2, '0')}`;
-        }
-        await addStudent(values);
-        message.success('Student added successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
+      await deleteDoc(doc(db, 'students', studentId));
+      messageApi.success('Student deleted successfully');
+      fetchStudents();
     } catch (error) {
-      message.error('Error saving student');
+      console.error('Error deleting student:', error);
+      messageApi.error('Failed to delete student');
+    }
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      const studentData = {
+        ...values,
+        className: values.className,
+        section: values.section,
+        createdAt: new Date().toISOString()
+      };
+
+      if (editingStudent) {
+        await updateDoc(doc(db, 'students', editingStudent.id), studentData);
+        messageApi.success('Student updated successfully');
+      } else {
+        await addDoc(collection(db, 'students'), studentData);
+        messageApi.success('Student added successfully');
+      }
+
+      setModalVisible(false);
+      fetchStudents();
+    } catch (error) {
+      console.error('Error saving student:', error);
+      messageApi.error('Failed to save student');
+    }
+  };
+
+  const handleImageUpload = async (file, studentId) => {
+    let loadingMessage = null;
+    try {
+      loadingMessage = messageApi.loading('Uploading image...', 0);
+
+      if (!file.type.startsWith('image/')) {
+        messageApi.error('Please upload an image file');
+        return false;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        messageApi.error('Image size should be less than 5MB');
+        return false;
+      }
+
+      const { url, publicId } = await uploadImage(file);
+
+      await updateDoc(doc(db, 'students', studentId), {
+        photoURL: url,
+        photoPublicId: publicId,
+        updatedAt: new Date().toISOString()
+      });
+
+      setStudents(prevStudents =>
+        prevStudents.map(student =>
+          student.id === studentId
+            ? { ...student, photoURL: url, photoPublicId: publicId }
+            : student
+        )
+      );
+
+      messageApi.success('Image uploaded successfully');
+      return true;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      messageApi.error('Failed to upload image. Please try again.');
+      return false;
+    } finally {
+      if (loadingMessage) {
+        messageApi.destroy(loadingMessage);
+      }
     }
   };
 
   const columns = [
     {
-      title: 'Roll Number',
-      dataIndex: 'rollNumber',
-      key: 'rollNumber',
-      width: 100,
+      title: 'Photo',
+      dataIndex: 'photoURL',
+      key: 'photo',
+      width: 80,
+      render: (photoURL, record) => {
+        if (record.photoPublicId) {
+          const cldImg = getCloudinaryImage(record.photoPublicId);
+          return (
+            <AdvancedImage 
+              cldImg={cldImg}
+              style={{ width: 40, height: 40, borderRadius: '50%' }}
+            />
+          );
+        }
+        return (
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{ backgroundColor: '#1890ff' }}
+          />
+        );
+      },
     },
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      render: (text, record) => (
+        <Button type="link" onClick={() => {
+          setSelectedStudent(record);
+          setDrawerVisible(true);
+        }}>
+          {text}
+        </Button>
+      ),
+    },
+    {
+      title: 'Roll Number',
+      dataIndex: 'rollNumber',
+      key: 'rollNumber',
     },
     {
       title: 'Class',
-      dataIndex: 'classId',
-      key: 'classId',
-      render: (classId) => {
-        const classInfo = classes.find(c => c.id === classId);
-        return classInfo ? `${classInfo.className} - ${classInfo.section}` : '-';
-      },
+      dataIndex: 'className',
+      key: 'className',
+    },
+    {
+      title: 'Section',
+      dataIndex: 'section',
+      key: 'section',
     },
     {
       title: 'Gender',
@@ -112,85 +214,134 @@ const Students = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
-          {status}
-        </Tag>
-      ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id)}>
-            Delete
-          </Button>
+          <Upload
+            showUploadList={false}
+            beforeUpload={(file) => {
+              handleImageUpload(file, record.id);
+              return false;
+            }}
+            accept="image/*"
+            maxCount={1}
+          >
+            <Button icon={<UploadOutlined />} size="small" />
+          </Upload>
+          <Button
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => handleEditStudent(record)}
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            size="small"
+            danger
+            onClick={() => handleDeleteStudent(record.id)}
+          />
         </Space>
       ),
     },
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Add Student
-        </Button>
-      </div>
-      <Table columns={columns} dataSource={students} rowKey="id" />
+    <div style={{ padding: 24 }}>
+      <Button
+        type="primary"
+        icon={<PlusOutlined />}
+        onClick={handleAddStudent}
+        style={{ marginBottom: 16 }}
+      >
+        Add Student
+      </Button>
+
+      <Table
+        columns={columns}
+        dataSource={students}
+        loading={loading}
+        rowKey="id"
+      />
 
       <Modal
         title={editingStudent ? 'Edit Student' : 'Add Student'}
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        open={modalVisible}
+        onOk={form.submit}
+        onCancel={() => setModalVisible(false)}
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
           <Form.Item
             name="name"
             label="Name"
-            rules={[{ required: true, message: 'Please input student name!' }]}
+            rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="classId"
-            label="Class"
-            rules={[{ required: true, message: 'Please select class!' }]}
-          >
-            <Select>
-              {classes.map(cls => (
-                <Option key={cls.id} value={cls.id}>
-                  {cls.className} - {cls.section}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+
           <Form.Item
             name="rollNumber"
             label="Roll Number"
-            rules={[{ required: true, message: 'Please input roll number!' }]}
+            rules={[{ required: true }]}
           >
-            <Input disabled={!editingStudent} />
+            <Input />
           </Form.Item>
+
+          <Form.Item
+            name="className"
+            label="Class"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="section"
+            label="Section"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="gender"
             label="Gender"
-            rules={[{ required: true, message: 'Please select gender!' }]}
+            rules={[{ required: true }]}
           >
             <Select>
               <Option value="Male">Male</Option>
               <Option value="Female">Female</Option>
             </Select>
           </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true },
+              { type: 'email' }
+            ]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="phone"
+            label="Phone"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="status"
             label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
+            rules={[{ required: true }]}
           >
             <Select>
               <Option value="Active">Active</Option>
@@ -199,6 +350,12 @@ const Students = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <StudentDetailsDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        student={selectedStudent}
+      />
     </div>
   );
 };
