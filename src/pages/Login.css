@@ -1,0 +1,81 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1a365d 0%, #2d5a9e 100%);
+  padding: 20px;
+}
+
+.login-content {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.school-logo {
+  margin-bottom: 16px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.demo-credentials {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* Ant Design overrides */
+.login-card .ant-card-head {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.login-card .ant-card-body {
+  padding: 24px 32px;
+}
+
+.login-card .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.login-card .ant-input-affix-wrapper {
+  border-radius: 6px;
+}
+
+.login-card .ant-btn {
+  height: 42px;
+  border-radius: 6px;
+}
+
+.login-card .ant-select {
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .login-content {
+    max-width: 100%;
+  }
+
+  .login-card .ant-card-body {
+    padding: 24px 16px;
+  }
+} 
