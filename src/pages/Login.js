@@ -31,34 +31,34 @@ const Login = () => {
       <div className="login-left">
         <div className="login-left-content">
           <Title level={1} className="login-left-title">
-            Welcome to Our School Management System
+            Welcome to School Management
           </Title>
           <Text className="login-left-subtitle">
-            Empowering education through technology. Join us in creating a better learning environment.
+            Experience the future of education management with our comprehensive platform designed to streamline your school's operations.
           </Text>
           
           <div className="feature-grid">
             <div className="feature-item">
               <TeamOutlined className="feature-icon" />
-              <Title level={4} className="feature-title">Comprehensive Management</Title>
+              <Title level={4} className="feature-title">Smart Management</Title>
               <Text className="feature-description">
-                Streamline administrative tasks and improve communication.
+                Efficiently manage students, teachers, and administrative tasks in one place.
               </Text>
             </div>
             
             <div className="feature-item">
               <BookOutlined className="feature-icon" />
-              <Title level={4} className="feature-title">Academic Excellence</Title>
+              <Title level={4} className="feature-title">Digital Learning</Title>
               <Text className="feature-description">
-                Track student progress and manage academic records efficiently.
+                Access course materials, assignments, and grades anytime, anywhere.
               </Text>
             </div>
             
             <div className="feature-item">
               <TrophyOutlined className="feature-icon" />
-              <Title level={4} className="feature-title">Performance Tracking</Title>
+              <Title level={4} className="feature-title">Performance Analytics</Title>
               <Text className="feature-description">
-                Monitor and analyze student performance with detailed reports.
+                Track progress with detailed reports and insights for better decision-making.
               </Text>
             </div>
             
@@ -66,7 +66,7 @@ const Login = () => {
               <SafetyCertificateOutlined className="feature-icon" />
               <Title level={4} className="feature-title">Secure Platform</Title>
               <Text className="feature-description">
-                Your data is protected with industry-standard security measures.
+                Your data is protected with enterprise-grade security and privacy measures.
               </Text>
             </div>
           </div>
@@ -80,13 +80,13 @@ const Login = () => {
             title={
               <div className="login-header">
                 <Space direction="vertical" size="middle" align="center" style={{ width: '100%' }}>
-                  <BankOutlined style={{ fontSize: '44px', color: '#1a365d' }} />
+                  <BankOutlined style={{ fontSize: '40px', color: '#3b82f6' }} />
                   <div>
-                    <Title level={3} style={{ margin: 0, color: '#1a365d', fontWeight: 'bold' }}>
-                      School Management System
+                    <Title level={3} style={{ margin: 0, color: '#1e293b', fontWeight: 'bold' }}>
+                      Sign In
                     </Title>
-                    <Text type="secondary" style={{ fontSize: '14px' }}>
-                      Welcome back! Please sign in to continue
+                    <Text type="secondary" style={{ fontSize: '14px', color: '#64748b' }}>
+                      Enter your credentials to access your account
                     </Text>
                   </div>
                 </Space>
@@ -106,7 +106,7 @@ const Login = () => {
                 <Select
                   size="large"
                   placeholder="Select Role"
-                  suffixIcon={<UserOutlined />}
+                  suffixIcon={<UserOutlined style={{ color: '#3b82f6' }} />}
                 >
                   <Option value={ROLES.PRINCIPAL}>Principal</Option>
                   <Option value={ROLES.TEACHER}>Teacher</Option>
@@ -120,7 +120,7 @@ const Login = () => {
                 rules={[{ required: true, message: 'Please input your username!' }]}
               >
                 <Input
-                  prefix={<UserOutlined style={{ color: '#1a365d' }} />}
+                  prefix={<UserOutlined style={{ color: '#3b82f6' }} />}
                   placeholder="Username"
                   size="large"
                 />
@@ -131,7 +131,7 @@ const Login = () => {
                 rules={[{ required: true, message: 'Please input your password!' }]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: '#1a365d' }} />}
+                  prefix={<LockOutlined style={{ color: '#3b82f6' }} />}
                   placeholder="Password"
                   size="large"
                 />
