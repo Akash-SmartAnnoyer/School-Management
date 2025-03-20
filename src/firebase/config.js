@@ -4,13 +4,13 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCw4sYQmQ-KTBcLD8eoTISEAWDtalE_3bs",
-  authDomain: "school-management-c78c6.firebaseapp.com",
-  projectId: "school-management-c78c6",
-  storageBucket: "school-management-c78c6.firebasestorage.app",
-  messagingSenderId: "556605101259",
-  appId: "1:556605101259:web:183a77fe78e9e12223374e",
-  measurementId: "G-PZQVFFZS90"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -46,7 +46,7 @@ service firebase.storage {
 /*
 [
   {
-    "origin": ["http://localhost:3000"],
+    "origin": ["http://localhost:3000", "https://your-render-domain.onrender.com"],
     "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "maxAgeSeconds": 3600,
     "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-resumable"]

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: school-management
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: REACT_APP_FIREBASE_API_KEY
+        value: AIzaSyCw4sYQmQ-KTBcLD8eoTISEAWDtalE_3bs
+      - key: REACT_APP_FIREBASE_AUTH_DOMAIN
+        value: school-management-c78c6.firebaseapp.com
+      - key: REACT_APP_FIREBASE_PROJECT_ID
+        value: school-management-c78c6
+      - key: REACT_APP_FIREBASE_STORAGE_BUCKET
+        value: school-management-c78c6.firebasestorage.app
+      - key: REACT_APP_FIREBASE_MESSAGING_SENDER_ID
+        value: 556605101259
+      - key: REACT_APP_FIREBASE_APP_ID
+        value: 1:556605101259:web:183a77fe78e9e12223374e
+      - key: REACT_APP_FIREBASE_MEASUREMENT_ID
+        value: G-PZQVFFZS90 
