@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import { addClass, getClasses, updateClass, deleteClass, subscribeToCollection, getTeachers, updateTeacher, initializeDatabase } from '../firebase/services';
+import { addClass, getClasses, updateClass, deleteClass, subscribeToCollection, getTeachers, updateTeacher } from '../firebase/services';
+import { initializeSchoolData } from '../utils/initializeSchoolData';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
 
@@ -116,10 +117,10 @@ const Classes = () => {
 
   const handleInitializeDB = async () => {
     try {
-      await initializeDatabase();
-      messageApi.success('Database initialized successfully');
+      await initializeSchoolData();
+      messageApi.success('School data initialized successfully');
     } catch (error) {
-      messageApi.error('Error initializing database');
+      messageApi.error('Error initializing school data');
     }
   };
 

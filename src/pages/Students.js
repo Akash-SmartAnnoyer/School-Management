@@ -16,9 +16,28 @@ import {
   Statistic,
   Input as AntInput,
   Divider,
-  DatePicker
+  DatePicker,
+  Typography
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined, TeamOutlined, BookOutlined, SearchOutlined } from '@ant-design/icons';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  UploadOutlined, 
+  UserOutlined, 
+  TeamOutlined, 
+  BookOutlined, 
+  SearchOutlined,
+  CameraOutlined,
+  IdcardOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  HeartOutlined,
+  InfoCircleOutlined,
+  BankOutlined,
+  SafetyCertificateOutlined
+} from '@ant-design/icons';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
@@ -49,7 +68,7 @@ const cld = new Cloudinary({
   }
 });
 
-const StudentForm = ({ visible, onCancel, onSubmit, initialValues }) => {
+const StudentForm = ({ visible, onCancel, onSubmit, initialValues, onImageUpload }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState([]);
@@ -96,11 +115,18 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues }) => {
 
   return (
     <Modal
-      title={initialValues ? "Edit Student" : "New Student Admission"}
+      title={
+        <Space>
+          <IdcardOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <Typography.Title level={5} style={{ margin: 0 }}>
+            {initialValues ? "Edit Student" : "New Student Admission"}
+          </Typography.Title>
+        </Space>
+      }
       open={visible}
       onCancel={onCancel}
       footer={null}
-      width={800}
+      width={900}
     >
       <Form
         form={form}
@@ -112,319 +138,442 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues }) => {
           ...initialValues
         }}
       >
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="admissionNo"
-              label="Admission Number"
-              rules={[{ required: true, message: 'Please input admission number!' }]}
+        <Row gutter={24}>
+          <Col span={8}>
+            <Card 
+              style={{ 
+                textAlign: 'center',
+                background: '#fafafa',
+                border: '1px dashed #d9d9d9',
+                borderRadius: '8px',
+                padding: '20px'
+              }}
             >
-              <Input />
-            </Form.Item>
+              <Upload
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  onImageUpload(file, initialValues?.id || 'new');
+                  return false;
+                }}
+                accept="image/*"
+                maxCount={1}
+              >
+                <div style={{ cursor: 'pointer' }}>
+                  {initialValues?.photoURL ? (
+                    <img 
+                      src={initialValues.photoURL}
+                      alt="Student"
+                      style={{ 
+                        width: 150, 
+                        height: 150, 
+                        borderRadius: '50%', 
+                        objectFit: 'cover',
+                        border: '4px solid #fff',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  ) : (
+                    <Avatar
+                      size={150}
+                      icon={<CameraOutlined style={{ fontSize: '40px' }} />}
+                      style={{ 
+                        backgroundColor: '#f0f2f5',
+                        border: '2px dashed #d9d9d9'
+                      }}
+                    />
+                  )}
+                  <div style={{ marginTop: '10px', color: '#666' }}>
+                    <CameraOutlined /> Click to upload photo
+                  </div>
+                </div>
+              </Upload>
+            </Card>
           </Col>
-          <Col span={12}>
-            <Form.Item
-              name="admissionDate"
-              label="Admission Date"
-              rules={[{ required: true, message: 'Please select admission date!' }]}
+          <Col span={16}>
+            <Card 
+              title={
+                <Space>
+                  <IdcardOutlined style={{ color: '#1890ff' }} />
+                  <span>Admission Details</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
             >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="admissionNo"
+                    label="Admission Number"
+                    rules={[{ required: true, message: 'Please input admission number!' }]}
+                  >
+                    <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="admissionDate"
+                    label="Admission Date"
+                    rules={[{ required: true, message: 'Please select admission date!' }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <UserOutlined style={{ color: '#1890ff' }} />
+                  <span>Personal Information</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="firstName"
+                    label="First Name"
+                    rules={[{ required: true, message: 'Please input first name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="lastName"
+                    label="Last Name"
+                    rules={[{ required: true, message: 'Please input last name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="dateOfBirth"
+                    label="Date of Birth"
+                    rules={[{ required: true, message: 'Please select date of birth!' }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="gender"
+                    label="Gender"
+                    rules={[{ required: true, message: 'Please select gender!' }]}
+                  >
+                    <Select>
+                      <Option value="male">Male</Option>
+                      <Option value="female">Female</Option>
+                      <Option value="other">Other</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="bloodGroup"
+                    label="Blood Group"
+                    rules={[{ required: true, message: 'Please select blood group!' }]}
+                  >
+                    <Select>
+                      <Option value="A+">A+</Option>
+                      <Option value="A-">A-</Option>
+                      <Option value="B+">B+</Option>
+                      <Option value="B-">B-</Option>
+                      <Option value="O+">O+</Option>
+                      <Option value="O-">O-</Option>
+                      <Option value="AB+">AB+</Option>
+                      <Option value="AB-">AB-</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="nationality"
+                    label="Nationality"
+                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                  >
+                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <PhoneOutlined style={{ color: '#1890ff' }} />
+                  <span>Contact Information</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: 'Please input email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="phone"
+                    label="Phone Number"
+                    rules={[{ required: true, message: 'Please input phone number!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                name="address"
+                label="Address"
+                rules={[{ required: true, message: 'Please input address!' }]}
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
+                />
+              </Form.Item>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <BookOutlined style={{ color: '#1890ff' }} />
+                  <span>Academic Information</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="class"
+                    label="Class"
+                    rules={[{ required: true, message: 'Please select class!' }]}
+                  >
+                    <Select onChange={handleClassChange}>
+                      {classes.map(cls => (
+                        <Option key={cls.id} value={cls.id}>{cls.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="section"
+                    label="Section"
+                    rules={[{ required: true, message: 'Please select section!' }]}
+                  >
+                    <Select>
+                      {sections.map(section => (
+                        <Option key={section.id} value={section.id}>{section.name}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="previousSchool"
+                    label="Previous School"
+                  >
+                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="lastGrade"
+                    label="Last Grade Attended"
+                  >
+                    <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <TeamOutlined style={{ color: '#1890ff' }} />
+                  <span>Parent/Guardian Information</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="fatherName"
+                    label="Father's Name"
+                    rules={[{ required: true, message: 'Please input father\'s name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="fatherOccupation"
+                    label="Father's Occupation"
+                  >
+                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="motherName"
+                    label="Mother's Name"
+                    rules={[{ required: true, message: 'Please input mother\'s name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="motherOccupation"
+                    label="Mother's Occupation"
+                  >
+                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="parentEmail"
+                    label="Parent's Email"
+                    rules={[
+                      { required: true, message: 'Please input parent\'s email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="parentPhone"
+                    label="Parent's Phone"
+                    rules={[{ required: true, message: 'Please input parent\'s phone!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                name="parentAddress"
+                label="Parent's Address"
+                rules={[{ required: true, message: 'Please input parent\'s address!' }]}
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
+                />
+              </Form.Item>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <HeartOutlined style={{ color: '#1890ff' }} />
+                  <span>Emergency Contact</span>
+                </Space>
+              }
+              style={{ marginBottom: '16px' }}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="emergencyContactName"
+                    label="Emergency Contact Name"
+                    rules={[{ required: true, message: 'Please input emergency contact name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="emergencyContactPhone"
+                    label="Emergency Contact Phone"
+                    rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                name="emergencyContactRelation"
+                label="Relation with Student"
+                rules={[{ required: true, message: 'Please input relation with student!' }]}
+              >
+                <Input prefix={<TeamOutlined style={{ color: '#bfbfbf' }} />} />
+              </Form.Item>
+            </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                  <span>Additional Information</span>
+                </Space>
+              }
+            >
+              <Form.Item
+                name="medicalConditions"
+                label="Medical Conditions"
+              >
+                <Input.TextArea rows={2} />
+              </Form.Item>
+
+              <Form.Item
+                name="allergies"
+                label="Allergies"
+              >
+                <Input.TextArea rows={2} />
+              </Form.Item>
+
+              <Form.Item
+                name="remarks"
+                label="Remarks"
+              >
+                <Input.TextArea rows={2} />
+              </Form.Item>
+
+              <Form.Item>
+                <Space>
+                  <Button onClick={onCancel}>Cancel</Button>
+                  <Button type="primary" htmlType="submit" loading={loading}>
+                    {initialValues ? 'Update' : 'Admit Student'}
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Card>
           </Col>
         </Row>
-
-        <Divider>Personal Information</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="firstName"
-              label="First Name"
-              rules={[{ required: true, message: 'Please input first name!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="lastName"
-              label="Last Name"
-              rules={[{ required: true, message: 'Please input last name!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="dateOfBirth"
-              label="Date of Birth"
-              rules={[{ required: true, message: 'Please select date of birth!' }]}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="gender"
-              label="Gender"
-              rules={[{ required: true, message: 'Please select gender!' }]}
-            >
-              <Select>
-                <Option value="male">Male</Option>
-                <Option value="female">Female</Option>
-                <Option value="other">Other</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="bloodGroup"
-              label="Blood Group"
-              rules={[{ required: true, message: 'Please select blood group!' }]}
-            >
-              <Select>
-                <Option value="A+">A+</Option>
-                <Option value="A-">A-</Option>
-                <Option value="B+">B+</Option>
-                <Option value="B-">B-</Option>
-                <Option value="O+">O+</Option>
-                <Option value="O-">O-</Option>
-                <Option value="AB+">AB+</Option>
-                <Option value="AB-">AB-</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="nationality"
-              label="Nationality"
-              rules={[{ required: true, message: 'Please input nationality!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Divider>Contact Information</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { required: true, message: 'Please input email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="phone"
-              label="Phone Number"
-              rules={[{ required: true, message: 'Please input phone number!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          name="address"
-          label="Address"
-          rules={[{ required: true, message: 'Please input address!' }]}
-        >
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
-        <Divider>Academic Information</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="class"
-              label="Class"
-              rules={[{ required: true, message: 'Please select class!' }]}
-            >
-              <Select onChange={handleClassChange}>
-                {classes.map(cls => (
-                  <Option key={cls.id} value={cls.id}>{cls.name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="section"
-              label="Section"
-              rules={[{ required: true, message: 'Please select section!' }]}
-            >
-              <Select>
-                {sections.map(section => (
-                  <Option key={section.id} value={section.id}>{section.name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="previousSchool"
-              label="Previous School"
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="lastGrade"
-              label="Last Grade Attended"
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Divider>Parent/Guardian Information</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="fatherName"
-              label="Father's Name"
-              rules={[{ required: true, message: 'Please input father\'s name!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="fatherOccupation"
-              label="Father's Occupation"
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="motherName"
-              label="Mother's Name"
-              rules={[{ required: true, message: 'Please input mother\'s name!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="motherOccupation"
-              label="Mother's Occupation"
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="parentEmail"
-              label="Parent's Email"
-              rules={[
-                { required: true, message: 'Please input parent\'s email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="parentPhone"
-              label="Parent's Phone"
-              rules={[{ required: true, message: 'Please input parent\'s phone!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          name="parentAddress"
-          label="Parent's Address"
-          rules={[{ required: true, message: 'Please input parent\'s address!' }]}
-        >
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
-        <Divider>Emergency Contact</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="emergencyContactName"
-              label="Emergency Contact Name"
-              rules={[{ required: true, message: 'Please input emergency contact name!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="emergencyContactPhone"
-              label="Emergency Contact Phone"
-              rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
-            >
-              <Input />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          name="emergencyContactRelation"
-          label="Relation with Student"
-          rules={[{ required: true, message: 'Please input relation with student!' }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Divider>Additional Information</Divider>
-        <Form.Item
-          name="medicalConditions"
-          label="Medical Conditions"
-        >
-          <Input.TextArea rows={2} />
-        </Form.Item>
-
-        <Form.Item
-          name="allergies"
-          label="Allergies"
-        >
-          <Input.TextArea rows={2} />
-        </Form.Item>
-
-        <Form.Item
-          name="remarks"
-          label="Remarks"
-        >
-          <Input.TextArea rows={2} />
-        </Form.Item>
-
-        <Form.Item>
-          <Space>
-            <Button onClick={onCancel}>Cancel</Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              {initialValues ? 'Update' : 'Admit Student'}
-            </Button>
-          </Space>
-        </Form.Item>
       </Form>
     </Modal>
   );
@@ -728,6 +877,7 @@ const Students = () => {
         onCancel={() => setModalVisible(false)}
         onSubmit={handleSubmit}
         initialValues={editingStudent}
+        onImageUpload={handleImageUpload}
       />
 
       <StudentDetailsDrawer

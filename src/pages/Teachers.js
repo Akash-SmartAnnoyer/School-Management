@@ -15,9 +15,28 @@ import {
   Divider,
   DatePicker,
   Row,
-  Col
+  Col,
+  Card,
+  Typography
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined, UserOutlined, SearchOutlined } from '@ant-design/icons';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined, 
+  UploadOutlined, 
+  UserOutlined, 
+  SearchOutlined,
+  CameraOutlined,
+  IdcardOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  BookOutlined,
+  TeamOutlined,
+  SafetyCertificateOutlined,
+  HeartOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons';
 import { 
   addTeacher, 
   getTeachers, 
@@ -324,11 +343,26 @@ const Teachers = () => {
       />
 
       <Modal
-        title={editingTeacher ? 'Edit Teacher' : 'Add Teacher'}
+        title={
+          <Space>
+            <IdcardOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
+            </Typography.Title>
+          </Space>
+        }
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={() => setIsModalVisible(false)}
-        width={800}
+        width={900}
+        footer={[
+          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleModalOk}>
+            {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
+          </Button>
+        ]}
       >
         <Form
           form={form}
@@ -338,266 +372,367 @@ const Teachers = () => {
             ...editingTeacher
           }}
         >
-          <Divider>Personal Information</Divider>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="firstName"
-                label="First Name"
-                rules={[{ required: true, message: 'Please input first name!' }]}
+          <Row gutter={24}>
+            <Col span={8}>
+              <Card 
+                style={{ 
+                  textAlign: 'center',
+                  background: '#fafafa',
+                  border: '1px dashed #d9d9d9',
+                  borderRadius: '8px',
+                  padding: '20px'
+                }}
               >
-                <Input />
-              </Form.Item>
+                <Upload
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    handleImageUpload(file, editingTeacher?.id || 'new');
+                    return false;
+                  }}
+                  accept="image/*"
+                  maxCount={1}
+                >
+                  <div style={{ cursor: 'pointer' }}>
+                    {editingTeacher?.photoURL ? (
+                      <img 
+                        src={editingTeacher.photoURL}
+                        alt="Teacher"
+                        style={{ 
+                          width: 150, 
+                          height: 150, 
+                          borderRadius: '50%', 
+                          objectFit: 'cover',
+                          border: '4px solid #fff',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                      />
+                    ) : (
+                      <Avatar
+                        size={150}
+                        icon={<CameraOutlined style={{ fontSize: '40px' }} />}
+                        style={{ 
+                          backgroundColor: '#f0f2f5',
+                          border: '2px dashed #d9d9d9'
+                        }}
+                      />
+                    )}
+                    <div style={{ marginTop: '10px', color: '#666' }}>
+                      <CameraOutlined /> Click to upload photo
+                    </div>
+                  </div>
+                </Upload>
+              </Card>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                name="lastName"
-                label="Last Name"
-                rules={[{ required: true, message: 'Please input last name!' }]}
+            <Col span={16}>
+              <Card 
+                title={
+                  <Space>
+                    <UserOutlined style={{ color: '#1890ff' }} />
+                    <span>Personal Information</span>
+                  </Space>
+                }
+                style={{ marginBottom: '16px' }}
               >
-                <Input />
-              </Form.Item>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="firstName"
+                      label="First Name"
+                      rules={[{ required: true, message: 'Please input first name!' }]}
+                    >
+                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="lastName"
+                      label="Last Name"
+                      rules={[{ required: true, message: 'Please input last name!' }]}
+                    >
+                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="dateOfBirth"
+                      label="Date of Birth"
+                      rules={[{ required: true, message: 'Please select date of birth!' }]}
+                    >
+                      <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="gender"
+                      label="Gender"
+                      rules={[{ required: true, message: 'Please select gender!' }]}
+                    >
+                      <Select>
+                        <Option value="male">Male</Option>
+                        <Option value="female">Female</Option>
+                        <Option value="other">Other</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="nationality"
+                      label="Nationality"
+                      rules={[{ required: true, message: 'Please input nationality!' }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="bloodGroup"
+                      label="Blood Group"
+                      rules={[{ required: true, message: 'Please select blood group!' }]}
+                    >
+                      <Select>
+                        <Option value="A+">A+</Option>
+                        <Option value="A-">A-</Option>
+                        <Option value="B+">B+</Option>
+                        <Option value="B-">B-</Option>
+                        <Option value="O+">O+</Option>
+                        <Option value="O-">O-</Option>
+                        <Option value="AB+">AB+</Option>
+                        <Option value="AB-">AB-</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <PhoneOutlined style={{ color: '#1890ff' }} />
+                    <span>Contact Information</span>
+                  </Space>
+                }
+                style={{ marginBottom: '16px' }}
+              >
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="email"
+                      label="Email"
+                      rules={[
+                        { required: true, message: 'Please input email!' },
+                        { type: 'email', message: 'Please enter a valid email!' }
+                      ]}
+                    >
+                      <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="phone"
+                      label="Phone Number"
+                      rules={[{ required: true, message: 'Please input phone number!' }]}
+                    >
+                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item
+                  name="address"
+                  label="Address"
+                  rules={[{ required: true, message: 'Please input address!' }]}
+                >
+                  <Input.TextArea 
+                    rows={3} 
+                    prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
+                  />
+                </Form.Item>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <BookOutlined style={{ color: '#1890ff' }} />
+                    <span>Professional Information</span>
+                  </Space>
+                }
+                style={{ marginBottom: '16px' }}
+              >
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="employeeId"
+                      label="Employee ID"
+                      rules={[{ required: true, message: 'Please input employee ID!' }]}
+                    >
+                      <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="joiningDate"
+                      label="Joining Date"
+                      rules={[{ required: true, message: 'Please select joining date!' }]}
+                    >
+                      <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="subject"
+                      label="Subject"
+                      rules={[{ required: true, message: 'Please input subject!' }]}
+                    >
+                      <Select>
+                        <Option value="Mathematics">Mathematics</Option>
+                        <Option value="Science">Science</Option>
+                        <Option value="English">English</Option>
+                        <Option value="History">History</Option>
+                        <Option value="Geography">Geography</Option>
+                        <Option value="Computer Science">Computer Science</Option>
+                        <Option value="Physical Education">Physical Education</Option>
+                        <Option value="Art">Art</Option>
+                        <Option value="Music">Music</Option>
+                        <Option value="Languages">Languages</Option>
+                        <Option value="Economics">Economics</Option>
+                        <Option value="Business Studies">Business Studies</Option>
+                        <Option value="Accountancy">Accountancy</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="qualification"
+                      label="Qualification"
+                      rules={[{ required: true, message: 'Please input qualification!' }]}
+                    >
+                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="experience"
+                      label="Years of Experience"
+                      rules={[{ required: true, message: 'Please input years of experience!' }]}
+                    >
+                      <Input type="number" min={0} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="classId"
+                      label="Assigned Class (Optional)"
+                      rules={[{ required: false }]}
+                    >
+                      <Select allowClear>
+                        <Option value="">Not Assigned</Option>
+                        {classes
+                          .filter(cls => cls.status === 'Active')
+                          .map(cls => (
+                            <Option key={cls.id} value={cls.id}>
+                              {cls.className} - Section {cls.section}
+                            </Option>
+                          ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item
+                  name="specialization"
+                  label="Specialization"
+                  rules={[{ required: true, message: 'Please input specialization!' }]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  name="previousSchools"
+                  label="Previous Schools"
+                >
+                  <Input.TextArea rows={2} placeholder="List previous schools with years" />
+                </Form.Item>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <HeartOutlined style={{ color: '#1890ff' }} />
+                    <span>Emergency Contact</span>
+                  </Space>
+                }
+                style={{ marginBottom: '16px' }}
+              >
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="emergencyContactName"
+                      label="Emergency Contact Name"
+                      rules={[{ required: true, message: 'Please input emergency contact name!' }]}
+                    >
+                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="emergencyContactPhone"
+                      label="Emergency Contact Phone"
+                      rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
+                    >
+                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item
+                  name="emergencyContactRelation"
+                  label="Relation with Teacher"
+                  rules={[{ required: true, message: 'Please input relation with teacher!' }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                    <span>Additional Information</span>
+                  </Space>
+                }
+              >
+                <Form.Item
+                  name="medicalConditions"
+                  label="Medical Conditions"
+                >
+                  <Input.TextArea rows={2} />
+                </Form.Item>
+
+                <Form.Item
+                  name="status"
+                  label="Status"
+                  rules={[{ required: true, message: 'Please select status!' }]}
+                >
+                  <Select>
+                    <Option value="Active">Active</Option>
+                    <Option value="Inactive">Inactive</Option>
+                  </Select>
+                </Form.Item>
+              </Card>
             </Col>
           </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="dateOfBirth"
-                label="Date of Birth"
-                rules={[{ required: true, message: 'Please select date of birth!' }]}
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="gender"
-                label="Gender"
-                rules={[{ required: true, message: 'Please select gender!' }]}
-              >
-                <Select>
-                  <Option value="male">Male</Option>
-                  <Option value="female">Female</Option>
-                  <Option value="other">Other</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="nationality"
-                label="Nationality"
-                rules={[{ required: true, message: 'Please input nationality!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="bloodGroup"
-                label="Blood Group"
-                rules={[{ required: true, message: 'Please select blood group!' }]}
-              >
-                <Select>
-                  <Option value="A+">A+</Option>
-                  <Option value="A-">A-</Option>
-                  <Option value="B+">B+</Option>
-                  <Option value="B-">B-</Option>
-                  <Option value="O+">O+</Option>
-                  <Option value="O-">O-</Option>
-                  <Option value="AB+">AB+</Option>
-                  <Option value="AB-">AB-</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Divider>Contact Information</Divider>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="email"
-                label="Email"
-                rules={[
-                  { required: true, message: 'Please input email!' },
-                  { type: 'email', message: 'Please enter a valid email!' }
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="phone"
-                label="Phone Number"
-                rules={[{ required: true, message: 'Please input phone number!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="address"
-            label="Address"
-            rules={[{ required: true, message: 'Please input address!' }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-
-          <Divider>Professional Information</Divider>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="employeeId"
-                label="Employee ID"
-                rules={[{ required: true, message: 'Please input employee ID!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="joiningDate"
-                label="Joining Date"
-                rules={[{ required: true, message: 'Please select joining date!' }]}
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="subject"
-                label="Subject"
-                rules={[{ required: true, message: 'Please input subject!' }]}
-              >
-                <Select>
-                  <Option value="Mathematics">Mathematics</Option>
-                  <Option value="Science">Science</Option>
-                  <Option value="English">English</Option>
-                  <Option value="History">History</Option>
-                  <Option value="Geography">Geography</Option>
-                  <Option value="Computer Science">Computer Science</Option>
-                  <Option value="Physical Education">Physical Education</Option>
-                  <Option value="Art">Art</Option>
-                  <Option value="Music">Music</Option>
-                  <Option value="Languages">Languages</Option>
-                  <Option value="Economics">Economics</Option>
-                  <Option value="Business Studies">Business Studies</Option>
-                  <Option value="Accountancy">Accountancy</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="qualification"
-                label="Qualification"
-                rules={[{ required: true, message: 'Please input qualification!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="experience"
-                label="Years of Experience"
-                rules={[{ required: true, message: 'Please input years of experience!' }]}
-              >
-                <Input type="number" min={0} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="classId"
-                label="Assigned Class (Optional)"
-                rules={[{ required: false }]}
-              >
-                <Select allowClear>
-                  <Option value="">Not Assigned</Option>
-                  {classes
-                    .filter(cls => cls.status === 'Active')
-                    .map(cls => (
-                      <Option key={cls.id} value={cls.id}>
-                        {cls.className} - Section {cls.section}
-                      </Option>
-                    ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="specialization"
-            label="Specialization"
-            rules={[{ required: true, message: 'Please input specialization!' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="previousSchools"
-            label="Previous Schools"
-          >
-            <Input.TextArea rows={2} placeholder="List previous schools with years" />
-          </Form.Item>
-
-          <Divider>Emergency Contact</Divider>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="emergencyContactName"
-                label="Emergency Contact Name"
-                rules={[{ required: true, message: 'Please input emergency contact name!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="emergencyContactPhone"
-                label="Emergency Contact Phone"
-                rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            name="emergencyContactRelation"
-            label="Relation with Teacher"
-            rules={[{ required: true, message: 'Please input relation with teacher!' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Divider>Additional Information</Divider>
-          <Form.Item
-            name="medicalConditions"
-            label="Medical Conditions"
-          >
-            <Input.TextArea rows={2} />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
-          >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-            </Select>
-          </Form.Item>
         </Form>
       </Modal>
 
