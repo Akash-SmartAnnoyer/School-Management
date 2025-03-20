@@ -1,14 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-  apiKey: "demo-api-key",
-  authDomain: "demo.firebaseapp.com",
-  projectId: "demo-project",
-  storageBucket: "demo.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef1234567890"
+  apiKey: "AIzaSyCw4sYQmQ-KTBcLD8eoTISEAWDtalE_3bs",
+  authDomain: "school-management-c78c6.firebaseapp.com",
+  projectId: "school-management-c78c6",
+  storageBucket: "school-management-c78c6.firebasestorage.app",
+  messagingSenderId: "556605101259",
+  appId: "1:556605101259:web:183a77fe78e9e12223374e",
+  measurementId: "G-PZQVFFZS90"
 };
 
 // Initialize Firebase
@@ -19,6 +21,9 @@ export const db = getFirestore(app);
 
 // Initialize Storage
 export const storage = getStorage(app);
+
+// Initialize Analytics
+export const analytics = getAnalytics(app);
 
 export default app;
 

@@ -1,511 +1,748 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
-  Box,
   Card,
-  CardContent,
-  Grid,
-  Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  Row,
+  Col,
   Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Button,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Tab,
+  Space,
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  message,
   Tabs,
-  IconButton,
-  Tooltip
-} from '@mui/material';
+  Statistic,
+  Progress,
+  Tag,
+  Typography,
+  DatePicker,
+  Upload,
+  Divider,
+  Tooltip,
+  TimePicker
+} from 'antd';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Assessment as AssessmentIcon,
-  School as SchoolIcon,
-  Grade as GradeIcon,
-  Description as DescriptionIcon
-} from '@mui/icons-material';
-import {
-  getSubjects,
-  addSubject,
-  getExams,
-  addExam,
-  getMarksByExam,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
+  BarChartOutlined,
+  LineChartOutlined,
+  PieChartOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  TeamOutlined,
+  BookOutlined,
+  TrophyOutlined,
+  StarOutlined,
+} from '@ant-design/icons';
+import { Line, Column, Pie } from '@ant-design/plots';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc, orderBy } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { MessageContext } from '../App';
+import { 
+  subscribeToCollection, 
+  getClasses, 
+  getStudents, 
+  getTeachers,
   addMarks,
-  getReportCard,
-  generateReportCard
+  getMarksByExam,
+  getStudentMarks
 } from '../firebase/services';
-import { getStudents } from '../firebase/services';
-import { getClasses } from '../firebase/services';
+import moment from 'moment';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+const { Option } = Select;
+const { TabPane } = Tabs;
+const { Title, Text } = Typography;
+const { Search } = Input;
 
-const Academics = () => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [subjects, setSubjects] = useState([]);
-  const [exams, setExams] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [marks, setMarks] = useState([]);
-  const [reportCards, setReportCards] = useState([]);
-  
-  // Dialog states
-  const [openSubjectDialog, setOpenSubjectDialog] = useState(false);
-  const [openExamDialog, setOpenExamDialog] = useState(false);
-  const [openMarksDialog, setOpenMarksDialog] = useState(false);
-  const [openReportCardDialog, setOpenReportCardDialog] = useState(false);
-  
-  // Form states
-  const [subjectForm, setSubjectForm] = useState({
-    name: '',
-    code: '',
-    description: ''
-  });
-  const [examForm, setExamForm] = useState({
-    name: '',
-    subjectId: '',
-    classId: '',
-    date: '',
-    maxScore: ''
-  });
-  const [marksForm, setMarksForm] = useState({
-    examId: '',
-    studentId: '',
-    score: ''
-  });
+const examTypes = [
+  { value: 'unit_test', label: 'Unit Test' },
+  { value: 'mid_term', label: 'Mid Term' },
+  { value: 'final', label: 'Final Exam' },
+  { value: 'quiz', label: 'Quiz' },
+  { value: 'assignment', label: 'Assignment' }
+];
+
+const subjects = [
+  { value: 'mathematics', label: 'Mathematics' },
+  { value: 'science', label: 'Science' },
+  { value: 'english', label: 'English' },
+  { value: 'history', label: 'History' },
+  { value: 'geography', label: 'Geography' },
+  { value: 'computer_science', label: 'Computer Science' },
+  { value: 'physical_education', label: 'Physical Education' },
+  { value: 'art', label: 'Art' },
+  { value: 'music', label: 'Music' },
+  { value: 'languages', label: 'Languages' }
+];
+
+const gradingCriteria = {
+  A: { min: 90, color: '#52c41a' },
+  B: { min: 80, color: '#1890ff' },
+  C: { min: 70, color: '#faad14' },
+  D: { min: 60, color: '#ff4d4f' },
+  F: { min: 0, color: '#ff0000' }
+};
+
+const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, subjects, examTypes }) => {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      const subjectsData = await getSubjects();
-      const examsData = await getExams();
-      const studentsData = await getStudents();
-      const classesData = await getClasses();
-      
-      setSubjects(subjectsData);
-      setExams(examsData);
-      setStudents(studentsData);
-      setClasses(classesData);
-    } catch (error) {
-      console.error('Error loading data:', error);
+    if (initialValues) {
+      form.setFieldsValue(initialValues);
     }
-  };
+  }, [initialValues]);
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
-  // Subject Management
-  const handleAddSubject = async () => {
+  const handleSubmit = async (values) => {
     try {
-      await addSubject(subjectForm);
-      setOpenSubjectDialog(false);
-      setSubjectForm({ name: '', code: '', description: '' });
-      loadData();
+      setLoading(true);
+      await onSubmit(values);
+      form.resetFields();
+      onCancel();
     } catch (error) {
-      console.error('Error adding subject:', error);
-    }
-  };
-
-  // Exam Management
-  const handleAddExam = async () => {
-    try {
-      await addExam(examForm);
-      setOpenExamDialog(false);
-      setExamForm({ name: '', subjectId: '', classId: '', date: '', maxScore: '' });
-      loadData();
-    } catch (error) {
-      console.error('Error adding exam:', error);
-    }
-  };
-
-  // Marks Management
-  const handleAddMarks = async () => {
-    try {
-      await addMarks(marksForm);
-      setOpenMarksDialog(false);
-      setMarksForm({ examId: '', studentId: '', score: '' });
-      loadData();
-    } catch (error) {
-      console.error('Error adding marks:', error);
-    }
-  };
-
-  // Report Card Management
-  const handleGenerateReportCard = async (studentId) => {
-    try {
-      const currentYear = new Date().getFullYear();
-      await generateReportCard(studentId, currentYear);
-      const reportCard = await getReportCard(studentId, currentYear);
-      setReportCards([...reportCards, reportCard]);
-    } catch (error) {
-      console.error('Error generating report card:', error);
+      message.error('Failed to save marks');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Academics Management
-      </Typography>
-
-      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab icon={<SchoolIcon />} label="Subjects" />
-        <Tab icon={<AssessmentIcon />} label="Exams" />
-        <Tab icon={<GradeIcon />} label="Marks" />
-        <Tab icon={<DescriptionIcon />} label="Report Cards" />
-      </Tabs>
-
-      {/* Subjects Tab */}
-      {activeTab === 0 && (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Subjects</Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenSubjectDialog(true)}
+    <Modal
+      title={
+        <Space>
+          <BookOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <Title level={5} style={{ margin: 0 }}>
+            {initialValues ? 'Edit Marks' : 'Enter Marks'}
+          </Title>
+        </Space>
+      }
+      open={visible}
+      onCancel={onCancel}
+      footer={null}
+      width={800}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{
+          date: moment(),
+          ...initialValues
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="studentId"
+              label="Student"
+              rules={[{ required: true, message: 'Please select student!' }]}
             >
-              Add Subject
-            </Button>
-          </Box>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Code</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {subjects.map((subject) => (
-                  <TableRow key={subject.id}>
-                    <TableCell>{subject.code}</TableCell>
-                    <TableCell>{subject.name}</TableCell>
-                    <TableCell>{subject.description}</TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+              <Select>
+                {students.map(student => (
+                  <Option key={student.id} value={student.id}>
+                    {student.name} - {student.rollNumber}
+                  </Option>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
-
-      {/* Exams Tab */}
-      {activeTab === 1 && (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Exams</Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenExamDialog(true)}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="subject"
+              label="Subject"
+              rules={[{ required: true, message: 'Please select subject!' }]}
             >
-              Add Exam
-            </Button>
-          </Box>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Subject</TableCell>
-                  <TableCell>Class</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Max Score</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {exams.map((exam) => (
-                  <TableRow key={exam.id}>
-                    <TableCell>{exam.name}</TableCell>
-                    <TableCell>
-                      {subjects.find(s => s.id === exam.subjectId)?.name}
-                    </TableCell>
-                    <TableCell>
-                      {classes.find(c => c.id === exam.classId)?.name}
-                    </TableCell>
-                    <TableCell>{exam.date}</TableCell>
-                    <TableCell>{exam.maxScore}</TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+              <Select>
+                {subjects.map(subject => (
+                  <Option key={subject.value} value={subject.value}>
+                    {subject.label}
+                  </Option>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
-      {/* Marks Tab */}
-      {activeTab === 2 && (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Marks</Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenMarksDialog(true)}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="examType"
+              label="Exam Type"
+              rules={[{ required: true, message: 'Please select exam type!' }]}
             >
-              Add Marks
-            </Button>
-          </Box>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Student</TableCell>
-                  <TableCell>Exam</TableCell>
-                  <TableCell>Score</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {marks.map((mark) => (
-                  <TableRow key={mark.id}>
-                    <TableCell>
-                      {students.find(s => s.id === mark.studentId)?.name}
-                    </TableCell>
-                    <TableCell>
-                      {exams.find(e => e.id === mark.examId)?.name}
-                    </TableCell>
-                    <TableCell>{mark.score}</TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+              <Select>
+                {examTypes.map(type => (
+                  <Option key={type.value} value={type.value}>
+                    {type.label}
+                  </Option>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
-
-      {/* Report Cards Tab */}
-      {activeTab === 3 && (
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Report Cards
-          </Typography>
-          <Grid container spacing={3}>
-            {students.map((student) => (
-              <Grid item xs={12} md={6} key={student.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6">{student.name}</Typography>
-                    <Typography color="textSecondary">
-                      Class: {classes.find(c => c.id === student.classId)?.name}
-                    </Typography>
-                    <Box sx={{ mt: 2 }}>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleGenerateReportCard(student.id)}
-                      >
-                        Generate Report Card
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      )}
-
-      {/* Add Subject Dialog */}
-      <Dialog open={openSubjectDialog} onClose={() => setOpenSubjectDialog(false)}>
-        <DialogTitle>Add Subject</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Subject Name"
-            fullWidth
-            value={subjectForm.name}
-            onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Subject Code"
-            fullWidth
-            value={subjectForm.code}
-            onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={4}
-            value={subjectForm.description}
-            onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSubjectDialog(false)}>Cancel</Button>
-          <Button onClick={handleAddSubject} variant="contained">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add Exam Dialog */}
-      <Dialog open={openExamDialog} onClose={() => setOpenExamDialog(false)}>
-        <DialogTitle>Add Exam</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Exam Name"
-            fullWidth
-            value={examForm.name}
-            onChange={(e) => setExamForm({ ...examForm, name: e.target.value })}
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Subject</InputLabel>
-            <Select
-              value={examForm.subjectId}
-              onChange={(e) => setExamForm({ ...examForm, subjectId: e.target.value })}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="date"
+              label="Exam Date"
+              rules={[{ required: true, message: 'Please select exam date!' }]}
             >
-              {subjects.map((subject) => (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Class</InputLabel>
-            <Select
-              value={examForm.classId}
-              onChange={(e) => setExamForm({ ...examForm, classId: e.target.value })}
-            >
-              {classes.map((cls) => (
-                <MenuItem key={cls.id} value={cls.id}>
-                  {cls.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={examForm.date}
-            onChange={(e) => setExamForm({ ...examForm, date: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Max Score"
-            type="number"
-            fullWidth
-            value={examForm.maxScore}
-            onChange={(e) => setExamForm({ ...examForm, maxScore: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenExamDialog(false)}>Cancel</Button>
-          <Button onClick={handleAddExam} variant="contained">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
 
-      {/* Add Marks Dialog */}
-      <Dialog open={openMarksDialog} onClose={() => setOpenMarksDialog(false)}>
-        <DialogTitle>Add Marks</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Exam</InputLabel>
-            <Select
-              value={marksForm.examId}
-              onChange={(e) => setMarksForm({ ...marksForm, examId: e.target.value })}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="marks"
+              label="Marks Obtained"
+              rules={[{ required: true, message: 'Please enter marks!' }]}
             >
-              {exams.map((exam) => (
-                <MenuItem key={exam.id} value={exam.id}>
-                  {exam.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Student</InputLabel>
-            <Select
-              value={marksForm.studentId}
-              onChange={(e) => setMarksForm({ ...marksForm, studentId: e.target.value })}
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                max={100}
+                placeholder="Enter marks (0-100)"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="maxMarks"
+              label="Maximum Marks"
+              rules={[{ required: true, message: 'Please enter maximum marks!' }]}
             >
-              {students.map((student) => (
-                <MenuItem key={student.id} value={student.id}>
-                  {student.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            margin="dense"
-            label="Score"
-            type="number"
-            fullWidth
-            value={marksForm.score}
-            onChange={(e) => setMarksForm({ ...marksForm, score: e.target.value })}
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                max={100}
+                placeholder="Enter maximum marks"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="remarks"
+          label="Remarks"
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              {initialValues ? 'Update' : 'Save Marks'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+const PerformanceChart = ({ data, type = 'line' }) => {
+  const config = {
+    data,
+    xField: 'date',
+    yField: 'percentage',
+    seriesField: 'subject',
+    smooth: true,
+    animation: {
+      appear: {
+        animation: 'path-in',
+        duration: 1000,
+      },
+    },
+  };
+
+  return type === 'line' ? <Line {...config} /> : <Column {...config} />;
+};
+
+const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialValues) {
+      form.setFieldsValue(initialValues);
+    }
+  }, [initialValues]);
+
+  const handleSubmit = async (values) => {
+    try {
+      setLoading(true);
+      await onSubmit(values);
+      form.resetFields();
+      onCancel();
+    } catch (error) {
+      message.error('Failed to save subject');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      title={
+        <Space>
+          <BookOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <Title level={5} style={{ margin: 0 }}>
+            {initialValues ? 'Edit Subject' : 'Add Subject'}
+          </Title>
+        </Space>
+      }
+      open={visible}
+      onCancel={onCancel}
+      footer={null}
+      width={600}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={initialValues}
+      >
+        <Form.Item
+          name="code"
+          label="Subject Code"
+          rules={[{ required: true, message: 'Please enter subject code!' }]}
+        >
+          <Input placeholder="Enter subject code" />
+        </Form.Item>
+
+        <Form.Item
+          name="name"
+          label="Subject Name"
+          rules={[{ required: true, message: 'Please enter subject name!' }]}
+        >
+          <Input placeholder="Enter subject name" />
+        </Form.Item>
+
+        <Form.Item
+          name="description"
+          label="Description"
+        >
+          <Input.TextArea rows={4} placeholder="Enter subject description" />
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              {initialValues ? 'Update' : 'Add Subject'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classes }) => {
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialValues) {
+      form.setFieldsValue({
+        ...initialValues,
+        date: moment(initialValues.date)
+      });
+    }
+  }, [initialValues]);
+
+  const handleSubmit = async (values) => {
+    try {
+      setLoading(true);
+      await onSubmit(values);
+      form.resetFields();
+      onCancel();
+    } catch (error) {
+      message.error('Failed to save exam');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      title={
+        <Space>
+          <TrophyOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <Title level={5} style={{ margin: 0 }}>
+            {initialValues ? 'Edit Exam' : 'Add Exam'}
+          </Title>
+        </Space>
+      }
+      open={visible}
+      onCancel={onCancel}
+      footer={null}
+      width={800}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        initialValues={{
+          date: moment(),
+          ...initialValues
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="name"
+              label="Exam Name"
+              rules={[{ required: true, message: 'Please enter exam name!' }]}
+            >
+              <Input placeholder="Enter exam name" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="subject"
+              label="Subject"
+              rules={[{ required: true, message: 'Please select subject!' }]}
+            >
+              <Select placeholder="Select subject">
+                {subjects.map(subject => (
+                  <Option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="classId"
+              label="Class"
+              rules={[{ required: true, message: 'Please select class!' }]}
+            >
+              <Select placeholder="Select class">
+                {classes.map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="date"
+              label="Exam Date"
+              rules={[{ required: true, message: 'Please select exam date!' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="startTime"
+              label="Start Time"
+              rules={[{ required: true, message: 'Please select start time!' }]}
+            >
+              <TimePicker style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="duration"
+              label="Duration (minutes)"
+              rules={[{ required: true, message: 'Please enter duration!' }]}
+            >
+              <InputNumber style={{ width: '100%' }} min={1} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="maxScore"
+              label="Maximum Score"
+              rules={[{ required: true, message: 'Please enter maximum score!' }]}
+            >
+              <InputNumber style={{ width: '100%' }} min={1} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="passingScore"
+              label="Passing Score"
+              rules={[{ required: true, message: 'Please enter passing score!' }]}
+            >
+              <InputNumber style={{ width: '100%' }} min={1} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="instructions"
+          label="Instructions"
+        >
+          <Input.TextArea rows={4} placeholder="Enter exam instructions" />
+        </Form.Item>
+
+        <Form.Item>
+          <Space>
+            <Button onClick={onCancel}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              {initialValues ? 'Update' : 'Add Exam'}
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+const Academics = () => {
+  const [classes, setClasses] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [marks, setMarks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [marksModalVisible, setMarksModalVisible] = useState(false);
+  const [editingMarks, setEditingMarks] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    const unsubscribe = subscribeToCollection('classes', (data) => {
+      setClasses(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (selectedClass) {
+      const unsubscribe = subscribeToCollection('students', (data) => {
+        const filteredStudents = data.filter(student => student.classId === selectedClass);
+        setStudents(filteredStudents);
+      });
+      return () => unsubscribe();
+    }
+  }, [selectedClass]);
+
+  useEffect(() => {
+    if (selectedClass) {
+      const unsubscribe = subscribeToCollection('marks', (data) => {
+        const filteredMarks = data.filter(mark => 
+          students.some(student => student.id === mark.studentId)
+        );
+        setMarks(filteredMarks);
+      });
+      return () => unsubscribe();
+    }
+  }, [selectedClass, students]);
+
+  const handleAddMarks = () => {
+    setEditingMarks(null);
+    setMarksModalVisible(true);
+  };
+
+  const handleEditMarks = (marks) => {
+    setEditingMarks(marks);
+    setMarksModalVisible(true);
+  };
+
+  const handleDeleteMarks = async (marksId) => {
+    try {
+      await deleteDoc(doc(db, 'marks', marksId));
+      messageApi.success('Marks deleted successfully');
+    } catch (error) {
+      messageApi.error('Failed to delete marks');
+    }
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      const marksData = {
+        ...values,
+        date: values.date.toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (editingMarks) {
+        await updateDoc(doc(db, 'marks', editingMarks.id), marksData);
+        messageApi.success('Marks updated successfully');
+      } else {
+        await addMarks(marksData);
+        messageApi.success('Marks added successfully');
+      }
+    } catch (error) {
+      messageApi.error('Failed to save marks');
+    }
+  };
+
+  const calculateGrade = (percentage) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C';
+    return 'F';
+  };
+
+  const getStudentPerformance = (studentId) => {
+    const studentMarks = marks.filter(mark => mark.studentId === studentId);
+    if (studentMarks.length === 0) return null;
+
+    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
+    const maxMarks = studentMarks.reduce((sum, mark) => sum + mark.maxMarks, 0);
+    const percentage = (totalMarks / maxMarks) * 100;
+
+    return {
+      totalMarks,
+      maxMarks,
+      percentage,
+      grade: calculateGrade(percentage)
+    };
+  };
+
+  const columns = [
+    {
+      title: 'Student',
+      dataIndex: 'studentId',
+      key: 'studentId',
+      render: (studentId) => {
+        const student = students.find(s => s.id === studentId);
+        return student ? student.name : 'Unknown';
+      }
+    },
+    {
+      title: 'Subject',
+      dataIndex: 'subject',
+      key: 'subject',
+      render: (subject) => subjects.find(s => s.value === subject)?.label || subject
+    },
+    {
+      title: 'Exam Type',
+      dataIndex: 'examType',
+      key: 'examType',
+      render: (examType) => examTypes.find(e => e.value === examType)?.label || examType
+    },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date) => moment(date).format('DD/MM/YYYY')
+    },
+    {
+      title: 'Marks',
+      dataIndex: 'marks',
+      key: 'marks',
+      render: (marks, record) => `${marks}/${record.maxMarks}`
+    },
+    {
+      title: 'Percentage',
+      key: 'percentage',
+      render: (_, record) => {
+        const percentage = (record.marks / record.maxMarks) * 100;
+        return `${percentage.toFixed(2)}%`;
+      }
+    },
+    {
+      title: 'Grade',
+      key: 'grade',
+      render: (_, record) => {
+        const percentage = (record.marks / record.maxMarks) * 100;
+        const grade = calculateGrade(percentage);
+        const color = Object.entries(gradingCriteria).find(([_, criteria]) => percentage >= criteria.min)?.[1]?.color;
+        return <Tag color={color}>{grade}</Tag>;
+      }
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEditMarks(record)}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenMarksDialog(false)}>Cancel</Button>
-          <Button onClick={handleAddMarks} variant="contained">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteMarks(record.id)}
+          />
+        </Space>
+      )
+    }
+  ];
+
+  return (
+    <div>
+      {contextHolder}
+      <Card>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Space>
+              <Select
+                style={{ width: 200 }}
+                placeholder="Select Class"
+                onChange={setSelectedClass}
+                value={selectedClass}
+              >
+                {classes.map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {cls.className} - {cls.section}
+                  </Option>
+                ))}
+              </Select>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAddMarks}
+                disabled={!selectedClass}
+              >
+                Add Marks
+              </Button>
+            </Space>
+          </Col>
+          <Col span={24}>
+            <Table
+              columns={columns}
+              dataSource={marks}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 10 }}
+            />
+          </Col>
+        </Row>
+      </Card>
+
+      <MarksEntryForm
+        visible={marksModalVisible}
+        onCancel={() => setMarksModalVisible(false)}
+        onSubmit={handleSubmit}
+        initialValues={editingMarks}
+        students={students}
+        subjects={subjects}
+        examTypes={examTypes}
+      />
+    </div>
   );
 };
 
