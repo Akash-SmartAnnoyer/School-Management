@@ -1,0 +1,81 @@
+.profile-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.avatar-upload {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.avatar-upload:hover .avatar-upload-overlay {
+  opacity: 1;
+}
+
+.avatar-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.upload-text {
+  color: white;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.ant-upload {
+  display: block !important;
+}
+
+/* Form styling */
+.profile-card .ant-form-item-label {
+  font-weight: 500;
+}
+
+.profile-card .ant-input-affix-wrapper {
+  border-radius: 6px;
+}
+
+.profile-card .ant-btn {
+  height: 40px;
+  border-radius: 6px;
+}
+
+.profile-card .ant-divider {
+  margin: 24px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .profile-container {
+    padding: 16px;
+  }
+
+  .profile-card .ant-card-body {
+    padding: 16px;
+  }
+} 
