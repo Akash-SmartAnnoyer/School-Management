@@ -4,55 +4,76 @@ import { UserOutlined, BookOutlined, TrophyOutlined } from '@ant-design/icons';
 import { Line } from '@ant-design/plots';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { getMarksByStudent, getSubjects, getExams } from '../firebase/services';
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
 
 const StudentDetailsDrawer = ({ visible, onClose, student }) => {
-  const [academicRecords, setAcademicRecords] = useState([]);
+  const [marks, setMarks] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAcademicRecords = async () => {
+    const fetchData = async () => {
       if (!student?.id) return;
       
       try {
-        const q = query(
-          collection(db, 'academicRecords'),
-          where('studentId', '==', student.id)
-        );
-        const querySnapshot = await getDocs(q);
-        const records = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setAcademicRecords(records);
+        const [marksData, subjectsData, examsData] = await Promise.all([
+          getMarksByStudent(student.id),
+          getSubjects(),
+          getExams()
+        ]);
+        setMarks(marksData);
+        setSubjects(subjectsData);
+        setExams(examsData);
       } catch (error) {
-        console.error('Error fetching academic records:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAcademicRecords();
+    fetchData();
   }, [student?.id]);
 
-  const stats = {
-    averageScore: academicRecords.length > 0 
-      ? academicRecords.reduce((acc, record) => acc + (record.marks || 0), 0) / academicRecords.length 
-      : 0,
-    totalExams: academicRecords.length,
-    passRate: academicRecords.length > 0
-      ? (academicRecords.filter(record => (record.marks || 0) >= 40).length / academicRecords.length) * 100
-      : 0,
-    recentExams: academicRecords.slice(0, 3)
+  const getSubjectName = (subjectId) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    return subject ? subject.name : 'Unknown Subject';
   };
 
-  const performanceData = academicRecords.length > 0
-    ? academicRecords.map(record => ({
-        date: record.date?.toDate().toLocaleDateString() || '',
-        marks: record.marks || 0
-      }))
+  const getExamMaxMarks = (examId) => {
+    const exam = exams.find(e => e.id === examId);
+    return exam ? exam.maxMarks : 0;
+  };
+
+  const stats = {
+    averageScore: marks.length > 0 
+      ? (marks.reduce((acc, mark) => {
+          const maxMarks = getExamMaxMarks(mark.examId);
+          const percentage = maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0;
+          return acc + percentage;
+        }, 0) / marks.length)
+      : 0,
+    totalExams: marks.length,
+    passRate: marks.length > 0
+      ? (marks.filter(mark => {
+          const maxMarks = getExamMaxMarks(mark.examId);
+          return maxMarks > 0 && (mark.marks / maxMarks) * 100 >= 40;
+        }).length / marks.length) * 100
+      : 0,
+    recentExams: marks.slice(0, 3)
+  };
+
+  const performanceData = marks.length > 0
+    ? marks.map(mark => {
+        const maxMarks = getExamMaxMarks(mark.examId);
+        return {
+          date: mark.createdAt?.split('T')[0] || '',
+          marks: maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0
+        };
+      })
     : [];
 
   return (
@@ -146,11 +167,15 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
               <Card title="Recent Exams">
                 {stats.recentExams.length > 0 ? (
                   <Descriptions bordered>
-                    {stats.recentExams.map((exam, index) => (
-                      <Descriptions.Item key={index} label={exam.subject}>
-                        {exam.marks}% ({exam.examType})
-                      </Descriptions.Item>
-                    ))}
+                    {stats.recentExams.map((mark, index) => {
+                      const maxMarks = getExamMaxMarks(mark.examId);
+                      const percentage = maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0;
+                      return (
+                        <Descriptions.Item key={index} label={getSubjectName(mark.subjectId)}>
+                          {mark.marks}/{maxMarks} marks ({percentage.toFixed(1)}%)
+                        </Descriptions.Item>
+                      );
+                    })}
                   </Descriptions>
                 ) : (
                   <Empty description="No exam records found" />

@@ -23,6 +23,7 @@ import ThemeConfigurator from './ThemeConfigurator';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
+import { saveThemeColors, getThemeColors } from '../services/themeService';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -40,53 +41,37 @@ const MainLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Load saved theme from localStorage
+  // Load saved theme from database and localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('themeColors');
-    if (savedTheme) {
-      const colors = JSON.parse(savedTheme);
-      Object.entries(colors).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--${key}`, value);
-      });
-    }
+    const loadTheme = async () => {
+      try {
+        const colors = await getThemeColors();
+        applyThemeColors(colors);
+      } catch (error) {
+        console.error('Error loading theme:', error);
+      }
+    };
+
+    loadTheme();
   }, []);
 
-  // Add console logs for debugging
-  useEffect(() => {
-    console.log('Theme visible:', themeVisible);
-  }, [themeVisible]);
+  const handleThemeChange = async (field, value) => {
+    try {
+      if (field === 'reset') {
+        // Reset to default theme
+        const defaultTheme = await getThemeColors();
+        await saveThemeColors(defaultTheme);
+        return;
+      }
 
-  const handleThemeChange = (field, value) => {
-    console.log('Theme change:', field, value);
-    if (field === 'reset') {
-      // Reset to default theme
-      const defaultTheme = {
-        'primary-color': '#FF6B6B',
-        'secondary-color': '#4ECDC4',
-        'accent-color': '#FFE66D',
-        'background-color': '#f7f9fc',
-        'surface-color': '#ffffff',
-        'text-primary': '#2D3436',
-        'text-secondary': '#636E72',
-        'border-color': '#DFE6E9',
-        'hover-color': '#f1f2f6',
-        'success-color': '#00B894',
-        'warning-color': '#FDCB6E',
-        'error-color': '#FF7675',
-      };
-      Object.entries(defaultTheme).forEach(([key, value]) => {
-        document.documentElement.style.setProperty(`--${key}`, value);
-      });
-      localStorage.setItem('themeColors', JSON.stringify(defaultTheme));
-    } else {
       // Update specific color
-      const cssVar = field.replace(/([A-Z])/g, '-$1').toLowerCase();
-      document.documentElement.style.setProperty(`--${cssVar}`, value);
-      
-      // Save to localStorage
       const savedTheme = JSON.parse(localStorage.getItem('themeColors') || '{}');
-      savedTheme[cssVar] = value;
-      localStorage.setItem('themeColors', JSON.stringify(savedTheme));
+      savedTheme[field] = value;
+      
+      // Save to database and apply changes
+      await saveThemeColors(savedTheme);
+    } catch (error) {
+      console.error('Error updating theme:', error);
     }
   };
 

@@ -281,10 +281,7 @@ export const subjectsCollection = collection(db, 'subjects');
 
 export const addSubject = async (subjectData) => {
   try {
-    const docRef = await addDoc(collection(db, 'subjects'), {
-      ...subjectData,
-      createdAt: new Date().toISOString()
-    });
+    const docRef = await addDoc(collection(db, 'subjects'), subjectData);
     return docRef.id;
   } catch (error) {
     console.error('Error adding subject:', error);
@@ -292,9 +289,29 @@ export const addSubject = async (subjectData) => {
   }
 };
 
+export const updateSubject = async (subjectId, subjectData) => {
+  try {
+    const subjectRef = doc(db, 'subjects', subjectId);
+    await updateDoc(subjectRef, subjectData);
+  } catch (error) {
+    console.error('Error updating subject:', error);
+    throw error;
+  }
+};
+
+export const deleteSubject = async (subjectId) => {
+  try {
+    const subjectRef = doc(db, 'subjects', subjectId);
+    await deleteDoc(subjectRef);
+  } catch (error) {
+    console.error('Error deleting subject:', error);
+    throw error;
+  }
+};
+
 export const getSubjects = async () => {
   try {
-    const querySnapshot = await getDocs(subjectsCollection);
+    const querySnapshot = await getDocs(collection(db, 'subjects'));
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -310,13 +327,38 @@ export const examsCollection = collection(db, 'exams');
 
 export const addExam = async (examData) => {
   try {
-    const docRef = await addDoc(collection(db, 'exams'), {
+    const docRef = await addDoc(examsCollection, {
       ...examData,
       createdAt: new Date().toISOString()
     });
     return docRef.id;
   } catch (error) {
     console.error('Error adding exam:', error);
+    throw error;
+  }
+};
+
+export const updateExam = async (examId, examData) => {
+  try {
+    const examRef = doc(examsCollection, examId);
+    await updateDoc(examRef, {
+      ...examData,
+      updatedAt: new Date().toISOString()
+    });
+    return examId;
+  } catch (error) {
+    console.error('Error updating exam:', error);
+    throw error;
+  }
+};
+
+export const deleteExam = async (examId) => {
+  try {
+    const examRef = doc(examsCollection, examId);
+    await deleteDoc(examRef);
+    return examId;
+  } catch (error) {
+    console.error('Error deleting exam:', error);
     throw error;
   }
 };
@@ -337,7 +379,7 @@ export const getExams = async () => {
 export const getExamsByClass = async (classId) => {
   try {
     const q = query(
-      collection(db, 'exams'),
+      examsCollection,
       where('classId', '==', classId)
     );
     const querySnapshot = await getDocs(q);
@@ -356,7 +398,7 @@ export const marksCollection = collection(db, 'marks');
 
 export const addMarks = async (marksData) => {
   try {
-    const docRef = await addDoc(collection(db, 'marks'), {
+    const docRef = await addDoc(marksCollection, {
       ...marksData,
       createdAt: new Date().toISOString()
     });
@@ -367,11 +409,42 @@ export const addMarks = async (marksData) => {
   }
 };
 
-export const getMarksByExam = async (examId) => {
+export const updateMarks = async (marksId, marksData) => {
   try {
+    const marksRef = doc(marksCollection, marksId);
+    await updateDoc(marksRef, {
+      ...marksData,
+      updatedAt: new Date().toISOString()
+    });
+    return marksId;
+  } catch (error) {
+    console.error('Error updating marks:', error);
+    throw error;
+  }
+};
+
+export const deleteMarks = async (marksId) => {
+  try {
+    const marksRef = doc(marksCollection, marksId);
+    await deleteDoc(marksRef);
+    return marksId;
+  } catch (error) {
+    console.error('Error deleting marks:', error);
+    throw error;
+  }
+};
+
+export const getMarksByExam = async (examId, classId) => {
+  try {
+    if (!examId || !classId) {
+      return [];
+    }
+
+    const marksRef = collection(db, 'marks');
     const q = query(
-      collection(db, 'marks'),
-      where('examId', '==', examId)
+      marksRef,
+      where('examId', '==', examId),
+      where('classId', '==', classId)
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
@@ -384,11 +457,13 @@ export const getMarksByExam = async (examId) => {
   }
 };
 
-export const getStudentMarks = async (studentId) => {
+export const getStudentMarks = async (studentId, examId, subjectId) => {
   try {
     const q = query(
-      collection(db, 'marks'),
-      where('studentId', '==', studentId)
+      marksCollection,
+      where('studentId', '==', studentId),
+      where('examId', '==', examId),
+      where('subjectId', '==', subjectId)
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
@@ -397,6 +472,23 @@ export const getStudentMarks = async (studentId) => {
     }));
   } catch (error) {
     console.error('Error getting student marks:', error);
+    throw error;
+  }
+};
+
+export const getStudentsByClass = async (classId) => {
+  try {
+    const q = query(
+      studentsCollection,
+      where('classId', '==', classId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting students by class:', error);
     throw error;
   }
 };
@@ -1141,6 +1233,40 @@ export const getSectionsByClass = async (classId) => {
     }));
   } catch (error) {
     console.error('Error getting sections:', error);
+    throw error;
+  }
+};
+
+export const deleteAllExams = async () => {
+  try {
+    const examsRef = collection(db, 'exams');
+    const examsSnapshot = await getDocs(examsRef);
+    
+    const deletePromises = examsSnapshot.docs.map(doc => 
+      deleteDoc(doc.ref)
+    );
+    
+    await Promise.all(deletePromises);
+    return true;
+  } catch (error) {
+    console.error('Error deleting all exams:', error);
+    throw error;
+  }
+};
+
+export const getMarksByStudent = async (studentId) => {
+  try {
+    const q = query(
+      marksCollection,
+      where('studentId', '==', studentId)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error getting marks by student:', error);
     throw error;
   }
 }; 

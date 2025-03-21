@@ -59,6 +59,17 @@ import moment from 'moment';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import {
+  Box,
+  Tab,
+  Container,
+  Paper,
+} from '@mui/material';
+import ExamManagement from '../components/academics/ExamManagement';
+import MarksEntry from '../components/academics/MarksEntry';
+import Reports from '../components/academics/Reports';
+import Analytics from '../components/academics/Analytics';
+
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -515,235 +526,62 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
   );
 };
 
-const Academics = () => {
-  const [classes, setClasses] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [selectedClass, setSelectedClass] = useState(null);
-  const [marks, setMarks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [marksModalVisible, setMarksModalVisible] = useState(false);
-  const [editingMarks, setEditingMarks] = useState(null);
-  const [messageApi, contextHolder] = message.useMessage();
-
-  useEffect(() => {
-    const unsubscribe = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (selectedClass) {
-      const unsubscribe = subscribeToCollection('students', (data) => {
-        const filteredStudents = data.filter(student => student.classId === selectedClass);
-        setStudents(filteredStudents);
-      });
-      return () => unsubscribe();
-    }
-  }, [selectedClass]);
-
-  useEffect(() => {
-    if (selectedClass) {
-      const unsubscribe = subscribeToCollection('marks', (data) => {
-        const filteredMarks = data.filter(mark => 
-          students.some(student => student.id === mark.studentId)
-        );
-        setMarks(filteredMarks);
-      });
-      return () => unsubscribe();
-    }
-  }, [selectedClass, students]);
-
-  const handleAddMarks = () => {
-    setEditingMarks(null);
-    setMarksModalVisible(true);
-  };
-
-  const handleEditMarks = (marks) => {
-    setEditingMarks(marks);
-    setMarksModalVisible(true);
-  };
-
-  const handleDeleteMarks = async (marksId) => {
-    try {
-      await deleteDoc(doc(db, 'marks', marksId));
-      messageApi.success('Marks deleted successfully');
-    } catch (error) {
-      messageApi.error('Failed to delete marks');
-    }
-  };
-
-  const handleSubmit = async (values) => {
-    try {
-      const marksData = {
-        ...values,
-        date: values.date.toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      if (editingMarks) {
-        await updateDoc(doc(db, 'marks', editingMarks.id), marksData);
-        messageApi.success('Marks updated successfully');
-      } else {
-        await addMarks(marksData);
-        messageApi.success('Marks added successfully');
-      }
-    } catch (error) {
-      messageApi.error('Failed to save marks');
-    }
-  };
-
-  const calculateGrade = (percentage) => {
-    if (percentage >= 90) return 'A+';
-    if (percentage >= 80) return 'A';
-    if (percentage >= 70) return 'B+';
-    if (percentage >= 60) return 'B';
-    if (percentage >= 50) return 'C';
-    return 'F';
-  };
-
-  const getStudentPerformance = (studentId) => {
-    const studentMarks = marks.filter(mark => mark.studentId === studentId);
-    if (studentMarks.length === 0) return null;
-
-    const totalMarks = studentMarks.reduce((sum, mark) => sum + mark.marks, 0);
-    const maxMarks = studentMarks.reduce((sum, mark) => sum + mark.maxMarks, 0);
-    const percentage = (totalMarks / maxMarks) * 100;
-
-    return {
-      totalMarks,
-      maxMarks,
-      percentage,
-      grade: calculateGrade(percentage)
-    };
-  };
-
-  const columns = [
-    {
-      title: 'Student',
-      dataIndex: 'studentId',
-      key: 'studentId',
-      render: (studentId) => {
-        const student = students.find(s => s.id === studentId);
-        return student ? student.name : 'Unknown';
-      }
-    },
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-      render: (subject) => subjects.find(s => s.value === subject)?.label || subject
-    },
-    {
-      title: 'Exam Type',
-      dataIndex: 'examType',
-      key: 'examType',
-      render: (examType) => examTypes.find(e => e.value === examType)?.label || examType
-    },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      render: (date) => moment(date).format('DD/MM/YYYY')
-    },
-    {
-      title: 'Marks',
-      dataIndex: 'marks',
-      key: 'marks',
-      render: (marks, record) => `${marks}/${record.maxMarks}`
-    },
-    {
-      title: 'Percentage',
-      key: 'percentage',
-      render: (_, record) => {
-        const percentage = (record.marks / record.maxMarks) * 100;
-        return `${percentage.toFixed(2)}%`;
-      }
-    },
-    {
-      title: 'Grade',
-      key: 'grade',
-      render: (_, record) => {
-        const percentage = (record.marks / record.maxMarks) * 100;
-        const grade = calculateGrade(percentage);
-        const color = Object.entries(gradingCriteria).find(([_, criteria]) => percentage >= criteria.min)?.[1]?.color;
-        return <Tag color={color}>{grade}</Tag>;
-      }
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditMarks(record)}
-          />
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteMarks(record.id)}
-          />
-        </Space>
-      )
-    }
-  ];
-
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
   return (
-    <div>
-      {contextHolder}
-      <Card>
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            <Space>
-              <Select
-                style={{ width: 200 }}
-                placeholder="Select Class"
-                onChange={setSelectedClass}
-                value={selectedClass}
-              >
-                {classes.map(cls => (
-                  <Option key={cls.id} value={cls.id}>
-                    {cls.className} - {cls.section}
-                  </Option>
-                ))}
-              </Select>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddMarks}
-                disabled={!selectedClass}
-              >
-                Add Marks
-              </Button>
-            </Space>
-          </Col>
-          <Col span={24}>
-            <Table
-              columns={columns}
-              dataSource={marks}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Col>
-        </Row>
-      </Card>
-
-      <MarksEntryForm
-        visible={marksModalVisible}
-        onCancel={() => setMarksModalVisible(false)}
-        onSubmit={handleSubmit}
-        initialValues={editingMarks}
-        students={students}
-        subjects={subjects}
-        examTypes={examTypes}
-      />
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`academics-tabpanel-${index}`}
+      aria-labelledby={`academics-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
     </div>
   );
-};
+}
+
+function Academics() {
+  const [activeTab, setActiveTab] = useState('1');
+
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+  };
+
+  return (
+    <Container maxWidth="xl">
+      <Box sx={{ width: '100%', mt: 3 }}>
+        <Card>
+          <Tabs
+            activeKey={activeTab}
+            onChange={handleTabChange}
+            type="card"
+            items={[
+              {
+                key: '1',
+                label: 'Exam Management',
+                children: <ExamManagement />
+              },
+              {
+                key: '2',
+                label: 'Marks Entry',
+                children: <MarksEntry />
+              },
+              {
+                key: '3',
+                label: 'Reports & Analytics',
+                children: <Reports />
+              }
+            ]}
+          />
+        </Card>
+      </Box>
+    </Container>
+  );
+}
 
 export default Academics; 
