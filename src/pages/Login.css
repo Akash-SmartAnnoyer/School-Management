@@ -439,19 +439,26 @@
   .login-left {
     padding: 32px 20px;
     clip-path: none;
+    order: 2;
   }
 
   .login-left-content {
     text-align: center;
+    max-width: 100%;
   }
 
   .feature-grid {
     grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
   }
 
   .login-right {
     padding: 32px 20px;
     clip-path: none;
+    order: 1;
+    min-height: 60vh;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   }
 
   .login-right::after {
@@ -460,6 +467,27 @@
 
   .login-card {
     border-radius: 20px;
+    margin: 0 auto;
+  }
+
+  .login-content {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .login-header {
+    margin-bottom: 24px;
+    padding: 20px 0;
+  }
+
+  .login-left-title {
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+
+  .login-left-subtitle {
+    font-size: 1rem;
+    margin-bottom: 24px;
   }
 }
 
@@ -474,7 +502,7 @@
 
   .login-header {
     margin-bottom: 20px;
-    padding: 20px 0;
+    padding: 16px 0;
   }
 
   .login-left-title {
@@ -485,4 +513,23 @@
     border-radius: 12px;
     padding: 12px;
   }
+
+  .login-right {
+    min-height: 50vh;
+    padding: 24px 16px;
+  }
+
+  .login-content {
+    max-width: 100%;
+  }
+
+  .login-card {
+    border-radius: 16px;
+  }
+}
+
+/* Add smooth transition for order change */
+.login-left,
+.login-right {
+  transition: order 0.3s ease;
 } 
