@@ -45,7 +45,6 @@ import Parents from './pages/Parents';
 import Administration from './pages/Administration';
 import Finance from './pages/Finance';
 import Reports from './pages/Reports';
-import Communication from './pages/Communication';
 import Profile from './pages/Profile';
 import AuthProvider, { useAuth, ROLES } from './contexts/AuthContext';
 import ExamManagement from './pages/ExamManagement';
@@ -121,15 +120,14 @@ function MainLayout() {
     { key: '9', label: 'Parents', icon: <HomeOutlined />, path: '/parents' },
     { key: '10', label: 'Administration', icon: <SettingOutlined />, path: '/administration' },
     { key: '11', label: 'Finance', icon: <WalletOutlined />, path: '/finance' },
-    { key: '12', label: 'Reports', icon: <BarChartOutlined />, path: '/reports' },
-    { key: '13', label: 'Communication', icon: <MessageOutlined />, path: '/communication' },
+    { key: '12', label: 'Reports', icon: <BarChartOutlined />, path: '/reports' }
   ].filter(item => {
     // Filter menu items based on user role
     if (currentUser.role === ROLES.TEACHER) {
       return !['teachers', 'administration', 'finance', 'teacher-attendance'].includes(item.path.slice(1));
     }
     if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return ['/', '/academic-calendar', '/attendance', '/academics', '/communication'].includes(item.path);
+      return ['/', '/academic-calendar', '/attendance', '/academics'].includes(item.path);
     }
     return true; // Show all items for PRINCIPAL
   });
@@ -517,7 +515,6 @@ function MainLayout() {
             <Route path="/administration" element={<Administration />} />
             <Route path="/finance" element={<Finance />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/communication" element={<Communication />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="exam-management" element={<ExamManagement />} />
@@ -573,7 +570,6 @@ function App() {
                 <Route path="administration" element={<Administration />} />
                 <Route path="finance" element={<Finance />} />
                 <Route path="reports" element={<Reports />} />
-                <Route path="communication" element={<Communication />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="exam-management" element={<ExamManagement />} />
                 <Route path="academic-calendar" element={<AcademicCalendar />} />

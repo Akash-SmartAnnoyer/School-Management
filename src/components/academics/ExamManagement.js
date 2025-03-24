@@ -414,6 +414,7 @@ const ExamManagement = () => {
       title: 'Exam Name',
       dataIndex: 'name',
       key: 'name',
+      width: 200,
       render: (text, record) => (
         <Space>
           <TrophyOutlined />
@@ -425,6 +426,7 @@ const ExamManagement = () => {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
+      width: 120,
       render: (type) => {
         const examType = examTypes.find(t => t.value === type);
         return (
@@ -443,6 +445,7 @@ const ExamManagement = () => {
       title: 'Subjects',
       dataIndex: 'subjects',
       key: 'subjects',
+      width: 200,
       render: (subjectIds) => (
         <Space wrap>
           {getSubjectNames(subjectIds).map((name, index) => (
@@ -455,6 +458,7 @@ const ExamManagement = () => {
       title: 'Classes',
       dataIndex: 'classes',
       key: 'classes',
+      width: 200,
       render: (classIds) => (
         <Space wrap>
           {getClassNames(classIds).map((name, index) => (
@@ -466,6 +470,7 @@ const ExamManagement = () => {
     {
       title: 'Date & Time',
       key: 'datetime',
+      width: 150,
       render: (_, record) => (
         <Space direction="vertical">
           <Badge 
@@ -482,6 +487,7 @@ const ExamManagement = () => {
       title: 'Duration',
       dataIndex: 'duration',
       key: 'duration',
+      width: 120,
       render: (duration) => (
         <Space>
           <ClockCircleOutlined />
@@ -493,6 +499,7 @@ const ExamManagement = () => {
       title: 'Max Marks',
       dataIndex: 'maxMarks',
       key: 'maxMarks',
+      width: 120,
       render: (maxMarks) => (
         <Space>
           <TrophyOutlined />
@@ -503,6 +510,8 @@ const ExamManagement = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 120,
+      fixed: 'right',
       render: (_, record) => (
         <Space>
           <Tooltip title="Edit Exam">
@@ -539,6 +548,7 @@ const ExamManagement = () => {
       title: 'Subject Name',
       dataIndex: 'name',
       key: 'name',
+      width: 200,
       render: (text) => (
         <Space>
           <BookOutlined />
@@ -550,6 +560,7 @@ const ExamManagement = () => {
       title: 'Code',
       dataIndex: 'code',
       key: 'code',
+      width: 120,
       render: (text) => (
         <Tag color="blue">{text}</Tag>
       ),
@@ -559,10 +570,13 @@ const ExamManagement = () => {
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
+      width: 300,
     },
     {
       title: 'Actions',
       key: 'actions',
+      width: 120,
+      fixed: 'right',
       render: (_, record) => (
         <Space>
           <Tooltip title="Edit Subject">
@@ -634,7 +648,7 @@ const ExamManagement = () => {
                         showQuickJumper: true,
                         showTotal: (total) => `Total ${total} exams`
                       }}
-                      scroll={{ x: true }}
+                      scroll={{ x: 1300 }}
                       locale={{
                         emptyText: (
                           <Empty
@@ -683,7 +697,7 @@ const ExamManagement = () => {
                         showQuickJumper: true,
                         showTotal: (total) => `Total ${total} subjects`
                       }}
-                      scroll={{ x: true }}
+                      scroll={{ x: 800 }}
                       locale={{
                         emptyText: (
                           <Empty
