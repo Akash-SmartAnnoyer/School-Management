@@ -22,9 +22,20 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  Chip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
-import { Download as DownloadIcon, Visibility as ViewIcon } from '@mui/icons-material';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  Download as DownloadIcon,
+  Visibility as ViewIcon,
+  Print as PrintIcon,
+  Assessment as AssessmentIcon,
+  TrendingUp as TrendingUpIcon,
+  School as SchoolIcon,
+} from '@mui/icons-material';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -39,7 +50,11 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  ResponsiveContainer,
 } from 'recharts';
+import moment from 'moment';
 
 const Reports = () => {
   const [classes, setClasses] = useState([]);
@@ -52,20 +67,14 @@ const Reports = () => {
   const [reportType, setReportType] = useState('class');
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [dateRange, setDateRange] = useState({
+    start: moment().subtract(6, 'months'),
+    end: moment()
+  });
 
-  // Mock data - replace with actual data from backend
-  const classPerformanceData = [
-    { name: 'Class 1', average: 85, boys: 82, girls: 88 },
-    { name: 'Class 2', average: 78, boys: 75, girls: 81 },
-    { name: 'Class 3', average: 92, boys: 90, girls: 94 },
-  ];
-
-  const genderPerformanceData = [
-    { name: 'Boys', value: 82 },
-    { name: 'Girls', value: 88 },
-  ];
-
-  const COLORS = ['#0088FE', '#00C49F'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   useEffect(() => {
     fetchClasses();
@@ -85,45 +94,88 @@ const Reports = () => {
   }, [selectedClass, selectedExam]);
 
   const fetchClasses = async () => {
-    const querySnapshot = await getDocs(collection(db, 'classes'));
-    const classesList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setClasses(classesList);
+    try {
+      setLoading(true);
+      setError(null);
+      const querySnapshot = await getDocs(collection(db, 'classes'));
+      const classesList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('Fetched classes:', classesList);
+      setClasses(classesList);
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+      setError('Failed to fetch classes: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchStudents = async () => {
-    const q = query(collection(db, 'students'), where('classId', '==', selectedClass));
-    const querySnapshot = await getDocs(q);
-    const studentsList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setStudents(studentsList);
+    try {
+      setLoading(true);
+      const q = query(collection(db, 'students'), where('classId', '==', selectedClass));
+      const querySnapshot = await getDocs(q);
+      const studentsList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setStudents(studentsList);
+    } catch (err) {
+      setError('Failed to fetch students');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchExams = async () => {
-    const querySnapshot = await getDocs(collection(db, 'exams'));
-    const examsList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setExams(examsList);
+    try {
+      setLoading(true);
+      setError(null);
+      const querySnapshot = await getDocs(collection(db, 'exams'));
+      const examsList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('Fetched exams:', examsList);
+      setExams(examsList);
+    } catch (err) {
+      console.error('Error fetching exams:', err);
+      setError('Failed to fetch exams: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchMarks = async () => {
-    const q = query(
-      collection(db, 'marks'),
-      where('classId', '==', selectedClass),
-      where('examId', '==', selectedExam)
-    );
-    const querySnapshot = await getDocs(q);
-    const marksList = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setMarks(marksList);
+    try {
+      setLoading(true);
+      setError(null);
+      if (!selectedClass || !selectedExam) {
+        setError('Please select both class and exam');
+        return;
+      }
+
+      const q = query(
+        collection(db, 'marks'),
+        where('classId', '==', selectedClass),
+        where('examId', '==', selectedExam)
+      );
+      const querySnapshot = await getDocs(q);
+      const marksList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('Fetched marks:', marksList);
+      setMarks(marksList);
+    } catch (err) {
+      console.error('Error fetching marks:', err);
+      setError('Failed to fetch marks: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const calculateStudentPerformance = (studentId) => {
@@ -138,7 +190,14 @@ const Reports = () => {
       totalMarks,
       maxMarks,
       percentage,
-      grade: calculateGrade(percentage)
+      grade: calculateGrade(percentage),
+      subjectPerformance: studentMarks.map(mark => ({
+        subject: mark.subject,
+        marks: Number(mark.marks),
+        maxMarks: Number(mark.maxMarks),
+        percentage: (Number(mark.marks) / Number(mark.maxMarks)) * 100,
+        grade: calculateGrade((Number(mark.marks) / Number(mark.maxMarks)) * 100)
+      }))
     };
   };
 
@@ -175,7 +234,27 @@ const Reports = () => {
     return {
       studentInfo: student,
       performance,
-      subjectMarks
+      subjectMarks,
+      attendance: calculateAttendance(student.id),
+      improvement: calculateImprovement(student.id)
+    };
+  };
+
+  const calculateAttendance = (studentId) => {
+    // TODO: Implement attendance calculation
+    return {
+      present: 85,
+      absent: 15,
+      percentage: 85
+    };
+  };
+
+  const calculateImprovement = (studentId) => {
+    // TODO: Implement improvement calculation
+    return {
+      previousScore: 75,
+      currentScore: 85,
+      improvement: 10
     };
   };
 
@@ -191,8 +270,144 @@ const Reports = () => {
   };
 
   const handleDownloadReport = () => {
-    // TODO: Implement report download logic
-    console.log('Downloading report...');
+    const doc = new jsPDF();
+    const exam = exams.find(e => e.id === selectedExam);
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.text('Performance Report', 105, 20, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(`Class: ${classes.find(c => c.id === selectedClass)?.name || 'N/A'}`, 20, 30);
+    doc.text(`Exam: ${exam?.name || 'N/A'}`, 20, 40);
+    doc.text(`Date: ${moment().format('DD/MM/YYYY')}`, 20, 50);
+
+    // Add table
+    if (reportType === 'class') {
+      const tableData = reportData.map((student, index) => [
+        index + 1,
+        student.studentName,
+        student.rollNumber,
+        `${student.totalMarks}/${student.maxMarks}`,
+        `${student.percentage.toFixed(2)}%`,
+        student.grade
+      ]);
+
+      doc.autoTable({
+        head: [['S.No', 'Student Name', 'Roll No', 'Marks', 'Percentage', 'Grade']],
+        body: tableData,
+        startY: 60,
+        theme: 'grid'
+      });
+    } else {
+      // Individual student report
+      const student = reportData.studentInfo;
+      doc.text(`Student: ${student.name}`, 20, 60);
+      doc.text(`Roll No: ${student.rollNumber}`, 20, 70);
+      
+      const performance = reportData.performance;
+      doc.text(`Total Marks: ${performance.totalMarks}/${performance.maxMarks}`, 20, 80);
+      doc.text(`Percentage: ${performance.percentage.toFixed(2)}%`, 20, 90);
+      doc.text(`Grade: ${performance.grade}`, 20, 100);
+
+      // Subject-wise marks table
+      const subjectData = performance.subjectPerformance.map(subject => [
+        subject.subject,
+        `${subject.marks}/${subject.maxMarks}`,
+        `${subject.percentage.toFixed(2)}%`,
+        subject.grade
+      ]);
+
+      doc.autoTable({
+        head: [['Subject', 'Marks', 'Percentage', 'Grade']],
+        body: subjectData,
+        startY: 110,
+        theme: 'grid'
+      });
+    }
+
+    // Save the PDF
+    doc.save(`${reportType}_report_${moment().format('YYYYMMDD')}.pdf`);
+  };
+
+  const renderPerformanceCharts = () => {
+    if (!marks.length) return null;
+
+    const performanceData = marks.map(mark => ({
+      name: students.find(s => s.id === mark.studentId)?.name || 'Unknown',
+      marks: Number(mark.marks),
+      percentage: (Number(mark.marks) / Number(mark.maxMarks)) * 100
+    }));
+
+    const gradeDistribution = {
+      'A+': performanceData.filter(d => d.percentage >= 90).length,
+      'A': performanceData.filter(d => d.percentage >= 80 && d.percentage < 90).length,
+      'B+': performanceData.filter(d => d.percentage >= 70 && d.percentage < 80).length,
+      'B': performanceData.filter(d => d.percentage >= 60 && d.percentage < 70).length,
+      'C': performanceData.filter(d => d.percentage >= 50 && d.percentage < 60).length,
+      'F': performanceData.filter(d => d.percentage < 50).length
+    };
+
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Student Performance Distribution
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="percentage" fill="#8884d8" name="Percentage" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Grade Distribution
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={Object.entries(gradeDistribution).map(([grade, count]) => ({
+                      name: grade,
+                      value: count
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {Object.entries(gradeDistribution).map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    );
   };
 
   return (
@@ -201,149 +416,279 @@ const Reports = () => {
         Reports & Analytics
       </Typography>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
         {/* Filters */}
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Select Class</InputLabel>
                   <Select
                     value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedClass(e.target.value);
+                      setSelectedExam(''); // Reset exam when class changes
+                      setMarks([]); // Clear marks
+                    }}
                     label="Select Class"
+                    disabled={loading}
                   >
-                    <MenuItem value="1">Class 1</MenuItem>
-                    <MenuItem value="2">Class 2</MenuItem>
-                    <MenuItem value="3">Class 3</MenuItem>
+                    {classes && classes.length > 0 ? (
+                      classes.map(cls => (
+                        <MenuItem key={cls.id} value={cls.id}>
+                          {cls.className || cls.name || `Class ${cls.id}`}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No classes available</MenuItem>
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Select Exam</InputLabel>
                   <Select
                     value={selectedExam}
-                    onChange={(e) => setSelectedExam(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedExam(e.target.value);
+                      setMarks([]); // Clear marks
+                    }}
                     label="Select Exam"
+                    disabled={loading || !selectedClass}
                   >
-                    <MenuItem value="mid">Mid Term</MenuItem>
-                    <MenuItem value="half">Half Yearly</MenuItem>
-                    <MenuItem value="class">Class Test</MenuItem>
+                    {exams && exams.length > 0 ? (
+                      exams.map(exam => (
+                        <MenuItem key={exam.id} value={exam.id}>
+                          {exam.examName || exam.name || `Exam ${exam.id}`}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No exams available</MenuItem>
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Report Type</InputLabel>
                   <Select
                     value={reportType}
-                    onChange={(e) => setReportType(e.target.value)}
+                    onChange={(e) => {
+                      setReportType(e.target.value);
+                      setSelectedStudent(''); // Reset student when report type changes
+                    }}
                     label="Report Type"
                   >
                     <MenuItem value="class">Class Performance</MenuItem>
-                    <MenuItem value="gender">Gender-wise Analysis</MenuItem>
-                    <MenuItem value="individual">Individual Reports</MenuItem>
+                    <MenuItem value="individual">Individual Report</MenuItem>
+                    <MenuItem value="analytics">Analytics</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              {reportType === 'individual' && (
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Select Student</InputLabel>
+                    <Select
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                      label="Select Student"
+                      disabled={loading || !selectedClass}
+                    >
+                      {students && students.length > 0 ? (
+                        students.map(student => (
+                          <MenuItem key={student.id} value={student.id}>
+                            {student.name} - {student.rollNumber}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>No students available</MenuItem>
+                      )}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
+              <Grid item xs={12} md={reportType === 'individual' ? 12 : 3}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleGenerateReport}
+                  disabled={
+                    loading || 
+                    !selectedClass || 
+                    !selectedExam || 
+                    (reportType === 'individual' && !selectedStudent)
+                  }
+                  startIcon={loading ? <CircularProgress size={20} /> : <AssessmentIcon />}
+                >
+                  Generate Report
+                </Button>
               </Grid>
             </Grid>
           </Paper>
         </Grid>
 
-        {/* Charts */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Class-wise Performance
-              </Typography>
-              <BarChart
-                width={500}
-                height={300}
-                data={classPerformanceData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="average" fill="#8884d8" name="Average" />
-                <Bar dataKey="boys" fill="#82ca9d" name="Boys" />
-                <Bar dataKey="girls" fill="#ffc658" name="Girls" />
-              </BarChart>
-            </CardContent>
-          </Card>
-        </Grid>
+        {/* Loading State */}
+        {loading && (
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          </Grid>
+        )}
 
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Gender-wise Performance
-              </Typography>
-              <PieChart width={500} height={300}>
-                <Pie
-                  data={genderPerformanceData}
-                  cx={250}
-                  cy={150}
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {genderPerformanceData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </CardContent>
-          </Card>
-        </Grid>
+        {/* Performance Summary Cards */}
+        {!loading && marks.length > 0 && (
+          <Grid item xs={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Average Score
+                    </Typography>
+                    <Typography variant="h4">
+                      {((marks.reduce((sum, mark) => sum + Number(mark.marks), 0) / marks.length) / 
+                        (marks[0]?.maxMarks || 100) * 100).toFixed(1)}%
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Pass Percentage
+                    </Typography>
+                    <Typography variant="h4">
+                      {(marks.filter(mark => Number(mark.marks) >= 40).length / marks.length * 100).toFixed(1)}%
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Highest Score
+                    </Typography>
+                    <Typography variant="h4">
+                      {Math.max(...marks.map(m => Number(m.marks)))}/{marks[0]?.maxMarks || 100}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Lowest Score
+                    </Typography>
+                    <Typography variant="h4">
+                      {Math.min(...marks.map(m => Number(m.marks)))}/{marks[0]?.maxMarks || 100}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Grid>
+        )}
+
+        {/* Charts */}
+        {!loading && marks.length > 0 && renderPerformanceCharts()}
 
         {/* Rankings Table */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Class Rankings</Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<DownloadIcon />}
-                  onClick={handleDownloadReport}
-                >
-                  Download Report
-                </Button>
-              </Box>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Rank</TableCell>
-                      <TableCell>Student Name</TableCell>
-                      <TableCell>Roll No</TableCell>
-                      <TableCell>Total Marks</TableCell>
-                      <TableCell>Percentage</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {/* Add mock data or fetch from backend */}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
+        {!loading && marks.length > 0 && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="h6">Class Rankings</Typography>
+                  <Box>
+                    <Button
+                      variant="outlined"
+                      startIcon={<PrintIcon />}
+                      onClick={() => window.print()}
+                      sx={{ mr: 1 }}
+                    >
+                      Print
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={handleDownloadReport}
+                    >
+                      Download PDF
+                    </Button>
+                  </Box>
+                </Box>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Rank</TableCell>
+                        <TableCell>Student Name</TableCell>
+                        <TableCell>Roll No</TableCell>
+                        <TableCell>Marks</TableCell>
+                        <TableCell>Percentage</TableCell>
+                        <TableCell>Grade</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {marks.map((mark, index) => {
+                        const student = students.find(s => s.id === mark.studentId);
+                        return (
+                          <TableRow key={mark.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{student?.name || 'Unknown'}</TableCell>
+                            <TableCell>{student?.rollNumber || 'N/A'}</TableCell>
+                            <TableCell>{`${mark.marks}/${mark.maxMarks}`}</TableCell>
+                            <TableCell>{`${((mark.marks / mark.maxMarks) * 100).toFixed(2)}%`}</TableCell>
+                            <TableCell>
+                              <Chip
+                                label={calculateGrade((mark.marks / mark.maxMarks) * 100)}
+                                color={
+                                  calculateGrade((mark.marks / mark.maxMarks) * 100) === 'F'
+                                    ? 'error'
+                                    : calculateGrade((mark.marks / mark.maxMarks) * 100).includes('A')
+                                    ? 'success'
+                                    : 'primary'
+                                }
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* No Data Message */}
+        {!loading && selectedClass && selectedExam && marks.length === 0 && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ textAlign: 'center', py: 3 }}>
+                  <Typography variant="h6" color="textSecondary">
+                    No marks data available for the selected class and exam
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
       </Grid>
 
       {/* Report Dialog */}
@@ -380,7 +725,18 @@ const Reports = () => {
                           <TableCell>{student.rollNumber}</TableCell>
                           <TableCell>{`${student.totalMarks}/${student.maxMarks}`}</TableCell>
                           <TableCell>{`${student.percentage.toFixed(2)}%`}</TableCell>
-                          <TableCell>{student.grade}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={student.grade}
+                              color={
+                                student.grade === 'F'
+                                  ? 'error'
+                                  : student.grade.includes('A')
+                                  ? 'success'
+                                  : 'primary'
+                              }
+                            />
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -420,12 +776,23 @@ const Reports = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {reportData.subjectMarks.map((mark, index) => (
+                        {reportData.performance.subjectPerformance.map((subject, index) => (
                           <TableRow key={index}>
-                            <TableCell>{mark.subject}</TableCell>
-                            <TableCell>{`${mark.marks}/${mark.maxMarks}`}</TableCell>
-                            <TableCell>{`${((mark.marks / mark.maxMarks) * 100).toFixed(2)}%`}</TableCell>
-                            <TableCell>{calculateGrade((mark.marks / mark.maxMarks) * 100)}</TableCell>
+                            <TableCell>{subject.subject}</TableCell>
+                            <TableCell>{`${subject.marks}/${subject.maxMarks}`}</TableCell>
+                            <TableCell>{`${subject.percentage.toFixed(2)}%`}</TableCell>
+                            <TableCell>
+                              <Chip
+                                label={subject.grade}
+                                color={
+                                  subject.grade === 'F'
+                                    ? 'error'
+                                    : subject.grade.includes('A')
+                                    ? 'success'
+                                    : 'primary'
+                                }
+                              />
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
