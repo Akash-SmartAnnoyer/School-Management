@@ -147,18 +147,6 @@ const MainLayout = ({ children }) => {
       icon: <FileTextOutlined />,
       label: 'Reports',
       roles: ['PRINCIPAL', 'TEACHER']
-    },
-    {
-      key: '/communication',
-      icon: <MessageOutlined />,
-      label: 'Communication',
-      roles: ['PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT']
-    },
-    {
-      key: '/profile',
-      icon: <UserOutlined />,
-      label: 'Profile',
-      roles: ['PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT']
     }
   ];
 
