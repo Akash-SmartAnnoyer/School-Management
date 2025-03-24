@@ -443,7 +443,7 @@ const Reports = () => {
                     {classes && classes.length > 0 ? (
                       classes.map(cls => (
                         <MenuItem key={cls.id} value={cls.id}>
-                          {cls.className || cls.name || `Class ${cls.id}`}
+                          {cls.className} - Section {cls.section}
                         </MenuItem>
                       ))
                     ) : (
@@ -556,8 +556,13 @@ const Reports = () => {
                       Average Score
                     </Typography>
                     <Typography variant="h4">
-                      {((marks.reduce((sum, mark) => sum + Number(mark.marks), 0) / marks.length) / 
-                        (marks[0]?.maxMarks || 100) * 100).toFixed(1)}%
+                      {(() => {
+                        const validMarks = marks.filter(m => m.marks !== undefined && m.maxMarks !== undefined);
+                        if (validMarks.length === 0) return '0%';
+                        const totalPercentage = validMarks.reduce((sum, mark) => 
+                          sum + (Number(mark.marks) / Number(mark.maxMarks)) * 100, 0);
+                        return `${(totalPercentage / validMarks.length).toFixed(1)}%`;
+                      })()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -569,7 +574,14 @@ const Reports = () => {
                       Pass Percentage
                     </Typography>
                     <Typography variant="h4">
-                      {(marks.filter(mark => Number(mark.marks) >= 40).length / marks.length * 100).toFixed(1)}%
+                      {(() => {
+                        const validMarks = marks.filter(m => m.marks !== undefined && m.maxMarks !== undefined);
+                        if (validMarks.length === 0) return '0%';
+                        const passingMarks = validMarks.filter(mark => 
+                          (Number(mark.marks) / Number(mark.maxMarks)) * 100 >= 40
+                        ).length;
+                        return `${((passingMarks / validMarks.length) * 100).toFixed(1)}%`;
+                      })()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -581,7 +593,13 @@ const Reports = () => {
                       Highest Score
                     </Typography>
                     <Typography variant="h4">
-                      {Math.max(...marks.map(m => Number(m.marks)))}/{marks[0]?.maxMarks || 100}
+                      {(() => {
+                        const validMarks = marks.filter(m => m.marks !== undefined && m.maxMarks !== undefined);
+                        if (validMarks.length === 0) return '0/0';
+                        const highestMark = Math.max(...validMarks.map(m => Number(m.marks)));
+                        const maxMarks = validMarks[0]?.maxMarks || 100;
+                        return `${highestMark}/${maxMarks}`;
+                      })()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -593,7 +611,13 @@ const Reports = () => {
                       Lowest Score
                     </Typography>
                     <Typography variant="h4">
-                      {Math.min(...marks.map(m => Number(m.marks)))}/{marks[0]?.maxMarks || 100}
+                      {(() => {
+                        const validMarks = marks.filter(m => m.marks !== undefined && m.maxMarks !== undefined);
+                        if (validMarks.length === 0) return '0/0';
+                        const lowestMark = Math.min(...validMarks.map(m => Number(m.marks)));
+                        const maxMarks = validMarks[0]?.maxMarks || 100;
+                        return `${lowestMark}/${maxMarks}`;
+                      })()}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -645,20 +669,23 @@ const Reports = () => {
                     <TableBody>
                       {marks.map((mark, index) => {
                         const student = students.find(s => s.id === mark.studentId);
+                        const marksValue = Number(mark.marks) || 0;
+                        const maxMarksValue = Number(mark.maxMarks) || 100;
+                        const percentage = (marksValue / maxMarksValue) * 100;
                         return (
                           <TableRow key={mark.id}>
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{student?.name || 'Unknown'}</TableCell>
                             <TableCell>{student?.rollNumber || 'N/A'}</TableCell>
-                            <TableCell>{`${mark.marks}/${mark.maxMarks}`}</TableCell>
-                            <TableCell>{`${((mark.marks / mark.maxMarks) * 100).toFixed(2)}%`}</TableCell>
+                            <TableCell>{`${marksValue}/${maxMarksValue}`}</TableCell>
+                            <TableCell>{`${percentage.toFixed(2)}%`}</TableCell>
                             <TableCell>
                               <Chip
-                                label={calculateGrade((mark.marks / mark.maxMarks) * 100)}
+                                label={calculateGrade(percentage)}
                                 color={
-                                  calculateGrade((mark.marks / mark.maxMarks) * 100) === 'F'
+                                  calculateGrade(percentage) === 'F'
                                     ? 'error'
-                                    : calculateGrade((mark.marks / mark.maxMarks) * 100).includes('A')
+                                    : calculateGrade(percentage).includes('A')
                                     ? 'success'
                                     : 'primary'
                                 }

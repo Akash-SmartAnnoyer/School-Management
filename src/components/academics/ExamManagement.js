@@ -17,7 +17,12 @@ import {
   Tooltip,
   Popconfirm,
   Row,
-  Col
+  Col,
+  Tabs,
+  Divider,
+  Badge,
+  Statistic,
+  Empty
 } from 'antd';
 import {
   PlusOutlined,
@@ -25,7 +30,11 @@ import {
   DeleteOutlined,
   TrophyOutlined,
   BookOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  TeamOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import { 
@@ -44,6 +53,7 @@ import moment from 'moment';
 
 const { Option } = Select;
 const { Title } = Typography;
+const { TabPane } = Tabs;
 
 const examTypes = [
   { value: 'unit_test', label: 'Unit Test' },
@@ -84,16 +94,15 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
     <Modal
       title={
         <Space>
-          <TrophyOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-          <Title level={5} style={{ margin: 0 }}>
-            {initialValues ? 'Edit Exam' : 'Add Exam'}
-          </Title>
+          <TrophyOutlined />
+          {initialValues ? 'Edit Exam' : 'Add New Exam'}
         </Space>
       }
       open={visible}
       onCancel={onCancel}
       footer={null}
       width={800}
+      destroyOnClose
     >
       <Form
         form={form}
@@ -105,14 +114,17 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
           ...initialValues
         }}
       >
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col span={12}>
             <Form.Item
               name="name"
               label="Exam Name"
               rules={[{ required: true, message: 'Please enter exam name!' }]}
             >
-              <Input placeholder="Enter exam name" />
+              <Input 
+                placeholder="Enter exam name" 
+                prefix={<FileTextOutlined />}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -121,7 +133,10 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
               label="Exam Type"
               rules={[{ required: true, message: 'Please select exam type!' }]}
             >
-              <Select placeholder="Select exam type">
+              <Select 
+                placeholder="Select exam type"
+                prefix={<TrophyOutlined />}
+              >
                 {examTypes.map(type => (
                   <Option key={type.value} value={type.value}>
                     {type.label}
@@ -132,7 +147,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col span={12}>
             <Form.Item
               name="subjects"
@@ -144,6 +159,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
                 placeholder="Select subjects"
                 showSearch
                 optionFilterProp="children"
+                prefix={<BookOutlined />}
                 filterOption={(input, option) =>
                   option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -167,6 +183,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
                 placeholder="Select classes"
                 showSearch
                 optionFilterProp="children"
+                prefix={<TeamOutlined />}
                 filterOption={(input, option) =>
                   option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -181,14 +198,17 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col span={12}>
             <Form.Item
               name="date"
               label="Exam Date"
               rules={[{ required: true, message: 'Please select exam date!' }]}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker 
+                style={{ width: '100%' }} 
+                prefix={<CalendarOutlined />}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -197,19 +217,26 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
               label="Start Time"
               rules={[{ required: true, message: 'Please select start time!' }]}
             >
-              <TimePicker style={{ width: '100%' }} />
+              <TimePicker 
+                style={{ width: '100%' }} 
+                prefix={<ClockCircleOutlined />}
+              />
             </Form.Item>
           </Col>
         </Row>
 
-        <Row gutter={16}>
+        <Row gutter={[16, 16]}>
           <Col span={12}>
             <Form.Item
               name="duration"
               label="Duration (minutes)"
               rules={[{ required: true, message: 'Please enter duration!' }]}
             >
-              <InputNumber style={{ width: '100%' }} min={1} />
+              <InputNumber 
+                style={{ width: '100%' }} 
+                min={1} 
+                prefix={<ClockCircleOutlined />}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -218,7 +245,11 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
               label="Maximum Marks"
               rules={[{ required: true, message: 'Please enter maximum marks!' }]}
             >
-              <InputNumber style={{ width: '100%' }} min={1} />
+              <InputNumber 
+                style={{ width: '100%' }} 
+                min={1} 
+                prefix={<TrophyOutlined />}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -227,14 +258,18 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
           name="instructions"
           label="Instructions"
         >
-          <Input.TextArea rows={4} placeholder="Enter exam instructions" />
+          <Input.TextArea 
+            rows={4} 
+            placeholder="Enter exam instructions"
+            prefix={<InfoCircleOutlined />}
+          />
         </Form.Item>
 
         <Form.Item>
           <Space>
             <Button onClick={onCancel}>Cancel</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
-              {initialValues ? 'Update' : 'Add Exam'}
+              {initialValues ? 'Update Exam' : 'Add Exam'}
             </Button>
           </Space>
         </Form.Item>
@@ -359,19 +394,19 @@ const ExamManagement = () => {
   };
 
   const getSubjectNames = (subjectIds) => {
-    if (!subjectIds) return '';
+    if (!subjectIds) return [];
     return subjectIds.map(id => {
       const subject = subjects.find(s => s.id === id);
       return subject ? subject.name : id;
-    }).join(', ');
+    });
   };
 
   const getClassNames = (classIds) => {
-    if (!classIds) return '';
+    if (!classIds) return [];
     return classIds.map(id => {
       const cls = classes.find(c => c.id === id);
       return cls ? `${cls.className} - Section ${cls.section}` : id;
-    }).join(', ');
+    });
   };
 
   const examColumns = [
@@ -379,6 +414,12 @@ const ExamManagement = () => {
       title: 'Exam Name',
       dataIndex: 'name',
       key: 'name',
+      render: (text, record) => (
+        <Space>
+          <TrophyOutlined />
+          <span>{text}</span>
+        </Space>
+      ),
     },
     {
       title: 'Type',
@@ -386,27 +427,51 @@ const ExamManagement = () => {
       key: 'type',
       render: (type) => {
         const examType = examTypes.find(t => t.value === type);
-        return examType ? examType.label : type;
+        return (
+          <Tag color={
+            type === 'final' ? 'red' :
+            type === 'mid_term' ? 'orange' :
+            type === 'unit_test' ? 'blue' :
+            type === 'quiz' ? 'green' : 'purple'
+          }>
+            {examType ? examType.label : type}
+          </Tag>
+        );
       }
     },
     {
       title: 'Subjects',
       dataIndex: 'subjects',
       key: 'subjects',
-      render: (subjectIds) => getSubjectNames(subjectIds),
+      render: (subjectIds) => (
+        <Space wrap>
+          {getSubjectNames(subjectIds).map((name, index) => (
+            <Tag key={index} color="blue">{name}</Tag>
+          ))}
+        </Space>
+      ),
     },
     {
       title: 'Classes',
       dataIndex: 'classes',
       key: 'classes',
-      render: (classIds) => getClassNames(classIds),
+      render: (classIds) => (
+        <Space wrap>
+          {getClassNames(classIds).map((name, index) => (
+            <Tag key={index} color="green">{name}</Tag>
+          ))}
+        </Space>
+      ),
     },
     {
       title: 'Date & Time',
       key: 'datetime',
       render: (_, record) => (
         <Space direction="vertical">
-          <span>{moment(record.date).format('DD MMM YYYY')}</span>
+          <Badge 
+            status={moment(record.date).isBefore(moment(), 'day') ? 'default' : 'success'} 
+            text={moment(record.date).format('DD MMM YYYY')}
+          />
           <span style={{ fontSize: '12px', color: '#666' }}>
             {moment(record.startTime).format('hh:mm A')}
           </span>
@@ -417,37 +482,53 @@ const ExamManagement = () => {
       title: 'Duration',
       dataIndex: 'duration',
       key: 'duration',
-      render: (duration) => `${duration} mins`,
+      render: (duration) => (
+        <Space>
+          <ClockCircleOutlined />
+          {duration} mins
+        </Space>
+      ),
     },
     {
       title: 'Max Marks',
       dataIndex: 'maxMarks',
       key: 'maxMarks',
-      render: (maxMarks) => `${maxMarks} marks`,
+      render: (maxMarks) => (
+        <Space>
+          <TrophyOutlined />
+          {maxMarks} marks
+        </Space>
+      ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
-            onClick={() => {
-              setEditingExam(record);
-              setExamModalVisible(true);
-            }}
+          <Tooltip title="Edit Exam">
+            <Button 
+              type="link" 
+              icon={<EditOutlined />} 
+              onClick={() => {
+                setEditingExam(record);
+                setExamModalVisible(true);
+              }}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this exam?"
+            onConfirm={() => handleExamDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
           >
-            Edit
-          </Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleExamDelete(record.id)}
-          >
-            Delete
-          </Button>
+            <Tooltip title="Delete Exam">
+              <Button 
+                type="link" 
+                danger 
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -458,40 +539,56 @@ const ExamManagement = () => {
       title: 'Subject Name',
       dataIndex: 'name',
       key: 'name',
+      render: (text) => (
+        <Space>
+          <BookOutlined />
+          <span>{text}</span>
+        </Space>
+      ),
     },
     {
       title: 'Code',
       dataIndex: 'code',
       key: 'code',
+      render: (text) => (
+        <Tag color="blue">{text}</Tag>
+      ),
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      ellipsis: true,
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
-            onClick={() => {
-              setEditingSubject(record);
-              setSubjectModalVisible(true);
-            }}
+          <Tooltip title="Edit Subject">
+            <Button 
+              type="link" 
+              icon={<EditOutlined />} 
+              onClick={() => {
+                setEditingSubject(record);
+                setSubjectModalVisible(true);
+              }}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this subject?"
+            onConfirm={() => handleSubjectDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
           >
-            Edit
-          </Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleSubjectDelete(record.id)}
-          >
-            Delete
-          </Button>
+            <Tooltip title="Delete Subject">
+              <Button 
+                type="link" 
+                danger 
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
@@ -500,56 +597,106 @@ const ExamManagement = () => {
   return (
     <div>
       <Row gutter={[16, 16]}>
-        <Col span={12}>
-          <Card 
-            title="Exam Management"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setEditingExam(null);
-                  setExamModalVisible(true);
-                }}
+        <Col span={24}>
+          <Card>
+            <Tabs defaultActiveKey="1">
+              <TabPane 
+                tab={
+                  <span>
+                    <TrophyOutlined />
+                    Exam Management
+                  </span>
+                } 
+                key="1"
               >
-                Add Exam
-              </Button>
-            }
-          >
-            <Table
-              dataSource={exams}
-              columns={examColumns}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
-          </Card>
-        </Col>
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Space style={{ marginBottom: 16 }}>
+                      <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          setEditingExam(null);
+                          setExamModalVisible(true);
+                        }}
+                      >
+                        Add Exam
+                      </Button>
+                    </Space>
+                    <Table
+                      dataSource={exams}
+                      columns={examColumns}
+                      rowKey="id"
+                      loading={loading}
+                      pagination={{ 
+                        pageSize: 10,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Total ${total} exams`
+                      }}
+                      scroll={{ x: true }}
+                      locale={{
+                        emptyText: (
+                          <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description="No exams found"
+                          />
+                        )
+                      }}
+                    />
+                  </Col>
+                </Row>
+              </TabPane>
 
-        <Col span={12}>
-          <Card 
-            title="Subject Management"
-            extra={
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setEditingSubject(null);
-                  subjectForm.resetFields();
-                  setSubjectModalVisible(true);
-                }}
+              <TabPane 
+                tab={
+                  <span>
+                    <BookOutlined />
+                    Subject Management
+                  </span>
+                } 
+                key="2"
               >
-                Add Subject
-              </Button>
-            }
-          >
-            <Table
-              dataSource={subjects}
-              columns={subjectColumns}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: 10 }}
-            />
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Space style={{ marginBottom: 16 }}>
+                      <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          setEditingSubject(null);
+                          subjectForm.resetFields();
+                          setSubjectModalVisible(true);
+                        }}
+                      >
+                        Add Subject
+                      </Button>
+                    </Space>
+                    <Table
+                      dataSource={subjects}
+                      columns={subjectColumns}
+                      rowKey="id"
+                      loading={loading}
+                      pagination={{ 
+                        pageSize: 10,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Total ${total} subjects`
+                      }}
+                      scroll={{ x: true }}
+                      locale={{
+                        emptyText: (
+                          <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description="No subjects found"
+                          />
+                        )
+                      }}
+                    />
+                  </Col>
+                </Row>
+              </TabPane>
+            </Tabs>
           </Card>
         </Col>
       </Row>
@@ -567,7 +714,12 @@ const ExamManagement = () => {
       />
 
       <Modal
-        title={editingSubject ? 'Edit Subject' : 'Add Subject'}
+        title={
+          <Space>
+            <BookOutlined />
+            {editingSubject ? 'Edit Subject' : 'Add Subject'}
+          </Space>
+        }
         open={subjectModalVisible}
         onOk={subjectForm.submit}
         onCancel={() => {
@@ -587,7 +739,10 @@ const ExamManagement = () => {
             label="Subject Name"
             rules={[{ required: true, message: 'Please enter subject name!' }]}
           >
-            <Input placeholder="Enter subject name" />
+            <Input 
+              placeholder="Enter subject name"
+              prefix={<BookOutlined />}
+            />
           </Form.Item>
 
           <Form.Item
@@ -595,14 +750,21 @@ const ExamManagement = () => {
             label="Subject Code"
             rules={[{ required: true, message: 'Please enter subject code!' }]}
           >
-            <Input placeholder="Enter subject code" />
+            <Input 
+              placeholder="Enter subject code"
+              prefix={<FileTextOutlined />}
+            />
           </Form.Item>
 
           <Form.Item
             name="description"
             label="Description"
           >
-            <Input.TextArea rows={4} placeholder="Enter subject description" />
+            <Input.TextArea 
+              rows={4} 
+              placeholder="Enter subject description"
+              prefix={<InfoCircleOutlined />}
+            />
           </Form.Item>
         </Form>
       </Modal>
