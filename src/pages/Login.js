@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, Select, message, Typography, Space } from 'a
 import { UserOutlined, LockOutlined, LoginOutlined, BankOutlined, TeamOutlined, BookOutlined, TrophyOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, ROLES } from '../contexts/AuthContext';
+import SchoolLogo from '../components/SchoolLogo';
 import './Login.css';
 
 const { Title, Text } = Typography;
@@ -80,7 +81,7 @@ const Login = () => {
             title={
               <div className="login-header">
                 <Space direction="vertical" size="middle" align="center" style={{ width: '100%' }}>
-                  <BankOutlined style={{ fontSize: '40px', color: '#3b82f6' }} />
+                  <SchoolLogo size="large" />
                   <div>
                     <Title level={3} style={{ margin: 0, color: '#1e293b', fontWeight: 'bold' }}>
                       Sign In

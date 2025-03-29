@@ -261,10 +261,26 @@ const MainLayout = ({ children }) => {
                 color: 'var(--text-primary)',
               }}
             />
-            {!collapsed && currentUser?.schoolName && (
-              <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
-                {currentUser.schoolName}
-              </Title>
+            {!collapsed && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img
+                    src="/logo-transparent-png.png"
+                    alt="App Logo"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      objectFit: 'contain'
+                    }}
+                  />
+                  <SchoolLogo size="medium" />
+                </div>
+                {currentUser?.schoolName && (
+                  <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
+                    {currentUser.schoolName}
+                  </Title>
+                )}
+              </div>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
