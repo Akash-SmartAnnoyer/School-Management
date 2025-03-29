@@ -789,10 +789,17 @@ export const getSchoolSettings = async () => {
   }
 };
 
-export const updateSchoolSettings = async (settings) => {
+export const updateSchoolSettings = async (userId, settings) => {
   try {
+    // Update the general school settings document
     const docRef = doc(db, 'settings', 'school');
     await setDoc(docRef, settings, { merge: true });
+
+    // Update the user's school settings if userId is provided
+    if (userId) {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, settings);
+    }
   } catch (error) {
     console.error('Error updating school settings:', error);
     throw error;
