@@ -1,0 +1,445 @@
+.students-container {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.students-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.students-search {
+  flex: 1;
+  min-width: 200px;
+}
+
+.student-form-modal .ant-modal-content {
+  padding: 0;
+}
+
+.student-form-modal .ant-modal-body {
+  padding: 24px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.student-form-modal .ant-card {
+  margin-bottom: 16px;
+}
+
+.student-form-modal .ant-card-head {
+  padding: 12px 16px;
+  min-height: 48px;
+}
+
+.student-form-modal .ant-card-head-title {
+  font-size: 16px;
+}
+
+.student-form-modal .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.student-form-modal .ant-form-item-label {
+  padding-bottom: 4px;
+}
+
+.student-form-modal .ant-form-item-label > label {
+  font-size: 14px;
+  height: 24px;
+}
+
+.student-form-modal .ant-input,
+.student-form-modal .ant-select-selector,
+.student-form-modal .ant-picker {
+  height: 36px;
+}
+
+.student-form-modal .ant-input-textarea textarea {
+  min-height: 80px;
+}
+
+.student-form-modal .ant-upload-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .students-container {
+    padding: 16px;
+  }
+
+  .students-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .students-search {
+    width: 100%;
+  }
+
+  .student-form-modal {
+    width: 100% !important;
+    max-width: 100%;
+    margin: 0;
+    top: 0;
+  }
+
+  .student-form-modal .ant-modal-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .student-form-modal .ant-modal-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .student-form-modal .ant-card {
+    margin-bottom: 12px;
+  }
+
+  .student-form-modal .ant-row {
+    margin: 0 !important;
+  }
+
+  .student-form-modal .ant-col {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .student-form-modal .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .student-form-modal .ant-input,
+  .student-form-modal .ant-select-selector,
+  .student-form-modal .ant-picker {
+    height: 40px;
+  }
+
+  .student-form-modal .ant-input-textarea textarea {
+    min-height: 100px;
+  }
+
+  .student-form-modal .ant-upload-list {
+    max-height: 150px;
+  }
+
+  /* Table Responsive Styles */
+  .ant-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ant-table-thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fafafa;
+  }
+
+  .ant-table-tbody > tr > td {
+    min-width: 120px;
+  }
+
+  /* Add horizontal scroll indicator */
+  .ant-table-body::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1));
+    pointer-events: none;
+  }
+
+  /* Make table rows more touch-friendly */
+  .ant-table-tbody > tr {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Adjust table cell content */
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  /* Add touch-friendly spacing */
+  .ant-table-tbody > tr > td {
+    padding: 16px 8px;
+  }
+
+  /* Make sure the table container doesn't overflow */
+  .ant-table-container {
+    border: none;
+    overflow: hidden;
+  }
+
+  /* Add a subtle shadow to indicate scrollable content */
+  .ant-table-body {
+    box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-students-list {
+    display: block !important;
+  }
+
+  .desktop-students-table {
+    display: none;
+  }
+
+  .mobile-students-list .ant-list-item {
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-students-list .ant-list-item-meta-title {
+    margin-bottom: 4px !important;
+  }
+
+  .mobile-students-list .ant-list-item-meta-description {
+    margin-bottom: 0 !important;
+  }
+
+  .mobile-students-list .ant-list-item-action {
+    margin-left: 8px;
+  }
+
+  .mobile-students-list .ant-list-item-action-split {
+    display: none;
+  }
+
+  .mobile-students-list .ant-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .mobile-students-list .ant-space-item {
+    font-size: 14px;
+  }
+
+  .mobile-students-list .ant-badge-status-text {
+    font-size: 12px;
+  }
+
+  /* Enhance touch targets */
+  .mobile-students-list .ant-btn {
+    padding: 8px;
+    height: 40px;
+    width: 40px;
+  }
+
+  .mobile-students-list .ant-list-item-action .ant-btn {
+    margin-left: 4px;
+  }
+
+  /* Add pull-to-refresh indicator */
+  .mobile-students-list::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #1890ff;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .mobile-students-list.pulling::before {
+    transform: scaleX(1);
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-students-list {
+    display: none !important;
+  }
+
+  .desktop-students-table {
+    display: block;
+  }
+}
+
+/* Enhance form modal for mobile */
+@media (max-width: 768px) {
+  .student-form-modal .ant-modal {
+    padding: 0;
+    top: 0;
+  }
+
+  .student-form-modal .ant-modal-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .student-form-modal .ant-modal-header {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+  }
+
+  .student-form-modal .ant-modal-title {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .student-form-modal .ant-modal-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .student-form-modal .ant-modal-footer {
+    padding: 16px;
+    border-top: 1px solid #f0f0f0;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    z-index: 1;
+  }
+
+  /* Form field enhancements */
+  .student-form-modal .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .student-form-modal .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  .student-form-modal .ant-form-item-label > label {
+    font-size: 14px;
+    height: 24px;
+  }
+
+  .student-form-modal .ant-input,
+  .student-form-modal .ant-select-selector,
+  .student-form-modal .ant-picker {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .student-form-modal .ant-input-textarea textarea {
+    min-height: 100px;
+    font-size: 16px;
+  }
+
+  /* Card enhancements */
+  .student-form-modal .ant-card {
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+
+  .student-form-modal .ant-card-head {
+    padding: 12px 16px;
+    min-height: 48px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .student-form-modal .ant-card-head-title {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  /* Upload component enhancements */
+  .student-form-modal .ant-upload {
+    width: 100%;
+  }
+
+  .student-form-modal .ant-upload-list {
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .student-form-modal .ant-upload-list-item {
+    padding: 8px;
+  }
+
+  /* Button enhancements */
+  .student-form-modal .ant-btn {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .student-form-modal .ant-btn + .ant-btn {
+    margin-left: 8px;
+  }
+
+  /* Add bottom safe area for iOS */
+  .student-form-modal .ant-modal-footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .student-form-modal {
+    width: 90% !important;
+    max-width: 800px;
+  }
+
+  .student-form-modal .ant-col {
+    width: 50% !important;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 12px 12px;
+    font-size: 14px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  .student-form-modal .ant-modal-body {
+    max-height: calc(100vh - 100px);
+  }
+
+  .student-form-modal .ant-input-textarea textarea {
+    min-height: 60px;
+  }
+
+  .student-form-modal .ant-upload-list {
+    max-height: 100px;
+  }
+}
+
+/* Custom scrollbar for better mobile experience */
+.student-form-modal .ant-modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.student-form-modal .ant-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.student-form-modal .ant-modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 2px;
+}
+
+.student-form-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+} 
