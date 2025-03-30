@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography, Table } from 'antd';
-import { UserOutlined, BookOutlined, TeamOutlined } from '@ant-design/icons';
+import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography, Table, Upload, message } from 'antd';
+import { UserOutlined, BookOutlined, TeamOutlined, UploadOutlined, BankOutlined } from '@ant-design/icons';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
+import { updateTeacher } from '../firebase/services';
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -14,6 +15,7 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -68,6 +70,46 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
     }
   };
 
+  const handleImageUpload = async (file) => {
+    try {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        messageApi.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        messageApi.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      const base64Image = await getBase64(file);
+      
+      // Update teacher with new profile picture
+      await updateTeacher(teacher.id, {
+        photoURL: base64Image,
+        updatedAt: new Date().toISOString()
+      });
+
+      messageApi.success('Profile picture updated successfully');
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      console.error('Profile picture upload error:', error);
+      messageApi.error('Failed to upload profile picture');
+      return false;
+    }
+  };
+
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const columns = [
     {
       title: 'Day',
@@ -101,21 +143,22 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       width={720}
       bodyStyle={{ padding: '24px' }}
     >
+      {contextHolder}
       {teacher && (
         <div>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            {teacher.photoPublicId ? (
-              <AdvancedImage 
-                cldImg={getCloudinaryImage(teacher.photoPublicId)}
-                style={{ width: 120, height: 120, borderRadius: '50%', marginBottom: '16px' }}
-              />
-            ) : (
-              <Avatar 
-                size={120} 
+            <Upload
+              name="photoURL"
+              showUploadList={false}
+              beforeUpload={(file) => handleImageUpload(file)}
+              accept="image/*"
+            >
+              <Avatar
+                size={120}
+                src={teacher.photoURL}
                 icon={<UserOutlined />}
-                style={{ marginBottom: '16px' }}
               />
-            )}
+            </Upload>
             <Title level={3}>{teacher.name}</Title>
             <Typography.Text type="secondary">ID: TCH{teacher.id.slice(-6)}</Typography.Text>
           </div>
