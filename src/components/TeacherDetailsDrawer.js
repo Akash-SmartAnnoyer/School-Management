@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography } from 'antd';
+import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography, Table } from 'antd';
 import { UserOutlined, BookOutlined, TeamOutlined } from '@ant-design/icons';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -13,6 +13,7 @@ const { Title } = Typography;
 const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [schedule, setSchedule] = useState([]);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -39,7 +40,57 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
     fetchClasses();
   }, [teacher?.classId]);
 
+  useEffect(() => {
+    if (teacher?.id) {
+      loadTeacherSchedule();
+    }
+  }, [teacher?.id]);
+
   const classInfo = classes[0];
+
+  const loadTeacherSchedule = async () => {
+    try {
+      setLoading(true);
+      const q = query(
+        collection(db, 'timetables'),
+        where('teacherId', '==', teacher.id)
+      );
+      const querySnapshot = await getDocs(q);
+      const scheduleData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSchedule(scheduleData);
+    } catch (error) {
+      console.error('Error loading teacher schedule:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    {
+      title: 'Day',
+      dataIndex: 'day',
+      key: 'day',
+    },
+    {
+      title: 'Time Slot',
+      dataIndex: 'timeSlot',
+      key: 'timeSlot',
+      render: (slot) => `Period ${slot}`
+    },
+    {
+      title: 'Class',
+      key: 'class',
+      render: (_, record) => `${record.className} - Section ${record.section}`
+    },
+    {
+      title: 'Subject',
+      dataIndex: 'subjectName',
+      key: 'subjectName',
+    }
+  ];
 
   return (
     <Drawer
@@ -116,7 +167,17 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
 
             <TabPane tab="Schedule" key="3">
               <Card>
-                <Empty description="Schedule information will be available soon" />
+                {schedule.length > 0 ? (
+                  <Table
+                    columns={columns}
+                    dataSource={schedule}
+                    rowKey="id"
+                    pagination={false}
+                    loading={loading}
+                  />
+                ) : (
+                  <Empty description="No schedule assigned yet" />
+                )}
               </Card>
             </TabPane>
           </Tabs>
