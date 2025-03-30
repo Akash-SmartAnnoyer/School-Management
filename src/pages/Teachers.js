@@ -51,6 +51,7 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 import { MessageContext } from '../App';
+import moment from 'moment';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -71,6 +72,7 @@ const Teachers = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [searchText, setSearchText] = useState('');
+  const [tempImage, setTempImage] = useState(null);
 
   useEffect(() => {
     // Subscribe to real-time updates for teachers
@@ -97,7 +99,13 @@ const Teachers = () => {
 
   const handleEdit = (record) => {
     setEditingTeacher(record);
-    form.setFieldsValue(record);
+    // Convert ISO date strings to moment objects
+    const formValues = {
+      ...record,
+      dateOfBirth: record.dateOfBirth ? moment(record.dateOfBirth) : null,
+      joiningDate: record.joiningDate ? moment(record.joiningDate) : null
+    };
+    form.setFieldsValue(formValues);
     setIsModalVisible(true);
   };
 
@@ -110,56 +118,74 @@ const Teachers = () => {
     }
   };
 
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleImageUpload = async (file, teacherId) => {
-    let loadingMessage = null;
     try {
-      loadingMessage = messageApi.loading('Uploading image...', 0);
-
-      if (!file.type.startsWith('image/')) {
-        messageApi.error('Please upload an image file');
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        messageApi.error('You can only upload image files!');
         return false;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        messageApi.error('Image size should be less than 5MB');
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        messageApi.error('Image must be smaller than 2MB!');
         return false;
       }
 
-      const { url, publicId } = await uploadImage(file);
-
-      await updateTeacher(teacherId, {
-        photoURL: url,
-        photoPublicId: publicId,
-        updatedAt: new Date().toISOString()
-      });
-
-      setTeachers(prevTeachers =>
-        prevTeachers.map(teacher =>
-          teacher.id === teacherId
-            ? { ...teacher, photoURL: url, photoPublicId: publicId }
-            : teacher
-        )
-      );
-
-      messageApi.success('Image uploaded successfully');
-      return true;
+      const base64Image = await getBase64(file);
+      
+      if (teacherId === 'new') {
+        // Store the image temporarily for new teacher
+        setTempImage(base64Image);
+        messageApi.success('Image ready to be saved with teacher details');
+      } else {
+        // Update existing teacher's image
+        await updateTeacher(teacherId, {
+          photoURL: base64Image,
+          updatedAt: new Date().toISOString()
+        });
+        messageApi.success('Profile picture updated successfully');
+      }
+      return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Error uploading image:', error);
-      messageApi.error('Failed to upload image. Please try again.');
+      console.error('Profile picture upload error:', error);
+      messageApi.error('Failed to upload profile picture');
       return false;
-    } finally {
-      if (loadingMessage) {
-        messageApi.destroy(loadingMessage);
-      }
     }
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      
+      // Clean up the values object by removing undefined and empty string values
+      const cleanValues = Object.entries(values).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
+      // Combine firstName and lastName into name
+      const name = `${values.firstName || ''} ${values.lastName || ''}`.trim();
+
+      // Convert moment objects to ISO strings
       const teacherData = {
-        ...values,
-        updatedAt: new Date().toISOString()
+        ...cleanValues,
+        name, // Add the combined name field
+        dateOfBirth: values.dateOfBirth?.toISOString(),
+        joiningDate: values.joiningDate?.toISOString(),
+        updatedAt: new Date().toISOString(),
+        photoURL: tempImage || editingTeacher?.photoURL
       };
 
       if (editingTeacher) {
@@ -198,7 +224,9 @@ const Teachers = () => {
       }
       setIsModalVisible(false);
       form.resetFields();
+      setTempImage(null);
     } catch (error) {
+      console.error('Error saving teacher:', error);
       messageApi.error('Error saving teacher');
     }
   };
@@ -305,9 +333,9 @@ const Teachers = () => {
 
   // Add search filter function
   const filteredTeachers = teachers.filter(teacher =>
-    teacher.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    teacher.subject.toLowerCase().includes(searchText.toLowerCase()) ||
-    teacher.email.toLowerCase().includes(searchText.toLowerCase())
+    (teacher.name?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
+    (teacher.subject?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
+    (teacher.email?.toLowerCase() || '').includes(searchText.toLowerCase())
   );
 
   return (
@@ -353,7 +381,11 @@ const Teachers = () => {
         }
         open={isModalVisible}
         onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+          setTempImage(null);
+        }}
         width={900}
         footer={[
           <Button key="cancel" onClick={() => setIsModalVisible(false)}>
@@ -369,7 +401,9 @@ const Teachers = () => {
           layout="vertical"
           initialValues={{
             status: 'Active',
-            ...editingTeacher
+            ...editingTeacher,
+            dateOfBirth: editingTeacher?.dateOfBirth ? moment(editingTeacher.dateOfBirth) : null,
+            joiningDate: editingTeacher?.joiningDate ? moment(editingTeacher.joiningDate) : null
           }}
         >
           <Row gutter={24}>
@@ -393,9 +427,9 @@ const Teachers = () => {
                   maxCount={1}
                 >
                   <div style={{ cursor: 'pointer' }}>
-                    {editingTeacher?.photoURL ? (
+                    {(tempImage || editingTeacher?.photoURL) ? (
                       <img 
-                        src={editingTeacher.photoURL}
+                        src={tempImage || editingTeacher.photoURL}
                         alt="Teacher"
                         style={{ 
                           width: 150, 
@@ -461,7 +495,11 @@ const Teachers = () => {
                       label="Date of Birth"
                       rules={[{ required: true, message: 'Please select date of birth!' }]}
                     >
-                      <DatePicker style={{ width: '100%' }} />
+                      <DatePicker 
+                        style={{ width: '100%' }}
+                        format="YYYY-MM-DD"
+                        placeholder="Select date"
+                      />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -580,7 +618,11 @@ const Teachers = () => {
                       label="Joining Date"
                       rules={[{ required: true, message: 'Please select joining date!' }]}
                     >
-                      <DatePicker style={{ width: '100%' }} />
+                      <DatePicker 
+                        style={{ width: '100%' }}
+                        format="YYYY-MM-DD"
+                        placeholder="Select date"
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
