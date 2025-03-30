@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Tabs, Row, Col, Descriptions } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { addClass, getClasses, updateClass, deleteClass, subscribeToCollection, getTeachers, updateTeacher } from '../firebase/services';
 import { initializeSchoolData } from '../utils/initializeSchoolData';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
+import Timetable from './Timetable';
 
+const { Title } = Typography;
+const { TabPane } = Tabs;
 const { Option } = Select;
 
 const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -122,6 +128,40 @@ const Classes = () => {
     } catch (error) {
       messageApi.error('Error initializing school data');
     }
+  };
+
+  const renderTimetable = (classId) => {
+    return (
+      <div style={{ marginTop: '20px' }}>
+        <Timetable classId={classId} />
+      </div>
+    );
+  };
+
+  const expandedRowRender = (record) => {
+    return (
+      <Tabs defaultActiveKey="1">
+        <TabPane tab="Class Details" key="1">
+          <Row gutter={[16, 16]}>
+            <Col span={24}>
+              <Descriptions bordered>
+                <Descriptions.Item label="Class Name">{record.name}</Descriptions.Item>
+                <Descriptions.Item label="Section">{record.section}</Descriptions.Item>
+                <Descriptions.Item label="Class Teacher">
+                  {teachers.find(t => t.id === record.classTeacherId)?.name || 'Not Assigned'}
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Students">{record.totalStudents || 0}</Descriptions.Item>
+                <Descriptions.Item label="Room Number">{record.roomNumber}</Descriptions.Item>
+                <Descriptions.Item label="Capacity">{record.capacity}</Descriptions.Item>
+              </Descriptions>
+            </Col>
+          </Row>
+        </TabPane>
+        <TabPane tab="Timetable" key="2">
+          {renderTimetable(record.id)}
+        </TabPane>
+      </Tabs>
+    );
   };
 
   const columns = [

@@ -46,6 +46,7 @@ import AuthProvider, { useAuth, ROLES } from './contexts/AuthContext';
 import ExamManagement from './pages/ExamManagement';
 import AcademicCalendar from './pages/AcademicCalendar';
 import TeacherAttendance from './pages/TeacherAttendance';
+import Timetable from './pages/Timetable';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -113,10 +114,11 @@ function MainLayout() {
     { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
     { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
     { key: '8', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
+    { key: '9', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
   ].filter(item => {
     // Filter menu items based on user role
     if (currentUser.role === ROLES.TEACHER) {
-      return !['teachers', 'teacher-attendance'].includes(item.path.slice(1));
+      return !['teachers', 'teacher-attendance'].includes(item.path?.slice(1));
     }
     if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
       return ['/', '/academic-calendar', '/attendance', '/academics'].includes(item.path);
@@ -508,6 +510,7 @@ function MainLayout() {
             <Route path="exam-management" element={<ExamManagement />} />
             <Route path="academic-calendar" element={<AcademicCalendar />} />
             <Route path="teacher-attendance" element={<TeacherAttendance />} />
+            <Route path="timetable/*" element={<Timetable />} />
           </Routes>
         </Content>
       </Layout>
@@ -558,6 +561,7 @@ function App() {
                 <Route path="exam-management" element={<ExamManagement />} />
                 <Route path="academic-calendar" element={<AcademicCalendar />} />
                 <Route path="teacher-attendance" element={<TeacherAttendance />} />
+                <Route path="timetable/*" element={<Timetable />} />
               </Route>
             </Routes>
           </Router>
