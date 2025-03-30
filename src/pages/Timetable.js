@@ -104,9 +104,19 @@ const Timetable = () => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+      const selectedTeacher = teachers.find(t => t.id === values.teacherId);
+      const selectedSubject = subjects.find(s => s.id === values.subjectId);
+      const selectedClassInfo = classes.find(c => c.id === selectedClass);
+
       const timetableData = {
         ...values,
         classId: selectedClass,
+        teacherId: values.teacherId,
+        teacherName: selectedTeacher?.name,
+        subjectId: values.subjectId,
+        subjectName: selectedSubject?.name,
+        className: selectedClassInfo?.className,
+        section: selectedClassInfo?.section,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
