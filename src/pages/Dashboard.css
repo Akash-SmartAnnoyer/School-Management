@@ -130,12 +130,15 @@
 .attendance-card .ant-row {
   flex: 1;
   margin: 0 !important;
+  display: flex;
+  align-items: stretch;
 }
 
 .attendance-card .ant-col {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 0 8px;
 }
 
 .attendance-chart {
@@ -147,6 +150,7 @@
   padding: 16px;
   background: #f8f9fa;
   border-radius: 12px;
+  margin: 0;
 }
 
 .attendance-stats {
@@ -158,6 +162,7 @@
   background: #f8f9fa;
   border-radius: 12px;
   height: 100%;
+  margin: 0;
 }
 
 .attendance-stat {
@@ -171,6 +176,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  margin: 0;
 }
 
 .stat-label {
@@ -288,6 +294,16 @@
     padding: 16px;
   }
 
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
   .carousel-slide {
     height: 200px;
   }
@@ -297,26 +313,37 @@
   }
 
   .carousel-content p {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .stat-card {
+    margin-bottom: 12px;
   }
 
   .attendance-card .ant-row {
     flex-direction: column;
+    gap: 16px;
+  }
+
+  .attendance-card .ant-col {
+    padding: 0;
   }
 
   .attendance-chart {
     min-height: 250px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
   }
 
   .attendance-stats {
     flex-direction: row;
+    gap: 12px;
     padding: 12px;
   }
 
   .attendance-stat {
+    flex: 1;
     padding: 16px;
-    margin: 0 8px;
+    margin: 0;
   }
 
   .stat-value {
@@ -328,11 +355,258 @@
   }
 
   .ant-statistic-content {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 
   .ant-card-head-title {
     font-size: 16px;
+  }
+
+  .dashboard-side-cards {
+    margin-top: 16px;
+  }
+
+  .quick-actions-row {
+    flex-direction: column;
+  }
+
+  .quick-action-card {
+    margin-bottom: 12px;
+  }
+
+  .ant-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+
+  .ant-table-thead > tr > th {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  /* Make table rows more touch-friendly */
+  .ant-table-tbody > tr > td {
+    min-width: 120px;
+  }
+
+  /* Add horizontal scroll indicator */
+  .ant-table-body::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1));
+    pointer-events: none;
+  }
+
+  /* Adjust table card padding */
+  .finance-card .ant-card-body,
+  .chart-card .ant-card-body {
+    padding: 12px;
+  }
+
+  /* Make table headers more compact */
+  .ant-table-thead > tr > th {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  /* Adjust table cell content */
+  .ant-table-tbody > tr > td {
+    font-size: 13px;
+  }
+
+  /* Add touch-friendly spacing for table rows */
+  .ant-table-tbody > tr {
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Make sure the table container doesn't overflow */
+  .ant-table-container {
+    border: none;
+    overflow: hidden;
+  }
+
+  /* Add a subtle shadow to indicate scrollable content */
+  .ant-table-body {
+    box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-container {
+    padding: 20px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 26px;
+  }
+
+  .carousel-slide {
+    height: 250px;
+  }
+
+  .carousel-content h2 {
+    font-size: 2.5rem;
+  }
+
+  .carousel-content p {
+    font-size: 1.2rem;
+  }
+
+  .attendance-card .ant-col {
+    padding: 0 6px;
+  }
+
+  .attendance-chart {
+    min-height: 280px;
+  }
+
+  .attendance-stats {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .attendance-stat {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 2.2rem;
+  }
+
+  .chart-card {
+    height: 350px;
+  }
+
+  .ant-statistic-content {
+    font-size: 1.8rem;
+  }
+
+  .ant-card-head-title {
+    font-size: 17px;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 10px 16px;
+  }
+
+  .ant-table-thead > tr > th {
+    font-size: 15px;
+  }
+
+  .ant-table-tbody > tr > td {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .dashboard-container {
+    padding: 24px;
+  }
+
+  .carousel-slide {
+    height: 300px;
+  }
+
+  .carousel-content h2 {
+    font-size: 2.8rem;
+  }
+
+  .carousel-content p {
+    font-size: 1.3rem;
+  }
+
+  .attendance-chart {
+    min-height: 300px;
+  }
+
+  .stat-value {
+    font-size: 2.4rem;
+  }
+
+  .chart-card {
+    height: 380px;
+  }
+
+  .ant-statistic-content {
+    font-size: 2rem;
+  }
+}
+
+/* iPad Pro and larger tablets */
+@media (min-width: 1367px) {
+  .dashboard-container {
+    padding: 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .carousel-slide {
+    height: 350px;
+  }
+
+  .carousel-content h2 {
+    font-size: 3.2rem;
+  }
+
+  .carousel-content p {
+    font-size: 1.5rem;
+  }
+
+  .attendance-chart {
+    min-height: 350px;
+  }
+
+  .stat-value {
+    font-size: 2.6rem;
+  }
+
+  .chart-card {
+    height: 400px;
+  }
+
+  .ant-statistic-content {
+    font-size: 2.2rem;
+  }
+
+  .ant-card-head-title {
+    font-size: 20px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  .carousel-slide {
+    height: 150px;
+  }
+
+  .carousel-content h2 {
+    font-size: 1.8rem;
+  }
+
+  .carousel-content p {
+    font-size: 1rem;
+  }
+
+  .attendance-chart {
+    min-height: 200px;
+  }
+
+  .chart-card {
+    height: 250px;
   }
 }
 

@@ -17,7 +17,10 @@ import {
   Input as AntInput,
   Divider,
   DatePicker,
-  Typography
+  Typography,
+  Drawer,
+  List,
+  Badge
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -36,7 +39,9 @@ import {
   HeartOutlined,
   InfoCircleOutlined,
   BankOutlined,
-  SafetyCertificateOutlined
+  SafetyCertificateOutlined,
+  MenuOutlined,
+  EllipsisOutlined
 } from '@ant-design/icons';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -58,6 +63,8 @@ import {
   deleteStudent,
   getSectionsByClass
 } from '../firebase/services';
+
+import './Students.css';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -838,39 +845,93 @@ const Students = () => {
   );
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        gap: '16px'
-      }}>
+    <div className="students-container">
+      <div className="students-header">
         <Search
+          className="students-search"
           placeholder="Search students..."
           allowClear
           enterButton={<SearchOutlined />}
-          size="small"
-          style={{ width: 300 }}
+          size="large"
           onChange={(e) => setSearchText(e.target.value)}
         />
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleAddStudent}
-          size="small"
+          size="large"
+          block
         >
           Add Student
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredStudents}
-        loading={loading}
-        rowKey="id"
-        rowClassName={(record) => record.id === highlightedId ? 'highlighted-row' : ''}
-      />
+      {/* Mobile View */}
+      <div className="mobile-students-list" style={{ display: 'none' }}>
+        <List
+          dataSource={filteredStudents}
+          renderItem={(student) => (
+            <List.Item
+              actions={[
+                <Button 
+                  type="text" 
+                  icon={<EditOutlined />} 
+                  onClick={() => handleEditStudent(student)}
+                />,
+                <Button 
+                  type="text" 
+                  danger 
+                  icon={<DeleteOutlined />} 
+                  onClick={() => handleDeleteStudent(student.id)}
+                />
+              ]}
+            >
+              <List.Item.Meta
+                avatar={
+                  <Avatar 
+                    size="large" 
+                    src={student.photoURL ? getCloudinaryImage(student.photoURL) : null}
+                    icon={!student.photoURL && <UserOutlined />}
+                  />
+                }
+                title={
+                  <Space>
+                    {student.firstName} {student.lastName}
+                    <Badge 
+                      status={student.status === 'active' ? 'success' : 'error'} 
+                      text={student.status}
+                    />
+                  </Space>
+                }
+                description={
+                  <Space direction="vertical" size="small">
+                    <Space>
+                      <IdcardOutlined />
+                      {student.admissionNo}
+                    </Space>
+                    <Space>
+                      <BookOutlined />
+                      {student.class} - {student.section}
+                    </Space>
+                  </Space>
+                }
+              />
+            </List.Item>
+          )}
+        />
+      </div>
+
+      {/* Desktop View */}
+      <div className="desktop-students-table">
+        <Table
+          columns={columns}
+          dataSource={filteredStudents}
+          loading={loading}
+          rowKey="id"
+          rowClassName={(record) => record.id === highlightedId ? 'highlighted-row' : ''}
+          scroll={{ x: true }}
+        />
+      </div>
 
       <StudentForm
         visible={modalVisible}
@@ -878,6 +939,7 @@ const Students = () => {
         onSubmit={handleSubmit}
         initialValues={editingStudent}
         onImageUpload={handleImageUpload}
+        className="student-form-modal"
       />
 
       <StudentDetailsDrawer
