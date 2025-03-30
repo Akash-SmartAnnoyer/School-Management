@@ -11,7 +11,11 @@ import {
   Divider,
   Row,
   Col,
-  Tabs
+  Tabs,
+  Space,
+  Switch,
+  Select,
+  Alert
 } from 'antd';
 import {
   UserOutlined,
@@ -20,25 +24,18 @@ import {
   HomeOutlined,
   UploadOutlined,
   SaveOutlined,
-  BankOutlined
+  BankOutlined,
+  LockOutlined,
+  BellOutlined,
+  SafetyCertificateOutlined,
+  GlobalOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import { updateProfile, updateSchoolSettings } from '../firebase/services';
-import { uploadImage, getCloudinaryImage } from '../services/imageService';
-import { Cloudinary } from '@cloudinary/url-gen';
-import { AdvancedImage } from '@cloudinary/react';
-import { auto } from '@cloudinary/url-gen/actions/resize';
-import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
-import './Profile.css';
+import { getOrganizations, updateSchool, updatePrincipal, updateTeacher } from '../utils/organizationStorage';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
-
-const cld = new Cloudinary({
-  cloud: {
-    cloudName: 'dyr02bpil'
-  }
-});
+const { Option } = Select;
 
 const Profile = () => {
   const { currentUser, updateProfile: updateAuthProfile } = useAuth();
@@ -49,385 +46,516 @@ const Profile = () => {
   const [imageUrl, setImageUrl] = useState(currentUser?.profilePic || 'https://via.placeholder.com/150');
   const [schoolLogo, setSchoolLogo] = useState(null);
   const [schoolLogoUrl, setSchoolLogoUrl] = useState(null);
-  const [profilePublicId, setProfilePublicId] = useState(null);
-  const [schoolLogoPublicId, setSchoolLogoPublicId] = useState(null);
+  const [organizations, setOrganizations] = useState(getOrganizations());
 
   useEffect(() => {
     if (currentUser) {
-      form.setFieldsValue({
-        name: currentUser.name,
-        email: currentUser.email,
-        phone: currentUser.phone,
-        address: currentUser.address,
-        subject: currentUser.subject,
-        qualification: currentUser.qualification,
-        rollNumber: currentUser.rollNumber,
-        classId: currentUser.classId
-      });
-      setImageUrl(currentUser.profilePic || 'https://via.placeholder.com/150');
-      setProfilePublicId(currentUser.profilePublicId);
-
+      // Get the latest organizations data
+      const currentOrgs = getOrganizations();
+      const currentSchool = currentOrgs.schools[currentUser.schoolId];
+      
       if (currentUser.role === 'PRINCIPAL') {
-        schoolForm.setFieldsValue({
-          schoolName: currentUser.schoolName,
-          schoolAddress: currentUser.schoolAddress,
-          schoolPhone: currentUser.schoolPhone,
-          schoolEmail: currentUser.schoolEmail
+        // Set principal form fields
+        form.setFieldsValue({
+          name: currentSchool.principal.name,
+          email: currentSchool.principal.email,
+          phone: currentSchool.principal.phone,
+          address: currentSchool.principal.address
         });
-        setSchoolLogoUrl(currentUser.schoolLogo || 'https://via.placeholder.com/150');
-        setSchoolLogoPublicId(currentUser.schoolLogoPublicId);
+        
+        // Set profile picture from principal data
+        if (currentSchool.principal.profilePic) {
+          setImageUrl(currentSchool.principal.profilePic);
+          setProfilePic(currentSchool.principal.profilePic);
+        }
+
+        // Set school form fields
+        schoolForm.setFieldsValue({
+          schoolName: currentSchool.name,
+          schoolAddress: currentSchool.address,
+          schoolPhone: currentSchool.phone,
+          schoolEmail: currentSchool.email
+        });
+        
+        // Set school logo from school data
+        if (currentSchool.logo) {
+          setSchoolLogoUrl(currentSchool.logo);
+          setSchoolLogo(currentSchool.logo);
+        }
+      } else {
+        // Set teacher form fields
+        form.setFieldsValue({
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+          address: currentUser.address,
+          subject: currentUser.subject,
+          qualification: currentUser.qualification
+        });
+        
+        // Set profile picture from teacher data
+        if (currentUser.profilePic) {
+          setImageUrl(currentUser.profilePic);
+          setProfilePic(currentUser.profilePic);
+        }
       }
     }
   }, [currentUser, form, schoolForm]);
 
-  const handleImageUpload = async (file, isSchoolLogo = false) => {
-    let loadingMessage = null;
-    try {
-      loadingMessage = message.loading('Uploading image...', 0);
-
-      if (!file.type.startsWith('image/')) {
-        message.error('Please upload an image file');
-        return false;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        message.error('Image size should be less than 5MB');
-        return false;
-      }
-
-      const { url, publicId } = await uploadImage(file);
-
-      if (isSchoolLogo) {
-        setSchoolLogoUrl(url);
-        setSchoolLogo(url);
-        setSchoolLogoPublicId(publicId);
-        
-        // Only include fields that have values
-        const updatedData = {
-          schoolLogo: url,
-          schoolLogoPublicId: publicId
-        };
-
-        // Add other fields only if they exist
-        const schoolName = schoolForm.getFieldValue('schoolName');
-        const schoolEmail = schoolForm.getFieldValue('schoolEmail');
-        const schoolPhone = schoolForm.getFieldValue('schoolPhone');
-        const schoolAddress = schoolForm.getFieldValue('schoolAddress');
-
-        if (schoolName) updatedData.schoolName = schoolName;
-        if (schoolEmail) updatedData.schoolEmail = schoolEmail;
-        if (schoolPhone) updatedData.schoolPhone = schoolPhone;
-        if (schoolAddress) updatedData.schoolAddress = schoolAddress;
-
-        await updateSchoolSettings(currentUser.id, updatedData);
-        await updateAuthProfile(updatedData);
-      } else {
-        setImageUrl(url);
-        setProfilePic(url);
-        setProfilePublicId(publicId);
-        
-        // Only include fields that have values
-        const updatedData = {
-          profilePic: url,
-          profilePublicId: publicId
-        };
-
-        // Add other fields only if they exist
-        const name = form.getFieldValue('name');
-        const email = form.getFieldValue('email');
-        const phone = form.getFieldValue('phone');
-        const address = form.getFieldValue('address');
-
-        if (name) updatedData.name = name;
-        if (email) updatedData.email = email;
-        if (phone) updatedData.phone = phone;
-        if (address) updatedData.address = address;
-
-        await updateProfile(currentUser.id, updatedData);
-        await updateAuthProfile(updatedData);
-      }
-
-      message.success(`${isSchoolLogo ? 'School logo' : 'Profile picture'} uploaded successfully`);
-      return true;
-    } catch (error) {
-      console.error('Upload error:', error);
-      message.error(`Error uploading ${isSchoolLogo ? 'school logo' : 'profile picture'}: ${error.message}`);
-      return false;
-    } finally {
-      if (loadingMessage) {
-        message.destroy(loadingMessage);
-      }
-    }
-  };
-
-  const renderProfileImage = () => {
-    if (profilePublicId) {
-      const cldImg = getCloudinaryImage(profilePublicId);
-      return (
-        <AdvancedImage 
-          cldImg={cldImg}
-          style={{ width: 150, height: 150, borderRadius: '50%' }}
-        />
-      );
-    }
-    return (
-      <Avatar
-        size={150}
-        src={imageUrl}
-        icon={<UserOutlined />}
-        className="profile-avatar"
-      />
-    );
-  };
-
-  const renderSchoolLogo = () => {
-    if (schoolLogoPublicId) {
-      const cldImg = getCloudinaryImage(schoolLogoPublicId);
-      return (
-        <AdvancedImage 
-          cldImg={cldImg}
-          style={{ width: 150, height: 150, borderRadius: '50%' }}
-        />
-      );
-    }
-    return (
-      <Avatar
-        size={150}
-        src={schoolLogoUrl}
-        icon={<BankOutlined />}
-        className="profile-avatar"
-      />
-    );
-  };
-
-  const onFinish = async (values) => {
+  const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const updatedData = {
-        ...values,
-        profilePic: profilePic || currentUser.profilePic
-      };
-      await updateProfile(currentUser.id, updatedData);
-      await updateAuthProfile(updatedData);
+      
+      // Get current organizations data
+      const currentOrgs = getOrganizations();
+      const currentSchool = currentOrgs.schools[currentUser.schoolId];
+      
+      if (currentUser.role === 'PRINCIPAL') {
+        // Update principal data
+        const updatedPrincipal = {
+          ...currentSchool.principal,
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          address: values.address,
+          profilePic: imageUrl || currentSchool.principal.profilePic
+        };
+
+        // Update school data with new principal info
+        const updatedSchool = {
+          ...currentSchool,
+          principal: updatedPrincipal
+        };
+
+        // Update organizations data
+        const updatedOrgs = {
+          ...currentOrgs,
+          schools: {
+            ...currentOrgs.schools,
+            [currentUser.schoolId]: updatedSchool
+          }
+        };
+
+        // Save to localStorage
+        localStorage.setItem('school_organizations', JSON.stringify(updatedOrgs));
+        setOrganizations(updatedOrgs);
+
+        // Update auth context with all current data
+        await updateAuthProfile({
+          ...values,
+          profilePic: imageUrl || currentSchool.principal.profilePic,
+          schoolName: currentSchool.name,
+          schoolLogo: currentSchool.logo
+        });
+      } else {
+        // Handle teacher profile update
+        const updatedOrgs = updateTeacher(currentUser.schoolId, currentUser.username, {
+          ...values,
+          profilePic: imageUrl
+        });
+        setOrganizations(updatedOrgs);
+
+        // Update auth context with all current data
+        await updateAuthProfile({
+          ...values,
+          profilePic: imageUrl,
+          schoolName: currentSchool.name,
+          schoolLogo: currentSchool.logo
+        });
+      }
+
       message.success('Profile updated successfully');
     } catch (error) {
-      message.error('Error updating profile');
       console.error('Update error:', error);
+      message.error('Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  const onSchoolSettingsFinish = async (values) => {
+  const handleSchoolSubmit = async (values) => {
     try {
       setLoading(true);
-      const updatedData = {
-        ...values,
-        schoolLogo: schoolLogo || currentUser.schoolLogo || schoolLogoUrl
+      
+      // Get current organizations data
+      const currentOrgs = getOrganizations();
+      const currentSchool = currentOrgs.schools[currentUser.schoolId];
+      
+      // Update school data
+      const updatedSchool = {
+        ...currentSchool,
+        name: values.schoolName,
+        address: values.schoolAddress,
+        phone: values.schoolPhone,
+        email: values.schoolEmail,
+        logo: schoolLogoUrl || currentSchool.logo // Preserve existing logo if not changed
       };
-      await updateSchoolSettings(currentUser.id, updatedData);
-      await updateAuthProfile(updatedData);
-      message.success('School settings updated successfully');
+
+      // Update organizations data
+      const updatedOrgs = {
+        ...currentOrgs,
+        schools: {
+          ...currentOrgs.schools,
+          [currentUser.schoolId]: updatedSchool
+        }
+      };
+
+      // Save to localStorage
+      localStorage.setItem('school_organizations', JSON.stringify(updatedOrgs));
+      setOrganizations(updatedOrgs);
+
+      // Update auth context with new school data
+      await updateAuthProfile({
+        ...currentUser,
+        schoolName: values.schoolName,
+        schoolLogo: schoolLogoUrl || currentSchool.logo // Preserve existing logo if not changed
+      });
+
+      message.success('School profile updated successfully');
     } catch (error) {
-      message.error('Error updating school settings');
-      console.error('Update error:', error);
+      console.error('School update error:', error);
+      message.error('Failed to update school profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageUpload = async (file) => {
+    try {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      const base64Image = await getBase64(file);
+      
+      // Update local state
+      setImageUrl(base64Image);
+      setProfilePic(base64Image);
+
+      // Get current organizations data
+      const currentOrgs = getOrganizations();
+      const currentSchool = currentOrgs.schools[currentUser.schoolId];
+
+      if (currentUser.role === 'PRINCIPAL') {
+        // Update principal data with new profile picture
+        const updatedPrincipal = {
+          ...currentSchool.principal,
+          profilePic: base64Image
+        };
+
+        // Update school data
+        const updatedSchool = {
+          ...currentSchool,
+          principal: updatedPrincipal
+        };
+
+        // Update organizations data
+        const updatedOrgs = {
+          ...currentOrgs,
+          schools: {
+            ...currentOrgs.schools,
+            [currentUser.schoolId]: updatedSchool
+          }
+        };
+
+        // Save to localStorage
+        localStorage.setItem('school_organizations', JSON.stringify(updatedOrgs));
+        setOrganizations(updatedOrgs);
+
+        // Update auth context with new profile picture
+        await updateAuthProfile({
+          ...currentUser,
+          profilePic: base64Image
+        });
+      }
+
+      message.success('Profile picture updated successfully');
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      console.error('Profile picture upload error:', error);
+      message.error('Failed to upload profile picture');
+      return false;
+    }
+  };
+
+  const handleSchoolLogoUpload = async (file) => {
+    try {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      const base64Image = await getBase64(file);
+      
+      // Update local state
+      setSchoolLogoUrl(base64Image);
+      setSchoolLogo(base64Image);
+
+      // Get current organizations data
+      const currentOrgs = getOrganizations();
+      const currentSchool = currentOrgs.schools[currentUser.schoolId];
+
+      // Update school data with new logo
+      const updatedSchool = {
+        ...currentSchool,
+        logo: base64Image
+      };
+
+      // Update organizations data
+      const updatedOrgs = {
+        ...currentOrgs,
+        schools: {
+          ...currentOrgs.schools,
+          [currentUser.schoolId]: updatedSchool
+        }
+      };
+
+      // Save to localStorage
+      localStorage.setItem('school_organizations', JSON.stringify(updatedOrgs));
+      setOrganizations(updatedOrgs);
+
+      // Update auth context with new school logo
+      await updateAuthProfile({
+        ...currentUser,
+        schoolLogo: base64Image
+      });
+
+      message.success('School logo updated successfully');
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      message.error('Failed to upload school logo');
+      return false;
     }
   };
 
   return (
-    <div className="profile-container">
-      <Card className="profile-card">
-        <Tabs defaultActiveKey="1">
-          <TabPane tab="Personal Information" key="1">
-            <Row gutter={[24, 24]}>
-              <Col xs={24} md={8}>
-                <div className="avatar-upload">
-                  {renderProfileImage()}
-                  <Upload
-                    showUploadList={false}
-                    beforeUpload={(file) => {
-                      handleImageUpload(file);
-                      return false;
-                    }}
-                    accept="image/*"
-                    maxCount={1}
-                  >
-                    <div className="upload-overlay">
-                      <UploadOutlined />
-                      <div className="upload-text">Change Photo</div>
-                    </div>
-                  </Upload>
+    <div className="profile-page">
+      <Card>
+        <Title level={2}>Profile Settings</Title>
+        
+        <Row gutter={24}>
+          <Col span={8}>
+            <Card title="Profile Picture">
+              <Upload
+                name="profilePic"
+                showUploadList={false}
+                beforeUpload={handleImageUpload}
+                accept="image/*"
+              >
+                <div className="profile-pic-container">
+                  <Avatar
+                    size={150}
+                    src={imageUrl}
+                    icon={<UserOutlined />}
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Button icon={<UploadOutlined />}>Change Picture</Button>
                 </div>
-              </Col>
+              </Upload>
+            </Card>
+          </Col>
 
-              <Col xs={24} md={16}>
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onFinish={onFinish}
-                  className="profile-form"
-                >
+          <Col span={16}>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
                   <Form.Item
                     name="name"
                     label="Full Name"
-                    rules={[{ required: true, message: 'Please input your name!' }]}
+                    rules={[{ required: true, message: 'Please enter your name' }]}
                   >
                     <Input prefix={<UserOutlined />} />
                   </Form.Item>
-
+                </Col>
+                <Col span={12}>
                   <Form.Item
                     name="email"
                     label="Email"
                     rules={[
-                      { required: true, message: 'Please input your email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
+                      { required: true, message: 'Please enter your email' },
+                      { type: 'email', message: 'Please enter a valid email' }
                     ]}
                   >
                     <Input prefix={<MailOutlined />} />
                   </Form.Item>
+                </Col>
+              </Row>
 
+              <Row gutter={16}>
+                <Col span={12}>
                   <Form.Item
                     name="phone"
-                    label="Phone Number"
-                    rules={[{ required: true, message: 'Please input your phone number!' }]}
+                    label="Phone"
+                    rules={[{ required: true, message: 'Please enter your phone number' }]}
                   >
                     <Input prefix={<PhoneOutlined />} />
                   </Form.Item>
-
+                </Col>
+                <Col span={12}>
                   <Form.Item
                     name="address"
                     label="Address"
-                    rules={[{ required: true, message: 'Please input your address!' }]}
+                    rules={[{ required: true, message: 'Please enter your address' }]}
                   >
-                    <Input.TextArea prefix={<HomeOutlined />} />
+                    <Input prefix={<GlobalOutlined />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {currentUser?.role === 'TEACHER' && (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="subject"
+                      label="Subject"
+                      rules={[{ required: true, message: 'Please enter your subject' }]}
+                    >
+                      <Input prefix={<SafetyCertificateOutlined />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="qualification"
+                      label="Qualification"
+                      rules={[{ required: true, message: 'Please enter your qualification' }]}
+                    >
+                      <Input prefix={<SafetyCertificateOutlined />} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              )}
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<SaveOutlined />}
+                  loading={loading}
+                >
+                  Save Changes
+                </Button>
+              </Form.Item>
+            </Form>
+          </Col>
+        </Row>
+
+        {currentUser?.role === 'PRINCIPAL' && (
+          <>
+            <Divider />
+            <Title level={3}>School Profile</Title>
+            
+            <Row gutter={24}>
+              <Col span={8}>
+                <Card title="School Logo">
+                  <Upload
+                    name="schoolLogo"
+                    showUploadList={false}
+                    beforeUpload={handleSchoolLogoUpload}
+                    accept="image/*"
+                  >
+                    <div className="school-logo-container">
+                      <Avatar
+                        size={150}
+                        src={schoolLogoUrl}
+                        icon={<BankOutlined />}
+                        style={{ marginBottom: 16 }}
+                      />
+                      <Button icon={<UploadOutlined />}>Change Logo</Button>
+                    </div>
+                  </Upload>
+                </Card>
+              </Col>
+
+              <Col span={16}>
+                <Form
+                  form={schoolForm}
+                  layout="vertical"
+                  onFinish={handleSchoolSubmit}
+                >
+                  <Form.Item
+                    name="schoolName"
+                    label="School Name"
+                    rules={[{ required: true, message: 'Please enter school name' }]}
+                  >
+                    <Input prefix={<BankOutlined />} />
                   </Form.Item>
 
-                  {currentUser?.role === 'TEACHER' && (
-                    <>
-                      <Form.Item
-                        name="subject"
-                        label="Subject"
-                        rules={[{ required: true, message: 'Please input your subject!' }]}
-                      >
-                        <Input />
-                      </Form.Item>
-                      <Form.Item
-                        name="qualification"
-                        label="Qualification"
-                        rules={[{ required: true, message: 'Please input your qualification!' }]}
-                      >
-                        <Input />
-                      </Form.Item>
-                    </>
-                  )}
+                  <Form.Item
+                    name="schoolAddress"
+                    label="School Address"
+                    rules={[{ required: true, message: 'Please enter school address' }]}
+                  >
+                    <Input prefix={<GlobalOutlined />} />
+                  </Form.Item>
 
-                  {currentUser?.role === 'STUDENT' && (
-                    <>
+                  <Row gutter={16}>
+                    <Col span={12}>
                       <Form.Item
-                        name="rollNumber"
-                        label="Roll Number"
-                        rules={[{ required: true, message: 'Please input your roll number!' }]}
+                        name="schoolPhone"
+                        label="School Phone"
+                        rules={[{ required: true, message: 'Please enter school phone' }]}
                       >
-                        <Input />
+                        <Input prefix={<PhoneOutlined />} />
                       </Form.Item>
+                    </Col>
+                    <Col span={12}>
                       <Form.Item
-                        name="classId"
-                        label="Class"
-                        rules={[{ required: true, message: 'Please select your class!' }]}
+                        name="schoolEmail"
+                        label="School Email"
+                        rules={[
+                          { required: true, message: 'Please enter school email' },
+                          { type: 'email', message: 'Please enter a valid email' }
+                        ]}
                       >
-                        <Input disabled />
+                        <Input prefix={<MailOutlined />} />
                       </Form.Item>
-                    </>
-                  )}
+                    </Col>
+                  </Row>
 
                   <Form.Item>
-                    <Button type="primary" htmlType="submit" loading={loading}>
-                      Save Changes
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<SaveOutlined />}
+                      loading={loading}
+                    >
+                      Save School Profile
                     </Button>
                   </Form.Item>
                 </Form>
               </Col>
             </Row>
-          </TabPane>
-
-          {currentUser?.role === 'PRINCIPAL' && (
-            <TabPane tab="School Settings" key="2">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={8}>
-                  <div className="avatar-upload">
-                    {renderSchoolLogo()}
-                    <Upload
-                      showUploadList={false}
-                      beforeUpload={(file) => {
-                        handleImageUpload(file, true);
-                        return false;
-                      }}
-                      accept="image/*"
-                      maxCount={1}
-                    >
-                      <div className="upload-overlay">
-                        <UploadOutlined />
-                        <div className="upload-text">Change School Logo</div>
-                      </div>
-                    </Upload>
-                  </div>
-                </Col>
-
-                <Col xs={24} md={16}>
-                  <Form
-                    form={schoolForm}
-                    layout="vertical"
-                    onFinish={onSchoolSettingsFinish}
-                    className="profile-form"
-                  >
-                    <Form.Item
-                      name="schoolName"
-                      label="School Name"
-                      rules={[{ required: true, message: 'Please input school name!' }]}
-                    >
-                      <Input prefix={<BankOutlined />} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="schoolEmail"
-                      label="School Email"
-                      rules={[
-                        { required: true, message: 'Please input school email!' },
-                        { type: 'email', message: 'Please enter a valid email!' }
-                      ]}
-                    >
-                      <Input prefix={<MailOutlined />} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="schoolPhone"
-                      label="School Phone"
-                      rules={[{ required: true, message: 'Please input school phone number!' }]}
-                    >
-                      <Input prefix={<PhoneOutlined />} />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="schoolAddress"
-                      label="School Address"
-                      rules={[{ required: true, message: 'Please input school address!' }]}
-                    >
-                      <Input.TextArea prefix={<HomeOutlined />} />
-                    </Form.Item>
-
-                    <Form.Item>
-                      <Button type="primary" htmlType="submit" loading={loading}>
-                        Save School Settings
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </Col>
-              </Row>
-            </TabPane>
-          )}
-        </Tabs>
+          </>
+        )}
       </Card>
     </div>
   );

@@ -32,6 +32,10 @@ import {
 import './App.css';
 import GlobalSearch from './components/GlobalSearch';
 import ThemeConfigurator from './components/ThemeConfigurator';
+import TeacherManagement from './pages/TeacherManagement';
+import Profile from './pages/Profile';
+import AccountSettings from './pages/AccountSettings';
+import Sidebar from './components/Sidebar';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -41,7 +45,6 @@ import Classes from './pages/Classes';
 import Attendance from './pages/Attendance';
 import Login from './pages/Login';
 import Academics from './pages/Academics';
-import Profile from './pages/Profile';
 import AuthProvider, { useAuth, ROLES } from './contexts/AuthContext';
 import ExamManagement from './pages/ExamManagement';
 import AcademicCalendar from './pages/AcademicCalendar';
@@ -459,9 +462,9 @@ function MainLayout() {
                     backgroundColor: '#f5f5f5'
                   }
                 }}>
-                  {currentUser?.profilePublicId ? (
-                    <AdvancedImage 
-                      cldImg={getCloudinaryImage(currentUser.profilePublicId)}
+                  {currentUser?.profilePic ? (
+                    <Avatar 
+                      src={currentUser.profilePic}
                       style={{ 
                         width: 32, 
                         height: 32, 
@@ -511,6 +514,15 @@ function MainLayout() {
             <Route path="academic-calendar" element={<AcademicCalendar />} />
             <Route path="teacher-attendance" element={<TeacherAttendance />} />
             <Route path="timetable/*" element={<Timetable />} />
+            <Route
+              path="/teachers"
+              element={
+                <ProtectedRoute allowedRoles={[ROLES.PRINCIPAL]}>
+                  <TeacherManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/settings" element={<AccountSettings />} />
           </Routes>
         </Content>
       </Layout>
@@ -543,26 +555,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Dashboard />} />
-                <Route path="students" element={<Students />} />
-                <Route path="teachers" element={<Teachers />} />
-                <Route path="classes" element={<Classes />} />
-                <Route path="attendance" element={<Attendance />} />
-                <Route path="academics" element={<Academics />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="exam-management" element={<ExamManagement />} />
-                <Route path="academic-calendar" element={<AcademicCalendar />} />
-                <Route path="teacher-attendance" element={<TeacherAttendance />} />
-                <Route path="timetable/*" element={<Timetable />} />
-              </Route>
+              <Route path="/*" element={<MainLayout />} />
             </Routes>
           </Router>
         </AuthProvider>
