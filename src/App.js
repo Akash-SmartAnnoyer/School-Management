@@ -72,7 +72,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 function MainLayout() {
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
 
@@ -108,6 +108,15 @@ function MainLayout() {
     }
   }, []);
 
+  // Add loading check
+  if (loading) {
+    return null; // or return a loading spinner component
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+
   const menuItems = [
     { key: '1', label: 'Dashboard', icon: <DashboardOutlined />, path: '/' },
     { key: '2', label: 'Academic Calendar', icon: <CalendarOutlined />, path: '/academic-calendar' },
@@ -119,6 +128,11 @@ function MainLayout() {
     { key: '8', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
     { key: '9', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
   ].filter(item => {
+    // Add null check for currentUser
+    if (!currentUser?.role) {
+      return true; // Return all items if role is not defined
+    }
+
     // Filter menu items based on user role
     if (currentUser.role === ROLES.TEACHER) {
       return !['teachers', 'teacher-attendance'].includes(item.path?.slice(1));
@@ -268,10 +282,6 @@ function MainLayout() {
       localStorage.setItem('themeColors', JSON.stringify(savedTheme));
     }
   };
-
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
