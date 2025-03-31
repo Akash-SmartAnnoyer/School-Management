@@ -50,6 +50,7 @@ import ExamManagement from './pages/ExamManagement';
 import AcademicCalendar from './pages/AcademicCalendar';
 import TeacherAttendance from './pages/TeacherAttendance';
 import Timetable from './pages/Timetable';
+import AttendanceReport from './pages/AttendanceReport';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -125,8 +126,9 @@ function MainLayout() {
     { key: '5', label: 'Classes', icon: <BookOutlined />, path: '/classes' },
     { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
     { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
-    { key: '8', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
-    { key: '9', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
+    { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
+    { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
+    { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
   ].filter(item => {
     // Add null check for currentUser
     if (!currentUser?.role) {
@@ -138,7 +140,7 @@ function MainLayout() {
       return !['teachers', 'teacher-attendance'].includes(item.path?.slice(1));
     }
     if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return ['/', '/academic-calendar', '/attendance', '/academics'].includes(item.path);
+      return ['/', '/academic-calendar', '/attendance', '/academics', '/attendance-reports'].includes(item.path);
     }
     return true; // Show all items for PRINCIPAL
   });
@@ -523,6 +525,7 @@ function MainLayout() {
             <Route path="exam-management" element={<ExamManagement />} />
             <Route path="academic-calendar" element={<AcademicCalendar />} />
             <Route path="teacher-attendance" element={<TeacherAttendance />} />
+            <Route path="attendance-reports" element={<AttendanceReport />} />
             <Route path="timetable/*" element={<Timetable />} />
             <Route
               path="/teachers"
