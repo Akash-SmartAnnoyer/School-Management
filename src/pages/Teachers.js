@@ -17,7 +17,9 @@ import {
   Row,
   Col,
   Card,
-  Typography
+  Typography,
+  Tooltip,
+  Empty
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -35,32 +37,18 @@ import {
   TeamOutlined,
   SafetyCertificateOutlined,
   HeartOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
-import { 
-  addTeacher, 
-  getTeachers, 
-  updateTeacher, 
-  deleteTeacher, 
-  subscribeToCollection,
-  getClasses,
-  updateClass
-} from '../firebase/services';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
-import { Cloudinary } from '@cloudinary/url-gen';
-import { AdvancedImage } from '@cloudinary/react';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 import { MessageContext } from '../App';
 import moment from 'moment';
+import api from '../services/api';
 
 const { Option } = Select;
 const { Search } = AntInput;
-
-const cld = new Cloudinary({
-  cloud: {
-    cloudName: 'dyr02bpil'
-  }
-});
+const { Title } = Typography;
 
 const Teachers = () => {
   const messageApi = useContext(MessageContext);
@@ -73,23 +61,50 @@ const Teachers = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [tempImage, setTempImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingClasses, setLoadingClasses] = useState(false);
 
+  // Load teachers only when component mounts
   useEffect(() => {
-    // Subscribe to real-time updates for teachers
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-
-    // Subscribe to real-time updates for classes
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-
-    return () => {
-      unsubscribeTeachers();
-      unsubscribeClasses();
-    };
+    loadTeachers();
   }, []);
+
+  // Load classes only when modal is opened
+  useEffect(() => {
+    if (isModalVisible) {
+      loadClasses();
+    }
+  }, [isModalVisible]);
+
+  const loadTeachers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.teacher.getAll();
+      if (response.data.success) {
+        setTeachers(response.data.data);
+      }
+    } catch (error) {
+      messageApi.error('Failed to load teachers');
+      console.error('Error loading teachers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadClasses = async () => {
+    try {
+      setLoadingClasses(true);
+      const response = await api.class.getAll();
+      if (response.data.success) {
+        setClasses(response.data.data);
+      }
+    } catch (error) {
+      messageApi.error('Failed to load classes');
+      console.error('Error loading classes:', error);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
 
   const handleAdd = () => {
     setEditingTeacher(null);
@@ -99,7 +114,6 @@ const Teachers = () => {
 
   const handleEdit = (record) => {
     setEditingTeacher(record);
-    // Convert ISO date strings to moment objects
     const formValues = {
       ...record,
       dateOfBirth: record.dateOfBirth ? moment(record.dateOfBirth) : null,
@@ -111,20 +125,69 @@ const Teachers = () => {
 
   const handleDelete = async (teacherId) => {
     try {
-      await deleteTeacher(teacherId);
-      messageApi.success('Teacher deleted successfully');
+      setLoading(true);
+      const response = await api.teacher.delete(teacherId);
+      if (response.data.success) {
+        messageApi.success('Teacher deleted successfully');
+        loadTeachers();
+      }
     } catch (error) {
-      messageApi.error('Error deleting teacher');
+      messageApi.error('Failed to delete teacher');
+      console.error('Error deleting teacher:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
+  const handleModalOk = async () => {
+    try {
+      setLoading(true);
+      const values = await form.validateFields();
+      
+      // Clean up the values object by removing undefined and empty string values
+      const cleanValues = Object.entries(values).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
+      // Combine firstName and lastName into name
+      const name = `${values.firstName || ''} ${values.lastName || ''}`.trim();
+
+      // Convert moment objects to ISO strings
+      const teacherData = {
+        ...cleanValues,
+        name,
+        dateOfBirth: values.dateOfBirth?.toISOString(),
+        joiningDate: values.joiningDate?.toISOString(),
+        updatedAt: new Date().toISOString(),
+        photoURL: tempImage || editingTeacher?.photoURL
+      };
+
+      if (editingTeacher) {
+        const response = await api.teacher.update(editingTeacher.id, teacherData);
+        if (response.data.success) {
+          messageApi.success('Teacher updated successfully');
+          loadTeachers();
+        }
+      } else {
+        teacherData.createdAt = new Date().toISOString();
+        const response = await api.teacher.create(teacherData);
+        if (response.data.success) {
+          messageApi.success('Teacher added successfully');
+          loadTeachers();
+        }
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      setTempImage(null);
+    } catch (error) {
+      console.error('Error saving teacher:', error);
+      messageApi.error('Failed to save teacher');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleImageUpload = async (file, teacherId) => {
@@ -143,17 +206,14 @@ const Teachers = () => {
 
       const base64Image = await getBase64(file);
       
-      if (teacherId === 'new') {
-        // Store the image temporarily for new teacher
-        setTempImage(base64Image);
-        messageApi.success('Image ready to be saved with teacher details');
-      } else {
-        // Update existing teacher's image
-        await updateTeacher(teacherId, {
-          photoURL: base64Image,
-          updatedAt: new Date().toISOString()
-        });
+      const response = await api.teacher.update(teacherId, {
+        photoURL: base64Image,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (response.data.success) {
         messageApi.success('Profile picture updated successfully');
+        loadTeachers();
       }
       return false; // Prevent default upload behavior
     } catch (error) {
@@ -163,72 +223,13 @@ const Teachers = () => {
     }
   };
 
-  const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
-      
-      // Clean up the values object by removing undefined and empty string values
-      const cleanValues = Object.entries(values).reduce((acc, [key, value]) => {
-        if (value !== undefined && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
-
-      // Combine firstName and lastName into name
-      const name = `${values.firstName || ''} ${values.lastName || ''}`.trim();
-
-      // Convert moment objects to ISO strings
-      const teacherData = {
-        ...cleanValues,
-        name, // Add the combined name field
-        dateOfBirth: values.dateOfBirth?.toISOString(),
-        joiningDate: values.joiningDate?.toISOString(),
-        updatedAt: new Date().toISOString(),
-        photoURL: tempImage || editingTeacher?.photoURL
-      };
-
-      if (editingTeacher) {
-        // If class is being changed, update both the teacher and class records
-        if (editingTeacher.classId !== values.classId) {
-          // Clear teacherId from old class if it exists
-          if (editingTeacher.classId) {
-            const oldClass = classes.find(c => c.id === editingTeacher.classId);
-            if (oldClass) {
-              await updateClass(oldClass.id, { teacherId: null });
-            }
-          }
-          
-          // Set teacherId in new class if selected
-          if (values.classId) {
-            const newClass = classes.find(c => c.id === values.classId);
-            if (newClass) {
-              await updateClass(newClass.id, { teacherId: editingTeacher.id });
-            }
-          }
-        }
-        await updateTeacher(editingTeacher.id, teacherData);
-        messageApi.success('Teacher updated successfully');
-      } else {
-        teacherData.createdAt = new Date().toISOString();
-        const newTeacherRef = await addTeacher(teacherData);
-        
-        // If class is selected for new teacher, update the class's teacherId
-        if (values.classId) {
-          const selectedClass = classes.find(c => c.id === values.classId);
-          if (selectedClass) {
-            await updateClass(selectedClass.id, { teacherId: newTeacherRef.id });
-          }
-        }
-        messageApi.success('Teacher added successfully');
-      }
-      setIsModalVisible(false);
-      form.resetFields();
-      setTempImage(null);
-    } catch (error) {
-      console.error('Error saving teacher:', error);
-      messageApi.error('Error saving teacher');
-    }
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   const columns = [
@@ -237,24 +238,20 @@ const Teachers = () => {
       dataIndex: 'photoURL',
       key: 'photo',
       width: 80,
-      render: (photoURL, record) => {
-        if (record.photoURL) {
-          return (
-            <img 
-              src={record.photoURL}
-              alt={record.name}
-              style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
-            />
-          );
-        }
-        return (
+      render: (photoURL, record) => (
+        <Upload
+          name="photo"
+          showUploadList={false}
+          beforeUpload={(file) => handleImageUpload(file, record.id)}
+          accept="image/*"
+        >
           <Avatar
             size={40}
-            icon={<UserOutlined />}
-            style={{ backgroundColor: '#1890ff' }}
+            src={photoURL ? getCloudinaryImage(photoURL) : null}
+            icon={!photoURL && <UserOutlined />}
           />
-        );
-      },
+        </Upload>
+      ),
     },
     {
       title: 'Name',
@@ -304,34 +301,39 @@ const Teachers = () => {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Upload
-            showUploadList={false}
-            beforeUpload={(file) => {
-              handleImageUpload(file, record.id);
-              return false;
-            }}
-            accept="image/*"
-            maxCount={1}
-          >
-            <Button icon={<UploadOutlined />} size="small" />
-          </Upload>
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={() => handleDelete(record.id)}
-          />
+          <Tooltip title="Upload Photo">
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                handleImageUpload(file, record.id);
+                return false;
+              }}
+              accept="image/*"
+              maxCount={1}
+            >
+              <Button icon={<UploadOutlined />} size="small" />
+            </Upload>
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              icon={<EditOutlined />}
+              size="small"
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              icon={<DeleteOutlined />}
+              size="small"
+              danger
+              onClick={() => handleDelete(record.id)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
-  // Add search filter function
   const filteredTeachers = teachers.filter(teacher =>
     (teacher.name?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
     (teacher.subject?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
@@ -340,35 +342,45 @@ const Teachers = () => {
 
   return (
     <div>
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        gap: '16px'
-      }}>
-        <Search
-          placeholder="Search teachers..."
-          allowClear
-          enterButton={<SearchOutlined />}
-          size="small"
-          style={{ width: 300 }}
-          onChange={(e) => setSearchText(e.target.value)}
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+        <Col>
+          <Title level={2}>Teachers</Title>
+        </Col>
+        <Col>
+          <Space>
+            <Input.Search
+              placeholder="Search teachers..."
+              allowClear
+              onSearch={setSearchText}
+              style={{ width: 300 }}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
+            >
+              Add Teacher
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={filteredTeachers}
+          rowKey="id"
+          loading={loading}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No teachers found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            ),
+          }}
         />
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          onClick={handleAdd}
-          size="small"
-        >
-          Add Teacher
-        </Button>
-      </div>
-      <Table 
-        columns={columns} 
-        dataSource={filteredTeachers} 
-        rowKey="id" 
-      />
+      </Card>
 
       <Modal
         title={
@@ -387,25 +399,9 @@ const Teachers = () => {
           setTempImage(null);
         }}
         width={900}
-        footer={[
-          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
-            Cancel
-          </Button>,
-          <Button key="submit" type="primary" onClick={handleModalOk}>
-            {editingTeacher ? 'Update Teacher' : 'Add Teacher'}
-          </Button>
-        ]}
+        confirmLoading={loading}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            status: 'Active',
-            ...editingTeacher,
-            dateOfBirth: editingTeacher?.dateOfBirth ? moment(editingTeacher.dateOfBirth) : null,
-            joiningDate: editingTeacher?.joiningDate ? moment(editingTeacher.joiningDate) : null
-          }}
-        >
+        <Form form={form} layout="vertical">
           <Row gutter={24}>
             <Col span={8}>
               <Card 
@@ -420,7 +416,21 @@ const Teachers = () => {
                 <Upload
                   showUploadList={false}
                   beforeUpload={(file) => {
-                    handleImageUpload(file, editingTeacher?.id || 'new');
+                    const isImage = file.type.startsWith('image/');
+                    if (!isImage) {
+                      messageApi.error('You can only upload image files!');
+                      return false;
+                    }
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+                    if (!isLt2M) {
+                      messageApi.error('Image must be smaller than 2MB!');
+                      return false;
+                    }
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                      setTempImage(reader.result);
+                    };
                     return false;
                   }}
                   accept="image/*"
@@ -495,11 +505,7 @@ const Teachers = () => {
                       label="Date of Birth"
                       rules={[{ required: true, message: 'Please select date of birth!' }]}
                     >
-                      <DatePicker 
-                        style={{ width: '100%' }}
-                        format="YYYY-MM-DD"
-                        placeholder="Select date"
-                      />
+                      <DatePicker style={{ width: '100%' }} />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -512,36 +518,6 @@ const Teachers = () => {
                         <Option value="male">Male</Option>
                         <Option value="female">Female</Option>
                         <Option value="other">Other</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="nationality"
-                      label="Nationality"
-                      rules={[{ required: true, message: 'Please input nationality!' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="bloodGroup"
-                      label="Blood Group"
-                      rules={[{ required: true, message: 'Please select blood group!' }]}
-                    >
-                      <Select>
-                        <Option value="A+">A+</Option>
-                        <Option value="A-">A-</Option>
-                        <Option value="B+">B+</Option>
-                        <Option value="B-">B-</Option>
-                        <Option value="O+">O+</Option>
-                        <Option value="O-">O-</Option>
-                        <Option value="AB+">AB+</Option>
-                        <Option value="AB-">AB-</Option>
                       </Select>
                     </Form.Item>
                   </Col>
@@ -573,7 +549,7 @@ const Teachers = () => {
                   <Col span={12}>
                     <Form.Item
                       name="phone"
-                      label="Phone Number"
+                      label="Phone"
                       rules={[{ required: true, message: 'Please input phone number!' }]}
                     >
                       <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
@@ -602,31 +578,6 @@ const Teachers = () => {
                 }
                 style={{ marginBottom: '16px' }}
               >
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="employeeId"
-                      label="Employee ID"
-                      rules={[{ required: true, message: 'Please input employee ID!' }]}
-                    >
-                      <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="joiningDate"
-                      label="Joining Date"
-                      rules={[{ required: true, message: 'Please select joining date!' }]}
-                    >
-                      <DatePicker 
-                        style={{ width: '100%' }}
-                        format="YYYY-MM-DD"
-                        placeholder="Select date"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
@@ -678,7 +629,10 @@ const Teachers = () => {
                       label="Assigned Class (Optional)"
                       rules={[{ required: false }]}
                     >
-                      <Select allowClear>
+                      <Select 
+                        allowClear
+                        loading={loadingClasses}
+                      >
                         <Option value="">Not Assigned</Option>
                         {classes
                           .filter(cls => cls.status === 'Active')
@@ -705,45 +659,6 @@ const Teachers = () => {
                   label="Previous Schools"
                 >
                   <Input.TextArea rows={2} placeholder="List previous schools with years" />
-                </Form.Item>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <HeartOutlined style={{ color: '#1890ff' }} />
-                    <span>Emergency Contact</span>
-                  </Space>
-                }
-                style={{ marginBottom: '16px' }}
-              >
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="emergencyContactName"
-                      label="Emergency Contact Name"
-                      rules={[{ required: true, message: 'Please input emergency contact name!' }]}
-                    >
-                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="emergencyContactPhone"
-                      label="Emergency Contact Phone"
-                      rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
-                    >
-                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  name="emergencyContactRelation"
-                  label="Relation with Teacher"
-                  rules={[{ required: true, message: 'Please input relation with teacher!' }]}
-                >
-                  <Input />
                 </Form.Item>
               </Card>
 

@@ -20,7 +20,9 @@ import {
   Typography,
   Drawer,
   List,
-  Badge
+  Badge,
+  Tooltip,
+  Empty
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -41,7 +43,13 @@ import {
   BankOutlined,
   SafetyCertificateOutlined,
   MenuOutlined,
-  EllipsisOutlined
+  EllipsisOutlined,
+  CalendarOutlined,
+  ManOutlined,
+  WomanOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -59,6 +67,7 @@ import './Students.css';
 
 const { Option } = Select;
 const { Search } = AntInput;
+const { Title } = Typography;
 
 const cld = new Cloudinary({
   cloud: {
@@ -66,738 +75,420 @@ const cld = new Cloudinary({
   }
 });
 
-const StudentForm = ({ visible, onCancel, onSubmit, initialValues, onImageUpload }) => {
+const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState([]);
-  const [sections, setSections] = useState([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
 
   useEffect(() => {
-    loadClasses();
-    if (initialValues) {
-      form.setFieldsValue(initialValues);
+    if (visible) {
+      loadClasses();
+      if (initialValues) {
+        form.setFieldsValue(initialValues);
+      } else {
+        form.resetFields();
+      }
     }
-  }, [initialValues]);
+  }, [visible, initialValues]);
 
   const loadClasses = async () => {
     try {
+      setLoadingClasses(true);
       const response = await api.class.getAll();
-      setClasses(response.data.data);
+      if (response.data.success) {
+        setClasses(response.data.data);
+      }
     } catch (error) {
-      message.error('Failed to load classes');
-    }
-  };
-
-  const handleClassChange = async (classId) => {
-    try {
-      const response = await api.class.getSections(classId);
-      setSections(response.data.data);
-      form.setFieldValue('section', undefined);
-    } catch (error) {
-      message.error('Failed to load sections');
-    }
-  };
-
-  const handleSubmit = async (values) => {
-    try {
-      setLoading(true);
-      await onSubmit(values);
-      form.resetFields();
-      onCancel();
-    } catch (error) {
-      message.error('Failed to save student');
+      console.error('Error loading classes:', error);
     } finally {
-      setLoading(false);
+      setLoadingClasses(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      onSubmit(values);
+    } catch (error) {
+      console.error('Validation failed:', error);
     }
   };
 
   return (
     <Modal
-      title={
-        <Space>
-          <IdcardOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-          <Typography.Title level={5} style={{ margin: 0 }}>
-            {initialValues ? "Edit Student" : "New Student Admission"}
-          </Typography.Title>
-        </Space>
-      }
+      title={initialValues ? "Edit Student" : "Add New Student"}
       open={visible}
       onCancel={onCancel}
-      footer={null}
-      width={900}
+      onOk={handleSubmit}
+      confirmLoading={loading}
+      width={800}
+      destroyOnClose
     >
       <Form
         form={form}
         layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{
-          status: 'active',
-          admissionDate: moment(),
-          ...initialValues
-        }}
+        initialValues={initialValues}
       >
-        <Row gutter={24}>
-          <Col span={8}>
-            <Card 
-              style={{ 
-                textAlign: 'center',
-                background: '#fafafa',
-                border: '1px dashed #d9d9d9',
-                borderRadius: '8px',
-                padding: '20px'
-              }}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="name"
+              label="Full Name"
+              rules={[{ required: true, message: 'Please enter student name' }]}
             >
-              <Upload
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  onImageUpload(file, initialValues?.id || 'new');
-                  return false;
-                }}
-                accept="image/*"
-                maxCount={1}
-              >
-                <div style={{ cursor: 'pointer' }}>
-                  {initialValues?.photoURL ? (
-                    <img 
-                      src={initialValues.photoURL}
-                      alt="Student"
-                      style={{ 
-                        width: 150, 
-                        height: 150, 
-                        borderRadius: '50%', 
-                        objectFit: 'cover',
-                        border: '4px solid #fff',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                      }}
-                    />
-                  ) : (
-                    <Avatar
-                      size={150}
-                      icon={<CameraOutlined style={{ fontSize: '40px' }} />}
-                      style={{ 
-                        backgroundColor: '#f0f2f5',
-                        border: '2px dashed #d9d9d9'
-                      }}
-                    />
-                  )}
-                  <div style={{ marginTop: '10px', color: '#666' }}>
-                    <CameraOutlined /> Click to upload photo
-                  </div>
-                </div>
-              </Upload>
-            </Card>
+              <Input prefix={<UserOutlined />} placeholder="Enter student name" />
+            </Form.Item>
           </Col>
-          <Col span={16}>
-            <Card 
-              title={
-                <Space>
-                  <IdcardOutlined style={{ color: '#1890ff' }} />
-                  <span>Admission Details</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
+          <Col span={12}>
+            <Form.Item
+              name="rollNumber"
+              label="Roll Number"
+              rules={[{ required: true, message: 'Please enter roll number' }]}
             >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="admissionNo"
-                    label="Admission Number"
-                    rules={[{ required: true, message: 'Please input admission number!' }]}
-                  >
-                    <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="admissionDate"
-                    label="Admission Date"
-                    rules={[{ required: true, message: 'Please select admission date!' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <UserOutlined style={{ color: '#1890ff' }} />
-                  <span>Personal Information</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="firstName"
-                    label="First Name"
-                    rules={[{ required: true, message: 'Please input first name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="lastName"
-                    label="Last Name"
-                    rules={[{ required: true, message: 'Please input last name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="dateOfBirth"
-                    label="Date of Birth"
-                    rules={[{ required: true, message: 'Please select date of birth!' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="gender"
-                    label="Gender"
-                    rules={[{ required: true, message: 'Please select gender!' }]}
-                  >
-                    <Select>
-                      <Option value="male">Male</Option>
-                      <Option value="female">Female</Option>
-                      <Option value="other">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="bloodGroup"
-                    label="Blood Group"
-                    rules={[{ required: true, message: 'Please select blood group!' }]}
-                  >
-                    <Select>
-                      <Option value="A+">A+</Option>
-                      <Option value="A-">A-</Option>
-                      <Option value="B+">B+</Option>
-                      <Option value="B-">B-</Option>
-                      <Option value="O+">O+</Option>
-                      <Option value="O-">O-</Option>
-                      <Option value="AB+">AB+</Option>
-                      <Option value="AB-">AB-</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="nationality"
-                    label="Nationality"
-                    rules={[{ required: true, message: 'Please input nationality!' }]}
-                  >
-                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <PhoneOutlined style={{ color: '#1890ff' }} />
-                  <span>Contact Information</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: 'Please input email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
-                    ]}
-                  >
-                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="phone"
-                    label="Phone Number"
-                    rules={[{ required: true, message: 'Please input phone number!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                name="address"
-                label="Address"
-                rules={[{ required: true, message: 'Please input address!' }]}
-              >
-                <Input.TextArea 
-                  rows={3} 
-                  prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
-                />
-              </Form.Item>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <BookOutlined style={{ color: '#1890ff' }} />
-                  <span>Academic Information</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="class"
-                    label="Class"
-                    rules={[{ required: true, message: 'Please select class!' }]}
-                  >
-                    <Select onChange={handleClassChange}>
-                      {classes.map(cls => (
-                        <Option key={cls.id} value={cls.id}>{cls.name}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="section"
-                    label="Section"
-                    rules={[{ required: true, message: 'Please select section!' }]}
-                  >
-                    <Select>
-                      {sections.map(section => (
-                        <Option key={section.id} value={section.id}>{section.name}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="previousSchool"
-                    label="Previous School"
-                  >
-                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="lastGrade"
-                    label="Last Grade Attended"
-                  >
-                    <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <TeamOutlined style={{ color: '#1890ff' }} />
-                  <span>Parent/Guardian Information</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="fatherName"
-                    label="Father's Name"
-                    rules={[{ required: true, message: 'Please input father\'s name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="fatherOccupation"
-                    label="Father's Occupation"
-                  >
-                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="motherName"
-                    label="Mother's Name"
-                    rules={[{ required: true, message: 'Please input mother\'s name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="motherOccupation"
-                    label="Mother's Occupation"
-                  >
-                    <Input prefix={<BankOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="parentEmail"
-                    label="Parent's Email"
-                    rules={[
-                      { required: true, message: 'Please input parent\'s email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
-                    ]}
-                  >
-                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="parentPhone"
-                    label="Parent's Phone"
-                    rules={[{ required: true, message: 'Please input parent\'s phone!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                name="parentAddress"
-                label="Parent's Address"
-                rules={[{ required: true, message: 'Please input parent\'s address!' }]}
-              >
-                <Input.TextArea 
-                  rows={3} 
-                  prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
-                />
-              </Form.Item>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <HeartOutlined style={{ color: '#1890ff' }} />
-                  <span>Emergency Contact</span>
-                </Space>
-              }
-              style={{ marginBottom: '16px' }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="emergencyContactName"
-                    label="Emergency Contact Name"
-                    rules={[{ required: true, message: 'Please input emergency contact name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="emergencyContactPhone"
-                    label="Emergency Contact Phone"
-                    rules={[{ required: true, message: 'Please input emergency contact phone!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                name="emergencyContactRelation"
-                label="Relation with Student"
-                rules={[{ required: true, message: 'Please input relation with student!' }]}
-              >
-                <Input prefix={<TeamOutlined style={{ color: '#bfbfbf' }} />} />
-              </Form.Item>
-            </Card>
-
-            <Card 
-              title={
-                <Space>
-                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
-                  <span>Additional Information</span>
-                </Space>
-              }
-            >
-              <Form.Item
-                name="medicalConditions"
-                label="Medical Conditions"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-
-              <Form.Item
-                name="allergies"
-                label="Allergies"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-
-              <Form.Item
-                name="remarks"
-                label="Remarks"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-
-              <Form.Item>
-                <Space>
-                  <Button onClick={onCancel}>Cancel</Button>
-                  <Button type="primary" htmlType="submit" loading={loading}>
-                    {initialValues ? 'Update' : 'Admit Student'}
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Card>
+              <Input prefix={<IdcardOutlined />} placeholder="Enter roll number" />
+            </Form.Item>
           </Col>
         </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="classId"
+              label="Class"
+              rules={[{ required: true, message: 'Please select class' }]}
+            >
+              <Select
+                placeholder="Select class"
+                loading={loadingClasses}
+                prefix={<BankOutlined />}
+              >
+                {classes.map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {cls.className} - Section {cls.section}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="gender"
+              label="Gender"
+              rules={[{ required: true, message: 'Please select gender' }]}
+            >
+              <Select placeholder="Select gender" prefix={<ManOutlined />}>
+                <Option value="male">Male</Option>
+                <Option value="female">Female</Option>
+                <Option value="other">Other</Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="dateOfBirth"
+              label="Date of Birth"
+              rules={[{ required: true, message: 'Please select date of birth' }]}
+            >
+              <Input
+                type="date"
+                prefix={<CalendarOutlined />}
+                placeholder="Select date of birth"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'Please enter email' },
+                { type: 'email', message: 'Please enter a valid email' }
+              ]}
+            >
+              <Input prefix={<MailOutlined />} placeholder="Enter email" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="phone"
+              label="Phone Number"
+              rules={[{ required: true, message: 'Please enter phone number' }]}
+            >
+              <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="address"
+              label="Address"
+              rules={[{ required: true, message: 'Please enter address' }]}
+            >
+              <Input prefix={<HomeOutlined />} placeholder="Enter address" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="photoURL"
+          label="Profile Photo"
+          valuePropName="fileList"
+        >
+          <Upload
+            name="photo"
+            listType="picture-card"
+            maxCount={1}
+            beforeUpload={() => false}
+            accept="image/*"
+          >
+            <div>
+              <UploadOutlined />
+              <div style={{ marginTop: 8 }}>Upload</div>
+            </div>
+          </Upload>
+        </Form.Item>
       </Form>
     </Modal>
   );
 };
 
 const Students = () => {
-  const messageApi = useContext(MessageContext);
-  const location = useLocation();
-  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [form] = Form.useForm();
   const [editingStudent, setEditingStudent] = useState(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [detailsVisible, setDetailsVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [classes, setClasses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [highlightedId, setHighlightedId] = useState(null);
   const [searchText, setSearchText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const messageApi = useContext(MessageContext);
 
+  // Load students only when component mounts or page changes
   useEffect(() => {
-    // Get URL parameters
-    const params = new URLSearchParams(location.search);
-    const viewId = params.get('view');
-    const highlight = params.get('highlight') === 'true';
+    loadStudents();
+  }, [currentPage, pageSize]);
 
-    if (viewId && highlight) {
-      setHighlightedId(viewId);
-      // Remove highlight parameter after 3 seconds
-      const timer = setTimeout(() => {
-        setHighlightedId(null);
-        navigate(location.pathname + '?view=' + viewId, { replace: true });
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-
-    loadData();
-  }, [location, navigate]);
-
-  const loadData = async () => {
+  const loadStudents = async () => {
     try {
       setLoading(true);
-      const [studentsResponse, classesResponse, teachersResponse] = await Promise.all([
-        api.student.getAll(),
-        api.class.getAll(),
-        api.teacher.getAll()
-      ]);
-      setStudents(studentsResponse.data.data);
-      setClasses(classesResponse.data.data);
-      setTeachers(teachersResponse.data.data);
+      const response = await api.student.getAll();
+      if (response.data.success) {
+        setStudents(response.data.data);
+        setTotalStudents(response.data.data.length);
+      }
     } catch (error) {
-      messageApi.error('Failed to load data');
-      console.error('Error loading data:', error);
+      messageApi.error('Failed to load students');
+      console.error('Error loading students:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddStudent = () => {
+  const handleAdd = () => {
     setEditingStudent(null);
-    form.resetFields();
     setModalVisible(true);
   };
 
-  const handleEditStudent = (student) => {
+  const handleEdit = (student) => {
     setEditingStudent(student);
-    form.setFieldsValue(student);
     setModalVisible(true);
   };
 
-  const handleDeleteStudent = async (studentId) => {
+  const handleDelete = async (studentId) => {
     try {
-      await api.student.delete(studentId);
-      messageApi.success('Student deleted successfully');
-      loadData();
+      setLoading(true);
+      const response = await api.student.delete(studentId);
+      if (response.data.success) {
+        messageApi.success('Student deleted successfully');
+        loadStudents();
+      }
     } catch (error) {
-      console.error('Error deleting student:', error);
       messageApi.error('Failed to delete student');
+      console.error('Error deleting student:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubmit = async (values) => {
     try {
+      setLoading(true);
       const studentData = {
         ...values,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'active'
       };
 
       if (editingStudent) {
-        await api.student.update(editingStudent.id, studentData);
-        messageApi.success('Student updated successfully');
+        const response = await api.student.update(editingStudent.id, studentData);
+        if (response.data.success) {
+          messageApi.success('Student updated successfully');
+          loadStudents();
+        }
       } else {
-        await api.student.create(studentData);
-        messageApi.success('Student added successfully');
+        const response = await api.student.create(studentData);
+        if (response.data.success) {
+          messageApi.success('Student added successfully');
+          loadStudents();
+        }
       }
-
       setModalVisible(false);
-      form.resetFields();
-      loadData();
+      setEditingStudent(null);
     } catch (error) {
-      console.error('Error saving student:', error);
       messageApi.error('Failed to save student');
+      console.error('Error saving student:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleImageUpload = async (file, studentId) => {
     try {
-      const photoPublicId = await uploadImage(file);
-      await api.student.update(studentId, { photoPublicId });
-      messageApi.success('Photo updated successfully');
-      loadData();
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        messageApi.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        messageApi.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      const base64Image = await getBase64(file);
+      
+      // Update student with new profile picture
+      const response = await api.student.update(studentId, {
+        photoURL: base64Image,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (response.data.success) {
+        messageApi.success('Profile picture updated successfully');
+        loadStudents();
+      }
+      return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Error uploading photo:', error);
-      messageApi.error('Failed to upload photo');
+      console.error('Profile picture upload error:', error);
+      messageApi.error('Failed to upload profile picture');
+      return false;
     }
+  };
+
+  const getBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleViewDetails = (student) => {
+    setSelectedStudent(student);
+    setDetailsVisible(true);
   };
 
   const columns = [
     {
       title: 'Photo',
-      dataIndex: 'photoPublicId',
+      dataIndex: 'photoURL',
       key: 'photo',
       width: 80,
-      render: (photoPublicId, record) => {
-        console.log('Student photo data:', {
-          photoPublicId,
-          photoURL: record.photoURL,
-          record
-        });
-        
-        if (photoPublicId) {
-          const cldImg = getCloudinaryImage(photoPublicId);
-          console.log('Cloudinary image:', cldImg);
-          return (
-            <AdvancedImage 
-              cldImg={cldImg}
-              style={{ width: 40, height: 40, borderRadius: '50%' }}
-            />
-          );
-        }
-        return (
+      render: (photoURL, record) => (
+        <Upload
+          name="photo"
+          showUploadList={false}
+          beforeUpload={(file) => handleImageUpload(file, record.id)}
+          accept="image/*"
+        >
           <Avatar
             size={40}
-            icon={<UserOutlined />}
-            style={{ backgroundColor: '#1890ff' }}
+            src={photoURL ? getCloudinaryImage(photoURL) : null}
+            icon={!photoURL && <UserOutlined />}
           />
-        );
-      },
+        </Upload>
+      ),
     },
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (text, record) => (
-        <span style={{
-          fontWeight: record.id === highlightedId ? 'bold' : 'normal',
-          color: record.id === highlightedId ? '#1890ff' : 'inherit',
-          transition: 'all 0.3s ease',
-          cursor: 'pointer'
-        }} onClick={() => {
-          setSelectedStudent(record);
-          setDrawerVisible(true);
-        }}>
-          {text}
-        </span>
-      ),
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Roll Number',
       dataIndex: 'rollNumber',
       key: 'rollNumber',
+      sorter: (a, b) => a.rollNumber.localeCompare(b.rollNumber),
     },
     {
       title: 'Class',
-      dataIndex: 'classId',
-      key: 'classId',
-      render: (classId) => {
-        const classInfo = classes.find(c => c.id === classId);
-        return classInfo ? `${classInfo.className} - Section ${classInfo.section}` : '-';
+      key: 'class',
+      render: (_, record) => {
+        const classInfo = record.classId ? `Class ${record.classId}` : 'Not Assigned';
+        return <Tag color="blue">{classInfo}</Tag>;
       },
     },
     {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
+      render: (gender) => (
+        <Tag color={gender === 'male' ? 'blue' : 'pink'}>
+          {gender === 'male' ? <ManOutlined /> : <WomanOutlined />} {gender}
+        </Tag>
+      ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      render: (status) => (
+        <Tag color={status === 'active' ? 'success' : 'error'}>
+          {status === 'active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {status}
+        </Tag>
+      ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Upload
-            showUploadList={false}
-            beforeUpload={(file) => {
-              handleImageUpload(file, record.id);
-              return false;
-            }}
-            accept="image/*"
-            maxCount={1}
-          >
-            <Button icon={<UploadOutlined />} size="small" />
-          </Upload>
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => handleEditStudent(record)}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={() => handleDeleteStudent(record.id)}
-          />
+          <Tooltip title="View Details">
+            <Button
+              type="text"
+              icon={<UserOutlined />}
+              onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
   ];
 
-  // Add search filter function
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchText.toLowerCase()) ||
     student.rollNumber.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -805,106 +496,76 @@ const Students = () => {
   );
 
   return (
-    <div className="students-container">
-      <div className="students-header">
-        <Search
-          className="students-search"
-          placeholder="Search students..."
-          allowClear
-          enterButton={<SearchOutlined />}
-          size="large"
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddStudent}
-          size="large"
-          block
-        >
-          Add Student
-        </Button>
-      </div>
-
-      {/* Mobile View */}
-      <div className="mobile-students-list" style={{ display: 'none' }}>
-        <List
-          dataSource={filteredStudents}
-          renderItem={(student) => (
-            <List.Item
-              actions={[
-                <Button 
-                  type="text" 
-                  icon={<EditOutlined />} 
-                  onClick={() => handleEditStudent(student)}
-                />,
-                <Button 
-                  type="text" 
-                  danger 
-                  icon={<DeleteOutlined />} 
-                  onClick={() => handleDeleteStudent(student.id)}
-                />
-              ]}
+    <div>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+        <Col>
+          <Title level={2}>Students</Title>
+        </Col>
+        <Col>
+          <Space>
+            <Input.Search
+              placeholder="Search students..."
+              allowClear
+              onSearch={setSearchText}
+              style={{ width: 300 }}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAdd}
             >
-              <List.Item.Meta
-                avatar={
-                  <Avatar 
-                    size="large" 
-                    src={student.photoURL ? getCloudinaryImage(student.photoURL) : null}
-                    icon={!student.photoURL && <UserOutlined />}
-                  />
-                }
-                title={
-                  <Space>
-                    {student.firstName} {student.lastName}
-                    <Badge 
-                      status={student.status === 'active' ? 'success' : 'error'} 
-                      text={student.status}
-                    />
-                  </Space>
-                }
-                description={
-                  <Space direction="vertical" size="small">
-                    <Space>
-                      <IdcardOutlined />
-                      {student.admissionNo}
-                    </Space>
-                    <Space>
-                      <BookOutlined />
-                      {student.class} - {student.section}
-                    </Space>
-                  </Space>
-                }
-              />
-            </List.Item>
-          )}
-        />
-      </div>
+              Add Student
+            </Button>
+          </Space>
+        </Col>
+      </Row>
 
-      {/* Desktop View */}
-      <div className="desktop-students-table">
+      <Card>
         <Table
           columns={columns}
           dataSource={filteredStudents}
-          loading={loading}
           rowKey="id"
-          rowClassName={(record) => record.id === highlightedId ? 'highlighted-row' : ''}
-          scroll={{ x: true }}
+          loading={loading}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: totalStudents,
+            onChange: (page, size) => {
+              setCurrentPage(page);
+              setPageSize(size);
+            },
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} students`,
+          }}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No students found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            ),
+          }}
         />
-      </div>
+      </Card>
 
       <StudentForm
         visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingStudent(null);
+        }}
         onSubmit={handleSubmit}
         initialValues={editingStudent}
-        onImageUpload={handleImageUpload}
-        className="student-form-modal"
+        loading={loading}
       />
 
       <StudentDetailsDrawer
-        visible={drawerVisible}
-        onClose={() => setDrawerVisible(false)}
+        visible={detailsVisible}
+        onClose={() => {
+          setDetailsVisible(false);
+          setSelectedStudent(null);
+        }}
         student={selectedStudent}
       />
     </div>
