@@ -52,6 +52,22 @@ export const organizations = {
         profilePic: 'https://via.placeholder.com/150'
       },
       teachers: []
+    },
+    'new-school': {
+      id: 'new-school',
+      name: 'New School Name',
+      address: 'New School Address',
+      phone: 'New School Phone',
+      email: 'school@newschool.com',
+      logo: 'https://via.placeholder.com/150',
+      principal: {
+        username: 'new_principal',
+        password: 'admin123', // This should be changed in production
+        name: 'Dr. New Principal Name',
+        email: 'principal@newschool.com',
+        profilePic: 'https://via.placeholder.com/150'
+      },
+      teachers: []
     }
   }
 };

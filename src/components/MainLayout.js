@@ -124,30 +124,6 @@ const MainLayout = ({ children }) => {
       label: 'Academics',
       roles: ['PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT']
     },
-    {
-      key: '/parents',
-      icon: <TeamOutlined />,
-      label: 'Parents',
-      roles: ['PRINCIPAL', 'TEACHER']
-    },
-    {
-      key: '/administration',
-      icon: <SettingOutlined />,
-      label: 'Administration',
-      roles: ['PRINCIPAL']
-    },
-    {
-      key: '/finance',
-      icon: <BankOutlined />,
-      label: 'Finance',
-      roles: ['PRINCIPAL']
-    },
-    {
-      key: '/reports',
-      icon: <FileTextOutlined />,
-      label: 'Reports',
-      roles: ['PRINCIPAL', 'TEACHER']
-    }
   ];
 
   const filteredMenuItems = menuItems.filter(item => {

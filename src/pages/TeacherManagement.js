@@ -15,9 +15,8 @@ import {
   Drawer
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, KeyOutlined } from '@ant-design/icons';
-import { addTeacherToSchool, getOrganizations } from '../config/organizations';
 import { useAuth } from '../contexts/AuthContext';
-import { addTeacher, getTeachers, updateTeacher, deleteTeacher } from '../firebase/services';
+import { getSchoolById, addTeacherToSchool, updateTeacher, deleteTeacher } from '../firebase/organizationService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 
 const { Title } = Typography;
@@ -40,8 +39,10 @@ const TeacherManagement = () => {
 
   const loadTeachers = async () => {
     try {
-      const teachersData = await getTeachers();
-      setTeachers(teachersData);
+      const school = await getSchoolById(currentUser.schoolId);
+      if (school && school.teachers) {
+        setTeachers(school.teachers);
+      }
     } catch (error) {
       message.error('Failed to load teachers');
     }
@@ -50,60 +51,56 @@ const TeacherManagement = () => {
   const handleAddTeacher = async (values) => {
     try {
       setLoading(true);
-      
-      // Generate a random password
-      const password = Math.random().toString(36).slice(-8);
-      
-      // Create teacher data with credentials
       const teacherData = {
         ...values,
-        role: 'TEACHER',
-        password,
-        schoolId: currentUser.schoolId,
-        schoolName: currentUser.schoolName,
-        schoolLogo: currentUser.schoolLogo,
-        status: 'Active',
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        status: 'active'
       };
 
-      // Add to Firebase
-      const teacherId = await addTeacher(teacherData);
-      
-      // Add to school's teachers array
-      const success = addTeacherToSchool(currentUser.schoolId, {
-        ...teacherData,
-        id: teacherId
-      });
-
-      if (success) {
-        message.success('Teacher added successfully');
-        setIsModalVisible(false);
-        form.resetFields();
-        setNewTeacherCredentials({
-          username: values.username,
-          password: password
-        });
-        setShowCredentials(true);
-        loadTeachers();
-      } else {
-        message.error('Failed to add teacher');
-      }
+      await addTeacherToSchool(currentUser.schoolId, teacherData);
+      message.success('Teacher added successfully');
+      setIsModalVisible(false);
+      form.resetFields();
+      loadTeachers();
     } catch (error) {
-      message.error('Error adding teacher');
+      message.error('Failed to add teacher');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteTeacher = async (teacherId) => {
+  const handleEditTeacher = async (values) => {
     try {
-      await deleteTeacher(teacherId);
+      setLoading(true);
+      await updateTeacher(currentUser.schoolId, editingTeacher.username, values);
+      message.success('Teacher updated successfully');
+      setIsModalVisible(false);
+      form.resetFields();
+      setEditingTeacher(null);
+      loadTeachers();
+    } catch (error) {
+      message.error('Failed to update teacher');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTeacher = async (username) => {
+    try {
+      setLoading(true);
+      await deleteTeacher(currentUser.schoolId, username);
       message.success('Teacher deleted successfully');
       loadTeachers();
     } catch (error) {
       message.error('Failed to delete teacher');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const showTeacherDetails = (teacher) => {
+    setSelectedTeacher(teacher);
+    setDrawerVisible(true);
   };
 
   const columns = [
@@ -123,17 +120,12 @@ const TeacherManagement = () => {
       key: 'email',
     },
     {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
-          {status}
+        <Tag color={status === 'active' ? 'green' : 'red'}>
+          {status.toUpperCase()}
         </Tag>
       ),
     },
@@ -146,10 +138,7 @@ const TeacherManagement = () => {
             <Button
               type="text"
               icon={<EyeOutlined />}
-              onClick={() => {
-                setSelectedTeacher(record);
-                setDrawerVisible(true);
-              }}
+              onClick={() => showTeacherDetails(record)}
             />
           </Tooltip>
           <Tooltip title="Edit">
@@ -167,43 +156,35 @@ const TeacherManagement = () => {
             <Button
               type="text"
               icon={<KeyOutlined />}
-              onClick={() => handleResetPassword(record)}
+              onClick={() => {
+                // Implement password reset logic
+                message.info('Password reset functionality to be implemented');
+              }}
             />
           </Tooltip>
           <Popconfirm
             title="Are you sure you want to delete this teacher?"
-            onConfirm={() => handleDeleteTeacher(record.id)}
+            onConfirm={() => handleDeleteTeacher(record.username)}
             okText="Yes"
             cancelText="No"
           >
-            <Button danger icon={<DeleteOutlined />}>
-              Delete
-            </Button>
+            <Tooltip title="Delete">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
     },
   ];
 
-  const handleResetPassword = async (teacher) => {
-    try {
-      const newPassword = Math.random().toString(36).slice(-8);
-      await updateTeacher(teacher.id, { password: newPassword });
-      setNewTeacherCredentials({
-        username: teacher.username,
-        password: newPassword
-      });
-      setShowCredentials(true);
-      message.success('Password reset successfully');
-    } catch (error) {
-      message.error('Failed to reset password');
-    }
-  };
-
   return (
-    <div className="teacher-management">
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Card>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Space style={{ justifyContent: 'space-between', width: '100%' }}>
           <Title level={2}>Teacher Management</Title>
           <Button
             type="primary"
@@ -216,46 +197,46 @@ const TeacherManagement = () => {
           >
             Add Teacher
           </Button>
-        </div>
+        </Space>
 
         <Table
           columns={columns}
           dataSource={teachers}
-          rowKey="id"
+          rowKey="username"
+          loading={loading}
         />
 
         <Modal
           title={editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
           open={isModalVisible}
-          onOk={() => form.submit()}
+          onOk={form.submit}
           onCancel={() => {
             setIsModalVisible(false);
             form.resetFields();
+            setEditingTeacher(null);
           }}
           confirmLoading={loading}
         >
           <Form
             form={form}
             layout="vertical"
-            onFinish={handleAddTeacher}
-            initialValues={editingTeacher}
+            onFinish={editingTeacher ? handleEditTeacher : handleAddTeacher}
           >
             <Form.Item
               name="name"
               label="Full Name"
-              rules={[{ required: true, message: 'Please enter teacher\'s name' }]}
+              rules={[{ required: true, message: 'Please enter teacher name' }]}
             >
               <Input />
             </Form.Item>
-
             <Form.Item
               name="username"
               label="Username"
               rules={[{ required: true, message: 'Please enter username' }]}
+              disabled={!!editingTeacher}
             >
               <Input />
             </Form.Item>
-
             <Form.Item
               name="email"
               label="Email"
@@ -266,62 +247,33 @@ const TeacherManagement = () => {
             >
               <Input />
             </Form.Item>
-
-            <Form.Item
-              name="subject"
-              label="Subject"
-              rules={[{ required: true, message: 'Please enter subject' }]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item
-              name="qualification"
-              label="Qualification"
-              rules={[{ required: true, message: 'Please enter qualification' }]}
-            >
-              <Input />
-            </Form.Item>
-
             <Form.Item
               name="phone"
-              label="Phone Number"
+              label="Phone"
               rules={[{ required: true, message: 'Please enter phone number' }]}
             >
               <Input />
             </Form.Item>
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[
+                { required: !editingTeacher, message: 'Please enter password' },
+                { min: 6, message: 'Password must be at least 6 characters' }
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
           </Form>
         </Modal>
 
-        <Modal
-          title="Teacher Credentials"
-          open={showCredentials}
-          onCancel={() => setShowCredentials(false)}
-          footer={[
-            <Button key="close" onClick={() => setShowCredentials(false)}>
-              Close
-            </Button>
-          ]}
-        >
-          {newTeacherCredentials && (
-            <div>
-              <p><strong>Username:</strong> {newTeacherCredentials.username}</p>
-              <p><strong>Password:</strong> {newTeacherCredentials.password}</p>
-              <p style={{ color: 'red' }}>Please share these credentials with the teacher securely.</p>
-            </div>
-          )}
-        </Modal>
-      </Card>
-
-      <TeacherDetailsDrawer
-        visible={drawerVisible}
-        onClose={() => {
-          setDrawerVisible(false);
-          setSelectedTeacher(null);
-        }}
-        teacher={selectedTeacher}
-      />
-    </div>
+        <TeacherDetailsDrawer
+          visible={drawerVisible}
+          onClose={() => setDrawerVisible(false)}
+          teacher={selectedTeacher}
+        />
+      </Space>
+    </Card>
   );
 };
 

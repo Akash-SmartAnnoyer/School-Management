@@ -1,9 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { message } from 'antd';
-import { validateCredentials } from '../config/organizations';
-import { getOrganizations } from '../utils/organizationStorage';
+import { organizations as defaultOrganizations, validateCredentials } from '../config/organizations';
+import { getSchoolById, updatePrincipal, updateTeacher } from '../firebase/organizationService';
 
-export const AuthContext = createContext(null);
+export const AuthContext = createContext();
 
 export const ROLES = {
   PRINCIPAL: 'PRINCIPAL',
@@ -27,75 +27,86 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       const userData = JSON.parse(savedUser);
-      // Get the latest user data from organizations
-      const organizations = getOrganizations();
-      const school = organizations.schools[userData.schoolId];
-      
-      if (school) {
-        if (userData.role === 'PRINCIPAL') {
-          const principalData = {
-            ...school.principal,
-            role: 'PRINCIPAL',
-            schoolId: userData.schoolId,
-            schoolName: school.name,
-            schoolLogo: school.logo,
-            profilePic: school.principal.profilePic || userData.profilePic
-          };
-          setCurrentUser(principalData);
-          // Update localStorage with complete data
-          localStorage.setItem('currentUser', JSON.stringify(principalData));
-        } else {
-          const teacher = school.teachers.find(t => t.username === userData.username);
-          if (teacher) {
-            const teacherData = {
-              ...teacher,
-              role: 'TEACHER',
-              schoolId: userData.schoolId,
-              schoolName: school.name,
-              schoolLogo: school.logo,
-              profilePic: teacher.profilePic || userData.profilePic
-            };
-            setCurrentUser(teacherData);
-            // Update localStorage with complete data
-            localStorage.setItem('currentUser', JSON.stringify(teacherData));
+      // Get the latest user data from Firestore
+      getSchoolById(userData.schoolId)
+        .then(school => {
+          if (school) {
+            if (userData.role === 'PRINCIPAL') {
+              const principalData = {
+                ...school.principal,
+                role: 'PRINCIPAL',
+                schoolId: userData.schoolId,
+                schoolName: school.name,
+                schoolLogo: school.logo,
+                profilePic: school.principal.profilePic || userData.profilePic
+              };
+              setCurrentUser(principalData);
+              localStorage.setItem('currentUser', JSON.stringify(principalData));
+            } else {
+              const teacher = school.teachers.find(t => t.username === userData.username);
+              if (teacher) {
+                const teacherData = {
+                  ...teacher,
+                  role: 'TEACHER',
+                  schoolId: userData.schoolId,
+                  schoolName: school.name,
+                  schoolLogo: school.logo,
+                  profilePic: teacher.profilePic || userData.profilePic
+                };
+                setCurrentUser(teacherData);
+                localStorage.setItem('currentUser', JSON.stringify(teacherData));
+              }
+            }
           }
-        }
-      }
+        })
+        .catch(error => {
+          console.error('Error loading user data:', error);
+          message.error('Failed to load user data');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (username, password, role) => {
     try {
+      // First validate credentials against the config file
       const user = validateCredentials(username, password, role);
       
       if (!user) {
         throw new Error('Invalid credentials');
       }
 
-      // Get the latest data from organizations
-      const organizations = getOrganizations();
-      const school = organizations.schools[user.schoolId];
+      // Get the latest data from Firestore
+      const school = await getSchoolById(user.schoolId);
+      
+      // If school not found in Firestore, use the default organization data
+      const schoolData = school || defaultOrganizations.schools[user.schoolId];
+      
+      if (!schoolData) {
+        throw new Error('School not found');
+      }
       
       if (role === 'PRINCIPAL') {
-        // For principal, get complete data from school
         const principalData = {
-          ...school.principal,
+          ...schoolData.principal,
           role: 'PRINCIPAL',
           schoolId: user.schoolId,
-          schoolName: school.name,
-          schoolLogo: school.logo,
-          profilePic: school.principal.profilePic || 'https://via.placeholder.com/150'
+          schoolName: schoolData.name,
+          schoolLogo: schoolData.logo,
+          profilePic: schoolData.principal.profilePic || 'https://via.placeholder.com/150'
         };
         
         setCurrentUser(principalData);
         localStorage.setItem('currentUser', JSON.stringify(principalData));
       } else {
-        // For teachers, enhance with school data
         const enhancedUser = {
           ...user,
-          schoolName: school.name,
-          schoolLogo: school.logo,
+          schoolName: schoolData.name,
+          schoolLogo: schoolData.logo,
           profilePic: user.profilePic || 'https://via.placeholder.com/150'
         };
         
@@ -119,51 +130,35 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (userData) => {
     try {
-      // Get the latest organizations data
-      const organizations = getOrganizations();
-      const school = organizations.schools[currentUser.schoolId];
+      const school = await getSchoolById(currentUser.schoolId);
       
-      // Create updated user data
       const updatedUser = {
         ...currentUser,
         ...userData,
-        // Ensure school data is always up to date
         schoolName: school.name,
         schoolLogo: school.logo,
         profilePic: userData.profilePic || currentUser.profilePic
       };
 
-      // Update current user state
       setCurrentUser(updatedUser);
-      
-      // Save to localStorage
       localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       
-      // If this is a principal, also update the organizations data
       if (currentUser.role === 'PRINCIPAL') {
-        const updatedPrincipal = {
-          ...school.principal,
+        await updatePrincipal(currentUser.schoolId, {
           name: userData.name,
           email: userData.email,
           phone: userData.phone,
           address: userData.address,
           profilePic: userData.profilePic || school.principal.profilePic
-        };
-
-        const updatedSchool = {
-          ...school,
-          principal: updatedPrincipal
-        };
-
-        const updatedOrgs = {
-          ...organizations,
-          schools: {
-            ...organizations.schools,
-            [currentUser.schoolId]: updatedSchool
-          }
-        };
-
-        localStorage.setItem('school_organizations', JSON.stringify(updatedOrgs));
+        });
+      } else {
+        await updateTeacher(currentUser.schoolId, currentUser.username, {
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          address: userData.address,
+          profilePic: userData.profilePic || currentUser.profilePic
+        });
       }
 
       message.success('Profile updated successfully');

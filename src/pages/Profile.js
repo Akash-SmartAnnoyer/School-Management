@@ -34,7 +34,7 @@ import {
   PictureOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import { getOrganizations, updateSchool, updatePrincipal, updateTeacher } from '../utils/organizationStorage';
+import { getSchoolById, updatePrincipal, updateTeacher, updateSchool } from '../firebase/organizationService';
 import { ROLES } from '../contexts/AuthContext';
 
 const { Title, Text } = Typography;
@@ -45,41 +45,105 @@ const Profile = () => {
   const [form] = Form.useForm();
   const [schoolForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
+  const [school, setSchool] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
-      form.setFieldsValue(currentUser);
-      // Load school data for principal
-      if (currentUser.role === ROLES.PRINCIPAL) {
-        const organizations = getOrganizations();
-        const school = organizations.schools[currentUser.schoolId];
-        if (school) {
-          schoolForm.setFieldsValue(school);
-        }
-      }
+      form.setFieldsValue({
+        name: currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        address: currentUser.address,
+        profilePic: currentUser.profilePic
+      });
+      loadSchoolData();
     }
   }, [currentUser]);
 
-  const onFinish = async (values) => {
+  const loadSchoolData = async () => {
+    try {
+      const schoolData = await getSchoolById(currentUser.schoolId);
+      setSchool(schoolData);
+      if (currentUser.role === ROLES.PRINCIPAL && schoolData) {
+        schoolForm.setFieldsValue({
+          name: schoolData.name,
+          email: schoolData.email,
+          phone: schoolData.phone,
+          address: schoolData.address,
+          logo: schoolData.logo
+        });
+      }
+    } catch (error) {
+      message.error('Failed to load school data');
+    }
+  };
+
+  const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      await updateProfile(values);
-      messageApi.success('Profile updated successfully');
+      
+      // Remove any undefined values
+      const cleanValues = Object.keys(values).reduce((acc, key) => {
+        if (values[key] !== undefined) {
+          acc[key] = values[key];
+        }
+        return acc;
+      }, {});
+
+      if (currentUser.role === ROLES.PRINCIPAL) {
+        // For principal, update both personal profile and principal data
+        await Promise.all([
+          updateProfile(cleanValues),
+          updatePrincipal(currentUser.schoolId, {
+            name: cleanValues.name,
+            email: cleanValues.email,
+            phone: cleanValues.phone,
+            address: cleanValues.address
+          })
+        ]);
+      } else {
+        // For teachers, just update personal profile
+        await updateProfile(cleanValues);
+      }
+      
+      message.success('Profile updated successfully');
     } catch (error) {
-      messageApi.error('Failed to update profile');
+      console.error('Profile update error:', error);
+      message.error('Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  const onSchoolFinish = async (values) => {
+  const handleSchoolSubmit = async (values) => {
     try {
       setLoading(true);
       await updateSchool(currentUser.schoolId, values);
-      messageApi.success('School profile updated successfully');
+      message.success('School profile updated successfully');
+      loadSchoolData();
     } catch (error) {
-      messageApi.error('Failed to update school profile');
+      message.error('Failed to update school profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (values) => {
+    try {
+      setLoading(true);
+      if (currentUser.role === ROLES.PRINCIPAL) {
+        await updatePrincipal(currentUser.schoolId, {
+          password: values.newPassword
+        });
+      } else {
+        await updateTeacher(currentUser.schoolId, currentUser.username, {
+          password: values.newPassword
+        });
+      }
+      message.success('Password updated successfully');
+      form.resetFields(['oldPassword', 'newPassword', 'confirmPassword']);
+    } catch (error) {
+      message.error('Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -89,13 +153,13 @@ const Profile = () => {
     try {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
-        messageApi.error('You can only upload image files!');
+        message.error('You can only upload image files!');
         return false;
       }
 
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isLt2M) {
-        messageApi.error('Image must be smaller than 2MB!');
+        message.error('Image must be smaller than 2MB!');
         return false;
       }
 
@@ -105,11 +169,11 @@ const Profile = () => {
       reader.onload = async () => {
         const base64Image = reader.result;
         await updateProfile({ profilePic: base64Image });
-        messageApi.success('Profile picture updated successfully');
+        message.success('Profile picture updated successfully');
       };
       return false; // Prevent default upload behavior
     } catch (error) {
-      messageApi.error('Failed to upload profile picture');
+      message.error('Failed to upload profile picture');
       return false;
     }
   };
@@ -118,13 +182,13 @@ const Profile = () => {
     try {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
-        messageApi.error('You can only upload image files!');
+        message.error('You can only upload image files!');
         return false;
       }
 
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isLt2M) {
-        messageApi.error('Image must be smaller than 2MB!');
+        message.error('Image must be smaller than 2MB!');
         return false;
       }
 
@@ -134,18 +198,18 @@ const Profile = () => {
       reader.onload = async () => {
         const base64Image = reader.result;
         await updateSchool(currentUser.schoolId, { logo: base64Image });
-        messageApi.success('School logo updated successfully');
+        message.success('School logo updated successfully');
+        loadSchoolData();
       };
       return false; // Prevent default upload behavior
     } catch (error) {
-      messageApi.error('Failed to upload school logo');
+      message.error('Failed to upload school logo');
       return false;
     }
   };
 
   return (
     <div style={{ padding: '24px' }}>
-      {contextHolder}
       <Card>
         <Row gutter={[24, 24]}>
           <Col span={8}>
@@ -179,7 +243,7 @@ const Profile = () => {
                 <Form
                   form={form}
                   layout="vertical"
-                  onFinish={onFinish}
+                  onFinish={handleSubmit}
                   initialValues={currentUser}
                 >
                   <Row gutter={16}>
@@ -234,7 +298,7 @@ const Profile = () => {
                       icon={<SaveOutlined />}
                       loading={loading}
                     >
-                      Save Changes
+                      Save Profile
                     </Button>
                   </Form.Item>
                 </Form>
@@ -247,7 +311,7 @@ const Profile = () => {
                     <Space direction="vertical" size="large">
                       <Avatar
                         size={120}
-                        src={currentUser?.schoolLogo}
+                        src={school?.logo}
                         icon={<BankOutlined />}
                       />
                       <Upload
@@ -262,7 +326,7 @@ const Profile = () => {
                   <Form
                     form={schoolForm}
                     layout="vertical"
-                    onFinish={onSchoolFinish}
+                    onFinish={handleSchoolSubmit}
                   >
                     <Row gutter={16}>
                       <Col span={12}>
@@ -324,47 +388,81 @@ const Profile = () => {
               )}
 
               {/* Teacher Profile Section - Only visible for Teachers */}
-              {currentUser?.role === ROLES.TEACHER && (
-                <Card title="Teacher Profile">
-                  <Form
-                    form={form}
-                    layout="vertical"
-                    onFinish={onFinish}
-                  >
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          name="subject"
-                          label="Subject"
-                          rules={[{ required: true, message: 'Please enter your subject' }]}
-                        >
-                          <Input prefix={<BookOutlined />} />
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          name="qualification"
-                          label="Qualification"
-                          rules={[{ required: true, message: 'Please enter your qualification' }]}
-                        >
-                          <Input prefix={<SafetyCertificateOutlined />} />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        icon={<SaveOutlined />}
-                        loading={loading}
-                      >
-                        Save Teacher Profile
-                      </Button>
-                    </Form.Item>
-                  </Form>
+              {currentUser?.role === ROLES.TEACHER && school && (
+                <Card title="School Information">
+                  <Descriptions bordered>
+                    <Descriptions.Item label="School Name">
+                      {school.name}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="School Email">
+                      {school.email}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="School Phone">
+                      {school.phone}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="School Address">
+                      {school.address}
+                    </Descriptions.Item>
+                  </Descriptions>
                 </Card>
               )}
+
+              {/* Change Password Section */}
+              <Card title="Change Password">
+                <Form
+                  layout="vertical"
+                  onFinish={handlePasswordChange}
+                >
+                  <Form.Item
+                    name="oldPassword"
+                    label="Current Password"
+                    rules={[{ required: true, message: 'Please enter your current password' }]}
+                  >
+                    <Input.Password prefix={<LockOutlined />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="newPassword"
+                    label="New Password"
+                    rules={[
+                      { required: true, message: 'Please enter a new password' },
+                      { min: 6, message: 'Password must be at least 6 characters' }
+                    ]}
+                  >
+                    <Input.Password prefix={<LockOutlined />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="confirmPassword"
+                    label="Confirm New Password"
+                    dependencies={['newPassword']}
+                    rules={[
+                      { required: true, message: 'Please confirm your new password' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue('newPassword') === value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(new Error('Passwords do not match'));
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input.Password prefix={<LockOutlined />} />
+                  </Form.Item>
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<LockOutlined />}
+                      loading={loading}
+                    >
+                      Change Password
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Card>
             </Space>
           </Col>
         </Row>
