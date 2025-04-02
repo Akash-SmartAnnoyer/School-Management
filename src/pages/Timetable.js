@@ -20,10 +20,8 @@ import {
   DeleteOutlined,
   EyeOutlined
 } from '@ant-design/icons';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { getTeachers } from '../firebase/services';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -39,26 +37,28 @@ const Timetable = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTimetable, setEditingTimetable] = useState(null);
+  const [activeTab, setActiveTab] = useState('1');
   const { currentUser } = useAuth();
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const timeSlots = Array.from({ length: 8 }, (_, i) => `${i + 1}`);
 
+  // Load classes only when the component mounts
   useEffect(() => {
     loadClasses();
-    loadSubjects();
-    loadTeachers();
-    loadTimetables();
   }, []);
+
+  // Load timetables only when a class is selected
+  useEffect(() => {
+    if (selectedClass) {
+      loadTimetables();
+    }
+  }, [selectedClass]);
 
   const loadClasses = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'classes'));
-      const classesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setClasses(classesData);
+      const response = await api.class.getAll();
+      setClasses(response.data.data);
     } catch (error) {
       message.error('Failed to load classes');
     }
@@ -66,12 +66,8 @@ const Timetable = () => {
 
   const loadSubjects = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'subjects'));
-      const subjectsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setSubjects(subjectsData);
+      const response = await api.subject.getAll();
+      setSubjects(response.data.data);
     } catch (error) {
       message.error('Failed to load subjects');
     }
@@ -79,26 +75,38 @@ const Timetable = () => {
 
   const loadTeachers = async () => {
     try {
-      const teachersData = await getTeachers();
-      console.log('Teachers data:', teachersData);
-      setTeachers(teachersData);
+      const response = await api.teacher.getAll();
+      setTeachers(response.data.data);
     } catch (error) {
-      console.error('Error loading teachers:', error);
       message.error('Failed to load teachers');
     }
   };
 
   const loadTimetables = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, 'timetables'));
-      const timetablesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTimetables(timetablesData);
+      const response = await api.timetable.getByClass(selectedClass);
+      setTimetables(response.data.data);
     } catch (error) {
       message.error('Failed to load timetables');
     }
+  };
+
+  // Load subjects and teachers only when opening the modal
+  const handleAddTimeSlot = () => {
+    // Load required data only when needed
+    loadSubjects();
+    loadTeachers();
+    setEditingTimetable(null);
+    form.resetFields();
+    setModalVisible(true);
+  };
+
+  const handleEdit = async (timetable) => {
+    // Load required data only when needed
+    await Promise.all([loadSubjects(), loadTeachers()]);
+    setEditingTimetable(timetable);
+    form.setFieldsValue(timetable);
+    setModalVisible(true);
   };
 
   const handleSubmit = async (values) => {
@@ -117,15 +125,13 @@ const Timetable = () => {
         subjectName: selectedSubject?.name,
         className: selectedClassInfo?.className,
         section: selectedClassInfo?.section,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
       };
 
       if (editingTimetable) {
-        await updateDoc(doc(db, 'timetables', editingTimetable.id), timetableData);
+        await api.timetable.update(editingTimetable.id, timetableData);
         message.success('Timetable updated successfully');
       } else {
-        await addDoc(collection(db, 'timetables'), timetableData);
+        await api.timetable.create(timetableData);
         message.success('Timetable created successfully');
       }
 
@@ -140,15 +146,9 @@ const Timetable = () => {
     }
   };
 
-  const handleEdit = (timetable) => {
-    setEditingTimetable(timetable);
-    form.setFieldsValue(timetable);
-    setModalVisible(true);
-  };
-
   const handleDelete = async (timetableId) => {
     try {
-      await deleteDoc(doc(db, 'timetables', timetableId));
+      await api.timetable.delete(timetableId);
       message.success('Timetable deleted successfully');
       loadTimetables();
     } catch (error) {
@@ -169,21 +169,13 @@ const Timetable = () => {
     },
     {
       title: 'Subject',
-      dataIndex: 'subjectId',
-      key: 'subjectId',
-      render: (subjectId) => {
-        const subject = subjects.find(s => s.id === subjectId);
-        return subject ? subject.name : 'N/A';
-      }
+      dataIndex: 'subjectName',
+      key: 'subjectName',
     },
     {
       title: 'Teacher',
-      dataIndex: 'teacherId',
-      key: 'teacherId',
-      render: (teacherId) => {
-        const teacher = teachers.find(t => t.id === teacherId);
-        return teacher ? teacher.name : 'N/A';
-      }
+      dataIndex: 'teacherName',
+      key: 'teacherName',
     },
     {
       title: 'Actions',
@@ -206,13 +198,11 @@ const Timetable = () => {
     },
   ];
 
-  const filteredTimetables = timetables.filter(t => t.classId === selectedClass);
-
   return (
     <div>
       <Title level={2}>Timetable Management</Title>
       <Card>
-        <Tabs defaultActiveKey="1">
+        <Tabs defaultActiveKey="1" onChange={setActiveTab}>
           <TabPane tab="Set Timetable" key="1">
             <Row gutter={[16, 16]}>
               <Col span={24}>
@@ -235,11 +225,7 @@ const Timetable = () => {
                     <Button
                       type="primary"
                       icon={<PlusOutlined />}
-                      onClick={() => {
-                        setEditingTimetable(null);
-                        form.resetFields();
-                        setModalVisible(true);
-                      }}
+                      onClick={handleAddTimeSlot}
                     >
                       Add Time Slot
                     </Button>
@@ -247,7 +233,7 @@ const Timetable = () => {
                   <Col span={24}>
                     <Table
                       columns={columns}
-                      dataSource={filteredTimetables}
+                      dataSource={timetables}
                       rowKey="id"
                     />
                   </Col>
@@ -276,7 +262,7 @@ const Timetable = () => {
                 <Col span={24}>
                   <Table
                     columns={columns.filter(col => col.key !== 'actions')}
-                    dataSource={filteredTimetables}
+                    dataSource={timetables}
                     rowKey="id"
                   />
                 </Col>

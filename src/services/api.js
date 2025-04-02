@@ -200,6 +200,24 @@ export const attendanceAPI = {
   getByOrganization: () => api.get('/attendance/organization/'),
 };
 
+// Timetable APIs
+export const timetableAPI = {
+  getAll: () => api.get('/timetables/'),
+  create: (timetableData) => api.post('/timetables/', {
+    ...timetableData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }),
+  update: (id, timetableData) => api.put(`/timetables/${id}/`, {
+    ...timetableData,
+    updatedAt: new Date().toISOString()
+  }),
+  delete: (id) => api.delete(`/timetables/${id}/`),
+  getByClass: (classId) => api.get(`/timetables/class/${classId}/`),
+  getByTeacher: (teacherId) => api.get(`/timetables/teacher/${teacherId}/`),
+  getByOrganization: () => api.get('/timetables/organization/'),
+};
+
 // Analytics APIs
 export const analyticsAPI = {
   getPerformance: () => api.get('/analytics/performance/'),
@@ -228,5 +246,6 @@ export default {
   student: studentAPI,
   teacher: teacherAPI,
   attendance: attendanceAPI,
+  timetable: timetableAPI,
   analytics: analyticsAPI,
 }; 
