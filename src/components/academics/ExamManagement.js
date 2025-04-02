@@ -37,19 +37,8 @@ import {
   FileTextOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
-import { 
-  subscribeToCollection,
-  addExam,
-  updateExam,
-  deleteExam,
-  getSubjects,
-  addSubject,
-  updateSubject,
-  deleteSubject,
-  getExams,
-  getClasses
-} from '../../firebase/services';
 import moment from 'moment';
+import api from '../../services/api';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -297,16 +286,17 @@ const ExamManagement = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [examsData, subjectsData, classesData] = await Promise.all([
-        getExams(),
-        getSubjects(),
-        getClasses()
+      const [examsResponse, subjectsResponse, classesResponse] = await Promise.all([
+        api.exam.getAll(),
+        api.subject.getAll(),
+        api.class.getAll()
       ]);
-      setExams(examsData);
-      setSubjects(subjectsData);
-      setClasses(classesData);
+      setExams(examsResponse.data.data);
+      setSubjects(subjectsResponse.data.data);
+      setClasses(classesResponse.data.data);
     } catch (error) {
       messageApi.error('Failed to load initial data');
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
@@ -315,7 +305,6 @@ const ExamManagement = () => {
   const handleExamSubmit = async (values) => {
     try {
       setLoading(true);
-      // Convert Moment objects to ISO strings and handle undefined values
       const examData = {
         name: values.name,
         type: values.type,
@@ -331,10 +320,10 @@ const ExamManagement = () => {
       };
 
       if (editingExam) {
-        await updateExam(editingExam.id, examData);
+        await api.exam.update(editingExam.id, examData);
         messageApi.success('Exam updated successfully');
       } else {
-        await addExam(examData);
+        await api.exam.create(examData);
         messageApi.success('Exam added successfully');
       }
       loadInitialData();
@@ -342,6 +331,7 @@ const ExamManagement = () => {
       setEditingExam(null);
     } catch (error) {
       messageApi.error('Failed to save exam');
+      console.error('Error saving exam:', error);
     } finally {
       setLoading(false);
     }
@@ -350,11 +340,12 @@ const ExamManagement = () => {
   const handleExamDelete = async (id) => {
     try {
       setLoading(true);
-      await deleteExam(id);
+      await api.exam.delete(id);
       messageApi.success('Exam deleted successfully');
       loadInitialData();
     } catch (error) {
       messageApi.error('Failed to delete exam');
+      console.error('Error deleting exam:', error);
     } finally {
       setLoading(false);
     }
@@ -364,10 +355,10 @@ const ExamManagement = () => {
     try {
       setLoading(true);
       if (editingSubject) {
-        await updateSubject(editingSubject.id, values);
+        await api.subject.update(editingSubject.id, values);
         messageApi.success('Subject updated successfully');
       } else {
-        await addSubject(values);
+        await api.subject.create(values);
         messageApi.success('Subject added successfully');
       }
       loadInitialData();
@@ -375,6 +366,7 @@ const ExamManagement = () => {
       setEditingSubject(null);
     } catch (error) {
       messageApi.error('Failed to save subject');
+      console.error('Error saving subject:', error);
     } finally {
       setLoading(false);
     }
@@ -383,11 +375,12 @@ const ExamManagement = () => {
   const handleSubjectDelete = async (id) => {
     try {
       setLoading(true);
-      await deleteSubject(id);
+      await api.subject.delete(id);
       messageApi.success('Subject deleted successfully');
       loadInitialData();
     } catch (error) {
       messageApi.error('Failed to delete subject');
+      console.error('Error deleting subject:', error);
     } finally {
       setLoading(false);
     }

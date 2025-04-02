@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography, Table, Upload, message } from 'antd';
 import { UserOutlined, BookOutlined, TeamOutlined, UploadOutlined, BankOutlined } from '@ant-design/icons';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
-import { updateTeacher } from '../firebase/services';
+import api from '../services/api';
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
+
+const cld = new Cloudinary({
+  cloud: {
+    cloudName: 'dyr02bpil'
+  }
+});
 
 const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
   const [classes, setClasses] = useState([]);
@@ -22,15 +26,8 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       if (!teacher?.classId) return;
       
       try {
-        const q = query(
-          collection(db, 'classes'),
-          where('id', '==', teacher.classId)
-        );
-        const querySnapshot = await getDocs(q);
-        const classData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const response = await api.class.getAll();
+        const classData = response.data.data.filter(cls => cls.id === teacher.classId);
         setClasses(classData);
       } catch (error) {
         console.error('Error fetching class data:', error);
@@ -53,16 +50,8 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
   const loadTeacherSchedule = async () => {
     try {
       setLoading(true);
-      const q = query(
-        collection(db, 'timetables'),
-        where('teacherId', '==', teacher.id)
-      );
-      const querySnapshot = await getDocs(q);
-      const scheduleData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setSchedule(scheduleData);
+      const response = await api.teacher.getSchedule(teacher.id);
+      setSchedule(response.data.data);
     } catch (error) {
       console.error('Error loading teacher schedule:', error);
     } finally {
@@ -87,7 +76,7 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       const base64Image = await getBase64(file);
       
       // Update teacher with new profile picture
-      await updateTeacher(teacher.id, {
+      await api.teacher.update(teacher.id, {
         photoURL: base64Image,
         updatedAt: new Date().toISOString()
       });

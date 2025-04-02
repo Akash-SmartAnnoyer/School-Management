@@ -22,12 +22,7 @@ import {
   BookOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
-import { 
-  subscribeToCollection,
-  addSubject,
-  updateSubject,
-  deleteSubject
-} from '../../firebase/services';
+import api from '../../services/api';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -59,16 +54,14 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
     <Modal
       title={
         <Space>
-          <BookOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-          <Title level={5} style={{ margin: 0 }}>
-            {initialValues ? 'Edit Subject' : 'Add Subject'}
-          </Title>
+          <BookOutlined />
+          {initialValues ? 'Edit Subject' : 'Add Subject'}
         </Space>
       }
       open={visible}
       onCancel={onCancel}
       footer={null}
-      width={600}
+      width={800}
     >
       <Form
         form={form}
@@ -76,14 +69,6 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
         onFinish={handleSubmit}
         initialValues={initialValues}
       >
-        <Form.Item
-          name="code"
-          label="Subject Code"
-          rules={[{ required: true, message: 'Please enter subject code!' }]}
-        >
-          <Input placeholder="Enter subject code" />
-        </Form.Item>
-
         <Form.Item
           name="name"
           label="Subject Name"
@@ -93,35 +78,18 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
         </Form.Item>
 
         <Form.Item
+          name="code"
+          label="Subject Code"
+          rules={[{ required: true, message: 'Please enter subject code!' }]}
+        >
+          <Input placeholder="Enter subject code" />
+        </Form.Item>
+
+        <Form.Item
           name="description"
           label="Description"
         >
           <Input.TextArea rows={4} placeholder="Enter subject description" />
-        </Form.Item>
-
-        <Form.Item
-          name="gradeLevels"
-          label="Applicable Grade Levels"
-          rules={[{ required: true, message: 'Please select grade levels!' }]}
-        >
-          <Select mode="multiple" placeholder="Select grade levels">
-            {Array.from({ length: 12 }, (_, i) => (
-              <Option key={i + 1} value={i + 1}>
-                Grade {i + 1}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="status"
-          label="Status"
-          rules={[{ required: true, message: 'Please select status!' }]}
-        >
-          <Select>
-            <Option value="active">Active</Option>
-            <Option value="inactive">Inactive</Option>
-          </Select>
         </Form.Item>
 
         <Form.Item>
@@ -145,13 +113,21 @@ const SubjectManagement = () => {
   const [editingSubject, setEditingSubject] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = subscribeToCollection('subjects', (data) => {
-      setSubjects(data);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    loadSubjects();
   }, []);
+
+  const loadSubjects = async () => {
+    try {
+      setLoading(true);
+      const response = await api.subject.getAll();
+      setSubjects(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load subjects');
+      console.error('Error loading subjects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     setEditingSubject(null);
@@ -165,10 +141,12 @@ const SubjectManagement = () => {
 
   const handleDelete = async (subjectId) => {
     try {
-      await deleteSubject(subjectId);
+      await api.subject.delete(subjectId);
       messageApi.success('Subject deleted successfully');
+      loadSubjects();
     } catch (error) {
       messageApi.error('Failed to delete subject');
+      console.error('Error deleting subject:', error);
     }
   };
 
@@ -180,55 +158,47 @@ const SubjectManagement = () => {
       };
 
       if (editingSubject) {
-        await updateSubject(editingSubject.id, subjectData);
+        await api.subject.update(editingSubject.id, subjectData);
         messageApi.success('Subject updated successfully');
       } else {
         subjectData.createdAt = new Date().toISOString();
-        await addSubject(subjectData);
+        await api.subject.create(subjectData);
         messageApi.success('Subject added successfully');
       }
+      loadSubjects();
+      setModalVisible(false);
+      setEditingSubject(null);
     } catch (error) {
       messageApi.error('Failed to save subject');
+      console.error('Error saving subject:', error);
     }
   };
 
   const columns = [
     {
-      title: 'Subject Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
       title: 'Subject Name',
       dataIndex: 'name',
       key: 'name',
+      render: (text) => (
+        <Space>
+          <BookOutlined />
+          <span>{text}</span>
+        </Space>
+      ),
+    },
+    {
+      title: 'Code',
+      dataIndex: 'code',
+      key: 'code',
+      render: (text) => (
+        <Tag color="blue">{text}</Tag>
+      ),
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-    },
-    {
-      title: 'Grade Levels',
-      dataIndex: 'gradeLevels',
-      key: 'gradeLevels',
-      render: (gradeLevels) => (
-        <Space>
-          {gradeLevels.map(level => (
-            <Tag key={level} color="blue">Grade {level}</Tag>
-          ))}
-        </Space>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>
-          {status.toUpperCase()}
-        </Tag>
-      ),
+      ellipsis: true,
     },
     {
       title: 'Actions',
@@ -236,17 +206,17 @@ const SubjectManagement = () => {
       render: (_, record) => (
         <Space>
           <Tooltip title="Edit Subject">
-            <Button
-              icon={<EditOutlined />}
-              size="small"
+            <Button 
+              type="link" 
+              icon={<EditOutlined />} 
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
           <Tooltip title="Delete Subject">
-            <Button
-              icon={<DeleteOutlined />}
-              size="small"
-              danger
+            <Button 
+              type="link" 
+              danger 
+              icon={<DeleteOutlined />} 
               onClick={() => handleDelete(record.id)}
             />
           </Tooltip>
@@ -257,29 +227,31 @@ const SubjectManagement = () => {
 
   return (
     <div>
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4}>Subject Management</Title>
-          <Button
-            type="primary"
+      <Card title="Subject Management">
+        <Space style={{ marginBottom: 16 }}>
+          <Button 
+            type="primary" 
             icon={<PlusOutlined />}
             onClick={handleAdd}
           >
             Add Subject
           </Button>
-        </div>
-
+        </Space>
         <Table
-          columns={columns}
           dataSource={subjects}
-          loading={loading}
+          columns={columns}
           rowKey="id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 
       <SubjectForm
         visible={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingSubject(null);
+        }}
         onSubmit={handleSubmit}
         initialValues={editingSubject}
       />

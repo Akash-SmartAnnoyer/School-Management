@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Descriptions, Tabs, Card, Row, Col, Statistic, Empty, Tag, Button, Space } from 'antd';
+import { Drawer, Descriptions, Tabs, Card, Row, Col, Statistic, Empty, Tag, Button, Space, Avatar, Table } from 'antd';
 import { UserOutlined, TeamOutlined, BookOutlined } from '@ant-design/icons';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
-import { subscribeToCollection } from '../firebase/services';
+import api from '../services/api';
 
 const { TabPane } = Tabs;
 
@@ -20,123 +20,137 @@ const ClassDetailsDrawer = ({ visible, onClose, classInfo, teachers, students })
 
   useEffect(() => {
     if (classInfo?.id) {
-      const unsubscribe = subscribeToCollection('students', (data) => {
-        const filteredStudents = data.filter(student => 
-          student.classId === classInfo.id && student.status === 'Active'
-        );
-        setClassStudents(filteredStudents);
-        setLoading(false);
-      });
-
-      return () => unsubscribe();
+      loadClassStudents();
     }
   }, [classInfo?.id]);
+
+  const loadClassStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.student.getByClass(classInfo.id);
+      const filteredStudents = response.data.data.filter(student => 
+        student.status === 'Active'
+      );
+      setClassStudents(filteredStudents);
+    } catch (error) {
+      console.error('Error loading class students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const classTeacher = teachers.find(t => t.id === classInfo?.teacherId);
 
   return (
     <Drawer
-      title={`${classInfo?.className} - Section ${classInfo?.section}`}
+      title="Class Details"
       placement="right"
       onClose={onClose}
       open={visible}
       width={800}
     >
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Overview" key="1">
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title="Total Students"
-                  value={classStudents.length}
-                  prefix={<TeamOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title="Capacity"
-                  value={classInfo?.capacity}
-                  prefix={<BookOutlined />}
-                />
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card>
-                <Statistic
-                  title="Available Seats"
-                  value={classInfo?.capacity - classStudents.length}
-                  prefix={<BookOutlined />}
-                />
-              </Card>
-            </Col>
-          </Row>
+      {classInfo ? (
+        <div>
+          <Descriptions bordered>
+            <Descriptions.Item label="Class Name">{classInfo.className}</Descriptions.Item>
+            <Descriptions.Item label="Section">{classInfo.section}</Descriptions.Item>
+            <Descriptions.Item label="Grade Level">{classInfo.gradeLevel}</Descriptions.Item>
+            <Descriptions.Item label="Academic Year">{classInfo.academicYear}</Descriptions.Item>
+            <Descriptions.Item label="Class Teacher">
+              {classTeacher ? (
+                <Space>
+                  <Avatar icon={<UserOutlined />} />
+                  <span>{classTeacher.name}</span>
+                </Space>
+              ) : (
+                'Not Assigned'
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Total Students">{classStudents.length}</Descriptions.Item>
+          </Descriptions>
 
-          <Card title="Class Information" style={{ marginTop: 16 }}>
-            <Descriptions column={2}>
-              <Descriptions.Item label="Class ID">{classInfo?.classId}</Descriptions.Item>
-              <Descriptions.Item label="Status">
-                <Tag color={classInfo?.status === 'Active' ? 'green' : 'red'}>
-                  {classInfo?.status}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Class Teacher">
-                {classTeacher ? (
-                  <Button type="link" onClick={() => {
-                    // TODO: Open teacher details drawer
-                    console.log('Open teacher details:', classTeacher);
-                  }}>
-                    {classTeacher.name}
-                  </Button>
-                ) : (
-                  'Not Assigned'
-                )}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </TabPane>
-
-        <TabPane tab="Students" key="2">
-          <Card>
-            {classStudents.length > 0 ? (
-              <Row gutter={[16, 16]}>
-                {classStudents.map(student => (
-                  <Col span={8} key={student.id}>
-                    <Card
-                      hoverable
-                      onClick={() => {
-                        // TODO: Open student details drawer
-                        console.log('Open student details:', student);
-                      }}
-                    >
+          <Tabs defaultActiveKey="1" style={{ marginTop: 24 }}>
+            <TabPane 
+              tab={
+                <span>
+                  <TeamOutlined />
+                  Students
+                </span>
+              } 
+              key="1"
+            >
+              <Table
+                dataSource={classStudents}
+                columns={[
+                  {
+                    title: 'Name',
+                    dataIndex: 'name',
+                    key: 'name',
+                    render: (text, record) => (
                       <Space>
-                        {student.photoPublicId ? (
-                          <AdvancedImage
-                            cldImg={getCloudinaryImage(student.photoPublicId)}
-                            style={{ width: 40, height: 40, borderRadius: '50%' }}
-                          />
-                        ) : (
-                          <UserOutlined style={{ fontSize: 24 }} />
-                        )}
-                        <div>
-                          <div>{student.name}</div>
-                          <div style={{ fontSize: '12px', color: '#999' }}>
-                            Roll No: {student.rollNumber}
-                          </div>
-                        </div>
+                        <Avatar icon={<UserOutlined />} />
+                        <span>{text}</span>
                       </Space>
+                    ),
+                  },
+                  {
+                    title: 'Roll Number',
+                    dataIndex: 'rollNumber',
+                    key: 'rollNumber',
+                  },
+                  {
+                    title: 'Status',
+                    dataIndex: 'status',
+                    key: 'status',
+                    render: (status) => (
+                      <Tag color={status === 'Active' ? 'green' : 'red'}>
+                        {status}
+                      </Tag>
+                    ),
+                  },
+                ]}
+                rowKey="id"
+                loading={loading}
+                pagination={false}
+                locale={{
+                  emptyText: (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description="No students found"
+                    />
+                  )
+                }}
+              />
+            </TabPane>
+
+            <TabPane 
+              tab={
+                <span>
+                  <BookOutlined />
+                  Subjects
+                </span>
+              } 
+              key="2"
+            >
+              <Row gutter={[16, 16]}>
+                {classInfo.subjects?.map(subject => (
+                  <Col span={8} key={subject.id}>
+                    <Card size="small">
+                      <Statistic
+                        title={subject.name}
+                        value={subject.code}
+                        prefix={<BookOutlined />}
+                      />
                     </Card>
                   </Col>
                 ))}
               </Row>
-            ) : (
-              <Empty description="No students in this class" />
-            )}
-          </Card>
-        </TabPane>
-      </Tabs>
+            </TabPane>
+          </Tabs>
+        </div>
+      ) : (
+        <Empty description="No class information available" />
+      )}
     </Drawer>
   );
 };

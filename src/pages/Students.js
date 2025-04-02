@@ -43,8 +43,6 @@ import {
   MenuOutlined,
   EllipsisOutlined
 } from '@ant-design/icons';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
@@ -52,17 +50,10 @@ import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
 import { MessageContext } from '../App';
-import { subscribeToCollection, getClasses, getTeachers } from '../firebase/services';
 import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import { message } from 'antd';
-import { 
-  addStudent, 
-  getStudents, 
-  updateStudent, 
-  deleteStudent,
-  getSectionsByClass
-} from '../firebase/services';
+import api from '../services/api';
 
 import './Students.css';
 
@@ -90,8 +81,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, onImageUpload
 
   const loadClasses = async () => {
     try {
-      const classesData = await getClasses();
-      setClasses(classesData);
+      const response = await api.class.getAll();
+      setClasses(response.data.data);
     } catch (error) {
       message.error('Failed to load classes');
     }
@@ -99,8 +90,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, onImageUpload
 
   const handleClassChange = async (classId) => {
     try {
-      const sectionsData = await getSectionsByClass(classId);
-      setSections(sectionsData);
+      const response = await api.class.getSections(classId);
+      setSections(response.data.data);
       form.setFieldValue('section', undefined);
     } catch (error) {
       message.error('Failed to load sections');
@@ -618,28 +609,27 @@ const Students = () => {
       return () => clearTimeout(timer);
     }
 
-    // Subscribe to students collection
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-      setLoading(false);
-    });
-
-    // Subscribe to classes collection
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-
-    // Subscribe to teachers collection
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-
-    return () => {
-      unsubscribeStudents();
-      unsubscribeClasses();
-      unsubscribeTeachers();
-    };
+    loadData();
   }, [location, navigate]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [studentsResponse, classesResponse, teachersResponse] = await Promise.all([
+        api.student.getAll(),
+        api.class.getAll(),
+        api.teacher.getAll()
+      ]);
+      setStudents(studentsResponse.data.data);
+      setClasses(classesResponse.data.data);
+      setTeachers(teachersResponse.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load data');
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddStudent = () => {
     setEditingStudent(null);
@@ -655,8 +645,9 @@ const Students = () => {
 
   const handleDeleteStudent = async (studentId) => {
     try {
-      await deleteDoc(doc(db, 'students', studentId));
+      await api.student.delete(studentId);
       messageApi.success('Student deleted successfully');
+      loadData();
     } catch (error) {
       console.error('Error deleting student:', error);
       messageApi.error('Failed to delete student');
@@ -672,15 +663,16 @@ const Students = () => {
       };
 
       if (editingStudent) {
-        await updateDoc(doc(db, 'students', editingStudent.id), studentData);
+        await api.student.update(editingStudent.id, studentData);
         messageApi.success('Student updated successfully');
       } else {
-        await addDoc(collection(db, 'students'), studentData);
+        await api.student.create(studentData);
         messageApi.success('Student added successfully');
       }
 
       setModalVisible(false);
       form.resetFields();
+      loadData();
     } catch (error) {
       console.error('Error saving student:', error);
       messageApi.error('Failed to save student');
@@ -688,46 +680,14 @@ const Students = () => {
   };
 
   const handleImageUpload = async (file, studentId) => {
-    let loadingMessage = null;
     try {
-      loadingMessage = messageApi.loading('Uploading image...', 0);
-
-      if (!file.type.startsWith('image/')) {
-        messageApi.error('Please upload an image file');
-        return false;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        messageApi.error('Image size should be less than 5MB');
-        return false;
-      }
-
-      const { url, publicId } = await uploadImage(file);
-
-      await updateDoc(doc(db, 'students', studentId), {
-        photoURL: url,
-        photoPublicId: publicId,
-        updatedAt: new Date().toISOString()
-      });
-
-      setStudents(prevStudents =>
-        prevStudents.map(student =>
-          student.id === studentId
-            ? { ...student, photoURL: url, photoPublicId: publicId }
-            : student
-        )
-      );
-
-      messageApi.success('Image uploaded successfully');
-      return true;
+      const photoPublicId = await uploadImage(file);
+      await api.student.update(studentId, { photoPublicId });
+      messageApi.success('Photo updated successfully');
+      loadData();
     } catch (error) {
-      console.error('Error uploading image:', error);
-      messageApi.error('Failed to upload image. Please try again.');
-      return false;
-    } finally {
-      if (loadingMessage) {
-        messageApi.destroy(loadingMessage);
-      }
+      console.error('Error uploading photo:', error);
+      messageApi.error('Failed to upload photo');
     }
   };
 

@@ -16,7 +16,11 @@ import {
   Row,
   Col,
   Statistic,
-  Progress
+  Progress,
+  DatePicker,
+  TimePicker,
+  Upload,
+  Divider
 } from 'antd';
 import {
   PlusOutlined,
@@ -28,21 +32,16 @@ import {
   DownloadOutlined,
   CheckCircleOutlined,
   TeamOutlined,
-  LineChartOutlined
+  LineChartOutlined,
+  UploadOutlined,
+  PrinterOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  StarOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
-import { 
-  subscribeToCollection,
-  getStudentsByClass,
-  addMarks,
-  updateMarks,
-  deleteMarks,
-  getSubjects,
-  getExams,
-  getMarksByExam,
-  getClasses
-} from '../../firebase/services';
 import moment from 'moment';
+import api from '../../services/api';
 import { Line } from '@ant-design/plots';
 
 const { Option } = Select;
@@ -221,16 +220,23 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
     <Modal
       title="Bulk Marks Entry"
       open={visible}
-      onOk={handleSubmit}
       onCancel={onCancel}
-      width={1200}
+      width={800}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button key="submit" type="primary" onClick={handleSubmit}>
+          Submit
+        </Button>,
+      ]}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form}>
         <Table
+          columns={columns}
           dataSource={students}
           rowKey="id"
           pagination={false}
-          columns={columns}
         />
       </Form>
     </Modal>
@@ -259,16 +265,17 @@ const MarksEntry = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [examsData, subjectsData, classesData] = await Promise.all([
-        getExams(),
-        getSubjects(),
-        getClasses()
+      const [examsResponse, subjectsResponse, classesResponse] = await Promise.all([
+        api.exam.getAll(),
+        api.subject.getAll(),
+        api.class.getAll()
       ]);
-      setExams(examsData);
-      setSubjects(subjectsData);
-      setClasses(classesData);
+      setExams(examsResponse.data.data);
+      setSubjects(subjectsResponse.data.data);
+      setClasses(classesResponse.data.data);
     } catch (error) {
       messageApi.error('Failed to load initial data');
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
@@ -293,10 +300,11 @@ const MarksEntry = () => {
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const studentsData = await getStudentsByClass(selectedClass);
-      setStudents(studentsData);
+      const response = await api.student.getByClass(selectedClass);
+      setStudents(response.data.data);
     } catch (error) {
       messageApi.error('Failed to load students');
+      console.error('Error loading students:', error);
     } finally {
       setLoading(false);
     }
@@ -309,11 +317,12 @@ const MarksEntry = () => {
         setMarks([]);
         return;
       }
-      const marksData = await getMarksByExam(selectedExam, selectedClass);
-      const filteredMarks = marksData.filter(mark => mark.subjectId === selectedSubject);
+      const response = await api.marks.getByExam(selectedExam);
+      const filteredMarks = response.data.data.filter(mark => mark.subjectId === selectedSubject);
       setMarks(filteredMarks);
     } catch (error) {
       messageApi.error('Failed to load marks');
+      console.error('Error loading marks:', error);
       setMarks([]);
     } finally {
       setLoading(false);
@@ -340,10 +349,10 @@ const MarksEntry = () => {
       };
 
       if (editingMarks) {
-        await updateMarks(editingMarks.id, marksData);
+        await api.marks.update(editingMarks.id, marksData);
         messageApi.success('Marks updated successfully');
       } else {
-        await addMarks(marksData);
+        await api.marks.create(marksData);
         messageApi.success('Marks added successfully');
       }
       loadMarks();
@@ -351,43 +360,33 @@ const MarksEntry = () => {
       setEditingMarks(null);
     } catch (error) {
       messageApi.error('Failed to save marks');
+      console.error('Error saving marks:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBulkMarksSubmit = async (values) => {
+  const handleBulkMarksSubmit = async ({ marks: marksData, remarks: remarksData }) => {
     try {
       setLoading(true);
-      if (!selectedExam || !selectedClass || !selectedSubject) {
-        messageApi.error('Please select exam, class and subject');
-        return;
-      }
+      const bulkMarksData = students.map(student => ({
+        studentId: student.id,
+        examId: selectedExam,
+        classId: selectedClass,
+        subjectId: selectedSubject,
+        marks: marksData[student.id] || 0,
+        remarks: remarksData[student.id] || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
 
-      const marksData = Object.entries(values.marks)
-        .filter(([_, marks]) => marks !== undefined && marks !== null)
-        .map(([studentId, marks]) => ({
-          studentId,
-          examId: selectedExam,
-          classId: selectedClass,
-          subjectId: selectedSubject,
-          marks: marks || 0,
-          remarks: values.remarks[studentId] || '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }));
-
-      if (marksData.length === 0) {
-        messageApi.error('Please enter marks for at least one student');
-        return;
-      }
-
-      await Promise.all(marksData.map(mark => addMarks(mark)));
-      messageApi.success('Marks added successfully');
-      loadMarks();
+      await Promise.all(bulkMarksData.map(data => api.marks.create(data)));
+      messageApi.success('Bulk marks added successfully');
       setBulkMarksModalVisible(false);
+      loadMarks();
     } catch (error) {
-      messageApi.error('Failed to save marks');
+      messageApi.error('Failed to save bulk marks');
+      console.error('Error saving bulk marks:', error);
     } finally {
       setLoading(false);
     }
@@ -401,7 +400,7 @@ const MarksEntry = () => {
   const handleDeleteMarks = async (id) => {
     try {
       setLoading(true);
-      await deleteMarks(id);
+      await api.marks.delete(id);
       messageApi.success('Marks deleted successfully');
       loadMarks();
     } catch (error) {

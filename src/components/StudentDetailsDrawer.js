@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography } from 'antd';
+import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, Typography, Tag, Table } from 'antd';
 import { UserOutlined, BookOutlined, TrophyOutlined } from '@ant-design/icons';
 import { Line } from '@ant-design/plots';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { getMarksByStudent, getSubjects, getExams } from '../firebase/services';
+import api from '../services/api';
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -20,14 +18,14 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
       if (!student?.id) return;
       
       try {
-        const [marksData, subjectsData, examsData] = await Promise.all([
-          getMarksByStudent(student.id),
-          getSubjects(),
-          getExams()
+        const [marksResponse, subjectsResponse, examsResponse] = await Promise.all([
+          api.marks.getByStudent(student.id),
+          api.subject.getAll(),
+          api.exam.getAll()
         ]);
-        setMarks(marksData);
-        setSubjects(subjectsData);
-        setExams(examsData);
+        setMarks(marksResponse.data.data);
+        setSubjects(subjectsResponse.data.data);
+        setExams(examsResponse.data.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -48,33 +46,31 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
     return exam ? exam.maxMarks : 0;
   };
 
-  const stats = {
-    averageScore: marks.length > 0 
-      ? (marks.reduce((acc, mark) => {
-          const maxMarks = getExamMaxMarks(mark.examId);
-          const percentage = maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0;
-          return acc + percentage;
-        }, 0) / marks.length)
-      : 0,
-    totalExams: marks.length,
-    passRate: marks.length > 0
-      ? (marks.filter(mark => {
-          const maxMarks = getExamMaxMarks(mark.examId);
-          return maxMarks > 0 && (mark.marks / maxMarks) * 100 >= 40;
-        }).length / marks.length) * 100
-      : 0,
-    recentExams: marks.slice(0, 3)
+  const getExamName = (examId) => {
+    const exam = exams.find(e => e.id === examId);
+    return exam ? exam.name : 'Unknown Exam';
   };
 
-  const performanceData = marks.length > 0
-    ? marks.map(mark => {
-        const maxMarks = getExamMaxMarks(mark.examId);
-        return {
-          date: mark.createdAt?.split('T')[0] || '',
-          marks: maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0
-        };
-      })
-    : [];
+  const calculateAverage = (subjectId) => {
+    const subjectMarks = marks.filter(m => m.subjectId === subjectId);
+    if (subjectMarks.length === 0) return 0;
+    
+    const totalMarks = subjectMarks.reduce((acc, curr) => {
+      const maxMarks = getExamMaxMarks(curr.examId);
+      return acc + (curr.marks / maxMarks) * 100;
+    }, 0);
+    
+    return (totalMarks / subjectMarks.length).toFixed(2);
+  };
+
+  const getPerformanceData = () => {
+    const subjectPerformance = subjects.map(subject => ({
+      subject: subject.name,
+      average: parseFloat(calculateAverage(subject.id))
+    }));
+
+    return subjectPerformance;
+  };
 
   return (
     <Drawer
@@ -82,119 +78,110 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
       placement="right"
       onClose={onClose}
       open={visible}
-      width={720}
-      bodyStyle={{ padding: '24px' }}
+      width={800}
     >
-      {student && (
+      {student ? (
         <div>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <Avatar 
-              size={120} 
-              src={student.photoURL} 
-              icon={<UserOutlined />}
-              style={{ marginBottom: '16px' }}
-            />
-            <Title level={3}>{student.name}</Title>
-            <Typography.Text type="secondary">Roll No: {student.rollNumber}</Typography.Text>
-          </div>
+          <Descriptions bordered>
+            <Descriptions.Item label="Name">{student.name}</Descriptions.Item>
+            <Descriptions.Item label="Roll Number">{student.rollNumber}</Descriptions.Item>
+            <Descriptions.Item label="Class">{student.className}</Descriptions.Item>
+            <Descriptions.Item label="Section">{student.section}</Descriptions.Item>
+            <Descriptions.Item label="Status">
+              <Tag color={student.status === 'Active' ? 'green' : 'red'}>
+                {student.status}
+              </Tag>
+            </Descriptions.Item>
+          </Descriptions>
 
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="Personal Information" key="1">
-              <Descriptions bordered column={2}>
-                <Descriptions.Item label="Class">{student.class}</Descriptions.Item>
-                <Descriptions.Item label="Section">{student.section}</Descriptions.Item>
-                <Descriptions.Item label="Gender">{student.gender}</Descriptions.Item>
-                <Descriptions.Item label="Email">{student.email}</Descriptions.Item>
-                <Descriptions.Item label="Phone">{student.phone}</Descriptions.Item>
-                <Descriptions.Item label="Status">{student.status}</Descriptions.Item>
-              </Descriptions>
-            </TabPane>
-
-            <TabPane tab="Academic Performance" key="2">
-              <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Average Score"
-                      value={stats.averageScore}
-                      suffix="%"
-                      precision={1}
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Total Exams"
-                      value={stats.totalExams}
-                    />
-                  </Card>
-                </Col>
-                <Col span={8}>
-                  <Card>
-                    <Statistic
-                      title="Pass Rate"
-                      value={stats.passRate}
-                      suffix="%"
-                      precision={1}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-
-              <Card title="Performance Trend" style={{ marginBottom: '24px' }}>
-                {performanceData.length > 0 ? (
-                  <Line
-                    data={performanceData}
-                    xField="date"
-                    yField="marks"
-                    smooth
-                    point={{
-                      size: 5,
-                      shape: 'circle',
-                    }}
-                    label={{
-                      style: {
-                        fill: '#aaa',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Empty description="No performance data available" />
-                )}
-              </Card>
-
-              <Card title="Recent Exams">
-                {stats.recentExams.length > 0 ? (
-                  <Descriptions bordered>
-                    {stats.recentExams.map((mark, index) => {
-                      const maxMarks = getExamMaxMarks(mark.examId);
-                      const percentage = maxMarks > 0 ? (mark.marks / maxMarks) * 100 : 0;
-                      return (
-                        <Descriptions.Item key={index} label={getSubjectName(mark.subjectId)}>
-                          {mark.marks}/{maxMarks} marks ({percentage.toFixed(1)}%)
-                        </Descriptions.Item>
-                      );
-                    })}
-                  </Descriptions>
-                ) : (
-                  <Empty description="No exam records found" />
-                )}
-              </Card>
-            </TabPane>
-
-            <TabPane tab="Attendance" key="3">
+          <Tabs defaultActiveKey="1" style={{ marginTop: 24 }}>
+            <TabPane 
+              tab={
+                <span>
+                  <TrophyOutlined />
+                  Performance
+                </span>
+              } 
+              key="1"
+            >
               <Card>
-                <Statistic
-                  title="Attendance Rate"
-                  value={93.5}
-                  suffix="%"
-                  precision={1}
+                <Line
+                  data={getPerformanceData()}
+                  xField="subject"
+                  yField="average"
+                  label={{
+                    position: 'middle',
+                    style: {
+                      fill: '#FFFFFF',
+                    },
+                  }}
+                  point={{
+                    size: 5,
+                    shape: 'diamond',
+                  }}
                 />
               </Card>
             </TabPane>
+
+            <TabPane 
+              tab={
+                <span>
+                  <BookOutlined />
+                  Marks History
+                </span>
+              } 
+              key="2"
+            >
+              <Table
+                dataSource={marks}
+                columns={[
+                  {
+                    title: 'Exam',
+                    dataIndex: 'examId',
+                    key: 'examId',
+                    render: (examId) => getExamName(examId),
+                  },
+                  {
+                    title: 'Subject',
+                    dataIndex: 'subjectId',
+                    key: 'subjectId',
+                    render: (subjectId) => getSubjectName(subjectId),
+                  },
+                  {
+                    title: 'Marks',
+                    dataIndex: 'marks',
+                    key: 'marks',
+                    render: (marks, record) => {
+                      const maxMarks = getExamMaxMarks(record.examId);
+                      return `${marks}/${maxMarks}`;
+                    },
+                  },
+                  {
+                    title: 'Percentage',
+                    key: 'percentage',
+                    render: (_, record) => {
+                      const maxMarks = getExamMaxMarks(record.examId);
+                      return `${((record.marks / maxMarks) * 100).toFixed(2)}%`;
+                    },
+                  },
+                ]}
+                rowKey="id"
+                loading={loading}
+                pagination={false}
+                locale={{
+                  emptyText: (
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description="No marks found"
+                    />
+                  )
+                }}
+              />
+            </TabPane>
           </Tabs>
         </div>
+      ) : (
+        <Empty description="No student information available" />
       )}
     </Drawer>
   );
