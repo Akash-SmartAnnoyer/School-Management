@@ -198,12 +198,6 @@ function MainLayout() {
       onClick: () => navigate('/academic-calendar'),
     },
     {
-      key: 'addNotice',
-      icon: <NotificationOutlined />,
-      label: 'Add Notice',
-      onClick: () => navigate('/communication'),
-    },
-    {
       type: 'divider',
     },
     {
