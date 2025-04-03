@@ -34,7 +34,11 @@ import {
   CalendarOutlined,
   ClockCircleOutlined,
   TeamOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  EyeOutlined,
+  PrinterOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import moment from 'moment';
@@ -507,10 +511,15 @@ const ExamManagement = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Tooltip title="Edit Exam">
-            <Button 
-              type="link" 
-              icon={<EditOutlined />} 
+          <Tooltip title="View Details">
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() => handleViewExam(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              icon={<EditOutlined />}
               onClick={() => {
                 setEditingExam(record);
                 setExamModalVisible(true);
@@ -523,9 +532,8 @@ const ExamManagement = () => {
             okText="Yes"
             cancelText="No"
           >
-            <Tooltip title="Delete Exam">
+            <Tooltip title="Delete">
               <Button 
-                type="link" 
                 danger 
                 icon={<DeleteOutlined />}
               />
@@ -601,6 +609,15 @@ const ExamManagement = () => {
     },
   ];
 
+  const handleAddExam = () => {
+    setEditingExam(null);
+    setExamModalVisible(true);
+  };
+
+  const handleViewExam = (exam) => {
+    // Implement the view exam logic
+  };
+
   return (
     <div>
       <Row gutter={[16, 16]}>
@@ -622,10 +639,7 @@ const ExamManagement = () => {
                       <Button 
                         type="primary" 
                         icon={<PlusOutlined />}
-                        onClick={() => {
-                          setEditingExam(null);
-                          setExamModalVisible(true);
-                        }}
+                        onClick={handleAddExam}
                       >
                         Add Exam
                       </Button>

@@ -51,6 +51,7 @@ import AcademicCalendar from './pages/AcademicCalendar';
 import TeacherAttendance from './pages/TeacherAttendance';
 import Timetable from './pages/Timetable';
 import AttendanceReport from './pages/AttendanceReport';
+import Register from './pages/Register';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -515,6 +516,7 @@ function MainLayout() {
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/academics" element={<Academics />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="exam-management" element={<ExamManagement />} />
             <Route path="academic-calendar" element={<AcademicCalendar />} />
@@ -562,6 +564,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/*" element={<MainLayout />} />
             </Routes>
           </Router>

@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Tabs, Row, Col, Descriptions } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
-import { addClass, getClasses, updateClass, deleteClass, subscribeToCollection, getTeachers, updateTeacher } from '../firebase/services';
-import { initializeSchoolData } from '../utils/initializeSchoolData';
+import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
 import { useAuth } from '../contexts/AuthContext';
 import Timetable from './Timetable';
 
@@ -25,23 +22,30 @@ const Classes = () => {
   const [teachers, setTeachers] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Subscribe to real-time updates for classes
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-
-    // Subscribe to real-time updates for teachers
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-
-    return () => {
-      unsubscribeClasses();
-      unsubscribeTeachers();
-    };
+    loadClasses();
+    loadTeachers();
   }, []);
+
+  const loadClasses = async () => {
+    try {
+      const response = await api.class.getAll();
+      setClasses(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load classes');
+    }
+  };
+
+  const loadTeachers = async () => {
+    try {
+      const response = await api.teacher.getAll();
+      setTeachers(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load teachers');
+    }
+  };
 
   const handleAdd = () => {
     setEditingClass(null);
@@ -57,23 +61,28 @@ const Classes = () => {
 
   const handleDelete = async (classId) => {
     try {
+      setLoading(true);
       // Before deleting the class, clear the teacher's classId
       const classToDelete = classes.find(c => c.id === classId);
       if (classToDelete?.teacherId) {
         const teacher = teachers.find(t => t.id === classToDelete.teacherId);
         if (teacher) {
-          await updateTeacher(teacher.id, { classId: null });
+          await api.teacher.update(teacher.id, { classId: null });
         }
       }
-      await deleteClass(classId);
+      await api.class.delete(classId);
       messageApi.success('Class deleted successfully');
+      loadClasses();
     } catch (error) {
       messageApi.error('Error deleting class');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleModalOk = async () => {
     try {
+      setLoading(true);
       const values = await form.validateFields();
       const classData = {
         ...values,
@@ -87,7 +96,7 @@ const Classes = () => {
           if (editingClass.teacherId) {
             const oldTeacher = teachers.find(t => t.id === editingClass.teacherId);
             if (oldTeacher) {
-              await updateTeacher(oldTeacher.id, { classId: null });
+              await api.teacher.update(oldTeacher.id, { classId: null });
             }
           }
           
@@ -95,38 +104,24 @@ const Classes = () => {
           if (values.teacherId) {
             const newTeacher = teachers.find(t => t.id === values.teacherId);
             if (newTeacher) {
-              await updateTeacher(newTeacher.id, { classId: editingClass.id });
+              await api.teacher.update(newTeacher.id, { classId: editingClass.id });
             }
           }
         }
-        await updateClass(editingClass.id, classData);
+        await api.class.update(editingClass.id, classData);
         messageApi.success('Class updated successfully');
       } else {
         classData.createdAt = new Date().toISOString();
-        const newClassRef = await addClass(classData);
-        
-        // If teacher is selected for new class, update the teacher's classId
-        if (values.teacherId) {
-          const selectedTeacher = teachers.find(t => t.id === values.teacherId);
-          if (selectedTeacher) {
-            await updateTeacher(selectedTeacher.id, { classId: newClassRef.id });
-          }
-        }
+        await api.class.create(classData);
         messageApi.success('Class added successfully');
       }
       setIsModalVisible(false);
       form.resetFields();
+      loadClasses();
     } catch (error) {
       messageApi.error('Error saving class');
-    }
-  };
-
-  const handleInitializeDB = async () => {
-    try {
-      await initializeSchoolData();
-      messageApi.success('School data initialized successfully');
-    } catch (error) {
-      messageApi.error('Error initializing school data');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,10 +140,10 @@ const Classes = () => {
           <Row gutter={[16, 16]}>
             <Col span={24}>
               <Descriptions bordered>
-                <Descriptions.Item label="Class Name">{record.name}</Descriptions.Item>
+                <Descriptions.Item label="Class Name">{record.className}</Descriptions.Item>
                 <Descriptions.Item label="Section">{record.section}</Descriptions.Item>
                 <Descriptions.Item label="Class Teacher">
-                  {teachers.find(t => t.id === record.classTeacherId)?.name || 'Not Assigned'}
+                  {teachers.find(t => t.id === record.teacherId)?.name || 'Not Assigned'}
                 </Descriptions.Item>
                 <Descriptions.Item label="Total Students">{record.totalStudents || 0}</Descriptions.Item>
                 <Descriptions.Item label="Room Number">{record.roomNumber}</Descriptions.Item>
@@ -237,79 +232,105 @@ const Classes = () => {
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Add Class
         </Button>
-        <Button 
-          type="default" 
-          icon={<ReloadOutlined />} 
-          onClick={handleInitializeDB}
-          danger
-        >
-          Reset Database
-        </Button>
       </div>
-      <Table columns={columns} dataSource={classes} rowKey="id" />
+      <Table 
+        columns={columns} 
+        dataSource={classes} 
+        rowKey="id"
+        expandable={{
+          expandedRowRender,
+        }}
+        loading={loading}
+      />
 
       <Modal
         title={editingClass ? 'Edit Class' : 'Add Class'}
         open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+          setEditingClass(null);
+        }}
+        footer={null}
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleModalOk}
+        >
           <Form.Item
             name="className"
             label="Class Name"
-            rules={[{ required: true, message: 'Please input class name!' }]}
+            rules={[{ required: true, message: 'Please enter class name' }]}
           >
             <Input />
           </Form.Item>
+
           <Form.Item
             name="section"
             label="Section"
-            rules={[{ required: true, message: 'Please select section!' }]}
+            rules={[{ required: true, message: 'Please select section' }]}
           >
             <Select>
               {sections.map(section => (
-                <Option key={section} value={section}>
-                  Section {section}
+                <Option key={section} value={section}>Section {section}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="teacherId"
+            label="Class Teacher"
+          >
+            <Select allowClear>
+              {teachers.map(teacher => (
+                <Option key={teacher.id} value={teacher.id}>
+                  {teacher.name}
                 </Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            name="teacherId"
-            label="Teacher"
-            rules={[{ required: false }]}
-          >
-            <Select allowClear>
-              <Option value="">Not Assigned</Option>
-              {teachers
-                .filter(teacher => teacher.status === 'Active')
-                .map(teacher => (
-                  <Option key={teacher.id} value={teacher.id}>
-                    {teacher.name} - {teacher.subject}
-                  </Option>
-                ))}
-            </Select>
-          </Form.Item>
+
           <Form.Item
             name="capacity"
             label="Capacity"
-            rules={[
-              { required: true, message: 'Please input capacity!' },
-              { type: 'number', min: 1, message: 'Capacity must be at least 1!' }
-            ]}
+            rules={[{ required: true, message: 'Please enter capacity' }]}
           >
-            <Input type="number" min={1} />
+            <Input type="number" />
           </Form.Item>
+
+          <Form.Item
+            name="roomNumber"
+            label="Room Number"
+            rules={[{ required: true, message: 'Please enter room number' }]}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="status"
             label="Status"
-            rules={[{ required: true, message: 'Please select status!' }]}
+            rules={[{ required: true, message: 'Please select status' }]}
           >
             <Select>
               <Option value="Active">Active</Option>
               <Option value="Inactive">Inactive</Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {editingClass ? 'Update' : 'Add'}
+              </Button>
+              <Button onClick={() => {
+                setIsModalVisible(false);
+                form.resetFields();
+                setEditingClass(null);
+              }}>
+                Cancel
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

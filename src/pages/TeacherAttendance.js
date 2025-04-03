@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, DatePicker, Card, message, Row, Col, Statistic } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined } from '@ant-design/icons';
-import { addAttendance, getAttendance, subscribeToCollection, getTeachers } from '../firebase/services';
+import api from '../services/api';
 import moment from 'moment';
 
 const TeacherAttendance = () => {
@@ -12,30 +12,41 @@ const TeacherAttendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState({});
 
   useEffect(() => {
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-    const unsubscribeAttendance = subscribeToCollection('teacherAttendance', (data) => {
-      setAttendance(data);
-    });
-    return () => {
-      unsubscribeTeachers();
-      unsubscribeAttendance();
-    };
+    loadTeachers();
   }, []);
 
   useEffect(() => {
     if (selectedDate) {
+      loadAttendance();
+    }
+  }, [selectedDate]);
+
+  const loadTeachers = async () => {
+    try {
+      const response = await api.teacher.getAll();
+      setTeachers(response.data.data);
+    } catch (error) {
+      message.error('Failed to load teachers');
+    }
+  };
+
+  const loadAttendance = async () => {
+    try {
       const dateStr = selectedDate.format('YYYY-MM-DD');
-      const dayAttendance = attendance.filter(record => record.date === dateStr);
+      const response = await api.attendance.getByDate(dateStr);
+      const teacherAttendance = response.data.data.filter(
+        record => record.type === 'teacher'
+      );
       
       const statusMap = {};
-      dayAttendance.forEach(record => {
+      teacherAttendance.forEach(record => {
         statusMap[record.teacherId] = record.status;
       });
       setAttendanceStatus(statusMap);
+    } catch (error) {
+      message.error('Failed to load attendance');
     }
-  }, [selectedDate, attendance]);
+  };
 
   const handleAttendanceChange = (teacherId, status) => {
     setAttendanceStatus(prev => ({
@@ -54,13 +65,16 @@ const TeacherAttendance = () => {
         teacherId: teacher.id,
         date: dateStr,
         status: attendanceStatus[teacher.id] || 'Absent',
-        timestamp: new Date().toISOString()
+        type: 'teacher',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }));
 
       // Save all attendance records
-      await Promise.all(attendanceRecords.map(record => addAttendance(record, 'teacherAttendance')));
+      await Promise.all(attendanceRecords.map(record => api.attendance.create(record)));
       
       message.success('Teacher attendance saved successfully');
+      loadAttendance();
     } catch (error) {
       message.error('Error saving teacher attendance');
     } finally {

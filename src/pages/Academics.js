@@ -43,18 +43,8 @@ import {
   StarOutlined,
 } from '@ant-design/icons';
 import { Line, Column, Pie } from '@ant-design/plots';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc, orderBy } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import api from '../services/api';
 import { MessageContext } from '../App';
-import { 
-  subscribeToCollection, 
-  getClasses, 
-  getStudents, 
-  getTeachers,
-  addMarks,
-  getMarksByExam,
-  getStudentMarks
-} from '../firebase/services';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -67,7 +57,6 @@ import {
 } from '@mui/material';
 import ExamManagement from '../components/academics/ExamManagement';
 import MarksEntry from '../components/academics/MarksEntry';
-import Reports from '../components/academics/Reports';
 import Analytics from '../components/academics/Analytics';
 
 const { Option } = Select;
@@ -251,10 +240,10 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
 
         <Form.Item>
           <Space>
-            <Button onClick={onCancel}>Cancel</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
-              {initialValues ? 'Update' : 'Save Marks'}
+              {initialValues ? 'Update' : 'Save'}
             </Button>
+            <Button onClick={onCancel}>Cancel</Button>
           </Space>
         </Form.Item>
       </Form>
@@ -545,11 +534,68 @@ function TabPanel(props) {
   );
 }
 
-function Academics() {
+const Academics = () => {
+  const messageApi = useContext(MessageContext);
   const [activeTab, setActiveTab] = useState('1');
+  const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [marks, setMarks] = useState([]);
+  const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [classesResponse, teachersResponse] = await Promise.all([
+        api.class.getAll(),
+        api.teacher.getAll()
+      ]);
+      setClasses(classesResponse.data.data);
+      setTeachers(teachersResponse.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load initial data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudents = async (classId) => {
+    try {
+      const response = await api.student.getByClass(classId);
+      setStudents(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load students');
+    }
+  };
+
+  const loadMarks = async (examId) => {
+    try {
+      const response = await api.marks.getByExam(examId);
+      setMarks(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load marks');
+    }
+  };
+
+  const loadExams = async () => {
+    try {
+      const response = await api.exam.getAll();
+      setExams(response.data.data);
+    } catch (error) {
+      messageApi.error('Failed to load exams');
+    }
+  };
 
   const handleTabChange = (key) => {
     setActiveTab(key);
+    if (key === '1') {
+      loadExams();
+    }
   };
 
   return (
@@ -564,17 +610,37 @@ function Academics() {
               {
                 key: '1',
                 label: 'Exam Management',
-                children: <ExamManagement />
+                children: <ExamManagement
+                  exams={exams}
+                  classes={classes}
+                  teachers={teachers}
+                  subjects={subjects}
+                  examTypes={examTypes}
+                  onRefresh={loadExams}
+                />
               },
               {
                 key: '2',
                 label: 'Marks Entry',
-                children: <MarksEntry />
+                children: <MarksEntry
+                  students={students}
+                  classes={classes}
+                  subjects={subjects}
+                  examTypes={examTypes}
+                  onClassSelect={loadStudents}
+                />
               },
               {
                 key: '3',
-                label: 'Reports & Analytics',
-                children: <Reports />
+                label: 'Analytics',
+                children: <Analytics
+                  marks={marks}
+                  students={students}
+                  classes={classes}
+                  subjects={subjects}
+                  examTypes={examTypes}
+                  onExamSelect={loadMarks}
+                />
               }
             ]}
           />
@@ -582,6 +648,6 @@ function Academics() {
       </Box>
     </Container>
   );
-}
+};
 
 export default Academics; 

@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { message } from 'antd';
-import { organizations as defaultOrganizations, validateCredentials } from '../config/organizations';
-import { getSchoolById, updatePrincipal, updateTeacher } from '../firebase/organizationService';
+import api from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -25,43 +24,25 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check local storage for existing session
     const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
+    const token = localStorage.getItem('token');
+    
+    if (savedUser && token) {
       const userData = JSON.parse(savedUser);
-      // Get the latest user data from Firestore
-      getSchoolById(userData.schoolId)
-        .then(school => {
-          if (school) {
-            if (userData.role === 'PRINCIPAL') {
-              const principalData = {
-                ...school.principal,
-                role: 'PRINCIPAL',
-                schoolId: userData.schoolId,
-                schoolName: school.name,
-                schoolLogo: school.logo,
-                profilePic: school.principal.profilePic || userData.profilePic
-              };
-              setCurrentUser(principalData);
-              localStorage.setItem('currentUser', JSON.stringify(principalData));
-            } else {
-              const teacher = school.teachers.find(t => t.username === userData.username);
-              if (teacher) {
-                const teacherData = {
-                  ...teacher,
-                  role: 'TEACHER',
-                  schoolId: userData.schoolId,
-                  schoolName: school.name,
-                  schoolLogo: school.logo,
-                  profilePic: teacher.profilePic || userData.profilePic
-                };
-                setCurrentUser(teacherData);
-                localStorage.setItem('currentUser', JSON.stringify(teacherData));
-              }
-            }
+      // Verify token and get user data
+      api.auth.verifyToken()
+        .then(response => {
+          if (response.data.success) {
+            setCurrentUser(userData);
+          } else {
+            // Token is invalid, clear storage
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('token');
           }
         })
         .catch(error => {
-          console.error('Error loading user data:', error);
-          message.error('Failed to load user data');
+          console.error('Error verifying token:', error);
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('token');
         })
         .finally(() => {
           setLoading(false);
@@ -73,98 +54,86 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password, role) => {
     try {
-      // First validate credentials against the config file
-      const user = validateCredentials(username, password, role);
-      
-      if (!user) {
-        throw new Error('Invalid credentials');
-      }
+      const response = await api.auth.login({
+        username,
+        password,
+        role
+      });
 
-      // Get the latest data from Firestore
-      const school = await getSchoolById(user.schoolId);
-      
-      // If school not found in Firestore, use the default organization data
-      const schoolData = school || defaultOrganizations.schools[user.schoolId];
-      
-      if (!schoolData) {
-        throw new Error('School not found');
-      }
-      
-      if (role === 'PRINCIPAL') {
-        const principalData = {
-          ...schoolData.principal,
-          role: 'PRINCIPAL',
-          schoolId: user.schoolId,
-          schoolName: schoolData.name,
-          schoolLogo: schoolData.logo,
-          profilePic: schoolData.principal.profilePic || 'https://via.placeholder.com/150'
-        };
+      if (response.data.success) {
+        const { user, token } = response.data.data;
         
-        setCurrentUser(principalData);
-        localStorage.setItem('currentUser', JSON.stringify(principalData));
+        // Store token and user data
+        localStorage.setItem('token', token);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        setCurrentUser(user);
+        message.success('Login successful!');
+        return user;
       } else {
-        const enhancedUser = {
-          ...user,
-          schoolName: schoolData.name,
-          schoolLogo: schoolData.logo,
-          profilePic: user.profilePic || 'https://via.placeholder.com/150'
-        };
-        
-        setCurrentUser(enhancedUser);
-        localStorage.setItem('currentUser', JSON.stringify(enhancedUser));
+        throw new Error(response.data.message || 'Login failed');
       }
-
-      message.success('Login successful!');
-      return user;
     } catch (error) {
       message.error(error.message || 'Login failed');
       throw error;
     }
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-    message.success('Logged out successfully');
+  const register = async (userData) => {
+    try {
+      const response = await api.auth.register(userData);
+      
+      if (response.data.success) {
+        const { user, token } = response.data.data;
+        
+        // Store token and user data
+        localStorage.setItem('token', token);
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        
+        setCurrentUser(user);
+        message.success('Registration successful!');
+        return user;
+      } else {
+        throw new Error(response.data.message || 'Registration failed');
+      }
+    } catch (error) {
+      message.error(error.message || 'Registration failed');
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await api.auth.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setCurrentUser(null);
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      message.success('Logged out successfully');
+    }
   };
 
   const updateProfile = async (userData) => {
     try {
-      const school = await getSchoolById(currentUser.schoolId);
+      const response = await api.auth.updateProfile(userData);
       
-      const updatedUser = {
-        ...currentUser,
-        ...userData,
-        schoolName: school.name,
-        schoolLogo: school.logo,
-        profilePic: userData.profilePic || currentUser.profilePic
-      };
+      if (response.data.success) {
+        const updatedUser = {
+          ...currentUser,
+          ...response.data.data
+        };
 
-      setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      
-      if (currentUser.role === 'PRINCIPAL') {
-        await updatePrincipal(currentUser.schoolId, {
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
-          profilePic: userData.profilePic || school.principal.profilePic
-        });
+        setCurrentUser(updatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        message.success('Profile updated successfully');
+        return updatedUser;
       } else {
-        await updateTeacher(currentUser.schoolId, currentUser.username, {
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
-          profilePic: userData.profilePic || currentUser.profilePic
-        });
+        throw new Error(response.data.message || 'Failed to update profile');
       }
-
-      message.success('Profile updated successfully');
     } catch (error) {
-      console.error('Profile update error:', error);
-      message.error('Failed to update profile');
+      message.error(error.message || 'Failed to update profile');
       throw error;
     }
   };
@@ -172,6 +141,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     login,
+    register,
     logout,
     updateProfile,
     loading

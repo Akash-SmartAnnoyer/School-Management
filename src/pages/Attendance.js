@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined } from '@ant-design/icons';
-import { addAttendance, getAttendance, subscribeToCollection, getStudents, getClasses } from '../firebase/services';
+import api from '../services/api';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -16,27 +16,40 @@ const Attendance = () => {
   const [attendanceStatus, setAttendanceStatus] = useState({});
 
   useEffect(() => {
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    const unsubscribeAttendance = subscribeToCollection('attendance', (data) => {
-      setAttendance(data);
-    });
-    return () => {
-      unsubscribeStudents();
-      unsubscribeClasses();
-      unsubscribeAttendance();
-    };
+    loadClasses();
   }, []);
 
   useEffect(() => {
-    if (selectedDate && selectedClass) {
+    if (selectedClass) {
+      loadStudents();
+      loadAttendance();
+    }
+  }, [selectedClass, selectedDate]);
+
+  const loadClasses = async () => {
+    try {
+      const response = await api.class.getAll();
+      setClasses(response.data.data);
+    } catch (error) {
+      message.error('Failed to load classes');
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      const response = await api.student.getByClass(selectedClass);
+      setStudents(response.data.data);
+    } catch (error) {
+      message.error('Failed to load students');
+    }
+  };
+
+  const loadAttendance = async () => {
+    try {
       const dateStr = selectedDate.format('YYYY-MM-DD');
-      const classAttendance = attendance.filter(
-        record => record.date === dateStr && record.classId === selectedClass
+      const response = await api.attendance.getByDate(dateStr);
+      const classAttendance = response.data.data.filter(
+        record => record.classId === selectedClass
       );
       
       const statusMap = {};
@@ -44,8 +57,10 @@ const Attendance = () => {
         statusMap[record.studentId] = record.status;
       });
       setAttendanceStatus(statusMap);
+    } catch (error) {
+      message.error('Failed to load attendance');
     }
-  }, [selectedDate, selectedClass, attendance]);
+  };
 
   const handleClassChange = (classId) => {
     setSelectedClass(classId);
@@ -75,13 +90,15 @@ const Attendance = () => {
         classId: selectedClass,
         date: dateStr,
         status: attendanceStatus[student.id] || 'Absent',
-        timestamp: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }));
 
       // Save all attendance records
-      await Promise.all(attendanceRecords.map(record => addAttendance(record)));
+      await Promise.all(attendanceRecords.map(record => api.attendance.create(record)));
       
       message.success('Attendance saved successfully');
+      loadAttendance();
     } catch (error) {
       message.error('Error saving attendance');
     } finally {

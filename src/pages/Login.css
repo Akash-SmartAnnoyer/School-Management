@@ -479,19 +479,9 @@
     margin-bottom: 24px;
     padding: 20px 0;
   }
-
-  .login-left-title {
-    font-size: 2rem;
-    margin-bottom: 12px;
-  }
-
-  .login-left-subtitle {
-    font-size: 1rem;
-    margin-bottom: 24px;
-  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .login-content {
     max-width: 100%;
   }

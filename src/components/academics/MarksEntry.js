@@ -20,7 +20,8 @@ import {
   DatePicker,
   TimePicker,
   Upload,
-  Divider
+  Divider,
+  Popconfirm
 } from 'antd';
 import {
   PlusOutlined,
@@ -37,7 +38,8 @@ import {
   PrinterOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
-  StarOutlined
+  StarOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import moment from 'moment';
@@ -243,24 +245,23 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
   );
 };
 
-const MarksEntry = () => {
-  const [exams, setExams] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [marks, setMarks] = useState([]);
+const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) => {
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [selectedExam, setSelectedExam] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMarks, setSelectedMarks] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [marksModalVisible, setMarksModalVisible] = useState(false);
-  const [bulkMarksModalVisible, setBulkMarksModalVisible] = useState(false);
-  const [editingMarks, setEditingMarks] = useState(null);
-  const messageApi = useContext(MessageContext);
+  const [marks, setMarks] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [localStudents, setLocalStudents] = useState([]);
+  const [localClasses, setLocalClasses] = useState([]);
+  const [localSubjects, setLocalSubjects] = useState([]);
 
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    setLocalStudents(students);
+    setLocalClasses(classes);
+    setLocalSubjects(subjects);
+  }, [students, classes, subjects]);
 
   const loadInitialData = async () => {
     try {
@@ -270,11 +271,10 @@ const MarksEntry = () => {
         api.subject.getAll(),
         api.class.getAll()
       ]);
-      setExams(examsResponse.data.data);
-      setSubjects(subjectsResponse.data.data);
-      setClasses(classesResponse.data.data);
+      setLocalSubjects(subjectsResponse.data.data);
+      setLocalClasses(classesResponse.data.data);
     } catch (error) {
-      messageApi.error('Failed to load initial data');
+      message.error('Failed to load initial data');
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
@@ -285,25 +285,25 @@ const MarksEntry = () => {
     if (selectedClass) {
       loadStudents();
     } else {
-      setStudents([]);
+      setLocalStudents([]);
     }
   }, [selectedClass]);
 
   useEffect(() => {
-    if (selectedClass && selectedExam && selectedSubject) {
+    if (selectedClass) {
       loadMarks();
     } else {
       setMarks([]);
     }
-  }, [selectedClass, selectedExam, selectedSubject]);
+  }, [selectedClass]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
       const response = await api.student.getByClass(selectedClass);
-      setStudents(response.data.data);
+      setLocalStudents(response.data.data);
     } catch (error) {
-      messageApi.error('Failed to load students');
+      message.error('Failed to load students');
       console.error('Error loading students:', error);
     } finally {
       setLoading(false);
@@ -313,17 +313,11 @@ const MarksEntry = () => {
   const loadMarks = async () => {
     try {
       setLoading(true);
-      if (!selectedExam || !selectedClass || !selectedSubject) {
-        setMarks([]);
-        return;
-      }
-      const response = await api.marks.getByExam(selectedExam);
-      const filteredMarks = response.data.data.filter(mark => mark.subjectId === selectedSubject);
-      setMarks(filteredMarks);
+      const response = await api.marks.getByClass(selectedClass);
+      setMarks(response.data.data);
     } catch (error) {
-      messageApi.error('Failed to load marks');
+      message.error('Failed to load marks');
       console.error('Error loading marks:', error);
-      setMarks([]);
     } finally {
       setLoading(false);
     }
@@ -332,34 +326,34 @@ const MarksEntry = () => {
   const handleMarksSubmit = async (values) => {
     try {
       setLoading(true);
-      if (!selectedExam || !selectedClass || !selectedSubject) {
-        messageApi.error('Please select exam, class and subject');
+      if (!selectedClass) {
+        message.error('Please select a class');
         return;
       }
 
       const marksData = {
         studentId: values.studentId,
-        examId: selectedExam,
+        examId: selectedClass,
         classId: selectedClass,
-        subjectId: selectedSubject,
+        subjectId: selectedClass,
         marks: values.marks || 0,
         remarks: values.remarks || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      if (editingMarks) {
-        await api.marks.update(editingMarks.id, marksData);
-        messageApi.success('Marks updated successfully');
+      if (selectedMarks) {
+        await api.marks.update(selectedMarks.id, marksData);
+        message.success('Marks updated successfully');
       } else {
         await api.marks.create(marksData);
-        messageApi.success('Marks added successfully');
+        message.success('Marks added successfully');
       }
       loadMarks();
-      setMarksModalVisible(false);
-      setEditingMarks(null);
+      setModalVisible(false);
+      setSelectedMarks(null);
     } catch (error) {
-      messageApi.error('Failed to save marks');
+      message.error('Failed to save marks');
       console.error('Error saving marks:', error);
     } finally {
       setLoading(false);
@@ -369,11 +363,11 @@ const MarksEntry = () => {
   const handleBulkMarksSubmit = async ({ marks: marksData, remarks: remarksData }) => {
     try {
       setLoading(true);
-      const bulkMarksData = students.map(student => ({
+      const bulkMarksData = localStudents.map(student => ({
         studentId: student.id,
-        examId: selectedExam,
+        examId: selectedClass,
         classId: selectedClass,
-        subjectId: selectedSubject,
+        subjectId: selectedClass,
         marks: marksData[student.id] || 0,
         remarks: remarksData[student.id] || '',
         createdAt: new Date().toISOString(),
@@ -381,11 +375,10 @@ const MarksEntry = () => {
       }));
 
       await Promise.all(bulkMarksData.map(data => api.marks.create(data)));
-      messageApi.success('Bulk marks added successfully');
-      setBulkMarksModalVisible(false);
+      message.success('Bulk marks added successfully');
       loadMarks();
     } catch (error) {
-      messageApi.error('Failed to save bulk marks');
+      message.error('Failed to save bulk marks');
       console.error('Error saving bulk marks:', error);
     } finally {
       setLoading(false);
@@ -393,40 +386,40 @@ const MarksEntry = () => {
   };
 
   const handleEditMarks = (record) => {
-    setEditingMarks(record);
-    setMarksModalVisible(true);
+    setSelectedMarks(record);
+    setModalVisible(true);
   };
 
   const handleDeleteMarks = async (id) => {
     try {
       setLoading(true);
       await api.marks.delete(id);
-      messageApi.success('Marks deleted successfully');
+      message.success('Marks deleted successfully');
       loadMarks();
     } catch (error) {
-      messageApi.error('Failed to delete marks');
+      message.error('Failed to delete marks');
     } finally {
       setLoading(false);
     }
   };
 
   const getStudentName = (studentId) => {
-    const student = students.find(s => s.id === studentId);
+    const student = localStudents.find(s => s.id === studentId);
     return student ? `${student.name} (${student.rollNumber})` : 'Unknown Student';
   };
 
   const getSubjectName = (subjectId) => {
-    const subject = subjects.find(s => s.id === subjectId);
+    const subject = localSubjects.find(s => s.id === subjectId);
     return subject ? subject.name : 'Unknown Subject';
   };
 
   const getExamName = (examId) => {
-    const exam = exams.find(e => e.id === examId);
+    const exam = localClasses.find(e => e.id === examId);
     return exam ? exam.name : 'Unknown Exam';
   };
 
   const getClassName = (classId) => {
-    const cls = classes.find(c => c.id === classId);
+    const cls = localClasses.find(c => c.id === classId);
     return cls ? `${cls.className} - Section ${cls.section}` : 'Unknown Class';
   };
 
@@ -448,7 +441,7 @@ const MarksEntry = () => {
       dataIndex: 'marks',
       key: 'marks',
       render: (marks) => {
-        const exam = exams.find(e => e.id === selectedExam);
+        const exam = localClasses.find(e => e.id === selectedClass);
         return `${marks}/${exam?.maxMarks || 100}`;
       },
     },
@@ -469,18 +462,42 @@ const MarksEntry = () => {
           >
             Edit
           </Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDeleteMarks(record.id)}
+          <Popconfirm
+            title="Are you sure you want to delete these marks?"
+            onConfirm={() => handleDeleteMarks(record.id)}
+            okText="Yes"
+            cancelText="No"
           >
-            Delete
-          </Button>
+            <Tooltip title="Delete">
+              <Button 
+                type="link" 
+                danger 
+                icon={<DeleteOutlined />} 
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
   ];
+
+  const handleAddMarks = () => {
+    setSelectedMarks(null);
+    setModalVisible(true);
+  };
+
+  const handleClassChange = async (classId) => {
+    setSelectedClass(classId);
+    onClassSelect(classId);
+    await loadMarks(classId);
+  };
+
+  const filteredMarks = marks.filter(record => {
+    return (
+      record.studentId.toLowerCase().includes(searchText.toLowerCase()) ||
+      record.subjectId.toLowerCase().includes(searchText.toLowerCase())
+    );
+  });
 
   return (
     <div>
@@ -488,46 +505,24 @@ const MarksEntry = () => {
         <Space direction="vertical" style={{ width: '100%' }}>
           <Space wrap>
             <Select
-              placeholder="Select Exam"
-              style={{ width: 200 }}
-              value={selectedExam}
-              onChange={setSelectedExam}
-            >
-              {exams.map(exam => (
-                <Option key={exam.id} value={exam.id}>
-                  {exam.name}
-                </Option>
-              ))}
-            </Select>
-
-            <Select
               placeholder="Select Class"
               style={{ width: 200 }}
               value={selectedClass}
-              onChange={setSelectedClass}
+              onChange={handleClassChange}
             >
-              {classes.map(cls => (
+              {localClasses.map(cls => (
                 <Option key={cls.id} value={cls.id}>
                   {cls.className} - Section {cls.section}
                 </Option>
               ))}
             </Select>
 
-            <Select
-              placeholder="Select Subject"
+            <Input
+              placeholder="Search marks"
+              prefix={<SearchOutlined />}
+              onChange={e => setSearchText(e.target.value)}
               style={{ width: 200 }}
-              value={selectedSubject}
-              onChange={setSelectedSubject}
-            >
-              {selectedExam && exams.find(e => e.id === selectedExam)?.subjects.map(subjectId => {
-                const subject = subjects.find(s => s.id === subjectId);
-                return subject ? (
-                  <Option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </Option>
-                ) : null;
-              })}
-            </Select>
+            />
           </Space>
 
           {selectedClass && (
@@ -536,7 +531,7 @@ const MarksEntry = () => {
                 <Col span={8}>
                   <Statistic
                     title="Total Students"
-                    value={students.length}
+                    value={localStudents.length}
                     prefix={<TeamOutlined />}
                   />
                 </Col>
@@ -544,7 +539,7 @@ const MarksEntry = () => {
                   <Statistic
                     title="Average Percentage"
                     value={marks.length > 0 ? 
-                      (marks.reduce((acc, curr) => acc + (curr.marks / (exams.find(e => e.id === selectedExam)?.maxMarks || 100) * 100), 0) / marks.length).toFixed(2) 
+                      (marks.reduce((acc, curr) => acc + (curr.marks / (localClasses.find(e => e.id === selectedClass)?.maxMarks || 100) * 100), 0) / marks.length).toFixed(2) 
                       : 0}
                     suffix="%"
                     prefix={<LineChartOutlined />}
@@ -553,7 +548,7 @@ const MarksEntry = () => {
                 <Col span={8}>
                   <Statistic
                     title="Passed Students"
-                    value={marks.filter(m => m.marks >= ((exams.find(e => e.id === selectedExam)?.maxMarks || 100) * 0.4)).length}
+                    value={marks.filter(m => m.marks >= ((localClasses.find(e => e.id === selectedClass)?.maxMarks || 100) * 0.4)).length}
                     prefix={<CheckCircleOutlined />}
                   />
                 </Col>
@@ -565,26 +560,15 @@ const MarksEntry = () => {
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
-              onClick={() => setBulkMarksModalVisible(true)}
-              disabled={!selectedExam || !selectedClass || !selectedSubject}
+              onClick={handleAddMarks}
+              disabled={!selectedClass}
             >
-              Bulk Entry
-            </Button>
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingMarks(null);
-                setMarksModalVisible(true);
-              }}
-              disabled={!selectedExam || !selectedClass || !selectedSubject}
-            >
-              Single Entry
+              Add Marks
             </Button>
           </Space>
 
           <Table
-            dataSource={marks}
+            dataSource={filteredMarks}
             columns={columns}
             rowKey="id"
             loading={loading}
@@ -594,29 +578,29 @@ const MarksEntry = () => {
       </Card>
 
       <MarksEntryForm
-        visible={marksModalVisible}
+        visible={modalVisible}
         onCancel={() => {
-          setMarksModalVisible(false);
-          setEditingMarks(null);
+          setModalVisible(false);
+          setSelectedMarks(null);
         }}
         onSubmit={handleMarksSubmit}
-        initialValues={editingMarks}
-        students={students}
-        exam={exams.find(e => e.id === selectedExam)}
-        subjects={selectedExam ? exams.find(e => e.id === selectedExam)?.subjects.map(subjectId => 
-          subjects.find(s => s.id === subjectId)
-        ).filter(Boolean) : []}
+        initialValues={selectedMarks}
+        students={localStudents}
+        exam={localClasses.find(e => e.id === selectedClass)}
+        subjects={localClasses.find(e => e.id === selectedClass)?.subjects?.map(subjectId => 
+          localSubjects.find(s => s.id === subjectId)
+        ).filter(Boolean) || []}
       />
 
       <BulkMarksEntryForm
-        visible={bulkMarksModalVisible}
-        onCancel={() => setBulkMarksModalVisible(false)}
+        visible={false}
+        onCancel={() => {}}
         onSubmit={handleBulkMarksSubmit}
-        students={students}
-        exam={exams.find(e => e.id === selectedExam)}
-        subjects={selectedExam ? exams.find(e => e.id === selectedExam)?.subjects.map(subjectId => 
-          subjects.find(s => s.id === subjectId)
-        ).filter(Boolean) : []}
+        students={localStudents}
+        exam={localClasses.find(e => e.id === selectedClass)}
+        subjects={localClasses.find(e => e.id === selectedClass)?.subjects?.map(subjectId => 
+          localSubjects.find(s => s.id === subjectId)
+        ).filter(Boolean) || []}
       />
     </div>
   );

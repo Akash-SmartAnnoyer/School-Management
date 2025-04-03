@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, DatePicker, Select, Row, Col, Statistic, Tabs, Progress } from 'antd';
+import { Table, Card, DatePicker, Select, Row, Col, Statistic, Tabs, Progress, message } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons';
-import { subscribeToCollection, getAttendance } from '../firebase/services';
+import api from '../services/api';
 import moment from 'moment';
 
 const { RangePicker } = DatePicker;
@@ -16,24 +16,65 @@ const AttendanceReport = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-    const unsubscribeAttendance = subscribeToCollection('attendance', (data) => {
-      setAttendance(data);
-    });
-
-    return () => {
-      unsubscribeStudents();
-      unsubscribeClasses();
-      unsubscribeAttendance();
-    };
+    loadInitialData();
   }, []);
+
+  useEffect(() => {
+    if (selectedClass) {
+      loadStudents();
+    }
+  }, [selectedClass]);
+
+  useEffect(() => {
+    if (dateRange && selectedClass) {
+      loadAttendance();
+    }
+  }, [dateRange, selectedClass]);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [classesResponse, attendanceResponse] = await Promise.all([
+        api.class.getAll(),
+        api.attendance.getAll()
+      ]);
+      setClasses(classesResponse.data.data);
+      setAttendance(attendanceResponse.data.data);
+    } catch (error) {
+      message.error('Failed to load initial data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.student.getByClass(selectedClass);
+      setStudents(response.data.data);
+    } catch (error) {
+      message.error('Failed to load students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAttendance = async () => {
+    try {
+      setLoading(true);
+      const startDate = dateRange[0].format('YYYY-MM-DD');
+      const endDate = dateRange[1].format('YYYY-MM-DD');
+      const response = await api.attendance.getByDateRange(startDate, endDate);
+      setAttendance(response.data.data);
+    } catch (error) {
+      message.error('Failed to load attendance');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate attendance statistics
   const calculateAttendanceStats = (data, type) => {
@@ -259,6 +300,7 @@ const AttendanceReport = () => {
             dataSource={getClassAttendance()}
             rowKey="className"
             pagination={false}
+            loading={loading}
           />
         </TabPane>
 
@@ -268,6 +310,7 @@ const AttendanceReport = () => {
             dataSource={getDateWiseAttendance()}
             rowKey="date"
             pagination={false}
+            loading={loading}
           />
         </TabPane>
 
@@ -293,6 +336,7 @@ const AttendanceReport = () => {
               dataSource={[getStudentAttendance(selectedStudent)]}
               rowKey="studentId"
               pagination={false}
+              loading={loading}
             />
           )}
         </TabPane>
