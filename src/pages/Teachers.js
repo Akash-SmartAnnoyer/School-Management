@@ -64,12 +64,10 @@ const Teachers = () => {
   const [loading, setLoading] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
 
-  // Load teachers only when component mounts
   useEffect(() => {
     loadTeachers();
   }, []);
 
-  // Load classes only when modal is opened
   useEffect(() => {
     if (isModalVisible) {
       loadClasses();
@@ -99,8 +97,8 @@ const Teachers = () => {
         setClasses(response.data.data);
       }
     } catch (error) {
-      messageApi.error('Failed to load classes');
       console.error('Error loading classes:', error);
+      message.error('Failed to load classes');
     } finally {
       setLoadingClasses(false);
     }
@@ -139,52 +137,39 @@ const Teachers = () => {
     }
   };
 
-  const handleModalOk = async () => {
+  const handleSubmit = async () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
       
-      // Clean up the values object by removing undefined and empty string values
-      const cleanValues = Object.entries(values).reduce((acc, [key, value]) => {
-        if (value !== undefined && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {});
-
-      // Combine firstName and lastName into name
-      const name = `${values.firstName || ''} ${values.lastName || ''}`.trim();
-
-      // Convert moment objects to ISO strings
-      const teacherData = {
-        ...cleanValues,
-        name,
-        dateOfBirth: values.dateOfBirth?.toISOString(),
-        joiningDate: values.joiningDate?.toISOString(),
-        updatedAt: new Date().toISOString(),
-        photoURL: tempImage || editingTeacher?.photoURL
+      const formattedValues = {
+        ...values,
+        dateOfBirth: values.dateOfBirth?.format('YYYY-MM-DD'),
+        joiningDate: values.joiningDate?.format('YYYY-MM-DD'),
+        updatedAt: new Date().toISOString()
       };
 
       if (editingTeacher) {
-        const response = await api.teacher.update(editingTeacher.id, teacherData);
+        const response = await api.teacher.update(editingTeacher.id, formattedValues);
         if (response.data.success) {
           messageApi.success('Teacher updated successfully');
+          setIsModalVisible(false);
           loadTeachers();
         }
       } else {
-        teacherData.createdAt = new Date().toISOString();
-        const response = await api.teacher.create(teacherData);
+        const response = await api.teacher.create({
+          ...formattedValues,
+          createdAt: new Date().toISOString()
+        });
         if (response.data.success) {
           messageApi.success('Teacher added successfully');
+          setIsModalVisible(false);
           loadTeachers();
         }
       }
-      setIsModalVisible(false);
-      form.resetFields();
-      setTempImage(null);
     } catch (error) {
+      messageApi.error(editingTeacher ? 'Failed to update teacher' : 'Failed to add teacher');
       console.error('Error saving teacher:', error);
-      messageApi.error('Failed to save teacher');
     } finally {
       setLoading(false);
     }
@@ -204,10 +189,10 @@ const Teachers = () => {
         return false;
       }
 
-      const base64Image = await getBase64(file);
+      const result = await uploadImage(file);
       
       const response = await api.teacher.update(teacherId, {
-        photoURL: base64Image,
+        photoURL: result.url,
         updatedAt: new Date().toISOString()
       });
 
@@ -215,21 +200,12 @@ const Teachers = () => {
         messageApi.success('Profile picture updated successfully');
         loadTeachers();
       }
-      return false; // Prevent default upload behavior
+      return false;
     } catch (error) {
       console.error('Profile picture upload error:', error);
       messageApi.error('Failed to upload profile picture');
       return false;
     }
-  };
-
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
   };
 
   const columns = [
@@ -392,7 +368,7 @@ const Teachers = () => {
           </Space>
         }
         open={isModalVisible}
-        onOk={handleModalOk}
+        onOk={handleSubmit}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();

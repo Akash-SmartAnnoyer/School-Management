@@ -74,7 +74,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 function MainLayout() {
   const navigate = useNavigate();
-  const { currentUser, logout, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
 
@@ -110,15 +109,6 @@ function MainLayout() {
     }
   }, []);
 
-  // Add loading check
-  if (loading) {
-    return null; // or return a loading spinner component
-  }
-
-  if (!currentUser) {
-    return <Navigate to="/login" />;
-  }
-
   const menuItems = [
     { key: '1', label: 'Dashboard', icon: <DashboardOutlined />, path: '/' },
     { key: '2', label: 'Academic Calendar', icon: <CalendarOutlined />, path: '/academic-calendar' },
@@ -130,21 +120,7 @@ function MainLayout() {
     { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
     { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
     { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
-  ].filter(item => {
-    // Add null check for currentUser
-    if (!currentUser?.role) {
-      return true; // Return all items if role is not defined
-    }
-
-    // Filter menu items based on user role
-    if (currentUser.role === ROLES.TEACHER) {
-      return !['teachers', 'teacher-attendance'].includes(item.path?.slice(1));
-    }
-    if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return ['/', '/academic-calendar', '/attendance', '/academics', '/attendance-reports'].includes(item.path);
-    }
-    return true; // Show all items for PRINCIPAL
-  });
+  ];
 
   const userMenuItems = [
     {
@@ -167,7 +143,6 @@ function MainLayout() {
       label: 'Logout',
       danger: true,
       onClick: () => {
-        logout();
         navigate('/login');
       },
     },
@@ -206,43 +181,6 @@ function MainLayout() {
       icon: <FormatPainterOutlined />,
       label: 'Theme Settings',
       onClick: () => setThemeVisible(true),
-    },
-  ].filter(action => {
-    // Filter quick actions based on user role
-    if (currentUser.role === ROLES.TEACHER) {
-      return ['markAttendance', 'addNotice', 'theme'].includes(action.key);
-    }
-    if (currentUser.role === ROLES.PARENT || currentUser.role === ROLES.STUDENT) {
-      return ['theme'].includes(action.key);
-    }
-    return true; // Show all actions for PRINCIPAL
-  });
-
-  const teacherMenuItems = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-    },
-    {
-      key: 'students',
-      icon: <TeamOutlined />,
-      label: 'Students',
-    },
-    {
-      key: 'exams',
-      icon: <FileTextOutlined />,
-      label: 'Exam Management',
-    },
-    {
-      key: 'attendance',
-      icon: <CalendarOutlined />,
-      label: 'Attendance',
-    },
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Profile',
     },
   ];
 
@@ -396,7 +334,7 @@ function MainLayout() {
               minWidth: '200px'
             }}>
               <img 
-                src={currentUser?.schoolLogo || "https://via.placeholder.com/40"} 
+                src="https://via.placeholder.com/40" 
                 alt="School Logo" 
                 style={{ 
                   width: 40, 
@@ -406,7 +344,7 @@ function MainLayout() {
                 }}
               />
               <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                {currentUser?.schoolName || 'School Name'}
+                School Name
               </Title>
             </div>
           </div>
@@ -445,20 +383,6 @@ function MainLayout() {
                 </Button>
               </Dropdown>
               
-              {/* <Badge count={5}>
-                <Button 
-                  type="text" 
-                  icon={<BellOutlined />}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                />
-              </Badge> */}
-              
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 <Space style={{ 
                   cursor: 'pointer',
@@ -469,31 +393,19 @@ function MainLayout() {
                     backgroundColor: '#f5f5f5'
                   }
                 }}>
-                  {currentUser?.profilePic ? (
-                    <Avatar 
-                      src={currentUser.profilePic}
-                      style={{ 
-                        width: 32, 
-                        height: 32, 
-                        borderRadius: '50%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  ) : (
-                    <Avatar 
-                      icon={<UserOutlined />}
-                      style={{ 
-                        backgroundColor: '#1890ff',
-                        width: 32,
-                        height: 32
-                      }}
-                    />
-                  )}
+                  <Avatar 
+                    icon={<UserOutlined />}
+                    style={{ 
+                      backgroundColor: '#1890ff',
+                      width: 32,
+                      height: 32
+                    }}
+                  />
                   <span style={{ 
                     color: '#1f1f1f',
                     fontWeight: 500
                   }}>
-                    {currentUser?.name || 'Admin'}
+                    Admin
                   </span>
                 </Space>
               </Dropdown>
@@ -523,14 +435,6 @@ function MainLayout() {
             <Route path="teacher-attendance" element={<TeacherAttendance />} />
             <Route path="attendance-reports" element={<AttendanceReport />} />
             <Route path="timetable/*" element={<Timetable />} />
-            <Route
-              path="/teachers"
-              element={
-                <ProtectedRoute allowedRoles={[ROLES.PRINCIPAL]}>
-                  <TeacherManagement />
-                </ProtectedRoute>
-              }
-            />
             <Route path="/settings" element={<AccountSettings />} />
           </Routes>
         </Content>
@@ -560,15 +464,11 @@ function App() {
     >
       <MessageContext.Provider value={messageApi}>
         {contextHolder}
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/*" element={<MainLayout />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/*" element={<MainLayout />} />
+          </Routes>
+        </Router>
       </MessageContext.Provider>
     </ConfigProvider>
   );

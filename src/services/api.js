@@ -72,13 +72,89 @@ export const authAPI = {
   register: (userData) => api.post('/auth/register/', userData),
   logout: () => api.post('/auth/logout/'),
   resetPassword: (email) => api.post('/auth/reset-password/', { email }),
+  verifyToken: () => api.get('/auth/verify-token/'),
 };
 
-// Theme APIs
-export const themeAPI = {
-  getColors: () => api.get('/theme/colors/'),
-  updateColors: (colors) => api.post('/theme/colors/', { colors }),
-  checkHealth: () => api.get('/health/'),
+// Organization APIs
+export const organizationAPI = {
+  getDetails: () => api.get('/organizations/current/'),
+  updateDetails: (orgData) => api.put('/organizations/current/', orgData),
+  getSettings: () => api.get('/organizations/current/settings/'),
+  updateSettings: (settings) => api.put('/organizations/current/settings/', settings),
+};
+
+// Student APIs
+export const studentAPI = {
+  getAll: () => api.get('/students/'),
+  create: (studentData) => api.post('/students/', {
+    ...studentData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }),
+  update: (id, studentData) => api.put(`/students/${id}/`, {
+    ...studentData,
+    updatedAt: new Date().toISOString()
+  }),
+  delete: (id) => api.delete(`/students/${id}/`),
+  getByClass: (classId) => api.get(`/students/class/${classId}/`),
+  getByOrganization: () => api.get('/students/organization/'),
+  getAttendance: (studentId) => api.get(`/students/${studentId}/attendance/`),
+  getMarks: (studentId) => api.get(`/students/${studentId}/marks/`),
+};
+
+// Teacher APIs
+export const teacherAPI = {
+  getAll: () => api.get('/teachers/'),
+  create: (teacherData) => api.post('/teachers/', {
+    ...teacherData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }),
+  update: (id, teacherData) => api.put(`/teachers/${id}/`, {
+    ...teacherData,
+    updatedAt: new Date().toISOString()
+  }),
+  delete: (id) => api.delete(`/teachers/${id}/`),
+  getSchedule: (id) => api.get(`/teachers/${id}/schedule/`),
+  getByOrganization: () => api.get('/teachers/organization/'),
+  getAttendance: (teacherId) => api.get(`/teachers/${teacherId}/attendance/`),
+  getClasses: (teacherId) => api.get(`/teachers/${teacherId}/classes/`),
+};
+
+// Class APIs
+export const classAPI = {
+  getAll: () => api.get('/classes/'),
+  create: (classData) => api.post('/classes/', {
+    ...classData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }),
+  update: (id, classData) => api.put(`/classes/${id}/`, {
+    ...classData,
+    updatedAt: new Date().toISOString()
+  }),
+  delete: (id) => api.delete(`/classes/${id}/`),
+  getStudents: (classId) => api.get(`/classes/${classId}/students/`),
+  getByOrganization: () => api.get('/classes/organization/'),
+  getTimetable: (classId) => api.get(`/classes/${classId}/timetable/`),
+  getAttendance: (classId) => api.get(`/classes/${classId}/attendance/`),
+};
+
+// Subject APIs
+export const subjectAPI = {
+  getAll: () => api.get('/subjects/'),
+  create: (subjectData) => api.post('/subjects/', {
+    ...subjectData,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }),
+  update: (id, subjectData) => api.put(`/subjects/${id}/`, {
+    ...subjectData,
+    updatedAt: new Date().toISOString()
+  }),
+  delete: (id) => api.delete(`/subjects/${id}/`),
+  getByOrganization: () => api.get('/subjects/organization/'),
+  getTeachers: (subjectId) => api.get(`/subjects/${subjectId}/teachers/`),
 };
 
 // Exam APIs
@@ -96,6 +172,7 @@ export const examAPI = {
   delete: (id) => api.delete(`/exams/${id}/`),
   getMarks: (examId) => api.get(`/exams/${examId}/marks/`),
   getByOrganization: () => api.get('/exams/organization/'),
+  getByClass: (classId) => api.get(`/exams/class/${classId}/`),
 };
 
 // Marks APIs
@@ -114,73 +191,7 @@ export const marksAPI = {
   getByExam: (examId) => api.get(`/marks/exam/${examId}/`),
   getByStudent: (studentId) => api.get(`/marks/student/${studentId}/`),
   getByOrganization: () => api.get('/marks/organization/'),
-};
-
-// Class APIs
-export const classAPI = {
-  getAll: () => api.get('/classes/'),
-  create: (classData) => api.post('/classes/', {
-    ...classData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }),
-  update: (id, classData) => api.put(`/classes/${id}/`, {
-    ...classData,
-    updatedAt: new Date().toISOString()
-  }),
-  delete: (id) => api.delete(`/classes/${id}/`),
-  getStudents: (classId) => api.get(`/classes/${classId}/students/`),
-  getByOrganization: () => api.get('/classes/organization/'),
-};
-
-// Subject APIs
-export const subjectAPI = {
-  getAll: () => api.get('/subjects/'),
-  create: (subjectData) => api.post('/subjects/', {
-    ...subjectData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }),
-  update: (id, subjectData) => api.put(`/subjects/${id}/`, {
-    ...subjectData,
-    updatedAt: new Date().toISOString()
-  }),
-  delete: (id) => api.delete(`/subjects/${id}/`),
-  getByOrganization: () => api.get('/subjects/organization/'),
-};
-
-// Student APIs
-export const studentAPI = {
-  getAll: () => api.get('/students/'),
-  create: (studentData) => api.post('/students/', {
-    ...studentData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }),
-  update: (id, studentData) => api.put(`/students/${id}/`, {
-    ...studentData,
-    updatedAt: new Date().toISOString()
-  }),
-  delete: (id) => api.delete(`/students/${id}/`),
-  getByClass: (classId) => api.get(`/students/class/${classId}/`),
-  getByOrganization: () => api.get('/students/organization/'),
-};
-
-// Teacher APIs
-export const teacherAPI = {
-  getAll: () => api.get('/teachers/'),
-  create: (teacherData) => api.post('/teachers/', {
-    ...teacherData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }),
-  update: (id, teacherData) => api.put(`/teachers/${id}/`, {
-    ...teacherData,
-    updatedAt: new Date().toISOString()
-  }),
-  delete: (id) => api.delete(`/teachers/${id}/`),
-  getSchedule: (id) => api.get(`/teachers/${id}/schedule/`),
-  getByOrganization: () => api.get('/teachers/organization/'),
+  getByClass: (classId) => api.get(`/marks/class/${classId}/`),
 };
 
 // Attendance APIs
@@ -198,6 +209,9 @@ export const attendanceAPI = {
   delete: (id) => api.delete(`/attendance/${id}/`),
   getByDate: (date) => api.get(`/attendance/date/${date}/`),
   getByOrganization: () => api.get('/attendance/organization/'),
+  getByClass: (classId) => api.get(`/attendance/class/${classId}/`),
+  getByStudent: (studentId) => api.get(`/attendance/student/${studentId}/`),
+  getByTeacher: (teacherId) => api.get(`/attendance/teacher/${teacherId}/`),
 };
 
 // Timetable APIs
@@ -226,25 +240,16 @@ export const analyticsAPI = {
   getByOrganization: () => api.get('/analytics/organization/'),
 };
 
-// Organization APIs
-export const organizationAPI = {
-  getDetails: () => api.get('/organizations/current/'),
-  updateDetails: (orgData) => api.put('/organizations/current/', orgData),
-  getSettings: () => api.get('/organizations/current/settings/'),
-  updateSettings: (settings) => api.put('/organizations/current/settings/', settings),
-};
-
 // Export all APIs
 export default {
   auth: authAPI,
   organization: organizationAPI,
-  theme: themeAPI,
-  exam: examAPI,
-  marks: marksAPI,
-  class: classAPI,
-  subject: subjectAPI,
   student: studentAPI,
   teacher: teacherAPI,
+  class: classAPI,
+  subject: subjectAPI,
+  exam: examAPI,
+  marks: marksAPI,
   attendance: attendanceAPI,
   timetable: timetableAPI,
   analytics: analyticsAPI,

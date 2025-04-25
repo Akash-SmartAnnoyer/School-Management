@@ -4,8 +4,6 @@ import { SearchOutlined, UserOutlined, TeamOutlined, BookOutlined, HomeOutlined,
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
-import { useAuth } from '../contexts/AuthContext';
-import { subscribeToCollection } from '../firebase/services';
 import { useNavigate } from 'react-router-dom';
 
 const { Search } = Input;
@@ -24,30 +22,11 @@ const GlobalSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [parents, setParents] = useState([]);
-
-  useEffect(() => {
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-    const unsubscribeParents = subscribeToCollection('parents', (data) => {
-      setParents(data);
-    });
-
-    return () => {
-      unsubscribeStudents();
-      unsubscribeTeachers();
-      unsubscribeParents();
-    };
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,41 +53,13 @@ const GlobalSearch = () => {
     setLoading(true);
     setShowResults(true);
 
-    // Filter results based on user role
-    let results = [];
+    // Filter results from all categories
     const searchTerm = value.toLowerCase();
-
-    if (currentUser.role === 'PRINCIPAL') {
-      results = [
-        ...filterResults(students, searchTerm).map(s => ({ ...s, type: 'student' })),
-        ...filterResults(teachers, searchTerm).map(t => ({ ...t, type: 'teacher' })),
-        ...filterResults(parents, searchTerm).map(p => ({ ...p, type: 'parent' }))
-      ];
-    } else if (currentUser.role === 'TEACHER') {
-      // Teachers can only see their students and their parents
-      const teacherStudents = students.filter(s => s.teacherId === currentUser.id);
-      results = [
-        ...filterResults(teacherStudents, searchTerm).map(s => ({ ...s, type: 'student' })),
-        ...filterResults(parents.filter(p => 
-          teacherStudents.some(s => s.parentId === p.id)
-        ), searchTerm).map(p => ({ ...p, type: 'parent' }))
-      ];
-    } else if (currentUser.role === 'PARENT') {
-      // Parents can only see their children and their teachers
-      const parentStudents = students.filter(s => s.parentId === currentUser.id);
-      results = [
-        ...filterResults(parentStudents, searchTerm).map(s => ({ ...s, type: 'student' })),
-        ...filterResults(teachers.filter(t => 
-          parentStudents.some(s => s.teacherId === t.id)
-        ), searchTerm).map(t => ({ ...t, type: 'teacher' }))
-      ];
-    } else if (currentUser.role === 'STUDENT') {
-      // Students can only see their own info and their teachers
-      results = [
-        ...filterResults(students.filter(s => s.id === currentUser.id), searchTerm).map(s => ({ ...s, type: 'student' })),
-        ...filterResults(teachers.filter(t => t.id === currentUser.teacherId), searchTerm).map(t => ({ ...t, type: 'teacher' }))
-      ];
-    }
+    const results = [
+      ...filterResults(students, searchTerm).map(s => ({ ...s, type: 'student' })),
+      ...filterResults(teachers, searchTerm).map(t => ({ ...t, type: 'teacher' })),
+      ...filterResults(parents, searchTerm).map(p => ({ ...p, type: 'parent' }))
+    ];
 
     setSearchResults(results);
     setLoading(false);

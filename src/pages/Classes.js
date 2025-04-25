@@ -31,19 +31,31 @@ const Classes = () => {
 
   const loadClasses = async () => {
     try {
+      setLoading(true);
       const response = await api.class.getAll();
-      setClasses(response.data.data);
+      if (response.data.success) {
+        setClasses(response.data.data);
+      }
     } catch (error) {
       messageApi.error('Failed to load classes');
+      console.error('Error loading classes:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadTeachers = async () => {
     try {
+      setLoading(true);
       const response = await api.teacher.getAll();
-      setTeachers(response.data.data);
+      if (response.data.success) {
+        setTeachers(response.data.data);
+      }
     } catch (error) {
       messageApi.error('Failed to load teachers');
+      console.error('Error loading teachers:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,19 +74,14 @@ const Classes = () => {
   const handleDelete = async (classId) => {
     try {
       setLoading(true);
-      // Before deleting the class, clear the teacher's classId
-      const classToDelete = classes.find(c => c.id === classId);
-      if (classToDelete?.teacherId) {
-        const teacher = teachers.find(t => t.id === classToDelete.teacherId);
-        if (teacher) {
-          await api.teacher.update(teacher.id, { classId: null });
-        }
+      const response = await api.class.delete(classId);
+      if (response.data.success) {
+        messageApi.success('Class deleted successfully');
+        loadClasses();
       }
-      await api.class.delete(classId);
-      messageApi.success('Class deleted successfully');
-      loadClasses();
     } catch (error) {
-      messageApi.error('Error deleting class');
+      messageApi.error('Failed to delete class');
+      console.error('Error deleting class:', error);
     } finally {
       setLoading(false);
     }
@@ -90,36 +97,26 @@ const Classes = () => {
       };
 
       if (editingClass) {
-        // If teacher is being changed, update both old and new teacher's classId
-        if (editingClass.teacherId !== values.teacherId) {
-          // Clear classId from old teacher if it exists
-          if (editingClass.teacherId) {
-            const oldTeacher = teachers.find(t => t.id === editingClass.teacherId);
-            if (oldTeacher) {
-              await api.teacher.update(oldTeacher.id, { classId: null });
-            }
-          }
-          
-          // Set classId in new teacher if selected
-          if (values.teacherId) {
-            const newTeacher = teachers.find(t => t.id === values.teacherId);
-            if (newTeacher) {
-              await api.teacher.update(newTeacher.id, { classId: editingClass.id });
-            }
-          }
+        const response = await api.class.update(editingClass.id, classData);
+        if (response.data.success) {
+          messageApi.success('Class updated successfully');
+          setIsModalVisible(false);
+          loadClasses();
         }
-        await api.class.update(editingClass.id, classData);
-        messageApi.success('Class updated successfully');
       } else {
-        classData.createdAt = new Date().toISOString();
-        await api.class.create(classData);
-        messageApi.success('Class added successfully');
+        const response = await api.class.create({
+          ...classData,
+          createdAt: new Date().toISOString()
+        });
+        if (response.data.success) {
+          messageApi.success('Class added successfully');
+          setIsModalVisible(false);
+          loadClasses();
+        }
       }
-      setIsModalVisible(false);
-      form.resetFields();
-      loadClasses();
     } catch (error) {
-      messageApi.error('Error saving class');
+      messageApi.error(editingClass ? 'Failed to update class' : 'Failed to add class');
+      console.error('Error saving class:', error);
     } finally {
       setLoading(false);
     }

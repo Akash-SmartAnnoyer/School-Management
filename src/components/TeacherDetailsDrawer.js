@@ -3,7 +3,7 @@ import { Drawer, Descriptions, Avatar, Tabs, Card, Row, Col, Statistic, Empty, T
 import { UserOutlined, BookOutlined, TeamOutlined, UploadOutlined, BankOutlined } from '@ant-design/icons';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
-import { getCloudinaryImage } from '../services/imageService';
+import { getCloudinaryImage, uploadImage } from '../services/imageService';
 import api from '../services/api';
 
 const { TabPane } = Tabs;
@@ -27,9 +27,14 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       
       try {
         const response = await api.class.getAll();
-        const classData = response.data.data.filter(cls => cls.id === teacher.classId);
-        setClasses(classData);
+        if (response.data.success) {
+          const classData = response.data.data.filter(cls => cls.id === teacher.classId);
+          setClasses(classData);
+        } else {
+          messageApi.error(response.data.message || 'Failed to load class data');
+        }
       } catch (error) {
+        messageApi.error('Failed to load class data');
         console.error('Error fetching class data:', error);
       } finally {
         setLoading(false);
@@ -51,8 +56,13 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
     try {
       setLoading(true);
       const response = await api.teacher.getSchedule(teacher.id);
-      setSchedule(response.data.data);
+      if (response.data.success) {
+        setSchedule(response.data.data);
+      } else {
+        messageApi.error(response.data.message || 'Failed to load schedule');
+      }
     } catch (error) {
+      messageApi.error('Failed to load schedule');
       console.error('Error loading teacher schedule:', error);
     } finally {
       setLoading(false);
@@ -61,42 +71,22 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
 
   const handleImageUpload = async (file) => {
     try {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        messageApi.error('You can only upload image files!');
-        return false;
+      setLoading(true);
+      const imageUrl = await uploadImage(file);
+      const response = await api.teacher.update(teacher.id, { photoURL: imageUrl });
+      if (response.data.success) {
+        messageApi.success('Photo updated successfully');
+        // The parent component will handle refreshing the teacher data
+        onClose(); // Close the drawer to force a refresh
+      } else {
+        messageApi.error(response.data.message || 'Failed to update photo');
       }
-
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) {
-        messageApi.error('Image must be smaller than 2MB!');
-        return false;
-      }
-
-      const base64Image = await getBase64(file);
-      
-      // Update teacher with new profile picture
-      await api.teacher.update(teacher.id, {
-        photoURL: base64Image,
-        updatedAt: new Date().toISOString()
-      });
-
-      messageApi.success('Profile picture updated successfully');
-      return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Profile picture upload error:', error);
-      messageApi.error('Failed to upload profile picture');
-      return false;
+      messageApi.error('Failed to upload photo');
+      console.error('Error uploading photo:', error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
   };
 
   const columns = [
@@ -106,21 +96,20 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       key: 'day',
     },
     {
-      title: 'Time Slot',
-      dataIndex: 'timeSlot',
-      key: 'timeSlot',
-      render: (slot) => `Period ${slot}`
+      title: 'Time',
+      dataIndex: 'time',
+      key: 'time',
     },
     {
       title: 'Class',
-      key: 'class',
-      render: (_, record) => `${record.className} - Section ${record.section}`
+      dataIndex: 'className',
+      key: 'className',
     },
     {
       title: 'Subject',
-      dataIndex: 'subjectName',
-      key: 'subjectName',
-    }
+      dataIndex: 'subject',
+      key: 'subject',
+    },
   ];
 
   return (
@@ -128,28 +117,29 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       title="Teacher Details"
       placement="right"
       onClose={onClose}
-      open={visible}
+      visible={visible}
       width={720}
-      bodyStyle={{ padding: '24px' }}
     >
       {contextHolder}
       {teacher && (
         <div>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <Upload
-              name="photoURL"
+              name="photo"
               showUploadList={false}
-              beforeUpload={(file) => handleImageUpload(file)}
+              beforeUpload={(file) => {
+                handleImageUpload(file);
+                return false;
+              }}
               accept="image/*"
             >
               <Avatar
-                size={120}
-                src={teacher.photoURL}
-                icon={<UserOutlined />}
+                size={100}
+                src={teacher.photoURL ? getCloudinaryImage(teacher.photoURL) : null}
+                icon={!teacher.photoURL && <UserOutlined />}
               />
             </Upload>
-            <Title level={3}>{teacher.name}</Title>
-            <Typography.Text type="secondary">ID: TCH{teacher.id.slice(-6)}</Typography.Text>
+            <Title level={4} style={{ marginTop: 16 }}>{teacher.name}</Title>
           </div>
 
           <Tabs defaultActiveKey="1">
@@ -161,6 +151,10 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
                 <Descriptions.Item label="Status">{teacher.status}</Descriptions.Item>
                 <Descriptions.Item label="Email">{teacher.email}</Descriptions.Item>
                 <Descriptions.Item label="Phone">{teacher.phone}</Descriptions.Item>
+                <Descriptions.Item label="Date of Birth">{teacher.dateOfBirth}</Descriptions.Item>
+                <Descriptions.Item label="Joining Date">{teacher.joiningDate}</Descriptions.Item>
+                <Descriptions.Item label="Experience">{teacher.experience} years</Descriptions.Item>
+                <Descriptions.Item label="Specialization">{teacher.specialization}</Descriptions.Item>
               </Descriptions>
             </TabPane>
 

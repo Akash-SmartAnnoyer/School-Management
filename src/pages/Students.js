@@ -22,7 +22,8 @@ import {
   List,
   Badge,
   Tooltip,
-  Empty
+  Empty,
+  message
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -60,7 +61,6 @@ import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
 import { MessageContext } from '../App';
 import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
-import { message } from 'antd';
 import api from '../services/api';
 
 import './Students.css';
@@ -100,6 +100,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       }
     } catch (error) {
       console.error('Error loading classes:', error);
+      message.error('Failed to load classes');
     } finally {
       setLoadingClasses(false);
     }
@@ -116,13 +117,12 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 
   return (
     <Modal
-      title={initialValues ? "Edit Student" : "Add New Student"}
+      title={initialValues ? 'Edit Student' : 'Add New Student'}
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
       confirmLoading={loading}
       width={800}
-      destroyOnClose
     >
       <Form
         form={form}
@@ -134,16 +134,16 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Form.Item
               name="name"
               label="Full Name"
-              rules={[{ required: true, message: 'Please enter student name' }]}
+              rules={[{ required: true, message: 'Please input student name!' }]}
             >
-              <Input prefix={<UserOutlined />} placeholder="Enter student name" />
+              <Input prefix={<UserOutlined />} placeholder="Enter full name" />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
               name="rollNumber"
               label="Roll Number"
-              rules={[{ required: true, message: 'Please enter roll number' }]}
+              rules={[{ required: true, message: 'Please input roll number!' }]}
             >
               <Input prefix={<IdcardOutlined />} placeholder="Enter roll number" />
             </Form.Item>
@@ -153,9 +153,33 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'Please input email!' },
+                { type: 'email', message: 'Please enter a valid email!' }
+              ]}
+            >
+              <Input prefix={<MailOutlined />} placeholder="Enter email" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="phone"
+              label="Phone"
+              rules={[{ required: true, message: 'Please input phone number!' }]}
+            >
+              <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
               name="classId"
               label="Class"
-              rules={[{ required: true, message: 'Please select class' }]}
+              rules={[{ required: false, message: 'Please select class' }]}
             >
               <Select
                 placeholder="Select class"
@@ -186,72 +210,59 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
-              name="dateOfBirth"
-              label="Date of Birth"
-              rules={[{ required: true, message: 'Please select date of birth' }]}
+              name="address"
+              label="Address"
+              rules={[{ required: true, message: 'Please input address!' }]}
             >
-              <Input
-                type="date"
-                prefix={<CalendarOutlined />}
-                placeholder="Select date of birth"
+              <Input.TextArea
+                prefix={<HomeOutlined />}
+                placeholder="Enter address"
+                rows={3}
               />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { required: true, message: 'Please enter email' },
-                { type: 'email', message: 'Please enter a valid email' }
-              ]}
-            >
-              <Input prefix={<MailOutlined />} placeholder="Enter email" />
             </Form.Item>
           </Col>
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
-              name="phone"
-              label="Phone Number"
-              rules={[{ required: true, message: 'Please enter phone number' }]}
+              name="photoURL"
+              label="Photo"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => {
+                if (Array.isArray(e)) {
+                  return e;
+                }
+                return e?.fileList;
+              }}
             >
-              <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="address"
-              label="Address"
-              rules={[{ required: true, message: 'Please enter address' }]}
-            >
-              <Input prefix={<HomeOutlined />} placeholder="Enter address" />
+              <Upload
+                listType="picture-card"
+                maxCount={1}
+                beforeUpload={() => false}
+                onChange={async ({ fileList }) => {
+                  if (fileList.length > 0) {
+                    try {
+                      const file = fileList[0].originFileObj;
+                      const result = await uploadImage(file);
+                      form.setFieldsValue({ photoURL: result.url });
+                    } catch (error) {
+                      console.error('Error uploading image:', error);
+                      message.error('Failed to upload image');
+                    }
+                  }
+                }}
+              >
+                <div>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 8 }}>Upload</div>
+                </div>
+              </Upload>
             </Form.Item>
           </Col>
         </Row>
-
-        <Form.Item
-          name="photoURL"
-          label="Profile Photo"
-          valuePropName="fileList"
-        >
-          <Upload
-            name="photo"
-            listType="picture-card"
-            maxCount={1}
-            beforeUpload={() => false}
-            accept="image/*"
-          >
-            <div>
-              <UploadOutlined />
-              <div style={{ marginTop: 8 }}>Upload</div>
-            </div>
-          </Upload>
-        </Form.Item>
       </Form>
     </Modal>
   );
@@ -270,7 +281,6 @@ const Students = () => {
   const [totalStudents, setTotalStudents] = useState(0);
   const messageApi = useContext(MessageContext);
 
-  // Load students only when component mounts or page changes
   useEffect(() => {
     loadStudents();
   }, [currentPage, pageSize]);
@@ -320,32 +330,32 @@ const Students = () => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const studentData = {
-        ...values,
-        status: 'active'
-      };
-
       if (editingStudent) {
-        const response = await api.student.update(editingStudent.id, studentData);
+        const response = await api.student.update(editingStudent.id, values);
         if (response.data.success) {
           messageApi.success('Student updated successfully');
+          setModalVisible(false);
           loadStudents();
         }
       } else {
-        const response = await api.student.create(studentData);
+        const response = await api.student.create(values);
         if (response.data.success) {
           messageApi.success('Student added successfully');
+          setModalVisible(false);
           loadStudents();
         }
       }
-      setModalVisible(false);
-      setEditingStudent(null);
     } catch (error) {
-      messageApi.error('Failed to save student');
+      messageApi.error(editingStudent ? 'Failed to update student' : 'Failed to add student');
       console.error('Error saving student:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDetails = (student) => {
+    setSelectedStudent(student);
+    setDetailsVisible(true);
   };
 
   const handleImageUpload = async (file, studentId) => {
@@ -362,11 +372,11 @@ const Students = () => {
         return false;
       }
 
-      const base64Image = await getBase64(file);
+      const result = await uploadImage(file);
       
       // Update student with new profile picture
       const response = await api.student.update(studentId, {
-        photoURL: base64Image,
+        photoURL: result.url,
         updatedAt: new Date().toISOString()
       });
 
@@ -380,20 +390,6 @@ const Students = () => {
       messageApi.error('Failed to upload profile picture');
       return false;
     }
-  };
-
-  const getBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  const handleViewDetails = (student) => {
-    setSelectedStudent(student);
-    setDetailsVisible(true);
   };
 
   const columns = [
