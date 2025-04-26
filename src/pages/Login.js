@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Select, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, TeamOutlined, BookOutlined, CalendarOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import SchoolLogo from '../components/SchoolLogo';
 import './Login.css';
 
@@ -10,14 +11,14 @@ const { Option } = Select;
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Simulate login delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await login(values.username, values.password, values.role);
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);

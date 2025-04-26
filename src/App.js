@@ -421,21 +421,71 @@ function MainLayout() {
           minHeight: 'calc(100vh - 96px)'
         }}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/students" element={<Students />} />
-            <Route path="/teachers" element={<Teachers />} />
-            <Route path="/classes" element={<Classes />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/academics" element={<Academics />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="exam-management" element={<ExamManagement />} />
-            <Route path="academic-calendar" element={<AcademicCalendar />} />
-            <Route path="teacher-attendance" element={<TeacherAttendance />} />
-            <Route path="attendance-reports" element={<AttendanceReport />} />
-            <Route path="timetable/*" element={<Timetable />} />
-            <Route path="/settings" element={<AccountSettings />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/students" element={
+              <ProtectedRoute>
+                <Students />
+              </ProtectedRoute>
+            } />
+            <Route path="/teachers" element={
+              <ProtectedRoute>
+                <Teachers />
+              </ProtectedRoute>
+            } />
+            <Route path="/classes" element={
+              <ProtectedRoute>
+                <Classes />
+              </ProtectedRoute>
+            } />
+            <Route path="/attendance" element={
+              <ProtectedRoute>
+                <Attendance />
+              </ProtectedRoute>
+            } />
+            <Route path="/academics" element={
+              <ProtectedRoute>
+                <Academics />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/exam-management" element={
+              <ProtectedRoute>
+                <ExamManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/academic-calendar" element={
+              <ProtectedRoute>
+                <AcademicCalendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher-attendance" element={
+              <ProtectedRoute>
+                <TeacherAttendance />
+              </ProtectedRoute>
+            } />
+            <Route path="/attendance-reports" element={
+              <ProtectedRoute>
+                <AttendanceReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/timetable/*" element={
+              <ProtectedRoute>
+                <Timetable />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <AccountSettings />
+              </ProtectedRoute>
+            } />
           </Routes>
         </Content>
       </Layout>
@@ -455,22 +505,30 @@ function App() {
   const [messageApi, contextHolder] = message.useMessage();
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#1890ff',
-        },
-      }}
-    >
-      <MessageContext.Provider value={messageApi}>
-        {contextHolder}
-        <Router>
-          <Routes>
-            <Route path="/*" element={<MainLayout />} />
-          </Routes>
-        </Router>
-      </MessageContext.Provider>
-    </ConfigProvider>
+    <AuthProvider>
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#1890ff',
+          },
+        }}
+      >
+        <MessageContext.Provider value={messageApi}>
+          {contextHolder}
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Router>
+        </MessageContext.Provider>
+      </ConfigProvider>
+    </AuthProvider>
   );
 }
 
