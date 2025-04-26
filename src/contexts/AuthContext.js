@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { message } from 'antd';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -22,89 +22,79 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for existing session
-    const savedUser = localStorage.getItem('currentUser');
     const token = localStorage.getItem('token');
-    
-    if (savedUser && token) {
-      const userData = JSON.parse(savedUser);
+    if (token) {
       // Verify token and get user data
-      api.auth.verifyToken()
-        .then(response => {
-          if (response.data.success) {
-            setCurrentUser(userData);
-          } else {
-            // Token is invalid, clear storage
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('token');
-          }
-        })
-        .catch(error => {
-          console.error('Error verifying token:', error);
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('token');
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
+      const userData = JSON.parse(localStorage.getItem('currentUser'));
+      if (userData) {
+        setCurrentUser(userData);
+      }
     }
+    setLoading(false);
   }, []);
 
-  const login = async (username, password, role) => {
+  const login = async (emailOrPhone, password, role) => {
     try {
-      const response = await api.auth.login({
-        username,
+      console.log('Attempting login with:', { emailOrPhone, role });
+      const response = await authAPI.login({
+        email_or_phone: emailOrPhone,
         password,
         role
       });
 
-      if (response.data.success) {
-        const { user, token } = response.data.data;
+      console.log('Login response:', response);
+
+      if (response.data) {
+        const { access, user } = response.data;
         
         // Store token and user data
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', access);
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         setCurrentUser(user);
         message.success('Login successful!');
         return user;
-      } else {
-        throw new Error(response.data.message || 'Login failed');
       }
     } catch (error) {
-      message.error(error.message || 'Login failed');
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      
+      const errorMessage = error.response?.data?.non_field_errors?.[0] || 
+                          error.response?.data?.detail || 
+                          'Login failed. Please check your credentials.';
+      message.error(errorMessage);
       throw error;
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await api.auth.register(userData);
+      const response = await authAPI.register(userData);
       
-      if (response.data.success) {
-        const { user, token } = response.data.data;
+      if (response.data) {
+        const { access, user } = response.data;
         
         // Store token and user data
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', access);
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         setCurrentUser(user);
         message.success('Registration successful!');
         return user;
-      } else {
-        throw new Error(response.data.message || 'Registration failed');
       }
     } catch (error) {
-      message.error(error.message || 'Registration failed');
+      const errorMessage = error.response?.data?.message || 'Registration failed';
+      message.error(errorMessage);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
-      await api.auth.logout();
+      await authAPI.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -117,7 +107,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (userData) => {
     try {
-      const response = await api.auth.updateProfile(userData);
+      const response = await authAPI.updateProfile(userData);
       
       if (response.data.success) {
         const updatedUser = {

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://360schoolingdev.vercel.app/api';
 const API_VERSION = 'v1';
 
 // Create axios instance with default config
@@ -9,70 +9,65 @@ const api = axios.create({
   baseURL: `${API_URL}/${API_VERSION}`,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: false,
 });
 
-// Add request interceptor for authentication and organization ID
+// Add request interceptor for authentication
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    if (currentUser?.schoolId) {
-      config.headers['X-Organization-ID'] = currentUser.schoolId;
-    }
-    
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for error handling and response standardization
+// Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    // Standardize successful response structure
-    return {
-      data: {
-        success: true,
-        data: response.data.data || response.data,
-        message: response.data.message || 'Operation successful'
-      }
-    };
+    return response;
   },
   (error) => {
-    // Standardize error response structure
-    const errorResponse = {
-      data: {
-        success: false,
-        data: null,
-        message: error.response?.data?.message || error.message || 'An error occurred',
-        errors: error.response?.data?.errors || null
-      }
-    };
-
+    console.error('Response error:', error.response || error);
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       localStorage.removeItem('token');
+      localStorage.removeItem('currentUser');
       window.location.href = '/login';
     }
-
-    return Promise.reject(errorResponse);
+    return Promise.reject(error);
   }
 );
 
 // Auth APIs
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login/', credentials),
-  register: (userData) => api.post('/auth/register/', userData),
-  logout: () => api.post('/auth/logout/'),
-  resetPassword: (email) => api.post('/auth/reset-password/', { email }),
-  verifyToken: () => api.get('/auth/verify-token/'),
+  login: (credentials) => api.post('/login/', credentials),
+  register: (userData) => api.post('/register/', userData),
+  logout: () => api.post('/logout/'),
+};
+
+// User Management APIs
+export const userAPI = {
+  // Get user by ID
+  getUserById: (userId) => api.get(`/user/get/${userId}/`),
+  
+  // Update user by ID
+  updateUser: (userId, userData) => api.patch(`/user/update/${userId}/`, userData),
+  
+  // Delete user by ID
+  deleteUser: (userId) => api.delete(`/user/delete/${userId}/`),
+  
+  // Register student
+  registerStudent: (studentData) => api.post('/register/', studentData),
+  
+  // Register teacher
+  registerTeacher: (teacherData) => api.post('/register/', teacherData),
 };
 
 // Organization APIs
@@ -253,4 +248,5 @@ export default {
   attendance: attendanceAPI,
   timetable: timetableAPI,
   analytics: analyticsAPI,
+  user: userAPI,
 }; 

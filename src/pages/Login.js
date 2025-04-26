@@ -18,11 +18,10 @@ const Login = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      await login(values.username, values.password, values.role);
+      await login(values.email_or_phone, values.password, values.role);
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      message.error('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -95,18 +94,19 @@ const Login = () => {
                   placeholder="Select Role"
                   suffixIcon={<UserOutlined style={{ color: '#3b82f6' }} />}
                 >
-                  <Option value="PRINCIPAL">Principal</Option>
-                  <Option value="TEACHER">Teacher</Option>
+                  <Option value="principal">Principal</Option>
+                  <Option value="teacher">Teacher</Option>
+                  <Option value="student">Student</Option>
                 </Select>
               </Form.Item>
 
               <Form.Item
-                name="username"
-                rules={[{ required: true, message: 'Please input your username!' }]}
+                name="email_or_phone"
+                rules={[{ required: true, message: 'Please input your email or phone!' }]}
               >
                 <Input
                   prefix={<UserOutlined style={{ color: '#3b82f6' }} />}
-                  placeholder="Username"
+                  placeholder="Email or Phone"
                   size="large"
                 />
               </Form.Item>
