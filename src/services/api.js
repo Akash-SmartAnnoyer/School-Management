@@ -238,7 +238,7 @@ export const teacherAPI = {
 // Class APIs
 export const classAPI = {
   getClasses: async () => {
-    const response = await fetch(`${BASE_URL}/classes/`, {
+    const response = await fetch(`${BASE_URL}/classrooms/`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include'
@@ -246,7 +246,7 @@ export const classAPI = {
     return handleResponse(response);
   },
   getClass: async (id) => {
-    const response = await fetch(`${BASE_URL}/classes/${id}/`, {
+    const response = await fetch(`${BASE_URL}/classrooms/${id}/`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include'
@@ -254,27 +254,48 @@ export const classAPI = {
     return handleResponse(response);
   },
   createClass: async (classData) => {
-    const response = await fetch(`${BASE_URL}/classes/`, {
+    const response = await fetch(`${BASE_URL}/classrooms/create/`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify(classData),
+      body: JSON.stringify({
+        class_name: classData.className,
+        section: classData.section,
+        teacher: classData.teacherId,
+        capacity: classData.capacity,
+        status: classData.status.toLowerCase()
+      }),
       credentials: 'include'
     });
     return handleResponse(response);
   },
   updateClass: async (id, classData) => {
-    const response = await fetch(`${BASE_URL}/classes/${id}/`, {
+    const response = await fetch(`${BASE_URL}/classrooms/update/${id}/`, {
       method: 'PUT',
       headers: getHeaders(),
-      body: JSON.stringify(classData),
+      body: JSON.stringify({
+        class_name: classData.className,
+        section: classData.section,
+        teacher: classData.teacherId,
+        capacity: classData.capacity,
+        status: classData.status.toLowerCase()
+      }),
       credentials: 'include'
     });
     return handleResponse(response);
   },
   deleteClass: async (id) => {
-    const response = await fetch(`${BASE_URL}/classes/${id}/`, {
+    const response = await fetch(`${BASE_URL}/classrooms/delete/${id}/`, {
       method: 'DELETE',
       headers: getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  addStudentsToClass: async (classId, studentIds) => {
+    const response = await fetch(`${BASE_URL}/classrooms/${classId}/add-students/`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ student_ids: studentIds }),
       credentials: 'include'
     });
     return handleResponse(response);

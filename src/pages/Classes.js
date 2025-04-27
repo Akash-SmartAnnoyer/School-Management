@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Tabs, Row, Col, Descriptions } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Tabs, Row, Col, Descriptions, Transfer } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
@@ -23,18 +23,22 @@ const Classes = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [studentTransferVisible, setStudentTransferVisible] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState([]);
 
   useEffect(() => {
     loadClasses();
     loadTeachers();
+    loadStudents();
   }, []);
 
   const loadClasses = async () => {
     try {
       setLoading(true);
       const response = await api.class.getClasses();
-      if (response.data.success) {
-        setClasses(response.data.data);
+      if (response) {
+        setClasses(response);
       }
     } catch (error) {
       messageApi.error('Failed to load classes');
@@ -48,12 +52,27 @@ const Classes = () => {
     try {
       setLoading(true);
       const response = await api.teacher.getTeachers();
-      if (response.data.success) {
-        setTeachers(response.data.data);
+      if (response) {
+        setTeachers(response);
       }
     } catch (error) {
       messageApi.error('Failed to load teachers');
       console.error('Error loading teachers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.student.getStudents();
+      if (response) {
+        setStudents(response);
+      }
+    } catch (error) {
+      messageApi.error('Failed to load students');
+      console.error('Error loading students:', error);
     } finally {
       setLoading(false);
     }
@@ -67,18 +86,22 @@ const Classes = () => {
 
   const handleEdit = (record) => {
     setEditingClass(record);
-    form.setFieldsValue(record);
+    form.setFieldsValue({
+      className: record.class_name,
+      section: record.section,
+      teacherId: record.teacher?.id,
+      capacity: record.capacity,
+      status: record.status.charAt(0).toUpperCase() + record.status.slice(1)
+    });
     setIsModalVisible(true);
   };
 
   const handleDelete = async (classId) => {
     try {
       setLoading(true);
-      const response = await api.class.deleteClass(classId);
-      if (response.data.success) {
-        messageApi.success('Class deleted successfully');
-        loadClasses();
-      }
+      await api.class.deleteClass(classId);
+      messageApi.success('Class deleted successfully');
+      loadClasses();
     } catch (error) {
       messageApi.error('Failed to delete class');
       console.error('Error deleting class:', error);
@@ -92,31 +115,46 @@ const Classes = () => {
       setLoading(true);
       const values = await form.validateFields();
       const classData = {
-        ...values,
-        updatedAt: new Date().toISOString()
+        className: values.className,
+        section: values.section,
+        teacherId: values.teacherId,
+        capacity: values.capacity,
+        status: values.status
       };
 
       if (editingClass) {
-        const response = await api.class.updateClass(editingClass.id, classData);
-        if (response.data.success) {
-          messageApi.success('Class updated successfully');
-          setIsModalVisible(false);
-          loadClasses();
-        }
+        await api.class.updateClass(editingClass.id, classData);
+        messageApi.success('Class updated successfully');
       } else {
-        const response = await api.class.createClass({
-          ...classData,
-          createdAt: new Date().toISOString()
-        });
-        if (response.data.success) {
-          messageApi.success('Class added successfully');
-          setIsModalVisible(false);
-          loadClasses();
-        }
+        await api.class.createClass(classData);
+        messageApi.success('Class added successfully');
       }
+      setIsModalVisible(false);
+      loadClasses();
     } catch (error) {
       messageApi.error(editingClass ? 'Failed to update class' : 'Failed to add class');
       console.error('Error saving class:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddStudents = (record) => {
+    setSelectedClass(record);
+    setSelectedStudents(record.students?.map(s => s.id) || []);
+    setStudentTransferVisible(true);
+  };
+
+  const handleStudentTransferChange = async (targetKeys) => {
+    try {
+      setLoading(true);
+      await api.class.addStudentsToClass(selectedClass.id, targetKeys);
+      messageApi.success('Students added to class successfully');
+      loadClasses();
+      setStudentTransferVisible(false);
+    } catch (error) {
+      messageApi.error('Failed to add students to class');
+      console.error('Error adding students to class:', error);
     } finally {
       setLoading(false);
     }
@@ -137,14 +175,17 @@ const Classes = () => {
           <Row gutter={[16, 16]}>
             <Col span={24}>
               <Descriptions bordered>
-                <Descriptions.Item label="Class Name">{record.className}</Descriptions.Item>
+                <Descriptions.Item label="Class Name">{record.class_name}</Descriptions.Item>
                 <Descriptions.Item label="Section">{record.section}</Descriptions.Item>
                 <Descriptions.Item label="Class Teacher">
-                  {teachers.find(t => t.id === record.teacherId)?.name || 'Not Assigned'}
+                  {record.teacher ? teachers.find(t => t.id === record.teacher)?.name || 'Not Assigned' : 'Not Assigned'}
                 </Descriptions.Item>
-                <Descriptions.Item label="Total Students">{record.totalStudents || 0}</Descriptions.Item>
-                <Descriptions.Item label="Room Number">{record.roomNumber}</Descriptions.Item>
                 <Descriptions.Item label="Capacity">{record.capacity}</Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  <Tag color={record.status === 'active' ? 'green' : 'red'}>
+                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                  </Tag>
+                </Descriptions.Item>
               </Descriptions>
             </Col>
           </Row>
@@ -159,8 +200,8 @@ const Classes = () => {
   const columns = [
     {
       title: 'Class Name',
-      dataIndex: 'className',
-      key: 'className',
+      dataIndex: 'class_name',
+      key: 'class_name',
       render: (text, record) => (
         <Button type="link" onClick={() => {
           setSelectedClass(record);
@@ -178,12 +219,12 @@ const Classes = () => {
     },
     {
       title: 'Teacher',
-      dataIndex: 'teacherId',
-      key: 'teacherId',
+      dataIndex: 'teacher',
+      key: 'teacher',
       render: (teacherId) => {
         if (!teacherId) return 'Not Assigned';
         const teacher = teachers.find(t => t.id === teacherId);
-        return teacher ? teacher.name : '-';
+        return teacher ? teacher.name : 'Not Assigned';
       },
     },
     {
@@ -197,8 +238,8 @@ const Classes = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
-          {status}
+        <Tag color={status === 'active' ? 'green' : 'red'}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
         </Tag>
       ),
     },
@@ -207,6 +248,11 @@ const Classes = () => {
       key: 'actions',
       render: (_, record) => (
         <Space>
+          <Button
+            icon={<UserAddOutlined />}
+            size="small"
+            onClick={() => handleAddStudents(record)}
+          />
           <Button
             icon={<EditOutlined />}
             size="small"
@@ -297,14 +343,6 @@ const Classes = () => {
           </Form.Item>
 
           <Form.Item
-            name="roomNumber"
-            label="Room Number"
-            rules={[{ required: true, message: 'Please enter room number' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
             name="status"
             label="Status"
             rules={[{ required: true, message: 'Please select status' }]}
@@ -330,6 +368,29 @@ const Classes = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Add Students to Class"
+        open={studentTransferVisible}
+        onCancel={() => setStudentTransferVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <Transfer
+          dataSource={students.map(student => ({
+            key: student.id,
+            title: `${student.first_name} ${student.last_name}`,
+            description: `Roll No: ${student.roll_no || 'N/A'}`
+          }))}
+          targetKeys={selectedStudents}
+          onChange={handleStudentTransferChange}
+          render={item => item.title}
+          listStyle={{
+            width: 300,
+            height: 400,
+          }}
+        />
       </Modal>
 
       <ClassDetailsDrawer
