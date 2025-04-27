@@ -11,7 +11,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: false,
+  withCredentials: true,
 });
 
 // Add request interceptor for authentication
@@ -24,7 +24,6 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -35,7 +34,6 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('Response error:', error.response || error);
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('currentUser');

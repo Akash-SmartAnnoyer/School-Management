@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Select, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, TeamOutlined, BookOutlined, CalendarOutlined, BarChartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import SchoolLogo from '../components/SchoolLogo';
 import './Login.css';
 
@@ -11,17 +10,18 @@ const { Option } = Select;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      await login(values.email_or_phone, values.password, values.role);
+      // Simulate login delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
+      message.error('Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -94,19 +94,18 @@ const Login = () => {
                   placeholder="Select Role"
                   suffixIcon={<UserOutlined style={{ color: '#3b82f6' }} />}
                 >
-                  <Option value="principal">Principal</Option>
-                  <Option value="teacher">Teacher</Option>
-                  <Option value="student">Student</Option>
+                  <Option value="PRINCIPAL">Principal</Option>
+                  <Option value="TEACHER">Teacher</Option>
                 </Select>
               </Form.Item>
 
               <Form.Item
-                name="email_or_phone"
-                rules={[{ required: true, message: 'Please input your email or phone!' }]}
+                name="username"
+                rules={[{ required: true, message: 'Please input your username!' }]}
               >
                 <Input
                   prefix={<UserOutlined style={{ color: '#3b82f6' }} />}
-                  placeholder="Email or Phone"
+                  placeholder="Username"
                   size="large"
                 />
               </Form.Item>

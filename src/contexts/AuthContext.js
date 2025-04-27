@@ -35,14 +35,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (emailOrPhone, password, role) => {
     try {
-      console.log('Attempting login with:', { emailOrPhone, role });
       const response = await authAPI.login({
         email_or_phone: emailOrPhone,
         password,
         role
       });
-
-      console.log('Login response:', response);
 
       if (response.data) {
         const { access, user } = response.data;
@@ -56,15 +53,7 @@ export const AuthProvider = ({ children }) => {
         return user;
       }
     } catch (error) {
-      console.error('Login error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      
-      const errorMessage = error.response?.data?.non_field_errors?.[0] || 
-                          error.response?.data?.detail || 
-                          'Login failed. Please check your credentials.';
+      const errorMessage = error.response?.data?.non_field_errors?.[0] || 'Login failed';
       message.error(errorMessage);
       throw error;
     }
