@@ -32,7 +32,7 @@ const Classes = () => {
   const loadClasses = async () => {
     try {
       setLoading(true);
-      const response = await api.class.getAll();
+      const response = await api.class.getClasses();
       if (response.data.success) {
         setClasses(response.data.data);
       }
@@ -47,7 +47,7 @@ const Classes = () => {
   const loadTeachers = async () => {
     try {
       setLoading(true);
-      const response = await api.teacher.getAll();
+      const response = await api.teacher.getTeachers();
       if (response.data.success) {
         setTeachers(response.data.data);
       }
@@ -74,7 +74,7 @@ const Classes = () => {
   const handleDelete = async (classId) => {
     try {
       setLoading(true);
-      const response = await api.class.delete(classId);
+      const response = await api.class.deleteClass(classId);
       if (response.data.success) {
         messageApi.success('Class deleted successfully');
         loadClasses();
@@ -97,14 +97,14 @@ const Classes = () => {
       };
 
       if (editingClass) {
-        const response = await api.class.update(editingClass.id, classData);
+        const response = await api.class.updateClass(editingClass.id, classData);
         if (response.data.success) {
           messageApi.success('Class updated successfully');
           setIsModalVisible(false);
           loadClasses();
         }
       } else {
-        const response = await api.class.create({
+        const response = await api.class.createClass({
           ...classData,
           createdAt: new Date().toISOString()
         });
