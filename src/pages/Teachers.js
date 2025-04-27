@@ -78,11 +78,13 @@ const Teachers = () => {
     try {
       setLoading(true);
       const response = await api.teacher.getTeachers();
-      if (response.data.success) {
-        setTeachers(response.data.data);
+      if (response.success) {
+        setTeachers(response.data);
+      } else {
+        messageApi.error('Failed to load teachers');
       }
     } catch (error) {
-      messageApi.error('Failed to load teachers');
+      messageApi.error(error.message || 'Failed to load teachers');
       console.error('Error loading teachers:', error);
     } finally {
       setLoading(false);

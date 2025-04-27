@@ -11,15 +11,27 @@ const handleResponse = async (response) => {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('currentUser');
       window.location.href = '/login';
+      throw new Error('Unauthorized');
     }
     const error = await response.json();
-    // Handle non_field_errors specifically
-    if (error.non_field_errors && error.non_field_errors.length > 0) {
-      throw new Error(error.non_field_errors[0]);
-    }
     throw new Error(error.message || 'Something went wrong');
   }
-  return response.json();
+
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
+    return {
+      status: response.status,
+      data: data,
+      success: response.status >= 200 && response.status < 300
+    };
+  }
+  
+  return {
+    status: response.status,
+    data: await response.text(),
+    success: response.status >= 200 && response.status < 300
+  };
 };
 
 // Helper function to get headers

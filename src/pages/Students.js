@@ -487,12 +487,14 @@ const Students = () => {
     try {
       setLoading(true);
       const response = await api.student.getStudents();
-      if (response.data.success) {
-        setStudents(response.data.data);
-        setTotalStudents(response.data.data.length);
+      if (response.success) {
+        setStudents(response.data);
+        setTotalStudents(response.data.length);
+      } else {
+        messageApi.error('Failed to load students');
       }
     } catch (error) {
-      messageApi.error('Failed to load students');
+      messageApi.error(error.message || 'Failed to load students');
       console.error('Error loading students:', error);
     } finally {
       setLoading(false);
