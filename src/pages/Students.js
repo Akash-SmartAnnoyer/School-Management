@@ -23,7 +23,8 @@ import {
   Badge,
   Tooltip,
   Empty,
-  message
+  message,
+  Popconfirm
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -84,7 +85,13 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
     if (visible) {
       loadClasses();
       if (initialValues) {
-        form.setFieldsValue(initialValues);
+        // Format the initial values for the form
+        const formattedValues = {
+          ...initialValues,
+          dob: initialValues.dob ? moment(initialValues.dob) : null,
+          admission_date: initialValues.admission_date ? moment(initialValues.admission_date) : null
+        };
+        form.setFieldsValue(formattedValues);
       } else {
         form.resetFields();
       }
@@ -507,20 +514,55 @@ const Students = () => {
   };
 
   const handleEdit = (student) => {
+    // Format the student data for the form
+    const formValues = {
+      ...student,
+      dob: student.dob ? moment(student.dob) : null,
+      admission_date: student.student_profile?.admission_date ? moment(student.student_profile.admission_date) : null,
+      // Flatten nested profile data
+      address: student.profile?.address,
+      blood_group: student.profile?.blood_group,
+      class_name: student.profile?.class_name,
+      nationality: student.profile?.nationality,
+      // Flatten nested student_profile data
+      student_id: student.student_profile?.student_id,
+      admission_number: student.student_profile?.admission_number,
+      last_grade_attended: student.student_profile?.last_grade_attended,
+      roll_no: student.student_profile?.roll_no,
+      section: student.student_profile?.section,
+      father_name: student.student_profile?.father_name,
+      father_occupation: student.student_profile?.father_occupation,
+      mother_name: student.student_profile?.mother_name,
+      mother_occupation: student.student_profile?.mother_occupation,
+      parent_address: student.student_profile?.parent_address,
+      parent_email: student.student_profile?.parent_email,
+      parent_phone: student.student_profile?.parent_phone,
+      allergies: student.student_profile?.allergies,
+      remarks: student.student_profile?.remarks
+    };
+    
     setEditingStudent(student);
     setModalVisible(true);
   };
 
   const handleDelete = async (studentId) => {
+    console.log('Deleting student with ID:', studentId); // Debug log
+    if (!studentId) {
+      messageApi.error('Invalid student ID');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await api.student.deleteStudent(studentId);
-      if (response.data.success) {
+      if (response.data?.success) {
         messageApi.success('Student deleted successfully');
         loadStudents();
+      } else {
+        messageApi.error(response.data?.message || 'Failed to delete student');
       }
     } catch (error) {
-      messageApi.error('Failed to delete student');
+      messageApi.error(error.response?.data?.message || 'Failed to delete student');
       console.error('Error deleting student:', error);
     } finally {
       setLoading(false);
@@ -656,32 +698,41 @@ const Students = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="View Details">
-            <Button
-              type="text"
-              icon={<UserOutlined />}
-              onClick={() => handleViewDetails(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record.id)}
-            />
-          </Tooltip>
-        </Space>
-      ),
+      render: (_, record) => {
+        console.log('Student record:', record); // Debug log
+        return (
+          <Space>
+            <Tooltip title="View Details">
+              <Button
+                type="text"
+                icon={<UserOutlined />}
+                onClick={() => handleViewDetails(record)}
+              />
+            </Tooltip>
+            <Tooltip title="Edit">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
+            </Tooltip>
+            <Popconfirm
+              title="Are you sure you want to delete this student?"
+              onConfirm={() => handleDelete(record.user_id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Tooltip title="Delete">
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 

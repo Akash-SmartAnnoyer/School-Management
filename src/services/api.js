@@ -193,7 +193,7 @@ export const studentAPI = {
     return handleResponse(response);
   },
   deleteStudent: async (id) => {
-    const response = await fetch(`${BASE_URL}/students/${id}/`, {
+    const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
       method: 'DELETE',
       headers: getHeaders(),
       credentials: 'include'
