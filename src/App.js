@@ -36,6 +36,7 @@ import TeacherManagement from './pages/TeacherManagement';
 import Profile from './pages/Profile';
 import AccountSettings from './pages/AccountSettings';
 import Sidebar from './components/Sidebar';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -62,7 +63,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { currentUser, loading } = useAuth();
   
   if (loading) {
-    return <div>Loading...</div>; // You might want to replace this with a proper loading component
+    return <LoadingSpinner />;
   }
   
   if (!currentUser) {
