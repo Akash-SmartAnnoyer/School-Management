@@ -92,7 +92,7 @@ const Teachers = () => {
   const loadClasses = async () => {
     try {
       setLoadingClasses(true);
-      const response = await api.class.getAll();
+      const response = await api.class.getClasses();
       if (response.data.success) {
         setClasses(response.data.data);
       }
@@ -124,7 +124,7 @@ const Teachers = () => {
   const handleDelete = async (teacherId) => {
     try {
       setLoading(true);
-      const response = await api.teacher.delete(teacherId);
+      const response = await api.teacher.deleteTeacher(teacherId);
       if (response.data.success) {
         messageApi.success('Teacher deleted successfully');
         loadTeachers();
@@ -142,34 +142,61 @@ const Teachers = () => {
       setLoading(true);
       const values = await form.validateFields();
       
-      const formattedValues = {
-        ...values,
-        dateOfBirth: values.dateOfBirth?.format('YYYY-MM-DD'),
-        joiningDate: values.joiningDate?.format('YYYY-MM-DD'),
-        updatedAt: new Date().toISOString()
+      const payload = {
+        first_name: values.first_name,
+        last_name: values.last_name,
+        email: values.email,
+        phone: values.phone,
+        gender: values.gender,
+        dob: values.dob?.format('YYYY-MM-DD'),
+        role: 'teacher',
+        password: values.password,
+        confirm_password: values.confirm_password,
+        profile: {
+          address: values.address,
+          blood_group: values.blood_group,
+          class_name: values.class_name || 'NA',
+          nationality: values.nationality
+        },
+        teacher_profile: {
+          employee_id: values.employee_id,
+          joining_date: values.joining_date?.format('YYYY-MM-DD'),
+          qualification: values.qualification,
+          specialization: values.specialization,
+          status: values.status,
+          subject: values.subject,
+          years_of_experience: values.years_of_experience
+        }
       };
 
+      let response;
       if (editingTeacher) {
-        const response = await api.teacher.update(editingTeacher.id, formattedValues);
-        if (response.data.success) {
-          messageApi.success('Teacher updated successfully');
+        response = await api.teacher.updateTeacher(editingTeacher.id, payload);
+      } else {
+        response = await api.teacher.createTeacher(payload);
+      }
+
+      // Check if response is valid JSON
+      if (typeof response === 'object' && response !== null) {
+        if (response.status === 200 || response.status === 201) {
+          messageApi.success(editingTeacher ? 'Teacher updated successfully' : 'Teacher added successfully');
           setIsModalVisible(false);
           loadTeachers();
+        } else {
+          throw new Error(response.data?.message || 'Failed to save teacher');
         }
       } else {
-        const response = await api.teacher.create({
-          ...formattedValues,
-          createdAt: new Date().toISOString()
-        });
-        if (response.data.success) {
-          messageApi.success('Teacher added successfully');
-          setIsModalVisible(false);
-          loadTeachers();
-        }
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
-      messageApi.error(editingTeacher ? 'Failed to update teacher' : 'Failed to add teacher');
       console.error('Error saving teacher:', error);
+      // Safely check for error message
+      const errorMessage = error?.message || '';
+      if (errorMessage && typeof errorMessage === 'string' && errorMessage.includes('<!doctype')) {
+        messageApi.error('Server error occurred. Please try again later.');
+      } else {
+        messageApi.error(errorMessage || (editingTeacher ? 'Failed to update teacher' : 'Failed to add teacher'));
+      }
     } finally {
       setLoading(false);
     }
@@ -191,7 +218,7 @@ const Teachers = () => {
 
       const result = await uploadImage(file);
       
-      const response = await api.teacher.update(teacherId, {
+      const response = await api.teacher.updateTeacher(teacherId, {
         photoURL: result.url,
         updatedAt: new Date().toISOString()
       });
@@ -456,7 +483,7 @@ const Teachers = () => {
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
-                      name="firstName"
+                      name="first_name"
                       label="First Name"
                       rules={[{ required: true, message: 'Please input first name!' }]}
                     >
@@ -465,7 +492,7 @@ const Teachers = () => {
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      name="lastName"
+                      name="last_name"
                       label="Last Name"
                       rules={[{ required: true, message: 'Please input last name!' }]}
                     >
@@ -474,41 +501,6 @@ const Teachers = () => {
                   </Col>
                 </Row>
 
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="dateOfBirth"
-                      label="Date of Birth"
-                      rules={[{ required: true, message: 'Please select date of birth!' }]}
-                    >
-                      <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="gender"
-                      label="Gender"
-                      rules={[{ required: true, message: 'Please select gender!' }]}
-                    >
-                      <Select>
-                        <Option value="male">Male</Option>
-                        <Option value="female">Female</Option>
-                        <Option value="other">Other</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <PhoneOutlined style={{ color: '#1890ff' }} />
-                    <span>Contact Information</span>
-                  </Space>
-                }
-                style={{ marginBottom: '16px' }}
-              >
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
@@ -533,15 +525,112 @@ const Teachers = () => {
                   </Col>
                 </Row>
 
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="password"
+                      label="Password"
+                      rules={[
+                        { required: !editingTeacher, message: 'Please input password!' },
+                        { min: 6, message: 'Password must be at least 6 characters!' }
+                      ]}
+                    >
+                      <Input.Password />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="confirm_password"
+                      label="Confirm Password"
+                      dependencies={['password']}
+                      rules={[
+                        { required: !editingTeacher, message: 'Please confirm password!' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value || getFieldValue('password') === value) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(new Error('The two passwords do not match!'));
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input.Password />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="gender"
+                      label="Gender"
+                      rules={[{ required: true, message: 'Please select gender!' }]}
+                    >
+                      <Select>
+                        <Option value="M">Male</Option>
+                        <Option value="F">Female</Option>
+                        <Option value="O">Other</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="dob"
+                      label="Date of Birth"
+                      rules={[{ required: true, message: 'Please select date of birth!' }]}
+                    >
+                      <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="blood_group"
+                      label="Blood Group"
+                      rules={[{ required: true, message: 'Please select blood group!' }]}
+                    >
+                      <Select>
+                        <Option value="A+">A+</Option>
+                        <Option value="A-">A-</Option>
+                        <Option value="B+">B+</Option>
+                        <Option value="B-">B-</Option>
+                        <Option value="AB+">AB+</Option>
+                        <Option value="AB-">AB-</Option>
+                        <Option value="O+">O+</Option>
+                        <Option value="O-">O-</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="nationality"
+                      label="Nationality"
+                      rules={[{ required: true, message: 'Please input nationality!' }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <PhoneOutlined style={{ color: '#1890ff' }} />
+                    <span>Contact Information</span>
+                  </Space>
+                }
+                style={{ marginBottom: '16px' }}
+              >
                 <Form.Item
                   name="address"
                   label="Address"
                   rules={[{ required: true, message: 'Please input address!' }]}
                 >
-                  <Input.TextArea 
-                    rows={3} 
-                    prefix={<HomeOutlined style={{ color: '#bfbfbf' }} />}
-                  />
+                  <Input.TextArea rows={3} />
                 </Form.Item>
               </Card>
 
@@ -557,9 +646,51 @@ const Teachers = () => {
                 <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
+                      name="employee_id"
+                      label="Employee ID"
+                      rules={[{ required: true, message: 'Please input employee ID!' }]}
+                    >
+                      <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="joining_date"
+                      label="Joining Date"
+                      rules={[{ required: true, message: 'Please select joining date!' }]}
+                    >
+                      <DatePicker style={{ width: '100%' }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="qualification"
+                      label="Qualification"
+                      rules={[{ required: true, message: 'Please input qualification!' }]}
+                    >
+                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="specialization"
+                      label="Specialization"
+                      rules={[{ required: true, message: 'Please input specialization!' }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
                       name="subject"
                       label="Subject"
-                      rules={[{ required: true, message: 'Please input subject!' }]}
+                      rules={[{ required: true, message: 'Please select subject!' }]}
                     >
                       <Select>
                         <Option value="Mathematics">Mathematics</Option>
@@ -572,69 +703,29 @@ const Teachers = () => {
                         <Option value="Art">Art</Option>
                         <Option value="Music">Music</Option>
                         <Option value="Languages">Languages</Option>
-                        <Option value="Economics">Economics</Option>
-                        <Option value="Business Studies">Business Studies</Option>
-                        <Option value="Accountancy">Accountancy</Option>
                       </Select>
                     </Form.Item>
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      name="qualification"
-                      label="Qualification"
-                      rules={[{ required: true, message: 'Please input qualification!' }]}
-                    >
-                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="experience"
+                      name="years_of_experience"
                       label="Years of Experience"
                       rules={[{ required: true, message: 'Please input years of experience!' }]}
                     >
-                      <Input type="number" min={0} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="classId"
-                      label="Assigned Class (Optional)"
-                      rules={[{ required: false }]}
-                    >
-                      <Select 
-                        allowClear
-                        loading={loadingClasses}
-                      >
-                        <Option value="">Not Assigned</Option>
-                        {classes
-                          .filter(cls => cls.status === 'Active')
-                          .map(cls => (
-                            <Option key={cls.id} value={cls.id}>
-                              {cls.className} - Section {cls.section}
-                            </Option>
-                          ))}
-                      </Select>
+                      <Input type="number" min={0} step={0.5} />
                     </Form.Item>
                   </Col>
                 </Row>
 
                 <Form.Item
-                  name="specialization"
-                  label="Specialization"
-                  rules={[{ required: true, message: 'Please input specialization!' }]}
+                  name="status"
+                  label="Status"
+                  rules={[{ required: true, message: 'Please select status!' }]}
                 >
-                  <Input />
-                </Form.Item>
-
-                <Form.Item
-                  name="previousSchools"
-                  label="Previous Schools"
-                >
-                  <Input.TextArea rows={2} placeholder="List previous schools with years" />
+                  <Select>
+                    <Option value="Active">Active</Option>
+                    <Option value="Inactive">Inactive</Option>
+                  </Select>
                 </Form.Item>
               </Card>
 
@@ -651,17 +742,6 @@ const Teachers = () => {
                   label="Medical Conditions"
                 >
                   <Input.TextArea rows={2} />
-                </Form.Item>
-
-                <Form.Item
-                  name="status"
-                  label="Status"
-                  rules={[{ required: true, message: 'Please select status!' }]}
-                >
-                  <Select>
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                  </Select>
                 </Form.Item>
               </Card>
             </Col>

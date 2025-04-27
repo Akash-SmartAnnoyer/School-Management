@@ -208,7 +208,7 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   createTeacher: async (teacherData) => {
-    const response = await fetch(`${BASE_URL}/teachers/`, {
+    const response = await fetch(`${BASE_URL}/register/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(teacherData),
