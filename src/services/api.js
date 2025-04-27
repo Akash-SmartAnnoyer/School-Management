@@ -7,7 +7,8 @@ const BASE_URL = `${API_URL}/${API_VERSION}`;
 const handleResponse = async (response) => {
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('currentUser');
       window.location.href = '/login';
     }
@@ -146,7 +147,7 @@ export const schoolAPI = {
 // Student APIs
 export const studentAPI = {
   getStudents: async () => {
-    const response = await fetch(`${BASE_URL}/students/`, {
+    const response = await fetch(`${BASE_URL}/users/students/`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include'
@@ -192,7 +193,7 @@ export const studentAPI = {
 // Teacher APIs
 export const teacherAPI = {
   getTeachers: async () => {
-    const response = await fetch(`${BASE_URL}/teachers/`, {
+    const response = await fetch(`${BASE_URL}/users/teachers/`, {
       method: 'GET',
       headers: getHeaders(),
       credentials: 'include'

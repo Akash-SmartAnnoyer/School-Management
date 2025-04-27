@@ -59,7 +59,11 @@ const { Search } = Input;
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>; // You might want to replace this with a proper loading component
+  }
   
   if (!currentUser) {
     return <Navigate to="/login" />;

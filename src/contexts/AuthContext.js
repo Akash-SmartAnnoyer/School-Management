@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }) => {
         const { access, user } = response.data;
         
         // Store token and user data
-        localStorage.setItem('token', access);
+        localStorage.setItem('accessToken', access);
         localStorage.setItem('currentUser', JSON.stringify(user));
         
         setCurrentUser(user);
