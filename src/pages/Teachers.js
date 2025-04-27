@@ -77,7 +77,7 @@ const Teachers = () => {
   const loadTeachers = async () => {
     try {
       setLoading(true);
-      const response = await api.teacher.getAll();
+      const response = await api.teacher.getTeachers();
       if (response.data.success) {
         setTeachers(response.data.data);
       }
