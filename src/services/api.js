@@ -162,7 +162,7 @@ export const studentAPI = {
     return handleResponse(response);
   },
   createStudent: async (studentData) => {
-    const response = await fetch(`${BASE_URL}/students/`, {
+    const response = await fetch(`${BASE_URL}/register/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(studentData),
