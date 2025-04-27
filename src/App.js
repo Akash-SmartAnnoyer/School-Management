@@ -506,17 +506,17 @@ function App() {
 
   return (
     <AuthProvider>
-      <ConfigProvider
-        theme={{
-          token: {
-            colorPrimary: '#1890ff',
-          },
-        }}
-      >
-        <MessageContext.Provider value={messageApi}>
-          {contextHolder}
-          <Router>
-            <Routes>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#1890ff',
+        },
+      }}
+    >
+      <MessageContext.Provider value={messageApi}>
+        {contextHolder}
+        <Router>
+          <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/*" element={
@@ -524,10 +524,10 @@ function App() {
                   <MainLayout />
                 </ProtectedRoute>
               } />
-            </Routes>
-          </Router>
-        </MessageContext.Provider>
-      </ConfigProvider>
+          </Routes>
+        </Router>
+      </MessageContext.Provider>
+    </ConfigProvider>
     </AuthProvider>
   );
 }
