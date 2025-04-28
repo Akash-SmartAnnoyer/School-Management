@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Select, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, TeamOutlined, BookOutlined, CalendarOutlined, BarChartOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SchoolLogo from '../components/SchoolLogo';
 import './Login.css';
@@ -11,6 +11,7 @@ const { Option } = Select;
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -19,9 +20,13 @@ const Login = () => {
     setLoading(true);
     try {
       await login(values.email_or_phone, values.password, values.role);
-      navigate('/');
+      
+      // Redirect to the page they tried to visit or home
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
+      message.error(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -86,27 +91,15 @@ const Login = () => {
               requiredMark={false}
             >
               <Form.Item
-                name="role"
-                rules={[{ required: true, message: 'Please select your role!' }]}
-              >
-                <Select
-                  size="large"
-                  placeholder="Select Role"
-                  suffixIcon={<UserOutlined style={{ color: '#3b82f6' }} />}
-                >
-                  <Option value="principal">Principal</Option>
-                  <Option value="teacher">Teacher</Option>
-                  <Option value="student">Student</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item
                 name="email_or_phone"
-                rules={[{ required: true, message: 'Please input your email or phone!' }]}
+                rules={[
+                  { required: true, message: 'Please input your email or phone number!' },
+                  { type: 'email', message: 'Please enter a valid email!' }
+                ]}
               >
                 <Input
-                  prefix={<UserOutlined style={{ color: '#3b82f6' }} />}
-                  placeholder="Email or Phone"
+                  prefix={<UserOutlined />}
+                  placeholder="Email or Phone Number"
                   size="large"
                 />
               </Form.Item>
@@ -116,10 +109,21 @@ const Login = () => {
                 rules={[{ required: true, message: 'Please input your password!' }]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: '#3b82f6' }} />}
+                  prefix={<LockOutlined />}
                   placeholder="Password"
                   size="large"
                 />
+              </Form.Item>
+
+              <Form.Item
+                name="role"
+                rules={[{ required: true, message: 'Please select your role!' }]}
+              >
+                <Select placeholder="Select Role" size="large">
+                  <Option value="principal">Principal</Option>
+                  <Option value="teacher">Teacher</Option>
+                  <Option value="student">Student</Option>
+                </Select>
               </Form.Item>
 
               <Form.Item style={{ marginBottom: 0 }}>
@@ -130,7 +134,7 @@ const Login = () => {
                   size="large"
                   loading={loading}
                 >
-                  Sign In
+                  Log in
                 </Button>
               </Form.Item>
 

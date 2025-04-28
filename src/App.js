@@ -48,13 +48,13 @@ import Classes from './pages/Classes';
 import Attendance from './pages/Attendance';
 import Login from './pages/Login';
 import Academics from './pages/Academics';
-import AuthProvider, { useAuth, ROLES } from './contexts/AuthContext';
 import ExamManagement from './pages/ExamManagement';
 import AcademicCalendar from './pages/AcademicCalendar';
 import TeacherAttendance from './pages/TeacherAttendance';
 import Timetable from './pages/Timetable';
 import AttendanceReport from './pages/AttendanceReport';
 import Register from './pages/Register';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;

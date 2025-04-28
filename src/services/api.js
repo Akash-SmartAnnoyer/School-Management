@@ -7,9 +7,9 @@ const BASE_URL = `${API_URL}/${API_VERSION}`;
 const handleResponse = async (response) => {
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('currentUser');
+      // Clear tokens on unauthorized access
+      const { clearTokens } = await import('../utils/tokenManager');
+      clearTokens();
       window.location.href = '/login';
       throw new Error('Unauthorized');
     }
@@ -35,13 +35,14 @@ const handleResponse = async (response) => {
 };
 
 // Helper function to get headers
-const getHeaders = () => {
+const getHeaders = async () => {
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   };
 
-  const accessToken = localStorage.getItem('accessToken');
+  const { getAccessToken } = await import('../utils/tokenManager');
+  const accessToken = getAccessToken();
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
@@ -52,7 +53,7 @@ const getHeaders = () => {
 // Helper function to make API calls
 const makeRequest = async (url, options = {}) => {
   const defaultOptions = {
-    headers: getHeaders(),
+    headers: await getHeaders(),
     credentials: 'include',
     mode: 'cors'
   };
@@ -71,7 +72,7 @@ export const authAPI = {
   login: async (credentials) => {
     const response = await fetch(`${BASE_URL}/users/login/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(credentials),
       credentials: 'include'
     });
@@ -80,7 +81,7 @@ export const authAPI = {
   refreshToken: async (refreshToken) => {
     const response = await fetch(`${BASE_URL}/token/refresh/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(refreshToken),
       credentials: 'include'
     });
@@ -115,7 +116,7 @@ export const schoolAPI = {
   getSchools: async () => {
     const response = await fetch(`${BASE_URL}/schools/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -123,7 +124,7 @@ export const schoolAPI = {
   getSchool: async (id) => {
     const response = await fetch(`${BASE_URL}/schools/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -131,7 +132,7 @@ export const schoolAPI = {
   createSchool: async (schoolData) => {
     const response = await fetch(`${BASE_URL}/schools/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(schoolData),
       credentials: 'include'
     });
@@ -140,7 +141,7 @@ export const schoolAPI = {
   updateSchool: async (id, schoolData) => {
     const response = await fetch(`${BASE_URL}/schools/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(schoolData),
       credentials: 'include'
     });
@@ -149,7 +150,7 @@ export const schoolAPI = {
   deleteSchool: async (id) => {
     const response = await fetch(`${BASE_URL}/schools/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -161,7 +162,7 @@ export const studentAPI = {
   getStudents: async () => {
     const response = await fetch(`${BASE_URL}/users/students/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -169,7 +170,7 @@ export const studentAPI = {
   getStudent: async (id) => {
     const response = await fetch(`${BASE_URL}/students/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -177,7 +178,7 @@ export const studentAPI = {
   createStudent: async (studentData) => {
     const response = await fetch(`${BASE_URL}/users/register/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(studentData),
       credentials: 'include'
     });
@@ -186,7 +187,7 @@ export const studentAPI = {
   updateStudent: async (id, studentData) => {
     const response = await fetch(`${BASE_URL}/students/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(studentData),
       credentials: 'include'
     });
@@ -195,7 +196,7 @@ export const studentAPI = {
   deleteStudent: async (id) => {
     const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -207,7 +208,7 @@ export const teacherAPI = {
   getTeachers: async () => {
     const response = await fetch(`${BASE_URL}/users/teachers/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -215,7 +216,7 @@ export const teacherAPI = {
   getTeacher: async (id) => {
     const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -223,7 +224,7 @@ export const teacherAPI = {
   createTeacher: async (teacherData) => {
     const response = await fetch(`${BASE_URL}/users/register/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(teacherData),
       credentials: 'include'
     });
@@ -232,7 +233,7 @@ export const teacherAPI = {
   updateTeacher: async (id, teacherData) => {
     const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(teacherData),
       credentials: 'include'
     });
@@ -241,7 +242,7 @@ export const teacherAPI = {
   deleteTeacher: async (id) => {
     const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -253,7 +254,7 @@ export const classAPI = {
   getClasses: async () => {
     const response = await fetch(`${BASE_URL}/classrooms/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -261,7 +262,7 @@ export const classAPI = {
   getClass: async (id) => {
     const response = await fetch(`${BASE_URL}/classrooms/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -269,7 +270,7 @@ export const classAPI = {
   createClass: async (classData) => {
     const response = await fetch(`${BASE_URL}/classrooms/create/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         class_name: classData.className,
         section: classData.section,
@@ -284,7 +285,7 @@ export const classAPI = {
   updateClass: async (id, classData) => {
     const response = await fetch(`${BASE_URL}/classrooms/update/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({
         class_name: classData.className,
         section: classData.section,
@@ -299,7 +300,7 @@ export const classAPI = {
   deleteClass: async (id) => {
     const response = await fetch(`${BASE_URL}/classrooms/delete/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -307,7 +308,7 @@ export const classAPI = {
   addStudentsToClass: async (classId, studentIds) => {
     const response = await fetch(`${BASE_URL}/classrooms/${classId}/add-students/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify({ student_ids: studentIds }),
       credentials: 'include'
     });
@@ -320,7 +321,7 @@ export const subjectAPI = {
   getSubjects: async () => {
     const response = await fetch(`${BASE_URL}/subjects/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -328,7 +329,7 @@ export const subjectAPI = {
   getSubject: async (id) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -336,7 +337,7 @@ export const subjectAPI = {
   createSubject: async (subjectData) => {
     const response = await fetch(`${BASE_URL}/subjects/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(subjectData),
       credentials: 'include'
     });
@@ -345,7 +346,7 @@ export const subjectAPI = {
   updateSubject: async (id, subjectData) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(subjectData),
       credentials: 'include'
     });
@@ -354,7 +355,7 @@ export const subjectAPI = {
   deleteSubject: async (id) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -366,7 +367,7 @@ export const attendanceAPI = {
   getAttendances: async () => {
     const response = await fetch(`${BASE_URL}/attendances/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -374,7 +375,7 @@ export const attendanceAPI = {
   getAttendance: async (id) => {
     const response = await fetch(`${BASE_URL}/attendances/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -382,7 +383,7 @@ export const attendanceAPI = {
   createAttendance: async (attendanceData) => {
     const response = await fetch(`${BASE_URL}/attendances/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(attendanceData),
       credentials: 'include'
     });
@@ -391,7 +392,7 @@ export const attendanceAPI = {
   updateAttendance: async (id, attendanceData) => {
     const response = await fetch(`${BASE_URL}/attendances/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(attendanceData),
       credentials: 'include'
     });
@@ -400,7 +401,7 @@ export const attendanceAPI = {
   deleteAttendance: async (id) => {
     const response = await fetch(`${BASE_URL}/attendances/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -412,7 +413,7 @@ export const examAPI = {
   getExams: async () => {
     const response = await fetch(`${BASE_URL}/exams/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -420,7 +421,7 @@ export const examAPI = {
   getExam: async (id) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -428,7 +429,7 @@ export const examAPI = {
   createExam: async (examData) => {
     const response = await fetch(`${BASE_URL}/exams/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(examData),
       credentials: 'include'
     });
@@ -437,7 +438,7 @@ export const examAPI = {
   updateExam: async (id, examData) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(examData),
       credentials: 'include'
     });
@@ -446,7 +447,7 @@ export const examAPI = {
   deleteExam: async (id) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -458,7 +459,7 @@ export const resultAPI = {
   getResults: async () => {
     const response = await fetch(`${BASE_URL}/results/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -466,7 +467,7 @@ export const resultAPI = {
   getResult: async (id) => {
     const response = await fetch(`${BASE_URL}/results/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -474,7 +475,7 @@ export const resultAPI = {
   createResult: async (resultData) => {
     const response = await fetch(`${BASE_URL}/results/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(resultData),
       credentials: 'include'
     });
@@ -483,7 +484,7 @@ export const resultAPI = {
   updateResult: async (id, resultData) => {
     const response = await fetch(`${BASE_URL}/results/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(resultData),
       credentials: 'include'
     });
@@ -492,7 +493,7 @@ export const resultAPI = {
   deleteResult: async (id) => {
     const response = await fetch(`${BASE_URL}/results/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -504,7 +505,7 @@ export const feeAPI = {
   getFees: async () => {
     const response = await fetch(`${BASE_URL}/fees/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -512,7 +513,7 @@ export const feeAPI = {
   getFee: async (id) => {
     const response = await fetch(`${BASE_URL}/fees/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -520,7 +521,7 @@ export const feeAPI = {
   createFee: async (feeData) => {
     const response = await fetch(`${BASE_URL}/fees/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(feeData),
       credentials: 'include'
     });
@@ -529,7 +530,7 @@ export const feeAPI = {
   updateFee: async (id, feeData) => {
     const response = await fetch(`${BASE_URL}/fees/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(feeData),
       credentials: 'include'
     });
@@ -538,7 +539,7 @@ export const feeAPI = {
   deleteFee: async (id) => {
     const response = await fetch(`${BASE_URL}/fees/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -550,7 +551,7 @@ export const noticeAPI = {
   getNotices: async () => {
     const response = await fetch(`${BASE_URL}/notices/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -558,7 +559,7 @@ export const noticeAPI = {
   getNotice: async (id) => {
     const response = await fetch(`${BASE_URL}/notices/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -566,7 +567,7 @@ export const noticeAPI = {
   createNotice: async (noticeData) => {
     const response = await fetch(`${BASE_URL}/notices/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(noticeData),
       credentials: 'include'
     });
@@ -575,7 +576,7 @@ export const noticeAPI = {
   updateNotice: async (id, noticeData) => {
     const response = await fetch(`${BASE_URL}/notices/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(noticeData),
       credentials: 'include'
     });
@@ -584,7 +585,7 @@ export const noticeAPI = {
   deleteNotice: async (id) => {
     const response = await fetch(`${BASE_URL}/notices/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -596,7 +597,7 @@ export const eventAPI = {
   getEvents: async () => {
     const response = await fetch(`${BASE_URL}/events/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -604,7 +605,7 @@ export const eventAPI = {
   getEvent: async (id) => {
     const response = await fetch(`${BASE_URL}/events/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -612,7 +613,7 @@ export const eventAPI = {
   createEvent: async (eventData) => {
     const response = await fetch(`${BASE_URL}/events/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(eventData),
       credentials: 'include'
     });
@@ -621,7 +622,7 @@ export const eventAPI = {
   updateEvent: async (id, eventData) => {
     const response = await fetch(`${BASE_URL}/events/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(eventData),
       credentials: 'include'
     });
@@ -630,7 +631,7 @@ export const eventAPI = {
   deleteEvent: async (id) => {
     const response = await fetch(`${BASE_URL}/events/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -642,7 +643,7 @@ export const galleryAPI = {
   getGalleries: async () => {
     const response = await fetch(`${BASE_URL}/galleries/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -650,7 +651,7 @@ export const galleryAPI = {
   getGallery: async (id) => {
     const response = await fetch(`${BASE_URL}/galleries/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -658,7 +659,7 @@ export const galleryAPI = {
   createGallery: async (galleryData) => {
     const response = await fetch(`${BASE_URL}/galleries/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(galleryData),
       credentials: 'include'
     });
@@ -667,7 +668,7 @@ export const galleryAPI = {
   updateGallery: async (id, galleryData) => {
     const response = await fetch(`${BASE_URL}/galleries/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(galleryData),
       credentials: 'include'
     });
@@ -676,7 +677,7 @@ export const galleryAPI = {
   deleteGallery: async (id) => {
     const response = await fetch(`${BASE_URL}/galleries/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -688,7 +689,7 @@ export const contactAPI = {
   getContacts: async () => {
     const response = await fetch(`${BASE_URL}/contacts/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -696,7 +697,7 @@ export const contactAPI = {
   getContact: async (id) => {
     const response = await fetch(`${BASE_URL}/contacts/${id}/`, {
       method: 'GET',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);
@@ -704,7 +705,7 @@ export const contactAPI = {
   createContact: async (contactData) => {
     const response = await fetch(`${BASE_URL}/contacts/`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(contactData),
       credentials: 'include'
     });
@@ -713,7 +714,7 @@ export const contactAPI = {
   updateContact: async (id, contactData) => {
     const response = await fetch(`${BASE_URL}/contacts/${id}/`, {
       method: 'PUT',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       body: JSON.stringify(contactData),
       credentials: 'include'
     });
@@ -722,7 +723,7 @@ export const contactAPI = {
   deleteContact: async (id) => {
     const response = await fetch(`${BASE_URL}/contacts/${id}/`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: await getHeaders(),
       credentials: 'include'
     });
     return handleResponse(response);

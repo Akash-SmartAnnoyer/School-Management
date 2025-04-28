@@ -1,14 +1,18 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { message } from 'antd';
 import { authAPI } from '../services/api';
+import { storeTokens, getTokens, clearTokens, getCurrentUser, getAccessToken, getRefreshToken } from '../utils/tokenManager';
 
 export const AuthContext = createContext();
 
+// Define available roles
 export const ROLES = {
-  PRINCIPAL: 'PRINCIPAL',
-  TEACHER: 'TEACHER'
+  PRINCIPAL: 'principal',
+  TEACHER: 'teacher',
+  STUDENT: 'student'
 };
 
+// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -20,32 +24,44 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState(null);
 
-  // Initialize auth state from localStorage
+  // Initialize auth state  
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    const userData = localStorage.getItem('currentUser');
-    if (token && userData) {
-      setAccessToken(token);
-      setCurrentUser(JSON.parse(userData));
-    }
-    setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const tokens = getTokens();
+        if (tokens) {
+          setCurrentUser(tokens.user);
+          
+          // If access token is expired but refresh token is valid, refresh it
+          if (!tokens.accessToken && tokens.refreshToken) {
+            await refreshAccessToken();
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        clearTokens();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   // Function to refresh access token
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = getRefreshToken();
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
 
       const response = await authAPI.refreshToken({ refresh: refreshToken });
-      const { access } = response;
+      const { access, user } = response.data;
       
-      localStorage.setItem('accessToken', access);
-      setAccessToken(access);
+      storeTokens(access, refreshToken, user);
+      setCurrentUser(user);
       return access;
     } catch (error) {
       console.error('Token refresh failed:', error);
@@ -60,7 +76,6 @@ export const AuthProvider = ({ children }) => {
       return await apiCall();
     } catch (error) {
       if (error.response?.status === 401) {
-        // Token expired, try to refresh
         try {
           const newAccessToken = await refreshAccessToken();
           // Retry the original request with new token
@@ -81,41 +96,16 @@ export const AuthProvider = ({ children }) => {
         role
       });
 
-      const { access, refresh, user } = response;
+      const { access, refresh, user } = response.data;
       
-      // Store tokens and user data
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      
-      setAccessToken(access);
+      // Store tokens securely
+      storeTokens(access, refresh, user);
       setCurrentUser(user);
       
       message.success('Login successful!');
       return user;
     } catch (error) {
-      message.error(error.message || 'Login failed');
-      throw error;
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await authAPI.register(userData);
-      
-      if (response.data) {
-        const { access, user } = response.data;
-        
-        // Store token and user data
-        localStorage.setItem('accessToken', access);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        
-        setCurrentUser(user);
-        message.success('Registration successful!');
-        return user;
-      }
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+      const errorMessage = error.response?.data?.message || 'Login failed';
       message.error(errorMessage);
       throw error;
     }
@@ -123,51 +113,30 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authAPI.logout();
+      const accessToken = getAccessToken();
+      if (accessToken) {
+        await authAPI.logout();
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear all auth data
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('currentUser');
-      setAccessToken(null);
+      clearTokens();
       setCurrentUser(null);
     }
   };
 
-  const updateProfile = async (userData) => {
-    try {
-      const response = await makeAuthenticatedRequest(() => 
-        authAPI.updateProfile(userData)
-      );
-      const updatedUser = { ...currentUser, ...response };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setCurrentUser(updatedUser);
-      message.success('Profile updated successfully!');
-      return updatedUser;
-    } catch (error) {
-      message.error(error.message || 'Failed to update profile');
-      throw error;
-    }
+  const value = {
+    currentUser,
+    loading,
+    login,
+    logout,
+    makeAuthenticatedRequest,
+    isAuthenticated: () => !!getCurrentUser()
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        loading,
-        login,
-        register,
-        logout,
-        updateProfile,
-        makeAuthenticatedRequest,
-        isAuthenticated: !!currentUser
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
-
-export default AuthProvider; 
+}; 
