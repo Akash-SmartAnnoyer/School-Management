@@ -38,7 +38,7 @@ const Classes = () => {
       setLoading(true);
       const response = await api.class.getClasses();
       if (response) {
-        setClasses(response);
+        setClasses(response.data);
       }
     } catch (error) {
       messageApi.error('Failed to load classes');
@@ -53,7 +53,7 @@ const Classes = () => {
       setLoading(true);
       const response = await api.teacher.getTeachers();
       if (response) {
-        setTeachers(response);
+        setTeachers(response.data);
       }
     } catch (error) {
       messageApi.error('Failed to load teachers');
@@ -68,7 +68,7 @@ const Classes = () => {
       setLoading(true);
       const response = await api.student.getStudents();
       if (response) {
-        setStudents(response);
+        setStudents(response.data);
       }
     } catch (error) {
       messageApi.error('Failed to load students');
