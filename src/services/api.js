@@ -181,46 +181,71 @@ export const schoolAPI = {
 // Student APIs
 export const studentAPI = {
   getStudents: async () => {
-    const response = await fetch(`${BASE_URL}/users/students/`, {
-      method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}/users/students/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      throw new Error('Failed to fetch students. Please try again.');
+    }
   },
   getStudent: async (id) => {
-    const response = await fetch(`${BASE_URL}/students/${id}/`, {
-      method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}/students/${id}/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching student:', error);
+      throw new Error('Failed to fetch student details. Please try again.');
+    }
   },
   createStudent: async (studentData) => {
-    const response = await fetch(`${BASE_URL}/users/register/`, {
-      method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify(studentData),
-      credentials: 'include'
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}/users/register/`, {
+        method: 'POST',
+        headers: await getHeaders(),
+        body: JSON.stringify(studentData),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error creating student:', error);
+      throw new Error('Failed to create student. Please check the data and try again.');
+    }
   },
   updateStudent: async (id, studentData) => {
-    const response = await fetch(`${BASE_URL}/students/${id}/`, {
-      method: 'PUT',
-      headers: await getHeaders(),
-      body: JSON.stringify(studentData),
-      credentials: 'include'
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}/students/${id}/`, {
+        method: 'PUT',
+        headers: await getHeaders(),
+        body: JSON.stringify(studentData),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error updating student:', error);
+      throw new Error('Failed to update student. Please check the data and try again.');
+    }
   },
   deleteStudent: async (id) => {
-    const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
-      method: 'DELETE',
-      headers: await getHeaders(),
-      credentials: 'include'
-    });
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
+        method: 'DELETE',
+        headers: await getHeaders(),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      throw new Error('Failed to delete student. Please try again.');
+    }
   }
 };
 

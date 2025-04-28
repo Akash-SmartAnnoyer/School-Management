@@ -513,40 +513,54 @@ const Students = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (student) => {
-    // Format the student data for the form
-    const formValues = {
-      ...student,
-      dob: student.dob ? moment(student.dob) : null,
-      admission_date: student.student_profile?.admission_date ? moment(student.student_profile.admission_date) : null,
-      // Flatten nested profile data
-      address: student.profile?.address,
-      blood_group: student.profile?.blood_group,
-      class_name: student.profile?.class_name,
-      nationality: student.profile?.nationality,
-      // Flatten nested student_profile data
-      student_id: student.student_profile?.student_id,
-      admission_number: student.student_profile?.admission_number,
-      last_grade_attended: student.student_profile?.last_grade_attended,
-      roll_no: student.student_profile?.roll_no,
-      section: student.student_profile?.section,
-      father_name: student.student_profile?.father_name,
-      father_occupation: student.student_profile?.father_occupation,
-      mother_name: student.student_profile?.mother_name,
-      mother_occupation: student.student_profile?.mother_occupation,
-      parent_address: student.student_profile?.parent_address,
-      parent_email: student.student_profile?.parent_email,
-      parent_phone: student.student_profile?.parent_phone,
-      allergies: student.student_profile?.allergies,
-      remarks: student.student_profile?.remarks
-    };
-    
-    setEditingStudent(student);
-    setModalVisible(true);
+  const handleEdit = async (student) => {
+    try {
+      setLoading(true);
+      // Fetch the latest student data
+      const response = await api.student.getStudent(student.user_id);
+      if (response.data.success) {
+        const studentData = response.data.data;
+        // Format the student data for the form
+        const formValues = {
+          ...studentData,
+          dob: studentData.dob ? moment(studentData.dob) : null,
+          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
+          // Flatten nested profile data
+          address: studentData.profile?.address,
+          blood_group: studentData.profile?.blood_group,
+          class_name: studentData.profile?.class_name,
+          nationality: studentData.profile?.nationality,
+          // Flatten nested student_profile data
+          student_id: studentData.student_profile?.student_id,
+          admission_number: studentData.student_profile?.admission_number,
+          last_grade_attended: studentData.student_profile?.last_grade_attended,
+          roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
+          father_name: studentData.student_profile?.father_name,
+          father_occupation: studentData.student_profile?.father_occupation,
+          mother_name: studentData.student_profile?.mother_name,
+          mother_occupation: studentData.student_profile?.mother_occupation,
+          parent_address: studentData.student_profile?.parent_address,
+          parent_email: studentData.student_profile?.parent_email,
+          parent_phone: studentData.student_profile?.parent_phone,
+          allergies: studentData.student_profile?.allergies,
+          remarks: studentData.student_profile?.remarks
+        };
+        
+        setEditingStudent(studentData);
+        setModalVisible(true);
+      } else {
+        messageApi.error('Failed to load student data');
+      }
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to load student data');
+      console.error('Error loading student:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (studentId) => {
-    console.log('Deleting student with ID:', studentId); // Debug log
     if (!studentId) {
       messageApi.error('Invalid student ID');
       return;
@@ -562,7 +576,7 @@ const Students = () => {
         messageApi.error(response.data?.message || 'Failed to delete student');
       }
     } catch (error) {
-      messageApi.error(error.response?.data?.message || 'Failed to delete student');
+      messageApi.error(error.message || 'Failed to delete student');
       console.error('Error deleting student:', error);
     } finally {
       setLoading(false);
@@ -578,6 +592,8 @@ const Students = () => {
           messageApi.success('Student updated successfully');
           setModalVisible(false);
           loadStudents();
+        } else {
+          messageApi.error(response.data.message || 'Failed to update student');
         }
       } else {
         const response = await api.student.createStudent(values);
@@ -585,11 +601,60 @@ const Students = () => {
           messageApi.success('Student added successfully');
           setModalVisible(false);
           loadStudents();
+        } else {
+          messageApi.error(response.data.message || 'Failed to add student');
         }
       }
     } catch (error) {
-      messageApi.error(editingStudent ? 'Failed to update student' : 'Failed to add student');
       console.error('Error saving student:', error);
+      
+      // Handle validation errors from backend
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        
+        // Function to handle error messages
+        const handleErrorMessages = (messages) => {
+          if (Array.isArray(messages)) {
+            // Handle array of error messages
+            messages.forEach(msg => {
+              messageApi.error(msg);
+            });
+          } else if (typeof messages === 'object') {
+            // Handle object with nested errors
+            Object.entries(messages).forEach(([key, value]) => {
+              if (Array.isArray(value)) {
+                // Handle array of errors for a field
+                value.forEach(msg => {
+                  messageApi.error(msg);
+                });
+              } else if (typeof value === 'object') {
+                // Handle nested object errors
+                Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+                  if (Array.isArray(nestedValue)) {
+                    nestedValue.forEach(msg => {
+                      messageApi.error(msg);
+                    });
+                  }
+                });
+              }
+            });
+          }
+        };
+
+        // Handle all error fields in the response
+        handleErrorMessages(errorData);
+        
+        // If no errors were found, show a generic message
+        if (Object.keys(errorData).length === 0) {
+          messageApi.error('Please check the form for errors');
+        }
+      } else {
+        // Handle other types of errors
+        const errorMessage = error.response?.data?.message || 
+                           error.message || 
+                           (editingStudent ? 'Failed to update student' : 'Failed to add student');
+        messageApi.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
