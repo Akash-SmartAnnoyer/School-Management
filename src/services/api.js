@@ -18,38 +18,7 @@ const handleResponse = async (response) => {
         throw new Error(errorMessage);
       
       case 401:
-        // Try to refresh token first
-        try {
-          const { getRefreshToken } = await import('../utils/tokenManager');
-          const refreshToken = getRefreshToken();
-          
-          if (refreshToken) {
-            const refreshResponse = await fetch(`${BASE_URL}/token/refresh/`, {
-              method: 'POST',
-              headers: await getHeaders(),
-              body: JSON.stringify({ refresh: refreshToken }),
-              credentials: 'include'
-            });
-            
-            if (refreshResponse.ok) {
-              const { access } = await refreshResponse.json();
-              const { storeTokens } = await import('../utils/tokenManager');
-              storeTokens(access, refreshToken);
-              // Retry the original request with new token
-              return handleResponse(await fetch(response.url, {
-                ...response,
-                headers: {
-                  ...response.headers,
-                  'Authorization': `Bearer ${access}`
-                }
-              }));
-            }
-          }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
-        }
-        
-        // If refresh failed or no refresh token, clear tokens and redirect
+        // Clear tokens on unauthorized access
         const { clearTokens } = await import('../utils/tokenManager');
         clearTokens();
         window.location.href = '/login';
@@ -122,16 +91,22 @@ const makeRequest = async (url, options = {}) => {
 // Auth APIs
 export const authAPI = {
   login: async (credentials) => {
-    return makeRequest(`${BASE_URL}/users/login/`, {
+    const response = await fetch(`${BASE_URL}/users/login/`, {
       method: 'POST',
-      body: JSON.stringify(credentials)
+      headers: await getHeaders(),
+      body: JSON.stringify(credentials),
+      credentials: 'include'
     });
+    return handleResponse(response);
   },
   refreshToken: async (refreshToken) => {
-    return makeRequest(`${BASE_URL}/token/refresh/`, {
+    const response = await fetch(`${BASE_URL}/token/refresh/`, {
       method: 'POST',
-      body: JSON.stringify(refreshToken)
+      headers: await getHeaders(),
+      body: JSON.stringify(refreshToken),
+      credentials: 'include'
     });
+    return handleResponse(response);
   },
   register: async (userData) => {
     return makeRequest(`${BASE_URL}/users/register/`, {
