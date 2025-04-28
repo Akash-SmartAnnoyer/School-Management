@@ -25,8 +25,11 @@ const Login = () => {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error) {
+      // Error message is already shown by the login function
       console.error('Login error:', error);
-      message.error(error.message || 'Login failed. Please check your credentials.');
+      
+      // Clear password field on error
+      form.setFieldsValue({ password: '' });
     } finally {
       setLoading(false);
     }
@@ -89,49 +92,64 @@ const Login = () => {
               onFinish={onFinish}
               layout="vertical"
               requiredMark={false}
+              validateMessages={{
+                required: '${label} is required',
+                types: {
+                  email: 'Please enter a valid email address'
+                }
+              }}
             >
               <Form.Item
                 name="email_or_phone"
+                label="Email or Phone Number"
                 rules={[
-                  { required: true, message: 'Please input your email or phone number!' },
-                  { type: 'email', message: 'Please enter a valid email!' }
+                  { required: true },
+                  { 
+                    type: 'email',
+                    message: 'Please enter a valid email address'
+                  }
                 ]}
               >
                 <Input
                   prefix={<UserOutlined />}
-                  placeholder="Email or Phone Number"
+                  placeholder="Enter your email"
                   size="large"
                 />
               </Form.Item>
 
               <Form.Item
                 name="password"
-                rules={[{ required: true, message: 'Please input your password!' }]}
+                label="Password"
+                rules={[
+                  { required: true },
+                  { min: 6, message: 'Password must be at least 6 characters' }
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined />}
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   size="large"
                 />
               </Form.Item>
 
               <Form.Item
                 name="role"
-                rules={[{ required: true, message: 'Please select your role!' }]}
+                label="Role"
+                rules={[{ required: true }]}
               >
-                <Select placeholder="Select Role" size="large">
+                <Select placeholder="Select your role" size="large">
                   <Option value="principal">Principal</Option>
                   <Option value="teacher">Teacher</Option>
                   <Option value="student">Student</Option>
                 </Select>
               </Form.Item>
 
-              <Form.Item style={{ marginBottom: 0 }}>
+              <Form.Item>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  block
                   size="large"
+                  block
                   loading={loading}
                 >
                   Log in

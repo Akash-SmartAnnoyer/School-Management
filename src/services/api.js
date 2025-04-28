@@ -6,15 +6,36 @@ const BASE_URL = `${API_URL}/${API_VERSION}`;
 // Helper function to handle response
 const handleResponse = async (response) => {
   if (!response.ok) {
-    if (response.status === 401) {
-      // Clear tokens on unauthorized access
-      const { clearTokens } = await import('../utils/tokenManager');
-      clearTokens();
-      window.location.href = '/login';
-      throw new Error('Unauthorized');
+    const errorData = await response.json().catch(() => ({}));
+    
+    // Handle specific status codes
+    switch (response.status) {
+      case 400:
+        // Handle validation errors
+        const errorMessage = errorData.non_field_errors?.[0] || 
+                           Object.values(errorData)[0]?.[0] || 
+                           'Invalid input data';
+        throw new Error(errorMessage);
+      
+      case 401:
+        // Clear tokens on unauthorized access
+        const { clearTokens } = await import('../utils/tokenManager');
+        clearTokens();
+        window.location.href = '/login';
+        throw new Error('Session expired. Please login again.');
+      
+      case 403:
+        throw new Error('You do not have permission to perform this action');
+      
+      case 404:
+        throw new Error('Resource not found');
+      
+      case 500:
+        throw new Error('Server error. Please try again later');
+      
+      default:
+        throw new Error(errorData.message || 'Something went wrong');
     }
-    const error = await response.json();
-    throw new Error(error.message || 'Something went wrong');
   }
 
   const contentType = response.headers.get('content-type');

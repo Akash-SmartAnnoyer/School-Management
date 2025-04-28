@@ -105,7 +105,19 @@ export const AuthProvider = ({ children }) => {
       message.success('Login successful!');
       return user;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
+      // Handle specific error cases
+      let errorMessage = 'Login failed';
+      
+      if (error.message.includes('Incorrect role')) {
+        errorMessage = 'Please select the correct role for your account';
+      } else if (error.message.includes('Invalid input data')) {
+        errorMessage = 'Please check your email/phone and password';
+      } else if (error.message.includes('not found')) {
+        errorMessage = 'Account not found. Please check your credentials';
+      } else if (error.message.includes('password')) {
+        errorMessage = 'Incorrect password';
+      }
+      
       message.error(errorMessage);
       throw error;
     }
