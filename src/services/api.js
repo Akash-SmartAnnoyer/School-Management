@@ -69,7 +69,7 @@ const makeRequest = async (url, options = {}) => {
 // Auth APIs
 export const authAPI = {
   login: async (credentials) => {
-    const response = await fetch(`${BASE_URL}/login/`, {
+    const response = await fetch(`${BASE_URL}/users/login/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(credentials),
@@ -87,7 +87,7 @@ export const authAPI = {
     return handleResponse(response);
   },
   register: async (userData) => {
-    return makeRequest(`${BASE_URL}/register/`, {
+    return makeRequest(`${BASE_URL}/users/register/`, {
       method: 'POST',
       body: JSON.stringify(userData)
     });
@@ -175,7 +175,7 @@ export const studentAPI = {
     return handleResponse(response);
   },
   createStudent: async (studentData) => {
-    const response = await fetch(`${BASE_URL}/register/`, {
+    const response = await fetch(`${BASE_URL}/users/register/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(studentData),
@@ -221,7 +221,7 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   createTeacher: async (teacherData) => {
-    const response = await fetch(`${BASE_URL}/register/`, {
+    const response = await fetch(`${BASE_URL}/users/register/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(teacherData),
