@@ -37,6 +37,8 @@ import Profile from './pages/Profile';
 import AccountSettings from './pages/AccountSettings';
 import Sidebar from './components/Sidebar';
 import LoadingSpinner from './components/LoadingSpinner';
+import { LoadingProvider, useLoading } from './contexts/LoadingContext';
+import SchoolLoader from './components/SchoolLoader';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -61,9 +63,10 @@ const { Search } = Input;
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { currentUser, loading } = useAuth();
+  const { isLoading } = useLoading();
   
-  if (loading) {
-    return <LoadingSpinner />;
+  if (loading || isLoading) {
+    return <SchoolLoader />;
   }
   
   if (!currentUser) {
@@ -510,30 +513,35 @@ function App() {
   const [messageApi, contextHolder] = message.useMessage();
 
   return (
-    <AuthProvider>
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: '#1890ff',
-        },
-      }}
-    >
-      <MessageContext.Provider value={messageApi}>
-        {contextHolder}
+    <LoadingProvider>
+      <AuthProvider>
         <Router>
-          <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/*" element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              } />
-          </Routes>
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: '#1890ff',
+              },
+            }}
+          >
+            <MessageContext.Provider value={messageApi}>
+              {contextHolder}
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </MessageContext.Provider>
+          </ConfigProvider>
         </Router>
-      </MessageContext.Provider>
-    </ConfigProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </LoadingProvider>
   );
 }
 
