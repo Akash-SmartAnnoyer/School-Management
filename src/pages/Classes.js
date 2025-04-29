@@ -20,7 +20,9 @@ const Classes = () => {
   const [teachers, setTeachers] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [loadingTeachers, setLoadingTeachers] = useState(false);
+  const [loadingModal, setLoadingModal] = useState(false);
 
   useEffect(() => {
     loadClasses();
@@ -29,7 +31,7 @@ const Classes = () => {
 
   const loadClasses = async () => {
     try {
-      setLoading(true);
+      setLoadingClasses(true);
       const response = await api.class.getClasses();
       if (response) {
         setClasses(response.data);
@@ -38,13 +40,13 @@ const Classes = () => {
       messageApi.error('Failed to load classes');
       console.error('Error loading classes:', error);
     } finally {
-      setLoading(false);
+      setLoadingClasses(false);
     }
   };
 
   const loadTeachers = async () => {
     try {
-      setLoading(true);
+      setLoadingTeachers(true);
       const response = await api.teacher.getTeachers();
       if (response) {
         setTeachers(response.data);
@@ -53,7 +55,7 @@ const Classes = () => {
       messageApi.error('Failed to load teachers');
       console.error('Error loading teachers:', error);
     } finally {
-      setLoading(false);
+      setLoadingTeachers(false);
     }
   };
 
@@ -77,7 +79,7 @@ const Classes = () => {
 
   const handleDelete = async (classId) => {
     try {
-      setLoading(true);
+      setLoadingClasses(true);
       await api.class.deleteClass(classId);
       messageApi.success('Class deleted successfully');
       loadClasses();
@@ -85,13 +87,13 @@ const Classes = () => {
       messageApi.error('Failed to delete class');
       console.error('Error deleting class:', error);
     } finally {
-      setLoading(false);
+      setLoadingClasses(false);
     }
   };
 
   const handleModalOk = async () => {
     try {
-      setLoading(true);
+      setLoadingModal(true);
       const values = await form.validateFields();
       const classData = {
         className: values.className,
@@ -114,7 +116,7 @@ const Classes = () => {
       messageApi.error(editingClass ? 'Failed to update class' : 'Failed to add class');
       console.error('Error saving class:', error);
     } finally {
-      setLoading(false);
+      setLoadingModal(false);
     }
   };
 
@@ -188,7 +190,7 @@ const Classes = () => {
   return (
     <div>
       <div style={{ marginBottom: 16, display: 'flex', gap: '8px' }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} loading={loadingClasses}>
           Add Class
         </Button>
       </div>
@@ -196,7 +198,7 @@ const Classes = () => {
         columns={columns} 
         dataSource={classes} 
         rowKey="id"
-        loading={loading}
+        loading={loadingClasses}
       />
 
       <Modal
@@ -208,6 +210,7 @@ const Classes = () => {
           setEditingClass(null);
         }}
         footer={null}
+        confirmLoading={loadingModal}
       >
         <Form
           form={form}
@@ -268,7 +271,7 @@ const Classes = () => {
 
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" loading={loading}>
+              <Button type="primary" htmlType="submit" loading={loadingModal}>
                 {editingClass ? 'Update' : 'Add'}
               </Button>
               <Button onClick={() => {

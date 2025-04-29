@@ -16,7 +16,8 @@ const cld = new Cloudinary({
 });
 
 const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
-  const [loading, setLoading] = useState(true);
+  const [loadingClassDetails, setLoadingClassDetails] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [classDetails, setClassDetails] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -24,47 +25,51 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-    if (classData?.id) {
+    if (visible && classData?.id) {
       loadClassDetails();
       loadAllStudents();
     }
-  }, [classData?.id]);
+  }, [visible, classData?.id]);
 
   const loadClassDetails = async () => {
     try {
-      setLoading(true);
+      setLoadingClassDetails(true);
       const response = await api.class.getClass(classData.id);
       if (response.success) {
         setClassDetails(response.data);
       } else {
+        messageApi.error('Failed to load class details');
         console.error('Failed to load class details:', response.message);
       }
     } catch (error) {
+      messageApi.error('Failed to load class details');
       console.error('Error loading class details:', error);
     } finally {
-      setLoading(false);
+      setLoadingClassDetails(false);
     }
   };
 
   const loadAllStudents = async () => {
     try {
-      const response = await api.student.getStudents();
+      setLoadingStudents(true);
+      const response = await api.student.getStudentsByClass(classData.id);
       if (response.success) {
-        // Filter out students who are already in the class
-        const currentClassStudents = classDetails?.students?.map(s => s.id) || [];
-        const availableStudents = response.data.filter(student => 
-          !currentClassStudents.includes(student.id)
-        );
-        setStudents(availableStudents);
+        setStudents(response.data);
+      } else {
+        messageApi.error('Failed to load students');
+        console.error('Failed to load students:', response.message);
       }
     } catch (error) {
+      messageApi.error('Failed to load students');
       console.error('Error loading students:', error);
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
   const handleAddStudents = async () => {
     try {
-      setLoading(true);
+      setLoadingClassDetails(true);
       const response = await api.class.addStudentsToClass(classData.id, selectedStudents);
       if (response.success) {
         messageApi.success(response.data.message);
@@ -79,7 +84,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
       console.error('Error adding students:', error);
       messageApi.error('Failed to add students to class');
     } finally {
-      setLoading(false);
+      setLoadingClassDetails(false);
     }
   };
 
@@ -115,29 +120,23 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
         placement="right"
         onClose={onClose}
         open={visible}
-        width={800}
+        width={720}
+        loading={loadingClassDetails || loadingStudents}
       >
-        {classDetails ? (
-          <div>
-            <Descriptions bordered>
-              <Descriptions.Item label="Class Name">{classDetails.class_name}</Descriptions.Item>
-              <Descriptions.Item label="Section">{classDetails.section}</Descriptions.Item>
-              <Descriptions.Item label="Class Teacher">
-                {classDetails.class_teacher ? (
-                  <Space>
-                    <Avatar icon={<UserOutlined />} />
-                    <span>{`${classDetails.class_teacher.user.first_name} ${classDetails.class_teacher.user.last_name}`}</span>
-                  </Space>
-                ) : (
-                  'Not Assigned'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="Capacity">{classDetails.capacity}</Descriptions.Item>
-              <Descriptions.Item label="Total Students">{classDetails.total_students}</Descriptions.Item>
-              <Descriptions.Item label="Available Seats">{classDetails.available_seats}</Descriptions.Item>
+        {loadingClassDetails || loadingStudents ? (
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            Loading...
+          </div>
+        ) : (
+          <>
+            <Descriptions title="Class Information" bordered>
+              <Descriptions.Item label="Class Name">{classDetails?.className}</Descriptions.Item>
+              <Descriptions.Item label="Section">{classDetails?.section}</Descriptions.Item>
+              <Descriptions.Item label="Teacher">{classDetails?.teacher?.name || 'Not Assigned'}</Descriptions.Item>
+              <Descriptions.Item label="Capacity">{classDetails?.capacity}</Descriptions.Item>
               <Descriptions.Item label="Status">
-                <Tag color={classDetails.status === 'active' ? 'green' : 'red'}>
-                  {classDetails.status.charAt(0).toUpperCase() + classDetails.status.slice(1)}
+                <Tag color={classDetails?.status === 'active' ? 'green' : 'red'}>
+                  {classDetails?.status?.charAt(0).toUpperCase() + classDetails?.status?.slice(1)}
                 </Tag>
               </Descriptions.Item>
             </Descriptions>
@@ -157,13 +156,13 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
                     type="primary" 
                     icon={<PlusOutlined />} 
                     onClick={() => setAddStudentsModalVisible(true)}
-                    disabled={classDetails.available_seats === 0}
+                    disabled={classDetails?.available_seats === 0}
                   >
                     Add Students
                   </Button>
                 </div>
                 <Table
-                  dataSource={classDetails.students || []}
+                  dataSource={classDetails?.students || []}
                   columns={[
                     {
                       title: 'Name',
@@ -187,7 +186,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
                     },
                   ]}
                   rowKey="id"
-                  loading={loading}
+                  loading={loadingClassDetails || loadingStudents}
                   pagination={false}
                   locale={{
                     emptyText: (
@@ -209,7 +208,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
                 } 
                 key="2"
               >
-                {classDetails.class_teacher ? (
+                {classDetails?.class_teacher ? (
                   <Card>
                     <Descriptions column={1}>
                       <Descriptions.Item label="Name">
@@ -237,9 +236,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
                 )}
               </TabPane>
             </Tabs>
-          </div>
-        ) : (
-          <Empty description="No class information available" />
+          </>
         )}
       </Drawer>
 
@@ -251,7 +248,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
           setSelectedStudents([]);
         }}
         onOk={handleAddStudents}
-        confirmLoading={loading}
+        confirmLoading={loadingClassDetails}
         okText="Add Students"
       >
         <Select
