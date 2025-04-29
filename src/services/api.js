@@ -195,7 +195,7 @@ export const studentAPI = {
   },
   getStudent: async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
+      const response = await fetch(`${BASE_URL}/users/get/${id}/`, {
         method: 'GET',
         headers: await getHeaders(),
         credentials: 'include'
