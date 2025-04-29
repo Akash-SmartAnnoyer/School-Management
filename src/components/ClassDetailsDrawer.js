@@ -14,32 +14,31 @@ const cld = new Cloudinary({
   }
 });
 
-const ClassDetailsDrawer = ({ visible, onClose, classInfo, teachers, students }) => {
-  const [classStudents, setClassStudents] = useState([]);
+const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
   const [loading, setLoading] = useState(true);
+  const [classDetails, setClassDetails] = useState(null);
 
   useEffect(() => {
-    if (classInfo?.id) {
-      loadClassStudents();
+    if (classData?.id) {
+      loadClassDetails();
     }
-  }, [classInfo?.id]);
+  }, [classData?.id]);
 
-  const loadClassStudents = async () => {
+  const loadClassDetails = async () => {
     try {
       setLoading(true);
-      const response = await api.student.getByClass(classInfo.id);
-      const filteredStudents = response.data.data.filter(student => 
-        student.status === 'Active'
-      );
-      setClassStudents(filteredStudents);
+      const response = await api.class.getClass(classData.id);
+      if (response.success) {
+        setClassDetails(response.data);
+      } else {
+        console.error('Failed to load class details:', response.message);
+      }
     } catch (error) {
-      console.error('Error loading class students:', error);
+      console.error('Error loading class details:', error);
     } finally {
       setLoading(false);
     }
   };
-
-  const classTeacher = teachers.find(t => t.id === classInfo?.teacherId);
 
   return (
     <Drawer
@@ -49,24 +48,29 @@ const ClassDetailsDrawer = ({ visible, onClose, classInfo, teachers, students })
       open={visible}
       width={800}
     >
-      {classInfo ? (
+      {classDetails ? (
         <div>
           <Descriptions bordered>
-            <Descriptions.Item label="Class Name">{classInfo.className}</Descriptions.Item>
-            <Descriptions.Item label="Section">{classInfo.section}</Descriptions.Item>
-            <Descriptions.Item label="Grade Level">{classInfo.gradeLevel}</Descriptions.Item>
-            <Descriptions.Item label="Academic Year">{classInfo.academicYear}</Descriptions.Item>
+            <Descriptions.Item label="Class Name">{classDetails.class_name}</Descriptions.Item>
+            <Descriptions.Item label="Section">{classDetails.section}</Descriptions.Item>
             <Descriptions.Item label="Class Teacher">
-              {classTeacher ? (
+              {classDetails.class_teacher ? (
                 <Space>
                   <Avatar icon={<UserOutlined />} />
-                  <span>{classTeacher.name}</span>
+                  <span>{`${classDetails.class_teacher.user.first_name} ${classDetails.class_teacher.user.last_name}`}</span>
                 </Space>
               ) : (
                 'Not Assigned'
               )}
             </Descriptions.Item>
-            <Descriptions.Item label="Total Students">{classStudents.length}</Descriptions.Item>
+            <Descriptions.Item label="Capacity">{classDetails.capacity}</Descriptions.Item>
+            <Descriptions.Item label="Total Students">{classDetails.total_students}</Descriptions.Item>
+            <Descriptions.Item label="Available Seats">{classDetails.available_seats}</Descriptions.Item>
+            <Descriptions.Item label="Status">
+              <Tag color={classDetails.status === 'active' ? 'green' : 'red'}>
+                {classDetails.status.charAt(0).toUpperCase() + classDetails.status.slice(1)}
+              </Tag>
+            </Descriptions.Item>
           </Descriptions>
 
           <Tabs defaultActiveKey="1" style={{ marginTop: 24 }}>
@@ -80,33 +84,28 @@ const ClassDetailsDrawer = ({ visible, onClose, classInfo, teachers, students })
               key="1"
             >
               <Table
-                dataSource={classStudents}
+                dataSource={classDetails.students}
                 columns={[
                   {
                     title: 'Name',
-                    dataIndex: 'name',
+                    dataIndex: ['user', 'first_name'],
                     key: 'name',
-                    render: (text, record) => (
+                    render: (_, record) => (
                       <Space>
                         <Avatar icon={<UserOutlined />} />
-                        <span>{text}</span>
+                        <span>{`${record.user.first_name} ${record.user.last_name}`}</span>
                       </Space>
                     ),
                   },
                   {
-                    title: 'Roll Number',
-                    dataIndex: 'rollNumber',
-                    key: 'rollNumber',
+                    title: 'Email',
+                    dataIndex: ['user', 'email'],
+                    key: 'email',
                   },
                   {
-                    title: 'Status',
-                    dataIndex: 'status',
-                    key: 'status',
-                    render: (status) => (
-                      <Tag color={status === 'Active' ? 'green' : 'red'}>
-                        {status}
-                      </Tag>
-                    ),
+                    title: 'Phone',
+                    dataIndex: ['user', 'phone'],
+                    key: 'phone',
                   },
                 ]}
                 rowKey="id"
@@ -127,24 +126,37 @@ const ClassDetailsDrawer = ({ visible, onClose, classInfo, teachers, students })
               tab={
                 <span>
                   <BookOutlined />
-                  Subjects
+                  Teacher Details
                 </span>
               } 
               key="2"
             >
-              <Row gutter={[16, 16]}>
-                {classInfo.subjects?.map(subject => (
-                  <Col span={8} key={subject.id}>
-                    <Card size="small">
-                      <Statistic
-                        title={subject.name}
-                        value={subject.code}
-                        prefix={<BookOutlined />}
-                      />
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
+              {classDetails.class_teacher ? (
+                <Card>
+                  <Descriptions column={1}>
+                    <Descriptions.Item label="Name">
+                      {`${classDetails.class_teacher.user.first_name} ${classDetails.class_teacher.user.last_name}`}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Email">
+                      {classDetails.class_teacher.user.email}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Phone">
+                      {classDetails.class_teacher.user.phone}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Qualification">
+                      {classDetails.class_teacher.qualification}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Specialization">
+                      {classDetails.class_teacher.specialization}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Subject">
+                      {classDetails.class_teacher.subject}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              ) : (
+                <Empty description="No teacher assigned" />
+              )}
             </TabPane>
           </Tabs>
         </div>
