@@ -730,9 +730,9 @@ const Students = () => {
     },
     {
       title: 'Roll Number',
-      dataIndex: 'rollNumber',
-      key: 'rollNumber',
-      sorter: (a, b) => a.rollNumber.localeCompare(b.rollNumber),
+      dataIndex: 'roll_no',
+      key: 'roll_no',
+      sorter: (a, b) => a.roll_no.localeCompare(b.roll_no),
     },
     {
       title: 'Class',
@@ -805,7 +805,7 @@ const Students = () => {
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    student.rollNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+    student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
     student.email.toLowerCase().includes(searchText.toLowerCase())
   );
 
