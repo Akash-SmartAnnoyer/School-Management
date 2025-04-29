@@ -260,7 +260,7 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   getTeacher: async (id) => {
-    const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
+    const response = await fetch(`${BASE_URL}/users/get/${id}/`, {
       method: 'GET',
       headers: await getHeaders(),
       credentials: 'include'
@@ -277,7 +277,7 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   updateTeacher: async (id, teacherData) => {
-    const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
+    const response = await fetch(`${BASE_URL}/users/update/${id}/`, {
       method: 'PUT',
       headers: await getHeaders(),
       body: JSON.stringify(teacherData),

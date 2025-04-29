@@ -71,8 +71,19 @@ const Teachers = () => {
   useEffect(() => {
     if (isModalVisible) {
       loadClasses();
+      if (editingTeacher) {
+        // Format the initial values for the form
+        const formattedValues = {
+          ...editingTeacher,
+          dob: editingTeacher.dob ? moment(editingTeacher.dob) : null,
+          joining_date: editingTeacher.joining_date ? moment(editingTeacher.joining_date) : null
+        };
+        form.setFieldsValue(formattedValues);
+      } else {
+        form.resetFields();
+      }
     }
-  }, [isModalVisible]);
+  }, [isModalVisible, editingTeacher]);
 
   const loadTeachers = async () => {
     try {
@@ -112,15 +123,53 @@ const Teachers = () => {
     setIsModalVisible(true);
   };
 
-  const handleEdit = (record) => {
-    setEditingTeacher(record);
-    const formValues = {
-      ...record,
-      dateOfBirth: record.dateOfBirth ? moment(record.dateOfBirth) : null,
-      joiningDate: record.joiningDate ? moment(record.joiningDate) : null
-    };
-    form.setFieldsValue(formValues);
-    setIsModalVisible(true);
+  const handleEdit = async (teacher) => {
+    try {
+      setLoading(true);
+      // Fetch the latest teacher data
+      const response = await api.teacher.getTeacher(teacher.user_id);
+      if (response.data) {
+        const teacherData = response.data;
+        // Format the teacher data for the form
+        const formValues = {
+          first_name: teacherData.first_name,
+          last_name: teacherData.last_name,
+          email: teacherData.email,
+          phone: teacherData.phone,
+          gender: teacherData.gender,
+          dob: teacherData.dob ? moment(teacherData.dob) : null,
+          // Profile data
+          address: teacherData.profile?.address,
+          blood_group: teacherData.profile?.blood_group,
+          nationality: teacherData.profile?.nationality,
+          // Teacher profile data
+          employee_id: teacherData.teacher_profile?.employee_id,
+          joining_date: teacherData.teacher_profile?.joining_date ? moment(teacherData.teacher_profile.joining_date) : null,
+          qualification: teacherData.teacher_profile?.qualification,
+          specialization: teacherData.teacher_profile?.specialization,
+          status: teacherData.teacher_profile?.status,
+          subject: teacherData.teacher_profile?.subject,
+          years_of_experience: teacherData.teacher_profile?.years_of_experience
+        };
+        
+        // Set the editing teacher and show the modal
+        setEditingTeacher({
+          ...formValues,
+          id: teacher.user_id // Make sure we have the user_id for the update
+        });
+        
+        // Set form values directly
+        form.setFieldsValue(formValues);
+        setIsModalVisible(true);
+      } else {
+        messageApi.error('Failed to load teacher data');
+      }
+    } catch (error) {
+      messageApi.error(error.message || 'Failed to load teacher data');
+      console.error('Error loading teacher:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (teacherId) => {
@@ -144,60 +193,109 @@ const Teachers = () => {
       setLoading(true);
       const values = await form.validateFields();
       
-      const payload = {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        phone: values.phone,
-        gender: values.gender,
-        dob: values.dob?.format('YYYY-MM-DD'),
-        role: 'teacher',
-        password: values.password,
-        confirm_password: values.confirm_password,
-        profile: {
-          address: values.address,
-          blood_group: values.blood_group,
-          class_name: values.class_name || 'NA',
-          nationality: values.nationality
-        },
-        teacher_profile: {
-          employee_id: values.employee_id,
-          joining_date: values.joining_date?.format('YYYY-MM-DD'),
-          qualification: values.qualification,
-          specialization: values.specialization,
-          status: values.status,
-          subject: values.subject,
-          years_of_experience: values.years_of_experience
-        }
-      };
-
-      let response;
       if (editingTeacher) {
-        response = await api.teacher.updateTeacher(editingTeacher.id, payload);
-      } else {
-        response = await api.teacher.createTeacher(payload);
-      }
+        // Format the data for update
+        const updateData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          profile: {
+            address: values.address,
+            blood_group: values.blood_group,
+            nationality: values.nationality
+          },
+          teacher_profile: {
+            employee_id: values.employee_id,
+            joining_date: values.joining_date?.format('YYYY-MM-DD'),
+            qualification: values.qualification,
+            specialization: values.specialization,
+            status: values.status,
+            subject: values.subject,
+            years_of_experience: values.years_of_experience
+          }
+        };
 
-      // Check if response is valid JSON
-      if (typeof response === 'object' && response !== null) {
-        if (response.status === 200 || response.status === 201) {
-          messageApi.success(editingTeacher ? 'Teacher updated successfully' : 'Teacher added successfully');
+        const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
+        if (response.status === 200) {
+          messageApi.success('Teacher updated successfully');
           setIsModalVisible(false);
           loadTeachers();
-        } else {
-          throw new Error(response.data?.message || 'Failed to save teacher');
         }
       } else {
-        throw new Error('Invalid response from server');
+        // Format the data for create
+        const createData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          email: values.email,
+          phone: values.phone,
+          gender: values.gender,
+          dob: values.dob.format('YYYY-MM-DD'),
+          role: 'teacher',
+          password: values.password,
+          confirm_password: values.confirm_password,
+          profile: {
+            address: values.address,
+            blood_group: values.blood_group,
+            nationality: values.nationality
+          },
+          teacher_profile: {
+            employee_id: values.employee_id,
+            joining_date: values.joining_date.format('YYYY-MM-DD'),
+            qualification: values.qualification,
+            specialization: values.specialization,
+            status: values.status,
+            subject: values.subject,
+            years_of_experience: values.years_of_experience
+          }
+        };
+
+        const response = await api.teacher.createTeacher(createData);
+        if (response.status === 201) {
+          messageApi.success('Teacher added successfully');
+          setIsModalVisible(false);
+          loadTeachers();
+        }
       }
     } catch (error) {
       console.error('Error saving teacher:', error);
-      // Safely check for error message
-      const errorMessage = error?.message || '';
-      if (errorMessage && typeof errorMessage === 'string' && errorMessage.includes('<!doctype')) {
-        messageApi.error('Server error occurred. Please try again later.');
+      
+      if (error.response?.status === 400) {
+        const errors = error.response.data;
+        
+        // Function to recursively handle nested errors
+        const handleNestedErrors = (errorObj, prefix = '') => {
+          Object.entries(errorObj).forEach(([field, value]) => {
+            if (Array.isArray(value)) {
+              // Handle array of error messages
+              value.forEach(message => {
+                const errorField = prefix ? `${prefix}.${field}` : field;
+                messageApi.error(`${errorField}: ${message}`);
+              });
+            } else if (typeof value === 'object' && value !== null) {
+              // Handle nested objects (like teacher_profile)
+              handleNestedErrors(value, field);
+            }
+          });
+        };
+
+        // Handle all errors including nested ones
+        handleNestedErrors(errors);
+
+      } else if (error.response?.status === 401) {
+        messageApi.error('Unauthorized. Please login again.');
+      } else if (error.response?.status === 403) {
+        messageApi.error('You do not have permission to perform this action.');
+      } else if (error.response?.status === 404) {
+        messageApi.error('Resource not found.');
+      } else if (error.response?.status === 409) {
+        messageApi.error('Conflict detected. Please check the data and try again.');
+      } else if (error.response?.status >= 500) {
+        messageApi.error('Server error. Please try again later.');
+      } else if (!error.response && error.request) {
+        // The request was made but no response was received
+        messageApi.error('No response from server. Please check your connection.');
       } else {
-        messageApi.error(errorMessage || (editingTeacher ? 'Failed to update teacher' : 'Failed to add teacher'));
+        // Something happened in setting up the request
+        messageApi.error(error.message || 'An error occurred while saving the teacher.');
       }
     } finally {
       setLoading(false);
