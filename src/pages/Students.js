@@ -132,7 +132,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         profile: {
           address: values.address,
           blood_group: values.blood_group,
-          class_name: values.class_name,
+          class_name: values.class_id,
           nationality: values.nationality
         },
         student_profile: {
