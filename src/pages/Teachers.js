@@ -19,7 +19,8 @@ import {
   Card,
   Typography,
   Tooltip,
-  Empty
+  Empty,
+  Popconfirm
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -173,16 +174,34 @@ const Teachers = () => {
   };
 
   const handleDelete = async (teacherId) => {
+    if (!teacherId) {
+      messageApi.error('Invalid teacher ID');
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await api.teacher.deleteTeacher(teacherId);
-      if (response.data.success) {
+      
+      if (response.status === 204) {
         messageApi.success('Teacher deleted successfully');
         loadTeachers();
+      } else if (response.status === 403) {
+        if (response.data?.detail === 'You do not have permission to perform this action.') {
+          messageApi.error('You do not have permission to delete this teacher');
+        } else if (response.data?.detail === 'Authentication credentials were not provided.') {
+          messageApi.error('Please login again to perform this action');
+        } else if (response.data?.code === 'token_not_valid') {
+          messageApi.error('Your session has expired. Please login again');
+        }
+      } else if (response.status === 404) {
+        messageApi.error('Teacher not found');
+      } else {
+        messageApi.error(response.data?.message || 'Failed to delete teacher');
       }
     } catch (error) {
-      messageApi.error('Failed to delete teacher');
       console.error('Error deleting teacher:', error);
+      messageApi.error(error.message || 'Failed to delete teacher');
     } finally {
       setLoading(false);
     }
@@ -345,7 +364,7 @@ const Teachers = () => {
         <Upload
           name="photo"
           showUploadList={false}
-          beforeUpload={(file) => handleImageUpload(file, record.id)}
+          beforeUpload={(file) => handleImageUpload(file, record.user_id)}
           accept="image/*"
         >
           <Avatar
@@ -408,7 +427,7 @@ const Teachers = () => {
             <Upload
               showUploadList={false}
               beforeUpload={(file) => {
-                handleImageUpload(file, record.id);
+                handleImageUpload(file, record.user_id);
                 return false;
               }}
               accept="image/*"
@@ -424,14 +443,20 @@ const Teachers = () => {
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              icon={<DeleteOutlined />}
-              size="small"
-              danger
-              onClick={() => handleDelete(record.id)}
-            />
-          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this teacher?"
+            onConfirm={() => handleDelete(record.user_id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Tooltip title="Delete">
+              <Button
+                icon={<DeleteOutlined />}
+                size="small"
+                danger
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },

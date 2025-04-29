@@ -286,7 +286,7 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   deleteTeacher: async (id) => {
-    const response = await fetch(`${BASE_URL}/teachers/${id}/`, {
+    const response = await fetch(`${BASE_URL}/users/delete/${id}/`, {
       method: 'DELETE',
       headers: await getHeaders(),
       credentials: 'include'
