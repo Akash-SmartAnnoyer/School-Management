@@ -101,9 +101,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const loadClasses = async () => {
     try {
       setLoadingClasses(true);
-      const response = await api.class.getAll();
-      if (response.data.success) {
-        setClasses(response.data.data);
+      const response = await api.class.getClasses();
+      if (response.success) {
+        setClasses(response.data);
+      } else {
+        message.error('Failed to load classes');
       }
     } catch (error) {
       console.error('Error loading classes:', error);
@@ -264,14 +266,17 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="class_name"
+                name="class_id"
                 label="Class"
                 rules={[{ required: false, message: 'Please select class!' }]}
               >
-                <Select placeholder="Select class">
+                <Select 
+                  placeholder="Select class"
+                  loading={loadingClasses}
+                >
                   {classes.map(cls => (
-                    <Option key={cls.id} value={cls.className}>
-                      {cls.className}
+                    <Option key={cls.id} value={cls.id}>
+                      {`${cls.class_name} - Section ${cls.section}`}
                     </Option>
                   ))}
                 </Select>
