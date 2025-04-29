@@ -195,7 +195,7 @@ export const studentAPI = {
   },
   getStudent: async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/students/${id}/`, {
+      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
         method: 'GET',
         headers: await getHeaders(),
         credentials: 'include'
@@ -222,7 +222,7 @@ export const studentAPI = {
   },
   updateStudent: async (id, studentData) => {
     try {
-      const response = await fetch(`${BASE_URL}/students/${id}/`, {
+      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
         method: 'PUT',
         headers: await getHeaders(),
         body: JSON.stringify(studentData),
@@ -236,7 +236,7 @@ export const studentAPI = {
   },
   deleteStudent: async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
+      const response = await fetch(`${BASE_URL}/users/delete/${id}/`, {
         method: 'DELETE',
         headers: await getHeaders(),
         credentials: 'include'

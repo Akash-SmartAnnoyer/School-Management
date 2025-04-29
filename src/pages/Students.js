@@ -574,15 +574,26 @@ const Students = () => {
     try {
       setLoading(true);
       const response = await api.student.deleteStudent(studentId);
-      if (response.data?.success) {
+      
+      if (response.status === 204) {
         messageApi.success('Student deleted successfully');
         loadStudents();
+      } else if (response.status === 403) {
+        if (response.data?.detail === 'You do not have permission to perform this action.') {
+          messageApi.error('You do not have permission to delete this student');
+        } else if (response.data?.detail === 'Authentication credentials were not provided.') {
+          messageApi.error('Please login again to perform this action');
+        } else if (response.data?.code === 'token_not_valid') {
+          messageApi.error('Your session has expired. Please login again');
+        }
+      } else if (response.status === 404) {
+        messageApi.error('Student not found');
       } else {
         messageApi.error(response.data?.message || 'Failed to delete student');
       }
     } catch (error) {
-      messageApi.error(error.message || 'Failed to delete student');
       console.error('Error deleting student:', error);
+      messageApi.error(error.message || 'Failed to delete student');
     } finally {
       setLoading(false);
     }
