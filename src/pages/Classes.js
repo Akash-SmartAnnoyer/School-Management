@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Tabs, Row, Col, Descriptions, Transfer } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
 import { useAuth } from '../contexts/AuthContext';
-import Timetable from './Timetable';
 
 const { Title } = Typography;
-const { TabPane } = Tabs;
 const { Option } = Select;
 
 const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -23,14 +21,10 @@ const Classes = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [students, setStudents] = useState([]);
-  const [studentTransferVisible, setStudentTransferVisible] = useState(false);
-  const [selectedStudents, setSelectedStudents] = useState([]);
 
   useEffect(() => {
     loadClasses();
     loadTeachers();
-    loadStudents();
   }, []);
 
   const loadClasses = async () => {
@@ -58,21 +52,6 @@ const Classes = () => {
     } catch (error) {
       messageApi.error('Failed to load teachers');
       console.error('Error loading teachers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      const response = await api.student.getStudents();
-      if (response) {
-        setStudents(response.data);
-      }
-    } catch (error) {
-      messageApi.error('Failed to load students');
-      console.error('Error loading students:', error);
     } finally {
       setLoading(false);
     }
@@ -139,64 +118,6 @@ const Classes = () => {
     }
   };
 
-  const handleAddStudents = (record) => {
-    setSelectedClass(record);
-    setSelectedStudents(record.students?.map(s => s.id) || []);
-    setStudentTransferVisible(true);
-  };
-
-  const handleStudentTransferChange = async (targetKeys) => {
-    try {
-      setLoading(true);
-      await api.class.addStudentsToClass(selectedClass.id, targetKeys);
-      messageApi.success('Students added to class successfully');
-      loadClasses();
-      setStudentTransferVisible(false);
-    } catch (error) {
-      messageApi.error('Failed to add students to class');
-      console.error('Error adding students to class:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderTimetable = (classId) => {
-    return (
-      <div style={{ marginTop: '20px' }}>
-        <Timetable classId={classId} />
-      </div>
-    );
-  };
-
-  const expandedRowRender = (record) => {
-    return (
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Class Details" key="1">
-          <Row gutter={[16, 16]}>
-            <Col span={24}>
-              <Descriptions bordered>
-                <Descriptions.Item label="Class Name">{record.class_name}</Descriptions.Item>
-                <Descriptions.Item label="Section">{record.section}</Descriptions.Item>
-                <Descriptions.Item label="Class Teacher">
-                  {record.teacher ? teachers.find(t => t.id === record.teacher)?.name || 'Not Assigned' : 'Not Assigned'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Capacity">{record.capacity}</Descriptions.Item>
-                <Descriptions.Item label="Status">
-                  <Tag color={record.status === 'active' ? 'green' : 'red'}>
-                    {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                  </Tag>
-                </Descriptions.Item>
-              </Descriptions>
-            </Col>
-          </Row>
-        </TabPane>
-        <TabPane tab="Timetable" key="2">
-          {renderTimetable(record.id)}
-        </TabPane>
-      </Tabs>
-    );
-  };
-
   const columns = [
     {
       title: 'Class Name',
@@ -249,11 +170,6 @@ const Classes = () => {
       render: (_, record) => (
         <Space>
           <Button
-            icon={<UserAddOutlined />}
-            size="small"
-            onClick={() => handleAddStudents(record)}
-          />
-          <Button
             icon={<EditOutlined />}
             size="small"
             onClick={() => handleEdit(record)}
@@ -280,9 +196,6 @@ const Classes = () => {
         columns={columns} 
         dataSource={classes} 
         rowKey="id"
-        expandable={{
-          expandedRowRender,
-        }}
         loading={loading}
       />
 
@@ -368,29 +281,6 @@ const Classes = () => {
             </Space>
           </Form.Item>
         </Form>
-      </Modal>
-
-      <Modal
-        title="Add Students to Class"
-        open={studentTransferVisible}
-        onCancel={() => setStudentTransferVisible(false)}
-        footer={null}
-        width={800}
-      >
-        <Transfer
-          dataSource={students.map(student => ({
-            key: student.id,
-            title: `${student.first_name} ${student.last_name}`,
-            description: `Roll No: ${student.roll_no || 'N/A'}`
-          }))}
-          targetKeys={selectedStudents}
-          onChange={handleStudentTransferChange}
-          render={item => item.title}
-          listStyle={{
-            width: 300,
-            height: 400,
-          }}
-        />
       </Modal>
 
       <ClassDetailsDrawer
