@@ -222,7 +222,7 @@ export const studentAPI = {
   },
   updateStudent: async (id, studentData) => {
     try {
-      const response = await fetch(`${BASE_URL}/users/students/${id}/`, {
+      const response = await fetch(`${BASE_URL}/users/update/${id}/`, {
         method: 'PUT',
         headers: await getHeaders(),
         body: JSON.stringify(studentData),

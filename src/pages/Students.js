@@ -118,42 +118,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      // Transform form values to match API payload structure
-      const payload = {
-        first_name: values.first_name,
-        last_name: values.last_name,
-        email: values.email,
-        phone: values.phone,
-        gender: values.gender,
-        dob: values.dob.format('YYYY-MM-DD'),
-        role: 'student',
-        password: values.password,
-        confirm_password: values.confirm_password,
-        profile: {
-          address: values.address,
-          blood_group: values.blood_group,
-          class_name: values.class_id,
-          nationality: values.nationality
-        },
-        student_profile: {
-          student_id: values.student_id,
-          admission_number: values.admission_number,
-          admission_date: values.admission_date.format('YYYY-MM-DD'),
-          last_grade_attended: values.last_grade_attended,
-          roll_no: values.roll_no,
-          section: values.section,
-          father_name: values.father_name,
-          father_occupation: values.father_occupation,
-          mother_name: values.mother_name,
-          mother_occupation: values.mother_occupation,
-          parent_address: values.parent_address,
-          parent_email: values.parent_email,
-          parent_phone: values.parent_phone,
-          allergies: values.allergies,
-          remarks: values.remarks
-        }
-      };
-      onSubmit(payload);
+      onSubmit(values);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -196,92 +161,77 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="email"
-                label="Email"
-                rules={[
-                  { required: true, message: 'Please input email!' },
-                  { type: 'email', message: 'Please enter a valid email!' }
-                ]}
-              >
-                <Input prefix={<MailOutlined />} placeholder="Enter email" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="phone"
-                label="Phone"
-                rules={[{ required: true, message: 'Please input phone number!' }]}
-              >
-                <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
-              </Form.Item>
-            </Col>
-          </Row>
+          {!initialValues && (
+            <>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: 'Please input email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined />} placeholder="Enter email" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="phone"
+                    label="Phone"
+                    rules={[{ required: true, message: 'Please input phone number!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="gender"
-                label="Gender"
-                rules={[{ required: true, message: 'Please select gender' }]}
-              >
-                <Select placeholder="Select gender">
-                  <Option value="M">Male</Option>
-                  <Option value="F">Female</Option>
-                  <Option value="O">Other</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="dob"
-                label="Date of Birth"
-                rules={[{ required: true, message: 'Please select date of birth!' }]}
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="gender"
+                    label="Gender"
+                    rules={[{ required: true, message: 'Please select gender' }]}
+                  >
+                    <Select placeholder="Select gender">
+                      <Option value="M">Male</Option>
+                      <Option value="F">Female</Option>
+                      <Option value="O">Other</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="dob"
+                    label="Date of Birth"
+                    rules={[{ required: true, message: 'Please select date of birth!' }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-          <Form.Item
-            name="password"
-            label="Password"
-            rules={[{ required: true, message: 'Please input password!' }]}
-          >
-            <Input.Password placeholder="Enter password" />
-          </Form.Item>
-          <Form.Item
-            name="confirm_password"
-            label="Confirm Password"
-            rules={[{ required: true, message: 'Please confirm password!' }]}
-          >
-            <Input.Password placeholder="Confirm password" /> 
-          </Form.Item>
-
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[{ required: true, message: 'Please input password!' }]}
+              >
+                <Input.Password placeholder="Enter password" />
+              </Form.Item>
+              <Form.Item
+                name="confirm_password"
+                label="Confirm Password"
+                rules={[{ required: true, message: 'Please confirm password!' }]}
+              >
+                <Input.Password placeholder="Confirm password" /> 
+              </Form.Item>
+            </>
+          )}
         </Card>
 
         <Card title="Profile Information" className="mb-4">
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="class_id"
-                label="Class"
-                rules={[{ required: false, message: 'Please select class!' }]}
-              >
-                <Select 
-                  placeholder="Select class"
-                  loading={loadingClasses}
-                >
-                  {classes.map(cls => (
-                    <Option key={cls.id} value={cls.id}>
-                      {`${cls.class_name} - Section ${cls.section}`}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
             <Col span={12}>
               <Form.Item
                 name="blood_group"
@@ -300,6 +250,15 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 </Select>
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="nationality"
+                label="Nationality"
+                rules={[{ required: true, message: 'Please input nationality!' }]}
+              >
+                <Input placeholder="Enter nationality" />
+              </Form.Item>
+            </Col>
           </Row>
 
           <Form.Item
@@ -308,14 +267,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             rules={[{ required: true, message: 'Please input address!' }]}
           >
             <Input.TextArea rows={3} placeholder="Enter address" />
-          </Form.Item>
-
-          <Form.Item
-            name="nationality"
-            label="Nationality"
-            rules={[{ required: true, message: 'Please input nationality!' }]}
-          >
-            <Input placeholder="Enter nationality" />
           </Form.Item>
         </Card>
 
@@ -523,21 +474,24 @@ const Students = () => {
       setLoading(true);
       // Fetch the latest student data
       const response = await api.student.getStudent(student.user_id);
-      if (response.data.success) {
-        const studentData = response.data.data;
+      if (response.data) {
+        const studentData = response.data;
         // Format the student data for the form
         const formValues = {
-          ...studentData,
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          email: studentData.email,
+          phone: studentData.phone,
+          gender: studentData.gender,
           dob: studentData.dob ? moment(studentData.dob) : null,
-          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
-          // Flatten nested profile data
+          // Profile data
           address: studentData.profile?.address,
           blood_group: studentData.profile?.blood_group,
-          class_name: studentData.profile?.class_name,
           nationality: studentData.profile?.nationality,
-          // Flatten nested student_profile data
+          // Student profile data
           student_id: studentData.student_profile?.student_id,
           admission_number: studentData.student_profile?.admission_number,
+          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
           section: studentData.student_profile?.section,
@@ -552,7 +506,11 @@ const Students = () => {
           remarks: studentData.student_profile?.remarks
         };
         
-        setEditingStudent(studentData);
+        // Set the editing student and show the modal
+        setEditingStudent({
+          ...formValues,
+          id: student.user_id // Make sure we have the user_id for the update
+        });
         setModalVisible(true);
       } else {
         messageApi.error('Failed to load student data');
@@ -605,9 +563,72 @@ const Students = () => {
       let response;
       
       if (editingStudent) {
-        response = await api.student.updateStudent(editingStudent.id, values);
+        // Format the data for update
+        const updateData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          profile: {
+            address: values.address,
+            blood_group: values.blood_group,
+            nationality: values.nationality
+          },
+          student_profile: {
+            student_id: values.student_id,
+            admission_number: values.admission_number,
+            admission_date: values.admission_date?.format('YYYY-MM-DD'),
+            last_grade_attended: values.last_grade_attended,
+            roll_no: values.roll_no,
+            section: values.section,
+            father_name: values.father_name,
+            father_occupation: values.father_occupation,
+            mother_name: values.mother_name,
+            mother_occupation: values.mother_occupation,
+            parent_address: values.parent_address,
+            parent_email: values.parent_email,
+            parent_phone: values.parent_phone,
+            allergies: values.allergies,
+            remarks: values.remarks
+          }
+        };
+
+        response = await api.student.updateStudent(editingStudent.id, updateData);
       } else {
-        response = await api.student.createStudent(values);
+        // Format the data for create
+        const createData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          email: values.email,
+          phone: values.phone,
+          gender: values.gender,
+          dob: values.dob.format('YYYY-MM-DD'),
+          role: 'student',
+          password: values.password,
+          confirm_password: values.confirm_password,
+          profile: {
+            address: values.address,
+            blood_group: values.blood_group,
+            nationality: values.nationality
+          },
+          student_profile: {
+            student_id: values.student_id,
+            admission_number: values.admission_number,
+            admission_date: values.admission_date.format('YYYY-MM-DD'),
+            last_grade_attended: values.last_grade_attended,
+            roll_no: values.roll_no,
+            section: values.section,
+            father_name: values.father_name,
+            father_occupation: values.father_occupation,
+            mother_name: values.mother_name,
+            mother_occupation: values.mother_occupation,
+            parent_address: values.parent_address,
+            parent_email: values.parent_email,
+            parent_phone: values.parent_phone,
+            allergies: values.allergies,
+            remarks: values.remarks
+          }
+        };
+
+        response = await api.student.createStudent(createData);
       }
 
       if (response.status === 200 || response.status === 201) {
