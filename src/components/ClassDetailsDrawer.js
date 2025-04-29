@@ -71,18 +71,62 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
     try {
       setLoadingClassDetails(true);
       const response = await api.class.addStudentsToClass(classData.id, selectedStudents);
-      if (response.success) {
-        messageApi.success(response.data.message);
+      
+      if (response.status === 200 || response.status === 201) {
+        messageApi.success('Students added successfully');
         loadClassDetails(); // Refresh class details
         loadAllStudents(); // Refresh available students
         setAddStudentsModalVisible(false);
         setSelectedStudents([]);
+      } else if (response.status === 400) {
+        messageApi.error(response.data.message || 'Invalid request. Please check the data and try again.');
+      } else if (response.status === 401) {
+        messageApi.error('Unauthorized. Please login again.');
+      } else if (response.status === 403) {
+        messageApi.error('You do not have permission to add students to this class.');
+      } else if (response.status === 404) {
+        messageApi.error('Class not found.');
+      } else if (response.status === 409) {
+        messageApi.error('Some students are already in the class or there is a conflict.');
+      } else if (response.status === 422) {
+        messageApi.error('Validation error: ' + (response.data.message || 'Please check the input data.'));
+      } else if (response.status >= 500) {
+        messageApi.error('Server error. Please try again later.');
       } else {
-        messageApi.error('Failed to add students to class');
+        messageApi.error('Failed to add students. Please try again.');
       }
     } catch (error) {
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          messageApi.error(data.message || 'Invalid request. Please check the data and try again.');
+        } else if (status === 401) {
+          messageApi.error('Unauthorized. Please login again.');
+        } else if (status === 403) {
+          messageApi.error('You do not have permission to add students to this class.');
+        } else if (status === 404) {
+          messageApi.error('Class not found.');
+        } else if (status === 409) {
+          messageApi.error('Some students are already in the class or there is a conflict.');
+        } else if (status === 422) {
+          messageApi.error('Validation error: ' + (data.message || 'Please check the input data.'));
+        } else if (status >= 500) {
+          messageApi.error('Server error. Please try again later.');
+        } else {
+          messageApi.error('Failed to add students. Please try again.');
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        messageApi.error('No response from server. Please check your connection and try again.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        messageApi.error('Error setting up the request. Please try again.');
+      }
       console.error('Error adding students:', error);
-      messageApi.error('Failed to add students to class');
     } finally {
       setLoadingClassDetails(false);
     }

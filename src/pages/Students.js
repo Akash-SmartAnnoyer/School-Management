@@ -602,74 +602,60 @@ const Students = () => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+      let response;
+      
       if (editingStudent) {
-        const response = await api.student.updateStudent(editingStudent.id, values);
-        if (response.data.success) {
-          messageApi.success('Student updated successfully');
-          setModalVisible(false);
-          loadStudents();
-        } else {
-          messageApi.error(response.data.message || 'Failed to update student');
-        }
+        response = await api.student.updateStudent(editingStudent.id, values);
       } else {
-        const response = await api.student.createStudent(values);
-        if (response.data.success) {
-          messageApi.success('Student added successfully');
-          setModalVisible(false);
-          loadStudents();
-        } else {
-          messageApi.error(response.data.message || 'Failed to add student');
-        }
+        response = await api.student.createStudent(values);
+      }
+
+      if (response.status === 200 || response.status === 201) {
+        messageApi.success(editingStudent ? 'Student updated successfully' : 'Student added successfully');
+        setModalVisible(false);
+        loadStudents();
       }
     } catch (error) {
       console.error('Error saving student:', error);
       
-      // Handle validation errors from backend
       if (error.response?.status === 400) {
-        const errorData = error.response.data;
+        const errors = error.response.data;
         
-        // Function to handle error messages
-        const handleErrorMessages = (messages) => {
-          if (Array.isArray(messages)) {
-            // Handle array of error messages
-            messages.forEach(msg => {
-              messageApi.error(msg);
-            });
-          } else if (typeof messages === 'object') {
-            // Handle object with nested errors
-            Object.entries(messages).forEach(([key, value]) => {
-              if (Array.isArray(value)) {
-                // Handle array of errors for a field
-                value.forEach(msg => {
-                  messageApi.error(msg);
-                });
-              } else if (typeof value === 'object') {
-                // Handle nested object errors
-                Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-                  if (Array.isArray(nestedValue)) {
-                    nestedValue.forEach(msg => {
-                      messageApi.error(msg);
-                    });
-                  }
-                });
-              }
-            });
-          }
+        // Function to recursively handle nested errors
+        const handleNestedErrors = (errorObj, prefix = '') => {
+          Object.entries(errorObj).forEach(([field, value]) => {
+            if (Array.isArray(value)) {
+              // Handle array of error messages
+              value.forEach(message => {
+                const errorField = prefix ? `${prefix}.${field}` : field;
+                messageApi.error(`${errorField}: ${message}`);
+              });
+            } else if (typeof value === 'object' && value !== null) {
+              // Handle nested objects (like student_profile)
+              handleNestedErrors(value, field);
+            }
+          });
         };
 
-        // Handle all error fields in the response
-        handleErrorMessages(errorData);
-        
-        // If no errors were found, show a generic message
-        if (Object.keys(errorData).length === 0) {
-          messageApi.error('Please check the form for errors');
-        }
+        // Handle all errors including nested ones
+        handleNestedErrors(errors);
+
+      } else if (error.response?.status === 401) {
+        messageApi.error('Unauthorized. Please login again.');
+      } else if (error.response?.status === 403) {
+        messageApi.error('You do not have permission to perform this action.');
+      } else if (error.response?.status === 404) {
+        messageApi.error('Resource not found.');
+      } else if (error.response?.status === 409) {
+        messageApi.error('Conflict detected. Please check the data and try again.');
+      } else if (error.response?.status >= 500) {
+        messageApi.error('Server error. Please try again later.');
+      } else if (!error.response && error.request) {
+        // The request was made but no response was received
+        messageApi.error('No response from server. Please check your connection.');
       } else {
-        // Handle other types of errors
-        const errorMessage = error.response?.data?.message || 
-                           error.message || 
-                           (editingStudent ? 'Failed to update student' : 'Failed to add student');
-        messageApi.error(errorMessage);
+        // Something happened in setting up the request
+        messageApi.error(error.message || 'An error occurred while saving the student.');
       }
     } finally {
       setLoading(false);
