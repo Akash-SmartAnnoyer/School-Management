@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://localhost:3000"],
+    "origin": ["https://www.360schooling.com", "http://localhost:3000", "https://school-management-beta.onrender.com"],
     "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "maxAgeSeconds": 3600,
     "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-resumable"]
