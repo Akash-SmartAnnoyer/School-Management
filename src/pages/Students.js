@@ -646,7 +646,8 @@ const Students = () => {
       if (response.status === 200 || response.status === 201) {
         messageApi.success(editingStudent ? 'Student updated successfully' : 'Student added successfully');
         setModalVisible(false);
-        loadStudents();
+        setLoading(true); // Keep loading state while refreshing the list
+        await loadStudents(); // Wait for the list to refresh
       }
     } catch (error) {
       console.error('Error saving student:', error);
