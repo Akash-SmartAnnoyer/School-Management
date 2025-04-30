@@ -161,57 +161,57 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             </Col>
           </Row>
 
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[
+                  { required: true, message: 'Please input email!' },
+                  { type: 'email', message: 'Please enter a valid email!' }
+                ]}
+              >
+                <Input prefix={<MailOutlined />} placeholder="Enter email" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="phone"
+                label="Phone"
+                rules={[{ required: true, message: 'Please input phone number!' }]}
+              >
+                <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="gender"
+                label="Gender"
+                rules={[{ required: true, message: 'Please select gender' }]}
+              >
+                <Select placeholder="Select gender">
+                  <Option value="M"><ManOutlined /> Male</Option>
+                  <Option value="F"><WomanOutlined /> Female</Option>
+                  <Option value="O"><UserOutlined /> Other</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="dob"
+                label="Date of Birth"
+                rules={[{ required: true, message: 'Please select date of birth!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
           {!initialValues && (
             <>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: 'Please input email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
-                    ]}
-                  >
-                    <Input prefix={<MailOutlined />} placeholder="Enter email" />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="phone"
-                    label="Phone"
-                    rules={[{ required: true, message: 'Please input phone number!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined />} placeholder="Enter phone number" />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="gender"
-                    label="Gender"
-                    rules={[{ required: true, message: 'Please select gender' }]}
-                  >
-                    <Select placeholder="Select gender">
-                      <Option value="M">Male</Option>
-                      <Option value="F">Female</Option>
-                      <Option value="O">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="dob"
-                    label="Date of Birth"
-                    rules={[{ required: true, message: 'Please select date of birth!' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
               <Form.Item
                 name="password"
                 label="Password"
@@ -224,7 +224,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 label="Confirm Password"
                 rules={[{ required: true, message: 'Please confirm password!' }]}
               >
-                <Input.Password placeholder="Confirm password" /> 
+                <Input.Password placeholder="Confirm password" />
               </Form.Item>
             </>
           )}
@@ -261,13 +261,17 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             </Col>
           </Row>
 
-          <Form.Item
-            name="address"
-            label="Address"
-            rules={[{ required: true, message: 'Please input address!' }]}
-          >
-            <Input.TextArea rows={3} placeholder="Enter address" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="address"
+                label="Address"
+                rules={[{ required: true, message: 'Please input address!' }]}
+              >
+                <Input.TextArea rows={3} placeholder="Enter address" />
+              </Form.Item>
+            </Col>
+          </Row>
         </Card>
 
         <Card title="Student Profile Information">
@@ -410,19 +414,27 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             </Col>
           </Row>
 
-          <Form.Item
-            name="allergies"
-            label="Allergies"
-          >
-            <Input.TextArea rows={2} placeholder="Enter any allergies" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="allergies"
+                label="Allergies"
+              >
+                <Input.TextArea rows={2} placeholder="Enter any allergies" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="remarks"
-            label="Remarks"
-          >
-            <Input.TextArea rows={3} placeholder="Enter remarks" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="remarks"
+                label="Remarks"
+              >
+                <Input.TextArea rows={3} placeholder="Enter remarks" />
+              </Form.Item>
+            </Col>
+          </Row>
         </Card>
       </Form>
     </Modal>
@@ -768,8 +780,8 @@ const Students = () => {
       dataIndex: 'gender',
       key: 'gender',
       render: (gender) => (
-        <Tag color={gender === 'male' ? 'blue' : 'pink'}>
-          {gender === 'male' ? <ManOutlined /> : <WomanOutlined />} {gender}
+        <Tag color={gender === 'M' ? 'blue' : 'pink'}>
+          {gender === 'M' ? <ManOutlined /> : <WomanOutlined />} {gender}
         </Tag>
       ),
     },
