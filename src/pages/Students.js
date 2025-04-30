@@ -85,7 +85,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
     if (visible) {
       loadClasses();
       if (initialValues) {
-        // Format the initial values for the form
         const formattedValues = {
           ...initialValues,
           dob: initialValues.dob ? moment(initialValues.dob) : null,
@@ -124,20 +123,25 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
     }
   };
 
+  const handleCancel = () => {
+    form.resetFields();
+    onCancel();
+  };
+
   return (
     <Modal
       title={initialValues ? 'Edit Student' : 'Add New Student'}
       open={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       onOk={handleSubmit}
       confirmLoading={loading}
       width={800}
       className="student-form-modal"
     >
       <Form
+        key={initialValues ? `edit-${initialValues.id}` : 'create'}
         form={form}
         layout="vertical"
-        initialValues={initialValues}
       >
         <Card title="Basic Information" className="mb-4">
           <Row gutter={16}>
@@ -484,11 +488,9 @@ const Students = () => {
   const handleEdit = async (student) => {
     try {
       setLoading(true);
-      // Fetch the latest student data
       const response = await api.student.getStudent(student.user_id);
       if (response.data) {
         const studentData = response.data;
-        // Format the student data for the form
         const formValues = {
           first_name: studentData.first_name,
           last_name: studentData.last_name,
@@ -496,11 +498,9 @@ const Students = () => {
           phone: studentData.phone,
           gender: studentData.gender,
           dob: studentData.dob ? moment(studentData.dob) : null,
-          // Profile data
           address: studentData.profile?.address,
           blood_group: studentData.profile?.blood_group,
           nationality: studentData.profile?.nationality,
-          // Student profile data
           student_id: studentData.student_profile?.student_id,
           admission_number: studentData.student_profile?.admission_number,
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
@@ -518,18 +518,15 @@ const Students = () => {
           remarks: studentData.student_profile?.remarks
         };
         
-        // Set the editing student and show the modal
         setEditingStudent({
           ...formValues,
-          id: student.user_id // Make sure we have the user_id for the update
+          id: student.user_id
         });
         setModalVisible(true);
-      } else {
-        messageApi.error('Failed to load student data');
       }
     } catch (error) {
-      messageApi.error(error.message || 'Failed to load student data');
       console.error('Error loading student:', error);
+      messageApi.error('Failed to load student data');
     } finally {
       setLoading(false);
     }
@@ -735,6 +732,11 @@ const Students = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setEditingStudent(null);
+  };
+
   const columns = [
     {
       title: 'Photo',
@@ -899,10 +901,7 @@ const Students = () => {
 
       <StudentForm
         visible={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setEditingStudent(null);
-        }}
+        onCancel={handleModalClose}
         onSubmit={handleSubmit}
         initialValues={editingStudent}
         loading={loading}
