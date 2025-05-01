@@ -285,7 +285,8 @@ const Teachers = () => {
           if (response.status === 200) {
             messageApi.success('Teacher updated successfully');
             setIsModalVisible(false);
-            loadTeachers();
+            setLoading(true); // Keep loading state while refreshing the list
+            await loadTeachers(); // Wait for the list to refresh
           }
         } else {
           messageApi.info('No changes detected');
