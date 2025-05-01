@@ -255,6 +255,33 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 </Col>
               </Row>
 
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name={['profile', 'class_name']}
+                    label="Class"
+                    rules={[{ required: true, message: 'Please select class!' }]}
+                  >
+                    <Select loading={loadingClasses}>
+                      {classes.map(cls => (
+                        <Option key={cls.id} value={`${cls.class_name} ${cls.section}`}>
+                          Class {cls.class_name} - Section {cls.section}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name={['profile', 'nationality']}
+                    label="Nationality"
+                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+
               {!initialValues && (
                 <>
                   <Form.Item
@@ -477,21 +504,13 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    name="nationality"
-                    label="Nationality"
-                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                    name="allergies"
+                    label="Allergies"
                   >
-                    <Input />
+                    <Input.TextArea rows={2} />
                   </Form.Item>
                 </Col>
               </Row>
-
-              <Form.Item
-                name="allergies"
-                label="Allergies"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
 
               <Form.Item
                 name="remarks"
@@ -660,14 +679,17 @@ const Students = () => {
         
         // Compare and add changed profile fields
         const profileChanges = {};
-        if (values.address !== editingStudent.address) {
-          profileChanges.address = values.address;
+        if (values.profile?.address !== editingStudent.profile?.address) {
+          profileChanges.address = values.profile?.address;
         }
-        if (values.blood_group !== editingStudent.blood_group) {
-          profileChanges.blood_group = values.blood_group;
+        if (values.profile?.blood_group !== editingStudent.profile?.blood_group) {
+          profileChanges.blood_group = values.profile?.blood_group;
         }
-        if (values.nationality !== editingStudent.nationality) {
-          profileChanges.nationality = values.nationality;
+        if (values.profile?.class_name !== editingStudent.profile?.class_name) {
+          profileChanges.class_name = values.profile?.class_name;
+        }
+        if (values.profile?.nationality !== editingStudent.profile?.nationality) {
+          profileChanges.nationality = values.profile?.nationality;
         }
         if (Object.keys(profileChanges).length > 0) {
           updateData.profile = profileChanges;
@@ -734,7 +756,7 @@ const Students = () => {
           return;
         }
       } else {
-        // Format the data for create (unchanged)
+        // Format the data for create
         const createData = {
           first_name: values.first_name,
           last_name: values.last_name,
@@ -748,7 +770,8 @@ const Students = () => {
           profile: {
             address: values.address,
             blood_group: values.blood_group,
-            nationality: values.nationality
+            class_name: values.profile?.class_name,
+            nationality: values.profile?.nationality
           },
           student_profile: {
             student_id: values.student_id,
@@ -934,8 +957,8 @@ const Students = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'active' ? 'success' : 'error'}>
-          {status === 'active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {status}
+        <Tag color={status === 'Active' ? 'success' : 'error'}>
+          {status === 'Active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {status}
         </Tag>
       ),
     },
