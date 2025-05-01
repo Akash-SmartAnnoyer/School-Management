@@ -80,6 +80,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const [form] = Form.useForm();
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [originalValues, setOriginalValues] = useState(null);
 
   useEffect(() => {
     if (visible) {
@@ -90,8 +91,10 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
           dob: initialValues.dob ? moment(initialValues.dob) : null,
           admission_date: initialValues.admission_date ? moment(initialValues.admission_date) : null
         };
+        setOriginalValues(formattedValues);
         form.setFieldsValue(formattedValues);
       } else {
+        setOriginalValues(null);
         form.resetFields();
       }
     }
@@ -117,7 +120,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      onSubmit(values);
+      onSubmit(values, originalValues);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -520,7 +523,8 @@ const Students = () => {
         
         setEditingStudent({
           ...formValues,
-          id: student.user_id
+          id: student.user_id,
+          originalData: studentData // Store the original data for comparison
         });
         setModalVisible(true);
       }
@@ -566,43 +570,112 @@ const Students = () => {
     }
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values, originalValues) => {
     try {
       setLoading(true);
       let response;
       
       if (editingStudent) {
-        // Format the data for update
-        const updateData = {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          profile: {
-            address: values.address,
-            blood_group: values.blood_group,
-            nationality: values.nationality
-          },
-          student_profile: {
-            student_id: values.student_id,
-            admission_number: values.admission_number,
-            admission_date: values.admission_date?.format('YYYY-MM-DD'),
-            last_grade_attended: values.last_grade_attended,
-            roll_no: values.roll_no,
-            section: values.section,
-            father_name: values.father_name,
-            father_occupation: values.father_occupation,
-            mother_name: values.mother_name,
-            mother_occupation: values.mother_occupation,
-            parent_address: values.parent_address,
-            parent_email: values.parent_email,
-            parent_phone: values.parent_phone,
-            allergies: values.allergies,
-            remarks: values.remarks
-          }
-        };
+        // Initialize update data with only changed fields
+        const updateData = {};
+        
+        // Compare and add changed basic fields
+        if (values.first_name !== editingStudent.first_name) {
+          updateData.first_name = values.first_name;
+        }
+        if (values.last_name !== editingStudent.last_name) {
+          updateData.last_name = values.last_name;
+        }
+        if (values.email !== editingStudent.email) {
+          updateData.email = values.email;
+        }
+        if (values.phone !== editingStudent.phone) {
+          updateData.phone = values.phone;
+        }
+        if (values.gender !== editingStudent.gender) {
+          updateData.gender = values.gender;
+        }
+        if (values.dob?.format('YYYY-MM-DD') !== editingStudent.dob?.format('YYYY-MM-DD')) {
+          updateData.dob = values.dob?.format('YYYY-MM-DD');
+        }
+        
+        // Compare and add changed profile fields
+        const profileChanges = {};
+        if (values.address !== editingStudent.address) {
+          profileChanges.address = values.address;
+        }
+        if (values.blood_group !== editingStudent.blood_group) {
+          profileChanges.blood_group = values.blood_group;
+        }
+        if (values.nationality !== editingStudent.nationality) {
+          profileChanges.nationality = values.nationality;
+        }
+        if (Object.keys(profileChanges).length > 0) {
+          updateData.profile = profileChanges;
+        }
+        
+        // Compare and add changed student profile fields
+        const studentProfileChanges = {};
+        if (values.student_id !== editingStudent.student_id) {
+          studentProfileChanges.student_id = values.student_id;
+        }
+        if (values.admission_number !== editingStudent.admission_number) {
+          studentProfileChanges.admission_number = values.admission_number;
+        }
+        if (values.admission_date?.format('YYYY-MM-DD') !== editingStudent.admission_date?.format('YYYY-MM-DD')) {
+          studentProfileChanges.admission_date = values.admission_date?.format('YYYY-MM-DD');
+        }
+        if (values.last_grade_attended !== editingStudent.last_grade_attended) {
+          studentProfileChanges.last_grade_attended = values.last_grade_attended;
+        }
+        if (values.roll_no !== editingStudent.roll_no) {
+          studentProfileChanges.roll_no = values.roll_no;
+        }
+        if (values.section !== editingStudent.section) {
+          studentProfileChanges.section = values.section;
+        }
+        if (values.father_name !== editingStudent.father_name) {
+          studentProfileChanges.father_name = values.father_name;
+        }
+        if (values.father_occupation !== editingStudent.father_occupation) {
+          studentProfileChanges.father_occupation = values.father_occupation;
+        }
+        if (values.mother_name !== editingStudent.mother_name) {
+          studentProfileChanges.mother_name = values.mother_name;
+        }
+        if (values.mother_occupation !== editingStudent.mother_occupation) {
+          studentProfileChanges.mother_occupation = values.mother_occupation;
+        }
+        if (values.parent_address !== editingStudent.parent_address) {
+          studentProfileChanges.parent_address = values.parent_address;
+        }
+        if (values.parent_email !== editingStudent.parent_email) {
+          studentProfileChanges.parent_email = values.parent_email;
+        }
+        if (values.parent_phone !== editingStudent.parent_phone) {
+          studentProfileChanges.parent_phone = values.parent_phone;
+        }
+        if (values.allergies !== editingStudent.allergies) {
+          studentProfileChanges.allergies = values.allergies;
+        }
+        if (values.remarks !== editingStudent.remarks) {
+          studentProfileChanges.remarks = values.remarks;
+        }
+        if (Object.keys(studentProfileChanges).length > 0) {
+          updateData.student_profile = studentProfileChanges;
+        }
 
-        response = await api.student.updateStudent(editingStudent.id, updateData);
+        // Only send update request if there are changes
+        if (Object.keys(updateData).length > 0) {
+          console.log('Update payload:', updateData); // Debug log to see what's being sent
+          response = await api.student.updateStudent(editingStudent.id, updateData);
+        } else {
+          messageApi.info('No changes detected');
+          setModalVisible(false);
+          return;
+        }
       } else {
-        // Format the data for create
+        // Format the data for create (unchanged)
         const createData = {
           first_name: values.first_name,
           last_name: values.last_name,
