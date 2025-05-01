@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Typography, Input, Space, Avatar, Badge, Dropdown, Tooltip, ConfigProvider, message } from 'antd';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
@@ -82,6 +82,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 function MainLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
 
@@ -283,7 +284,7 @@ function MainLayout() {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['1']}
+          selectedKeys={[location.pathname === '/' ? '1' : menuItems.find(item => item.path === location.pathname)?.key]}
           items={menuItems}
           onClick={({ key }) => {
             const selectedItem = menuItems.find(item => item.key === key);
