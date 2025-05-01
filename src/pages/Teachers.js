@@ -213,31 +213,84 @@ const Teachers = () => {
       const values = await form.validateFields();
       
       if (editingTeacher) {
-        // Format the data for update
-        const updateData = {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          profile: {
-            address: values.address,
-            blood_group: values.blood_group,
-            nationality: values.nationality
-          },
-          teacher_profile: {
-            employee_id: values.employee_id,
-            joining_date: values.joining_date?.format('YYYY-MM-DD'),
-            qualification: values.qualification,
-            specialization: values.specialization,
-            status: values.status,
-            subject: values.subject,
-            years_of_experience: values.years_of_experience
-          }
-        };
+        // Initialize update data with only changed fields
+        const updateData = {};
+        
+        // Compare and add changed basic fields
+        if (values.first_name !== editingTeacher.first_name) {
+          updateData.first_name = values.first_name;
+        }
+        if (values.last_name !== editingTeacher.last_name) {
+          updateData.last_name = values.last_name;
+        }
+        if (values.email !== editingTeacher.email) {
+          updateData.email = values.email;
+        }
+        if (values.phone !== editingTeacher.phone) {
+          updateData.phone = values.phone;
+        }
+        if (values.gender !== editingTeacher.gender) {
+          updateData.gender = values.gender;
+        }
+        if (values.dob?.format('YYYY-MM-DD') !== editingTeacher.dob?.format('YYYY-MM-DD')) {
+          updateData.dob = values.dob?.format('YYYY-MM-DD');
+        }
+        
+        // Compare and add changed profile fields
+        const profileChanges = {};
+        if (values.address !== editingTeacher.address) {
+          profileChanges.address = values.address;
+        }
+        if (values.blood_group !== editingTeacher.blood_group) {
+          profileChanges.blood_group = values.blood_group;
+        }
+        if (values.nationality !== editingTeacher.nationality) {
+          profileChanges.nationality = values.nationality;
+        }
+        if (Object.keys(profileChanges).length > 0) {
+          updateData.profile = profileChanges;
+        }
+        
+        // Compare and add changed teacher profile fields
+        const teacherProfileChanges = {};
+        if (values.employee_id !== editingTeacher.employee_id) {
+          teacherProfileChanges.employee_id = values.employee_id;
+        }
+        if (values.joining_date?.format('YYYY-MM-DD') !== editingTeacher.joining_date?.format('YYYY-MM-DD')) {
+          teacherProfileChanges.joining_date = values.joining_date?.format('YYYY-MM-DD');
+        }
+        if (values.qualification !== editingTeacher.qualification) {
+          teacherProfileChanges.qualification = values.qualification;
+        }
+        if (values.specialization !== editingTeacher.specialization) {
+          teacherProfileChanges.specialization = values.specialization;
+        }
+        if (values.status !== editingTeacher.status) {
+          teacherProfileChanges.status = values.status;
+        }
+        if (values.subject !== editingTeacher.subject) {
+          teacherProfileChanges.subject = values.subject;
+        }
+        if (values.years_of_experience !== editingTeacher.years_of_experience) {
+          teacherProfileChanges.years_of_experience = values.years_of_experience;
+        }
+        if (Object.keys(teacherProfileChanges).length > 0) {
+          updateData.teacher_profile = teacherProfileChanges;
+        }
 
-        const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
-        if (response.status === 200) {
-          messageApi.success('Teacher updated successfully');
+        // Only send update request if there are changes
+        if (Object.keys(updateData).length > 0) {
+          console.log('Update payload:', updateData); // Debug log to see what's being sent
+          const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
+          if (response.status === 200) {
+            messageApi.success('Teacher updated successfully');
+            setIsModalVisible(false);
+            loadTeachers();
+          }
+        } else {
+          messageApi.info('No changes detected');
           setIsModalVisible(false);
-          loadTeachers();
+          return;
         }
       } else {
         // Format the data for create
