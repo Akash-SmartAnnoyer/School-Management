@@ -895,6 +895,15 @@ const Students = () => {
       dataIndex: 'name',
       key: 'name',
       sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text, record) => (
+        <Button 
+          type="link" 
+          onClick={() => handleViewDetails(record)}
+          style={{ padding: 0, height: 'auto' }}
+        >
+          {text}
+        </Button>
+      ),
     },
     {
       title: 'Roll Number',
@@ -933,41 +942,32 @@ const Students = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record) => {
-        console.log('Student record:', record); // Debug log
-        return (
-          <Space>
-            <Tooltip title="View Details">
+      width: 100,
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Edit">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this student?"
+            onConfirm={() => handleDelete(record.user_id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Tooltip title="Delete">
               <Button
                 type="text"
-                icon={<UserOutlined />}
-                onClick={() => handleViewDetails(record)}
+                danger
+                icon={<DeleteOutlined />}
               />
             </Tooltip>
-            <Tooltip title="Edit">
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-              />
-            </Tooltip>
-            <Popconfirm
-              title="Are you sure you want to delete this student?"
-              onConfirm={() => handleDelete(record.user_id)}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Tooltip title="Delete">
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
-              </Tooltip>
-            </Popconfirm>
-          </Space>
-        );
-      },
+          </Popconfirm>
+        </Space>
+      ),
     },
   ];
 
