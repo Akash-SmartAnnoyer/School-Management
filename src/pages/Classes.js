@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography } from 'antd';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { MessageContext } from '../App';
@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const { Title } = Typography;
 const { Option } = Select;
+const { Search } = Input;
 
 const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -23,6 +24,7 @@ const Classes = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     loadClasses();
@@ -187,19 +189,41 @@ const Classes = () => {
     },
   ];
 
+  const filteredClasses = classes.filter(cls =>
+    cls.class_name.toLowerCase().includes(searchText.toLowerCase()) ||
+    cls.section.toLowerCase().includes(searchText.toLowerCase()) ||
+    (cls.teacher?.name?.toLowerCase() || '').includes(searchText.toLowerCase())
+  );
+
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', gap: '8px' }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} loading={loadingClasses}>
-          Add Class
-        </Button>
-      </div>
-      <Table 
-        columns={columns} 
-        dataSource={classes} 
-        rowKey="id"
-        loading={loadingClasses}
-      />
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+        <Col>
+          <Title level={2}>Classes</Title>
+        </Col>
+        <Col>
+          <Space>
+            <Search
+              placeholder="Search classes..."
+              allowClear
+              onSearch={setSearchText}
+              style={{ width: 300 }}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} loading={loadingClasses}>
+              Add Class
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+
+      <Card>
+        <Table 
+          columns={columns} 
+          dataSource={filteredClasses} 
+          rowKey="id"
+          loading={loadingClasses}
+        />
+      </Card>
 
       <Modal
         title={editingClass ? 'Edit Class' : 'Add Class'}
