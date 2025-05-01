@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 
 const SECRET_KEY = process.env.REACT_APP_TOKEN_SECRET || 'your-secret-key-here';
-const TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes for access token
+const TOKEN_EXPIRY = 150 * 60 * 1000; // 15 minutes for access token
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days for refresh token
 
 // Encrypt data before storing
@@ -56,7 +56,7 @@ export const getTokens = () => {
   
   if (!accessTokenData || !refreshTokenData || !user) {
     clearTokens();
-    return null;
+    return null;  
   }
   
   // Check if tokens are expired
