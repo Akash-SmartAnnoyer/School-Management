@@ -56,7 +56,7 @@ const examTypes = [
   { value: 'assignment', label: 'Assignment' }
 ];
 
-const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classes }) => {
+const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, teachers }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -64,8 +64,10 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
     if (initialValues) {
       form.setFieldsValue({
         ...initialValues,
-        date: moment(initialValues.date),
-        startTime: moment(initialValues.startTime)
+        date: moment(initialValues.exam_date),
+        startTime: moment(initialValues.start_time, 'HH:mm:ss'),
+        examCode: initialValues.exam_code,
+        maxMarks: initialValues.maximum_marks
       });
     }
   }, [initialValues]);
@@ -122,6 +124,21 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
           </Col>
           <Col span={12}>
             <Form.Item
+              name="examCode"
+              label="Exam Code"
+              rules={[{ required: true, message: 'Please enter exam code!' }]}
+            >
+              <Input 
+                placeholder="Enter exam code" 
+                prefix={<FileTextOutlined />}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]}>
+          <Col span={12}>
+            <Form.Item
               name="type"
               label="Exam Type"
               rules={[{ required: true, message: 'Please select exam type!' }]}
@@ -138,10 +155,33 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
               </Select>
             </Form.Item>
           </Col>
+          <Col span={12}>
+            <Form.Item
+              name="teacher"
+              label="Teacher"
+              rules={[{ required: true, message: 'Please select teacher!' }]}
+            >
+              <Select
+                placeholder="Select teacher"
+                showSearch
+                optionFilterProp="children"
+                prefix={<TeamOutlined />}
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+              >
+                {teachers.map(teacher => (
+                  <Option key={teacher.id} value={teacher.id}>
+                    {teacher.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
         </Row>
 
         <Row gutter={[16, 16]}>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item
               name="subjects"
               label="Subjects"
@@ -160,30 +200,6 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
                 {subjects.map(subject => (
                   <Option key={subject.id} value={subject.id}>
                     {subject.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="classes"
-              label="Classes"
-              rules={[{ required: true, message: 'Please select classes!' }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select classes"
-                showSearch
-                optionFilterProp="children"
-                prefix={<TeamOutlined />}
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {classes.map(cls => (
-                  <Option key={cls.id} value={cls.id}>
-                    {cls.className} - Section {cls.section}
                   </Option>
                 ))}
               </Select>
@@ -212,6 +228,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
             >
               <TimePicker 
                 style={{ width: '100%' }} 
+                format="HH:mm:ss"
                 prefix={<ClockCircleOutlined />}
               />
             </Form.Item>
@@ -274,7 +291,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, classe
 const ExamManagement = () => {
   const [exams, setExams] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [examModalVisible, setExamModalVisible] = useState(false);
   const [subjectModalVisible, setSubjectModalVisible] = useState(false);
@@ -290,14 +307,14 @@ const ExamManagement = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [examsResponse, subjectsResponse, classesResponse] = await Promise.all([
-        api.exam.getAll(),
-        api.subject.getAll(),
-        api.class.getAll()
+      const [examsResponse, subjectsResponse, teachersResponse] = await Promise.all([
+        api.exam.getExams(),
+        api.subject.getSubjects(),
+        api.teacher.getAll()
       ]);
       setExams(examsResponse.data.data);
       setSubjects(subjectsResponse.data.data);
-      setClasses(classesResponse.data.data);
+      setTeachers(teachersResponse.data.data);
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -311,23 +328,22 @@ const ExamManagement = () => {
       setLoading(true);
       const examData = {
         name: values.name,
+        exam_code: values.examCode,
         type: values.type,
         subjects: values.subjects || [],
-        classes: values.classes || [],
-        date: values.date.toISOString(),
-        startTime: values.startTime.toISOString(),
-        duration: values.duration || 0,
-        maxMarks: values.maxMarks || 0,
-        instructions: values.instructions || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        teacher: values.teacher,
+        exam_date: values.date.format('YYYY-MM-DD'),
+        start_time: values.startTime.format('HH:mm:ss'),
+        duration: values.duration,
+        maximum_marks: values.maxMarks,
+        instructions: values.instructions || ''
       };
 
       if (editingExam) {
-        await api.exam.update(editingExam.id, examData);
+        await api.exam.updateExam(editingExam.id, examData);
         messageApi.success('Exam updated successfully');
       } else {
-        await api.exam.create(examData);
+        await api.exam.createExam(examData);
         messageApi.success('Exam added successfully');
       }
       loadInitialData();
@@ -359,10 +375,10 @@ const ExamManagement = () => {
     try {
       setLoading(true);
       if (editingSubject) {
-        await api.subject.update(editingSubject.id, values);
+        await api.subject.updateSubject(editingSubject.id, values);
         messageApi.success('Subject updated successfully');
       } else {
-        await api.subject.create(values);
+        await api.subject.createSubject(values);
         messageApi.success('Subject added successfully');
       }
       loadInitialData();
@@ -401,8 +417,8 @@ const ExamManagement = () => {
   const getClassNames = (classIds) => {
     if (!classIds) return [];
     return classIds.map(id => {
-      const cls = classes.find(c => c.id === id);
-      return cls ? `${cls.className} - Section ${cls.section}` : id;
+      const cls = teachers.find(c => c.id === id);
+      return cls ? `${cls.name} - Section ${cls.section}` : id;
     });
   };
 
@@ -417,6 +433,15 @@ const ExamManagement = () => {
           <TrophyOutlined />
           <span>{text}</span>
         </Space>
+      ),
+    },
+    {
+      title: 'Exam Code',
+      dataIndex: 'exam_code',
+      key: 'exam_code',
+      width: 120,
+      render: (text) => (
+        <Tag color="blue">{text}</Tag>
       ),
     },
     {
@@ -452,17 +477,14 @@ const ExamManagement = () => {
       ),
     },
     {
-      title: 'Classes',
-      dataIndex: 'classes',
-      key: 'classes',
-      width: 200,
-      render: (classIds) => (
-        <Space wrap>
-          {getClassNames(classIds).map((name, index) => (
-            <Tag key={index} color="green">{name}</Tag>
-          ))}
-        </Space>
-      ),
+      title: 'Teacher',
+      dataIndex: 'teacher',
+      key: 'teacher',
+      width: 150,
+      render: (teacherId) => {
+        const teacher = teachers.find(t => t.id === teacherId);
+        return teacher ? teacher.name : teacherId;
+      }
     },
     {
       title: 'Date & Time',
@@ -471,11 +493,11 @@ const ExamManagement = () => {
       render: (_, record) => (
         <Space direction="vertical">
           <Badge 
-            status={moment(record.date).isBefore(moment(), 'day') ? 'default' : 'success'} 
-            text={moment(record.date).format('DD MMM YYYY')}
+            status={moment(record.exam_date).isBefore(moment(), 'day') ? 'default' : 'success'} 
+            text={moment(record.exam_date).format('DD MMM YYYY')}
           />
           <span style={{ fontSize: '12px', color: '#666' }}>
-            {moment(record.startTime).format('hh:mm A')}
+            {record.start_time}
           </span>
         </Space>
       ),
@@ -494,8 +516,8 @@ const ExamManagement = () => {
     },
     {
       title: 'Max Marks',
-      dataIndex: 'maxMarks',
-      key: 'maxMarks',
+      dataIndex: 'maximum_marks',
+      key: 'maximum_marks',
       width: 120,
       render: (maxMarks) => (
         <Space>
@@ -731,7 +753,7 @@ const ExamManagement = () => {
         onSubmit={handleExamSubmit}
         initialValues={editingExam}
         subjects={subjects}
-        classes={classes}
+        teachers={teachers}
       />
 
       <Modal

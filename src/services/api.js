@@ -367,42 +367,41 @@ export const subjectAPI = {
   getSubjects: async () => {
     const response = await fetch(`${BASE_URL}/subjects/`, {
       method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   },
+
   getSubject: async (id) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   },
+
   createSubject: async (subjectData) => {
     const response = await fetch(`${BASE_URL}/subjects/`, {
       method: 'POST',
       headers: await getHeaders(),
-      body: JSON.stringify(subjectData),
-      credentials: 'include'
+      body: JSON.stringify(subjectData)
     });
     return handleResponse(response);
   },
+
   updateSubject: async (id, subjectData) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'PUT',
       headers: await getHeaders(),
-      body: JSON.stringify(subjectData),
-      credentials: 'include'
+      body: JSON.stringify(subjectData)
     });
     return handleResponse(response);
   },
+
   deleteSubject: async (id) => {
     const response = await fetch(`${BASE_URL}/subjects/${id}/`, {
       method: 'DELETE',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   }
@@ -459,42 +458,41 @@ export const examAPI = {
   getExams: async () => {
     const response = await fetch(`${BASE_URL}/exams/`, {
       method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   },
+
   getExam: async (id) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   },
+
   createExam: async (examData) => {
     const response = await fetch(`${BASE_URL}/exams/`, {
       method: 'POST',
       headers: await getHeaders(),
-      body: JSON.stringify(examData),
-      credentials: 'include'
+      body: JSON.stringify(examData)
     });
     return handleResponse(response);
   },
+
   updateExam: async (id, examData) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'PUT',
       headers: await getHeaders(),
-      body: JSON.stringify(examData),
-      credentials: 'include'
+      body: JSON.stringify(examData)
     });
     return handleResponse(response);
   },
+
   deleteExam: async (id) => {
     const response = await fetch(`${BASE_URL}/exams/${id}/`, {
       method: 'DELETE',
-      headers: await getHeaders(),
-      credentials: 'include'
+      headers: await getHeaders()
     });
     return handleResponse(response);
   }
