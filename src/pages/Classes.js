@@ -84,7 +84,7 @@ const Classes = () => {
         form.setFieldsValue({
           className: classroomData.class_name,
           section: classroomData.section,
-          teacherId: classroomData.class_teacher?.user_id || null,
+          teacherId: classroomData.class_teacher?.user?.id || null,
           capacity: classroomData.capacity,
           status: classroomData.status.charAt(0).toUpperCase() + classroomData.status.slice(1)
         });
