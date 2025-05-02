@@ -185,102 +185,82 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
               }
               style={{ marginTop: '16px' }}
             >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="first_name"
-                    label="First Name"
-                    rules={[{ required: true, message: 'Please input first name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="last_name"
-                    label="Last Name"
-                    rules={[{ required: true, message: 'Please input last name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="first_name"
+                label="First Name"
+                rules={[{ required: true, message: 'Please input first name!' }]}
+              >
+                <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+              </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: 'Please input email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
-                    ]}
-                  >
-                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="phone"
-                    label="Phone"
-                    rules={[{ required: true, message: 'Please input phone number!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="last_name"
+                label="Last Name"
+                rules={[{ required: true, message: 'Please input last name!' }]}
+              >
+                <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+              </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="gender"
-                    label="Gender"
-                    rules={[{ required: true, message: 'Please select gender!' }]}
-                  >
-                    <Select>
-                      <Option value="M">Male</Option>
-                      <Option value="F">Female</Option>
-                      <Option value="O">Other</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="dob"
-                    label="DOB"
-                    rules={[{ required: true, message: 'Please select date of birth!' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[
+                  { required: true, message: 'Please input email!' },
+                  { type: 'email', message: 'Please enter a valid email!' }
+                ]}
+              >
+                <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+              </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name={['profile', 'class_name']}
-                    label="Class"
-                    rules={[{ required: true, message: 'Please select class!' }]}
-                  >
-                    <Select loading={loadingClasses}>
-                      {classes.map(cls => (
-                        <Option key={cls.id} value={`${cls.class_name} ${cls.section}`}>
-                          Class {cls.class_name} - Section {cls.section}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name={['profile', 'nationality']}
-                    label="Nationality"
-                    rules={[{ required: true, message: 'Please input nationality!' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                name="phone"
+                label="Phone"
+                rules={[{ required: true, message: 'Please input phone number!' }]}
+              >
+                <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+              </Form.Item>
+
+              <Form.Item
+                name="gender"
+                label="Gender"
+                rules={[{ required: true, message: 'Please select gender!' }]}
+              >
+                <Select>
+                  <Option value="M">Male</Option>
+                  <Option value="F">Female</Option>
+                  <Option value="O">Other</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="dob"
+                label="DOB"
+                rules={[{ required: true, message: 'Please select date of birth!' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+
+              <Form.Item
+                name={['profile', 'class_name']}
+                label="Class"
+                rules={[{ required: true, message: 'Please select class!' }]}
+              >
+                <Select loading={loadingClasses}>
+                  {classes.map(cls => (
+                    <Option key={cls.id} value={`${cls.class_name} ${cls.section}`}>
+                      Class {cls.class_name} - Section {cls.section}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name={['profile', 'nationality']}
+                label="Nationality"
+                rules={[{ required: true, message: 'Please input nationality!' }]}
+              >
+                <Input />
+              </Form.Item>
 
               {!initialValues && (
                 <>
