@@ -24,6 +24,7 @@ const Classes = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
@@ -69,7 +70,7 @@ const Classes = () => {
 
   const handleEdit = async (record) => {
     try {
-      setLoadingModal(true);
+      setLoadingClasses(true);
       // Load both classroom and teachers data in parallel
       const [classResponse, teachersResponse] = await Promise.all([
         api.class.getClass(record.id),
@@ -83,7 +84,7 @@ const Classes = () => {
         form.setFieldsValue({
           className: classroomData.class_name,
           section: classroomData.section,
-          teacherId: classroomData.class_teacher?.id,
+          teacherId: classroomData.class_teacher?.user_id || null,
           capacity: classroomData.capacity,
           status: classroomData.status.charAt(0).toUpperCase() + classroomData.status.slice(1)
         });
@@ -93,7 +94,7 @@ const Classes = () => {
       messageApi.error('Failed to load class details');
       console.error('Error loading class details:', error);
     } finally {
-      setLoadingModal(false);
+      setLoadingClasses(false);
     }
   };
 
@@ -164,10 +165,9 @@ const Classes = () => {
       title: 'Teacher',
       dataIndex: 'teacher',
       key: 'teacher',
-      render: (teacherId) => {
-        if (!teacherId) return 'Not Assigned';
-        const teacher = teachers.find(t => t.id === teacherId);
-        return teacher ? teacher.name : 'Not Assigned';
+      render: (teacher) => {
+        if (!teacher) return 'Not Assigned';
+        return `${teacher.first_name} ${teacher.last_name}`;
       },
     },
     {
@@ -283,9 +283,9 @@ const Classes = () => {
             name="teacherId"
             label="Class Teacher"
           >
-            <Select allowClear>
+            <Select allowClear placeholder="Select teacher">
               {teachers.map(teacher => (
-                <Option key={teacher.id} value={teacher.id}>
+                <Option key={teacher.user_id} value={teacher.user_id}>
                   {teacher.name}
                 </Option>
               ))}
