@@ -156,14 +156,14 @@ const Login = () => {
                 </Button>
               </Form.Item>
 
-              <Form.Item style={{ marginTop: 16, marginBottom: 0, textAlign: 'center' }}>
+              {/* <Form.Item style={{ marginTop: 16, marginBottom: 0, textAlign: 'center' }}>
                 <Text>
                   Don't have an account?{' '}
                   <Button type="link" onClick={() => navigate('/register')} style={{ padding: 0 }}>
                     Sign Up
                   </Button>
                 </Text>
-              </Form.Item>
+              </Form.Item> */}
             </Form>
           </Card>
         </div>
