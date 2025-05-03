@@ -398,6 +398,8 @@ const ExamManagement = () => {
       setSubjectModalLoading(false);
       setLoading(true); // Show table loading while fetching new data
       await loadInitialData();
+      setEditingSubject(null); // Reset editing subject after successful submission
+      subjectForm.resetFields(); // Reset form after successful submission
     } catch (error) {
       messageApi.error('Failed to save subject');
       console.error('Error saving subject:', error);
@@ -426,7 +428,7 @@ const ExamManagement = () => {
       setLoading(true);
       const response = await api.subject.getSubject(id);
       setEditingSubject(response.data);
-      subjectForm.setFieldsValue(response.data);
+      subjectForm.setFieldsValue(response.data); // Set form values with fresh data
       setSubjectModalVisible(true);
     } catch (error) {
       messageApi.error('Failed to load subject details');
@@ -669,7 +671,7 @@ const ExamManagement = () => {
 
   const handleAddSubject = () => {
     setEditingSubject(null);
-    subjectForm.resetFields();
+    subjectForm.resetFields(); // Reset form to empty state
     setSubjectModalVisible(true);
   };
 
@@ -800,12 +802,14 @@ const ExamManagement = () => {
           setEditingSubject(null);
         }}
         confirmLoading={subjectModalLoading}
+        destroyOnClose={true}
       >
         <Form
           form={subjectForm}
           layout="vertical"
           onFinish={handleSubjectSubmit}
-          initialValues={editingSubject}
+          initialValues={editingSubject || {}}
+          preserve={false}
         >
           <Form.Item
             name="name"
