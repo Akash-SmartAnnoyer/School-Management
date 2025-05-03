@@ -720,50 +720,7 @@ const ExamManagement = () => {
         <Col span={24}>
           <Card>
             <Tabs defaultActiveKey="1">
-              <TabPane 
-                tab={
-                  <span>
-                    <TrophyOutlined />
-                    Exam Management
-                  </span>
-                } 
-                key="1"
-              >
-                <Row gutter={[16, 16]}>
-                  <Col span={24}>
-                    <Space style={{ marginBottom: 16 }}>
-                      <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />}
-                        onClick={handleAddExam}
-                      >
-                        Add Exam
-                      </Button>
-                    </Space>
-                    <Table
-                      dataSource={exams}
-                      columns={examColumns}
-                      rowKey="id"
-                      loading={loading}
-                      pagination={{ 
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total) => `Total ${total} exams`
-                      }}
-                      scroll={{ x: 1300 }}
-                      locale={{
-                        emptyText: (
-                          <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description="No exams found"
-                          />
-                        )
-                      }}
-                    />
-                  </Col>
-                </Row>
-              </TabPane>
+
 
               <TabPane 
                 tab={
@@ -802,6 +759,50 @@ const ExamManagement = () => {
                           <Empty
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description="No subjects found"
+                          />
+                        )
+                      }}
+                    />
+                  </Col>
+                </Row>
+              </TabPane>
+              <TabPane 
+                tab={
+                  <span>
+                    <TrophyOutlined />
+                    Exam Management
+                  </span>
+                } 
+                key="1"
+              >
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Space style={{ marginBottom: 16 }}>
+                      <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />}
+                        onClick={handleAddExam}
+                      >
+                        Add Exam
+                      </Button>
+                    </Space>
+                    <Table
+                      dataSource={exams}
+                      columns={examColumns}
+                      rowKey="id"
+                      loading={loading}
+                      pagination={{ 
+                        pageSize: 10,
+                        showSizeChanger: true,
+                        showQuickJumper: true,
+                        showTotal: (total) => `Total ${total} exams`
+                      }}
+                      scroll={{ x: 1300 }}
+                      locale={{
+                        emptyText: (
+                          <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description="No exams found"
                           />
                         )
                       }}
