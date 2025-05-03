@@ -404,10 +404,24 @@ const ExamManagement = () => {
     }
   };
 
+  const handleSubjectEdit = async (id) => {
+    try {
+      setLoading(true);
+      const response = await api.subject.getSubject(id);
+      setEditingSubject(response.data);
+      setSubjectModalVisible(true);
+    } catch (error) {
+      messageApi.error('Failed to load subject details');
+      console.error('Error loading subject:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleSubjectDelete = async (id) => {
     try {
       setLoading(true);
-      await api.subject.delete(id);
+      await api.subject.deleteSubject(id);
       messageApi.success('Subject deleted successfully');
       loadInitialData();
     } catch (error) {
@@ -618,10 +632,7 @@ const ExamManagement = () => {
             <Button 
               type="link" 
               icon={<EditOutlined />} 
-              onClick={() => {
-                setEditingSubject(record);
-                setSubjectModalVisible(true);
-              }}
+              onClick={() => handleSubjectEdit(record.id)}
             />
           </Tooltip>
           <Popconfirm

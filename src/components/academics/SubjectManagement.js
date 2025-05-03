@@ -111,6 +111,7 @@ const SubjectManagement = () => {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
     loadSubjects();
@@ -134,14 +135,23 @@ const SubjectManagement = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = (subject) => {
-    setEditingSubject(subject);
-    setModalVisible(true);
+  const handleEdit = async (subject) => {
+    try {
+      setEditLoading(true);
+      const response = await api.subject.getSubject(subject.id);
+      setEditingSubject(response.data);
+      setModalVisible(true);
+    } catch (error) {
+      messageApi.error('Failed to load subject details');
+      console.error('Error loading subject:', error);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const handleDelete = async (subjectId) => {
     try {
-      await api.subject.delete(subjectId);
+      await api.subject.deleteSubject(subjectId);
       messageApi.success('Subject deleted successfully');
       loadSubjects();
     } catch (error) {
@@ -210,6 +220,7 @@ const SubjectManagement = () => {
               type="link" 
               icon={<EditOutlined />} 
               onClick={() => handleEdit(record)}
+              loading={editLoading}
             />
           </Tooltip>
           <Tooltip title="Delete Subject">
