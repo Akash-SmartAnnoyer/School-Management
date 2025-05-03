@@ -58,6 +58,7 @@ import {
 import ExamManagement from '../components/academics/ExamManagement';
 import MarksEntry from '../components/academics/MarksEntry';
 import Analytics from '../components/academics/Analytics';
+import SubManagement from '../components/academics/SubManagement';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -609,7 +610,12 @@ const Academics = () => {
             items={[
               {
                 key: '1',
-                label: 'Exam Management',
+                label: (
+                  <span>
+                    <TrophyOutlined />
+                    Exam Management
+                  </span>
+                ),
                 children: <ExamManagement
                   exams={exams}
                   classes={classes}
@@ -621,7 +627,22 @@ const Academics = () => {
               },
               {
                 key: '2',
-                label: 'Marks Entry',
+                label: (
+                  <span>
+                    <BookOutlined />
+                    Subject Management
+                  </span>
+                ),
+                children: <SubManagement />
+              },
+              {
+                key: '3',
+                label: (
+                  <span>
+                    <EditOutlined />
+                    Marks Entry
+                  </span>
+                ),
                 children: <MarksEntry
                   students={students}
                   classes={classes}
@@ -631,8 +652,13 @@ const Academics = () => {
                 />
               },
               {
-                key: '3',
-                label: 'Analytics',
+                key: '4',
+                label: (
+                  <span>
+                    <BarChartOutlined />
+                    Analytics
+                  </span>
+                ),
                 children: <Analytics
                   marks={marks}
                   students={students}

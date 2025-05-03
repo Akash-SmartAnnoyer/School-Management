@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  Card,
   Table,
   Button,
   Space,
@@ -10,43 +9,26 @@ import {
   Select,
   DatePicker,
   TimePicker,
-  InputNumber,
   message,
-  Tag,
-  Typography,
-  Tooltip,
-  Popconfirm,
+  Card,
   Row,
   Col,
-  Tabs,
-  Divider,
-  Badge,
-  Statistic,
-  Empty
+  Typography,
+  Tag,
+  Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   TrophyOutlined,
-  BookOutlined,
-  InfoCircleOutlined,
-  CalendarOutlined,
-  ClockCircleOutlined,
-  TeamOutlined,
-  FileTextOutlined,
-  EyeOutlined,
-  PrinterOutlined,
-  FileExcelOutlined,
-  FilePdfOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
-import moment from 'moment';
 import api from '../../services/api';
+import moment from 'moment';
 
-const { Option } = Select;
 const { Title } = Typography;
-const { TabPane } = Tabs;
+const { Option } = Select;
 
 const examTypes = [
   { value: 'quiz', label: 'Quiz' },
@@ -56,252 +38,15 @@ const examTypes = [
   { value: 'assignment', label: 'Assignment' }
 ];
 
-const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, teachers }) => {
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    console.log('Subjects in ExamForm:', subjects);
-    if (initialValues) {
-      console.log('Initial values:', initialValues);
-      form.setFieldsValue({
-        ...initialValues,
-        date: moment(initialValues.exam_date),
-        startTime: moment(initialValues.start_time, 'HH:mm:ss'),
-        examCode: initialValues.exam_code,
-        maxMarks: initialValues.maximum_marks
-      });
-    }
-  }, [initialValues, subjects]);
-
-  const handleSubmit = async (values) => {
-    try {
-      setLoading(true);
-      await onSubmit(values);
-      form.resetFields();
-      onCancel();
-    } catch (error) {
-      message.error('Failed to save exam');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal
-      title={
-        <Space>
-          <TrophyOutlined />
-          {initialValues ? 'Edit Exam' : 'Add New Exam'}
-        </Space>
-      }
-      open={visible}
-      onCancel={onCancel}
-      footer={null}
-      width={800}
-      destroyOnClose
-    >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{
-          date: moment(),
-          startTime: moment(),
-          ...initialValues
-        }}
-      >
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Form.Item
-              name="name"
-              label="Exam Name"
-              rules={[{ required: true, message: 'Please enter exam name!' }]}
-            >
-              <Input 
-                placeholder="Enter exam name" 
-                prefix={<FileTextOutlined />}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="examCode"
-              label="Exam Code"
-              rules={[{ required: true, message: 'Please enter exam code!' }]}
-            >
-              <Input 
-                placeholder="Enter exam code" 
-                prefix={<FileTextOutlined />}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Form.Item
-              name="type"
-              label="Exam Type"
-              rules={[{ required: true, message: 'Please select exam type!' }]}
-            >
-              <Select 
-                placeholder="Select exam type"
-                prefix={<TrophyOutlined />}
-              >
-                {examTypes.map(type => (
-                  <Option key={type.value} value={type.value}>
-                    {type.label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="teacher"
-              label="Teacher"
-              rules={[{ required: true, message: 'Please select teacher!' }]}
-            >
-              <Select
-                placeholder="Select teacher"
-                showSearch
-                optionFilterProp="children"
-                prefix={<TeamOutlined />}
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {teachers.map(teacher => (
-                  <Option key={teacher.user_id} value={teacher.user_id}>
-                    {teacher.name} ({teacher.subject})
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            <Form.Item
-              name="subjects"
-              label="Subjects"
-              rules={[{ required: true, message: 'Please select subjects!' }]}
-            >
-              <Select
-                mode="multiple"
-                placeholder="Select subjects"
-                showSearch
-                optionFilterProp="children"
-                prefix={<BookOutlined />}
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {subjects.map(subject => (
-                  <Option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Form.Item
-              name="date"
-              label="Exam Date"
-              rules={[{ required: true, message: 'Please select exam date!' }]}
-            >
-              <DatePicker 
-                style={{ width: '100%' }} 
-                prefix={<CalendarOutlined />}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="startTime"
-              label="Start Time"
-              rules={[{ required: true, message: 'Please select start time!' }]}
-            >
-              <TimePicker 
-                style={{ width: '100%' }} 
-                format="HH:mm:ss"
-                prefix={<ClockCircleOutlined />}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]}>
-          <Col span={12}>
-            <Form.Item
-              name="duration"
-              label="Duration (minutes)"
-              rules={[{ required: true, message: 'Please enter duration!' }]}
-            >
-              <InputNumber 
-                style={{ width: '100%' }} 
-                min={1} 
-                prefix={<ClockCircleOutlined />}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="maxMarks"
-              label="Maximum Marks"
-              rules={[{ required: true, message: 'Please enter maximum marks!' }]}
-            >
-              <InputNumber 
-                style={{ width: '100%' }} 
-                min={1} 
-                prefix={<TrophyOutlined />}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          name="instructions"
-          label="Instructions"
-        >
-          <Input.TextArea 
-            rows={4} 
-            placeholder="Enter exam instructions"
-            prefix={<InfoCircleOutlined />}
-          />
-        </Form.Item>
-
-        <Form.Item>
-          <Space>
-            <Button onClick={onCancel}>Cancel</Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              {initialValues ? 'Update Exam' : 'Add Exam'}
-            </Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
-
 const ExamManagement = () => {
   const [exams, setExams] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [examModalVisible, setExamModalVisible] = useState(false);
-  const [subjectModalVisible, setSubjectModalVisible] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [subjectForm] = Form.useForm();
+  const [form] = Form.useForm();
   const messageApi = useContext(MessageContext);
-  const [subjectModalLoading, setSubjectModalLoading] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -316,18 +61,12 @@ const ExamManagement = () => {
         api.teacher.getTeachers()
       ]);
       
-      console.log('Subjects API Response:', subjectsResponse);
-      
-      // Fix: Access the data directly from the response
       setExams(examsResponse.data || []);
       setSubjects(subjectsResponse.data || []);
       setTeachers(teachersResponse.data || []);
-      
-      console.log('Subjects state after setting:', subjectsResponse.data || []);
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
-      // Set empty arrays on error to prevent undefined errors
       setExams([]);
       setSubjects([]);
       setTeachers([]);
@@ -361,7 +100,7 @@ const ExamManagement = () => {
       }
       setExamModalVisible(false);
       setEditingExam(null);
-      await loadInitialData(); // Wait for data refresh
+      await loadInitialData();
     } catch (error) {
       messageApi.error('Failed to save exam');
       console.error('Error saving exam:', error);
@@ -375,7 +114,7 @@ const ExamManagement = () => {
       setLoading(true);
       await api.exam.deleteExam(id);
       messageApi.success('Exam deleted successfully');
-      await loadInitialData(); // Wait for data refresh
+      await loadInitialData();
     } catch (error) {
       messageApi.error('Failed to delete exam');
       console.error('Error deleting exam:', error);
@@ -384,112 +123,11 @@ const ExamManagement = () => {
     }
   };
 
-  const handleSubjectSubmit = async (values) => {
-    try {
-      setSubjectModalLoading(true);
-      let response;
-      if (editingSubject) {
-        response = await api.subject.updateSubject(editingSubject.id, values);
-      } else {
-        response = await api.subject.createSubject(values);
-      }
-
-      // Check for validation messages in the response
-      if (response.data && typeof response.data === 'object') {
-        const errorMessages = Object.entries(response.data)
-          .filter(([_, value]) => Array.isArray(value))
-          .map(([_, value]) => value[0]);
-
-        if (errorMessages.length > 0) {
-          messageApi.error(errorMessages[0]);
-          return;
-        }
-      }
-
-      messageApi.success(editingSubject ? 'Subject updated successfully' : 'Subject added successfully');
-      setSubjectModalVisible(false);
-      setSubjectModalLoading(false);
-      setLoading(true); // Show table loading while fetching new data
-      await loadInitialData();
-      setEditingSubject(null); // Reset editing subject after successful submission
-      subjectForm.resetFields(); // Reset form after successful submission
-    } catch (error) {
-      console.error('Error response:', error.response);
-      if (error.response && error.response.data) {
-        const errorData = error.response.data;
-        
-        // Handle field-specific errors
-        if (errorData.code && Array.isArray(errorData.code)) {
-          messageApi.error(errorData.code[0]);
-        } else if (errorData.name && Array.isArray(errorData.name)) {
-          messageApi.error(errorData.name[0]);
-        } else if (errorData.detail) {
-          messageApi.error(errorData.detail);
-        } else {
-          // Handle other field errors
-          const errorMessages = Object.entries(errorData)
-            .filter(([_, value]) => Array.isArray(value))
-            .map(([_, value]) => value[0]);
-          
-          if (errorMessages.length > 0) {
-            messageApi.error(errorMessages[0]);
-          } else {
-            messageApi.error('Failed to save subject');
-          }
-        }
-      } else if (error.request) {
-        messageApi.error('Network error occurred');
-      } else {
-        messageApi.error('An unexpected error occurred');
-      }
-    } finally {
-      setSubjectModalLoading(false);
-      setLoading(false);
-    }
-  };
-
-  const handleSubjectDelete = async (id) => {
-    try {
-      setLoading(true);
-      await api.subject.deleteSubject(id);
-      messageApi.success('Subject deleted successfully');
-      await loadInitialData(); // Wait for data refresh
-    } catch (error) {
-      messageApi.error('Failed to delete subject');
-      console.error('Error deleting subject:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubjectEdit = async (id) => {
-    try {
-      setLoading(true);
-      const response = await api.subject.getSubject(id);
-      setEditingSubject(response.data);
-      subjectForm.setFieldsValue(response.data); // Set form values with fresh data
-      setSubjectModalVisible(true);
-    } catch (error) {
-      messageApi.error('Failed to load subject details');
-      console.error('Error loading subject:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const getSubjectNames = (subjectIds) => {
     if (!subjectIds) return [];
     return subjectIds.map(id => {
       const subject = subjects.find(s => s.id === id);
       return subject ? subject.name : id;
-    });
-  };
-
-  const getClassNames = (classIds) => {
-    if (!classIds) return [];
-    return classIds.map(id => {
-      const cls = teachers.find(c => c.id === id);
-      return cls ? `${cls.name} - Section ${cls.section}` : id;
     });
   };
 
@@ -558,44 +196,17 @@ const ExamManagement = () => {
       }
     },
     {
-      title: 'Date & Time',
-      key: 'datetime',
-      width: 150,
-      render: (_, record) => (
-        <Space direction="vertical">
-          <Badge 
-            status={moment(record.exam_date).isBefore(moment(), 'day') ? 'default' : 'success'} 
-            text={moment(record.exam_date).format('DD MMM YYYY')}
-          />
-          <span style={{ fontSize: '12px', color: '#666' }}>
-            {record.start_time}
-          </span>
-        </Space>
-      ),
+      title: 'Date',
+      dataIndex: 'exam_date',
+      key: 'exam_date',
+      width: 120,
+      render: (date) => moment(date).format('DD/MM/YYYY')
     },
     {
-      title: 'Duration',
-      dataIndex: 'duration',
-      key: 'duration',
+      title: 'Start Time',
+      dataIndex: 'start_time',
+      key: 'start_time',
       width: 120,
-      render: (duration) => (
-        <Space>
-          <ClockCircleOutlined />
-          {duration} mins
-        </Space>
-      ),
-    },
-    {
-      title: 'Max Marks',
-      dataIndex: 'maximum_marks',
-      key: 'maximum_marks',
-      width: 120,
-      render: (maxMarks) => (
-        <Space>
-          <TrophyOutlined />
-          {maxMarks} marks
-        </Space>
-      ),
     },
     {
       title: 'Actions',
@@ -604,284 +215,181 @@ const ExamManagement = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Tooltip title="View Details">
-            <Button
-              icon={<EyeOutlined />}
-              onClick={() => handleViewExam(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Edit">
-            <Button
-              icon={<EditOutlined />}
+          <Tooltip title="Edit Exam">
+            <Button 
+              type="link" 
+              icon={<EditOutlined />} 
               onClick={() => {
                 setEditingExam(record);
+                form.setFieldsValue({
+                  ...record,
+                  date: moment(record.exam_date),
+                  startTime: moment(record.start_time, 'HH:mm:ss'),
+                  examCode: record.exam_code,
+                  maxMarks: record.maximum_marks
+                });
                 setExamModalVisible(true);
               }}
             />
           </Tooltip>
-          <Popconfirm
-            title="Are you sure you want to delete this exam?"
-            onConfirm={() => handleExamDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Tooltip title="Delete">
-              <Button 
-                danger 
-                icon={<DeleteOutlined />}
-              />
-            </Tooltip>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
-  const subjectColumns = [
-    {
-      title: 'Subject Name',
-      dataIndex: 'name',
-      key: 'name',
-      width: 200,
-      render: (text) => (
-        <Space>
-          <BookOutlined />
-          <span>{text}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'Code',
-      dataIndex: 'code',
-      key: 'code',
-      width: 120,
-      render: (text) => (
-        <Tag color="blue">{text}</Tag>
-      ),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
-      width: 300,
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 120,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="Edit Subject">
+          <Tooltip title="Delete Exam">
             <Button 
               type="link" 
-              icon={<EditOutlined />} 
-              onClick={() => handleSubjectEdit(record.id)}
+              danger 
+              icon={<DeleteOutlined />} 
+              onClick={() => handleExamDelete(record.id)}
             />
           </Tooltip>
-          <Popconfirm
-            title="Are you sure you want to delete this subject?"
-            onConfirm={() => handleSubjectDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Tooltip title="Delete Subject">
-              <Button 
-                type="link" 
-                danger 
-                icon={<DeleteOutlined />}
-              />
-            </Tooltip>
-          </Popconfirm>
         </Space>
       ),
     },
   ];
-
-  const handleAddExam = () => {
-    setEditingExam(null);
-    setExamModalVisible(true);
-  };
-
-  const handleViewExam = (exam) => {
-    // Implement the view exam logic
-  };
-
-  const handleAddSubject = () => {
-    setEditingSubject(null);
-    subjectForm.resetFields(); // Reset form to empty state
-    setSubjectModalVisible(true);
-  };
 
   return (
     <div>
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Card>
-            <Tabs defaultActiveKey="1">
-
-
-              <TabPane 
-                tab={
-                  <span>
-                    <BookOutlined />
-                    Subject Management
-                  </span>
-                } 
-                key="2"
-              >
-                <Row gutter={[16, 16]}>
-                  <Col span={24}>
-                    <Space style={{ marginBottom: 16 }}>
-                      <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />}
-                        onClick={handleAddSubject}
-                      >
-                        Add Subject
-                      </Button>
-                    </Space>
-                    <Table
-                      dataSource={subjects}
-                      columns={subjectColumns}
-                      rowKey="id"
-                      loading={loading}
-                      pagination={{ 
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total) => `Total ${total} subjects`
-                      }}
-                      scroll={{ x: 800 }}
-                      locale={{
-                        emptyText: (
-                          <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description="No subjects found"
-                          />
-                        )
-                      }}
-                    />
-                  </Col>
-                </Row>
-              </TabPane>
-              <TabPane 
-                tab={
-                  <span>
-                    <TrophyOutlined />
-                    Exam Management
-                  </span>
-                } 
-                key="1"
-              >
-                <Row gutter={[16, 16]}>
-                  <Col span={24}>
-                    <Space style={{ marginBottom: 16 }}>
-                      <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />}
-                        onClick={handleAddExam}
-                      >
-                        Add Exam
-                      </Button>
-                    </Space>
-                    <Table
-                      dataSource={exams}
-                      columns={examColumns}
-                      rowKey="id"
-                      loading={loading}
-                      pagination={{ 
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total) => `Total ${total} exams`
-                      }}
-                      scroll={{ x: 1300 }}
-                      locale={{
-                        emptyText: (
-                          <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description="No exams found"
-                          />
-                        )
-                      }}
-                    />
-                  </Col>
-                </Row>
-              </TabPane>
-            </Tabs>
-          </Card>
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+        <Col>
+          <Title level={4}>Exam Management</Title>
+        </Col>
+        <Col>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingExam(null);
+              form.resetFields();
+              setExamModalVisible(true);
+            }}
+          >
+            Add Exam
+          </Button>
         </Col>
       </Row>
 
-      <ExamForm
-        visible={examModalVisible}
+      <Table
+        columns={examColumns}
+        dataSource={exams}
+        rowKey="id"
+        loading={loading}
+        pagination={{ 
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total) => `Total ${total} exams`
+        }}
+        scroll={{ x: 1300 }}
+      />
+
+      <Modal
+        title={editingExam ? 'Edit Exam' : 'Add Exam'}
+        open={examModalVisible}
         onCancel={() => {
           setExamModalVisible(false);
           setEditingExam(null);
         }}
-        onSubmit={handleExamSubmit}
-        initialValues={editingExam}
-        subjects={subjects}
-        teachers={teachers}
-      />
-
-      <Modal
-        title={
-          <Space>
-            <BookOutlined />
-            {editingSubject ? 'Edit Subject' : 'Add Subject'}
-          </Space>
-        }
-        open={subjectModalVisible}
-        onOk={subjectForm.submit}
-        onCancel={() => {
-          setSubjectModalVisible(false);
-          subjectForm.resetFields();
-          setEditingSubject(null);
-        }}
-        confirmLoading={subjectModalLoading}
-        destroyOnClose={true}
+        onOk={() => form.submit()}
+        width={800}
       >
         <Form
-          form={subjectForm}
+          form={form}
           layout="vertical"
-          onFinish={handleSubjectSubmit}
-          initialValues={editingSubject || {}}
-          preserve={false}
+          onFinish={handleExamSubmit}
         >
           <Form.Item
             name="name"
-            label="Subject Name"
-            rules={[{ required: true, message: 'Please enter subject name!' }]}
+            label="Exam Name"
+            rules={[{ required: true, message: 'Please enter exam name' }]}
           >
-            <Input 
-              placeholder="Enter subject name"
-              prefix={<BookOutlined />}
-            />
+            <Input />
           </Form.Item>
 
           <Form.Item
-            name="code"
-            label="Subject Code"
-            rules={[{ required: true, message: 'Please enter subject code!' }]}
+            name="examCode"
+            label="Exam Code"
+            rules={[{ required: true, message: 'Please enter exam code' }]}
           >
-            <Input 
-              placeholder="Enter subject code"
-              prefix={<FileTextOutlined />}
-            />
+            <Input />
           </Form.Item>
 
           <Form.Item
-            name="description"
-            label="Description"
+            name="type"
+            label="Exam Type"
+            rules={[{ required: true, message: 'Please select exam type' }]}
           >
-            <Input.TextArea 
-              rows={4} 
-              placeholder="Enter subject description"
-              prefix={<InfoCircleOutlined />}
-            />
+            <Select>
+              {examTypes.map(type => (
+                <Option key={type.value} value={type.value}>
+                  {type.label}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="subjects"
+            label="Subjects"
+            rules={[{ required: true, message: 'Please select at least one subject' }]}
+          >
+            <Select mode="multiple">
+              {subjects.map(subject => (
+                <Option key={subject.id} value={subject.id}>
+                  {subject.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="teacher"
+            label="Teacher"
+            rules={[{ required: true, message: 'Please select a teacher' }]}
+          >
+            <Select>
+              {teachers.map(teacher => (
+                <Option key={teacher.id} value={teacher.id}>
+                  {teacher.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="date"
+            label="Exam Date"
+            rules={[{ required: true, message: 'Please select exam date' }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="startTime"
+            label="Start Time"
+            rules={[{ required: true, message: 'Please select start time' }]}
+          >
+            <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="duration"
+            label="Duration"
+            rules={[{ required: true, message: 'Please select duration' }]}
+          >
+            <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="maxMarks"
+            label="Maximum Marks"
+            rules={[{ required: true, message: 'Please enter maximum marks' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            name="instructions"
+            label="Instructions"
+          >
+            <Input.TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
