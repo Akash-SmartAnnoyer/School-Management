@@ -47,7 +47,6 @@ import Teachers from './pages/Teachers';
 import Classes from './pages/Classes';
 import Attendance from './pages/Attendance';
 import Login from './pages/Login';
-import Academics from './pages/Academics';
 import ExamManagement from './pages/ExamManagement';
 import AcademicCalendar from './pages/AcademicCalendar';
 import TeacherAttendance from './pages/TeacherAttendance';
@@ -127,7 +126,6 @@ function MainLayout() {
     { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
     { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
     { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
-    { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
     { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
   ];
 
@@ -453,11 +451,6 @@ function MainLayout() {
             <Route path="/attendance" element={
               <ProtectedRoute>
                 <Attendance />
-              </ProtectedRoute>
-            } />
-            <Route path="/academics" element={
-              <ProtectedRoute>
-                <Academics />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
