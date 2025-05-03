@@ -301,6 +301,7 @@ const ExamManagement = () => {
   const [editingSubject, setEditingSubject] = useState(null);
   const [subjectForm] = Form.useForm();
   const messageApi = useContext(MessageContext);
+  const [subjectModalLoading, setSubjectModalLoading] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -385,7 +386,7 @@ const ExamManagement = () => {
 
   const handleSubjectSubmit = async (values) => {
     try {
-      setLoading(true);
+      setSubjectModalLoading(true);
       if (editingSubject) {
         await api.subject.updateSubject(editingSubject.id, values);
         messageApi.success('Subject updated successfully');
@@ -393,12 +394,28 @@ const ExamManagement = () => {
         await api.subject.createSubject(values);
         messageApi.success('Subject added successfully');
       }
-      loadInitialData();
       setSubjectModalVisible(false);
-      setEditingSubject(null);
+      setSubjectModalLoading(false);
+      setLoading(true); // Show table loading while fetching new data
+      await loadInitialData();
     } catch (error) {
       messageApi.error('Failed to save subject');
       console.error('Error saving subject:', error);
+    } finally {
+      setSubjectModalLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const handleSubjectDelete = async (id) => {
+    try {
+      setLoading(true);
+      await api.subject.deleteSubject(id);
+      messageApi.success('Subject deleted successfully');
+      await loadInitialData(); // Wait for data refresh
+    } catch (error) {
+      messageApi.error('Failed to delete subject');
+      console.error('Error deleting subject:', error);
     } finally {
       setLoading(false);
     }
@@ -409,6 +426,7 @@ const ExamManagement = () => {
       setLoading(true);
       const response = await api.subject.getSubject(id);
       setEditingSubject(response.data);
+      subjectForm.setFieldsValue(response.data);
       setSubjectModalVisible(true);
     } catch (error) {
       messageApi.error('Failed to load subject details');
@@ -417,20 +435,6 @@ const ExamManagement = () => {
       setLoading(false);
     }
   }
-
-  const handleSubjectDelete = async (id) => {
-    try {
-      setLoading(true);
-      await api.subject.deleteSubject(id);
-      messageApi.success('Subject deleted successfully');
-      loadInitialData();
-    } catch (error) {
-      messageApi.error('Failed to delete subject');
-      console.error('Error deleting subject:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getSubjectNames = (subjectIds) => {
     if (!subjectIds) return [];
@@ -663,6 +667,12 @@ const ExamManagement = () => {
     // Implement the view exam logic
   };
 
+  const handleAddSubject = () => {
+    setEditingSubject(null);
+    subjectForm.resetFields();
+    setSubjectModalVisible(true);
+  };
+
   return (
     <div>
       <Row gutter={[16, 16]}>
@@ -729,11 +739,7 @@ const ExamManagement = () => {
                       <Button 
                         type="primary" 
                         icon={<PlusOutlined />}
-                        onClick={() => {
-                          setEditingSubject(null);
-                          subjectForm.resetFields();
-                          setSubjectModalVisible(true);
-                        }}
+                        onClick={handleAddSubject}
                       >
                         Add Subject
                       </Button>
@@ -793,6 +799,7 @@ const ExamManagement = () => {
           subjectForm.resetFields();
           setEditingSubject(null);
         }}
+        confirmLoading={subjectModalLoading}
       >
         <Form
           form={subjectForm}
