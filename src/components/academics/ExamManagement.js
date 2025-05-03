@@ -49,10 +49,10 @@ const { Title } = Typography;
 const { TabPane } = Tabs;
 
 const examTypes = [
-  { value: 'unit_test', label: 'Unit Test' },
+  { value: 'quiz', label: 'Quiz' },
   { value: 'mid_term', label: 'Mid Term' },
   { value: 'final', label: 'Final Exam' },
-  { value: 'quiz', label: 'Quiz' },
+  { value: 'unit_test', label: 'Unit Test' },
   { value: 'assignment', label: 'Assignment' }
 ];
 
@@ -173,8 +173,8 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, teache
                 }
               >
                 {teachers.map(teacher => (
-                  <Option key={teacher.id} value={teacher.id}>
-                    {teacher.name}
+                  <Option key={teacher.user_id} value={teacher.user_id}>
+                    {teacher.name} ({teacher.subject})
                   </Option>
                 ))}
               </Select>
