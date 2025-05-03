@@ -295,35 +295,107 @@ const ExamManagement = () => {
           layout="vertical"
           onFinish={handleExamSubmit}
         >
-          <Form.Item
-            name="name"
-            label="Exam Name"
-            rules={[{ required: true, message: 'Please enter exam name' }]}
-          >
-            <Input />
-          </Form.Item>
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label="Exam Name"
+                rules={[{ required: true, message: 'Please enter exam name' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="examCode"
+                label="Exam Code"
+                rules={[{ required: true, message: 'Please enter exam code' }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="examCode"
-            label="Exam Code"
-            rules={[{ required: true, message: 'Please enter exam code' }]}
-          >
-            <Input />
-          </Form.Item>
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Form.Item
+                name="type"
+                label="Exam Type"
+                rules={[{ required: true, message: 'Please select exam type' }]}
+              >
+                <Select>
+                  {examTypes.map(type => (
+                    <Option key={type.value} value={type.value}>
+                      {type.label}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="teacher"
+                label="Teacher"
+                rules={[{ required: true, message: 'Please select a teacher' }]}
+              >
+                <Select
+                  showSearch
+                  optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
+                >
+                  {teachers.map(teacher => (
+                    <Option key={teacher.user_id} value={teacher.user_id}>
+                      {teacher.name} ({teacher.subject})
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item
-            name="type"
-            label="Exam Type"
-            rules={[{ required: true, message: 'Please select exam type' }]}
-          >
-            <Select>
-              {examTypes.map(type => (
-                <Option key={type.value} value={type.value}>
-                  {type.label}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Form.Item
+                name="date"
+                label="Exam Date"
+                rules={[{ required: true, message: 'Please select exam date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="startTime"
+                label="Start Time"
+                rules={[{ required: true, message: 'Please select start time' }]}
+              >
+                <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col span={12}>
+              <Form.Item
+                name="duration"
+                label="Duration"
+                rules={[{ required: true, message: 'Please select duration' }]}
+              >
+                <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="maxMarks"
+                label="Maximum Marks"
+                rules={[{ required: true, message: 'Please enter maximum marks' }]}
+              >
+                <Input type="number" />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="subjects"
@@ -337,52 +409,6 @@ const ExamManagement = () => {
                 </Option>
               ))}
             </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="teacher"
-            label="Teacher"
-            rules={[{ required: true, message: 'Please select a teacher' }]}
-          >
-            <Select>
-              {teachers.map(teacher => (
-                <Option key={teacher.id} value={teacher.id}>
-                  {teacher.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="date"
-            label="Exam Date"
-            rules={[{ required: true, message: 'Please select exam date' }]}
-          >
-            <DatePicker style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="startTime"
-            label="Start Time"
-            rules={[{ required: true, message: 'Please select start time' }]}
-          >
-            <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="duration"
-            label="Duration"
-            rules={[{ required: true, message: 'Please select duration' }]}
-          >
-            <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="maxMarks"
-            label="Maximum Marks"
-            rules={[{ required: true, message: 'Please enter maximum marks' }]}
-          >
-            <Input type="number" />
           </Form.Item>
 
           <Form.Item
