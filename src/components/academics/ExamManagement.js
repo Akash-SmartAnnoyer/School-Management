@@ -359,9 +359,9 @@ const ExamManagement = () => {
         await api.exam.createExam(examData);
         messageApi.success('Exam added successfully');
       }
-      loadInitialData();
       setExamModalVisible(false);
       setEditingExam(null);
+      await loadInitialData(); // Wait for data refresh
     } catch (error) {
       messageApi.error('Failed to save exam');
       console.error('Error saving exam:', error);
@@ -375,7 +375,7 @@ const ExamManagement = () => {
       setLoading(true);
       await api.exam.deleteExam(id);
       messageApi.success('Exam deleted successfully');
-      loadInitialData();
+      await loadInitialData(); // Wait for data refresh
     } catch (error) {
       messageApi.error('Failed to delete exam');
       console.error('Error deleting exam:', error);
