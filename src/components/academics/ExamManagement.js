@@ -61,7 +61,9 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, teache
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log('Subjects in ExamForm:', subjects);
     if (initialValues) {
+      console.log('Initial values:', initialValues);
       form.setFieldsValue({
         ...initialValues,
         date: moment(initialValues.exam_date),
@@ -70,7 +72,7 @@ const ExamForm = ({ visible, onCancel, onSubmit, initialValues, subjects, teache
         maxMarks: initialValues.maximum_marks
       });
     }
-  }, [initialValues]);
+  }, [initialValues, subjects]);
 
   const handleSubmit = async (values) => {
     try {
@@ -310,14 +312,24 @@ const ExamManagement = () => {
       const [examsResponse, subjectsResponse, teachersResponse] = await Promise.all([
         api.exam.getExams(),
         api.subject.getSubjects(),
-        api.teacher.getAll()
+        api.teacher.getTeachers()
       ]);
-      setExams(examsResponse.data.data);
-      setSubjects(subjectsResponse.data.data);
-      setTeachers(teachersResponse.data.data);
+      
+      console.log('Subjects API Response:', subjectsResponse);
+      
+      // Fix: Access the data directly from the response
+      setExams(examsResponse.data || []);
+      setSubjects(subjectsResponse.data || []);
+      setTeachers(teachersResponse.data || []);
+      
+      console.log('Subjects state after setting:', subjectsResponse.data || []);
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
+      // Set empty arrays on error to prevent undefined errors
+      setExams([]);
+      setSubjects([]);
+      setTeachers([]);
     } finally {
       setLoading(false);
     }
