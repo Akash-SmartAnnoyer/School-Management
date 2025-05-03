@@ -387,13 +387,26 @@ const ExamManagement = () => {
   const handleSubjectSubmit = async (values) => {
     try {
       setSubjectModalLoading(true);
+      let response;
       if (editingSubject) {
-        await api.subject.updateSubject(editingSubject.id, values);
-        messageApi.success('Subject updated successfully');
+        response = await api.subject.updateSubject(editingSubject.id, values);
       } else {
-        await api.subject.createSubject(values);
-        messageApi.success('Subject added successfully');
+        response = await api.subject.createSubject(values);
       }
+
+      // Check for validation messages in the response
+      if (response.data && typeof response.data === 'object') {
+        const errorMessages = Object.entries(response.data)
+          .filter(([_, value]) => Array.isArray(value))
+          .map(([_, value]) => value[0]);
+
+        if (errorMessages.length > 0) {
+          messageApi.error(errorMessages[0]);
+          return;
+        }
+      }
+
+      messageApi.success(editingSubject ? 'Subject updated successfully' : 'Subject added successfully');
       setSubjectModalVisible(false);
       setSubjectModalLoading(false);
       setLoading(true); // Show table loading while fetching new data
@@ -401,8 +414,34 @@ const ExamManagement = () => {
       setEditingSubject(null); // Reset editing subject after successful submission
       subjectForm.resetFields(); // Reset form after successful submission
     } catch (error) {
-      messageApi.error('Failed to save subject');
-      console.error('Error saving subject:', error);
+      console.error('Error response:', error.response);
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        
+        // Handle field-specific errors
+        if (errorData.code && Array.isArray(errorData.code)) {
+          messageApi.error(errorData.code[0]);
+        } else if (errorData.name && Array.isArray(errorData.name)) {
+          messageApi.error(errorData.name[0]);
+        } else if (errorData.detail) {
+          messageApi.error(errorData.detail);
+        } else {
+          // Handle other field errors
+          const errorMessages = Object.entries(errorData)
+            .filter(([_, value]) => Array.isArray(value))
+            .map(([_, value]) => value[0]);
+          
+          if (errorMessages.length > 0) {
+            messageApi.error(errorMessages[0]);
+          } else {
+            messageApi.error('Failed to save subject');
+          }
+        }
+      } else if (error.request) {
+        messageApi.error('Network error occurred');
+      } else {
+        messageApi.error('An unexpected error occurred');
+      }
     } finally {
       setSubjectModalLoading(false);
       setLoading(false);
