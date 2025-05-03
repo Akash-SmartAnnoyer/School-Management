@@ -373,7 +373,7 @@ const ExamManagement = () => {
   const handleExamDelete = async (id) => {
     try {
       setLoading(true);
-      await api.exam.delete(id);
+      await api.exam.deleteExam(id);
       messageApi.success('Exam deleted successfully');
       loadInitialData();
     } catch (error) {
