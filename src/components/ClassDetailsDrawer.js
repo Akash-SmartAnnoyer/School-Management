@@ -52,7 +52,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
   const loadAllStudents = async () => {
     try {
       setLoadingStudents(true);
-      const response = await api.student.getStudentsByClass(classData.id);
+      const response = await api.student.getAllStudents();
       if (response.success) {
         setStudents(response.data);
       } else {

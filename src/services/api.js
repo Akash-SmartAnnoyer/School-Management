@@ -246,6 +246,32 @@ export const studentAPI = {
       console.error('Error deleting student:', error);
       throw new Error('Failed to delete student. Please try again.');
     }
+  },
+  getStudentsByClass: async (classId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/classrooms/${classId}/students/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching students by class:', error);
+      throw new Error('Failed to fetch students. Please try again.');
+    }
+  },
+  getAllStudents: async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/users/students/`, {
+        method: 'GET',
+        headers: await getHeaders(),
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error fetching all students:', error);
+      throw new Error('Failed to fetch students. Please try again.');
+    }
   }
 };
 
