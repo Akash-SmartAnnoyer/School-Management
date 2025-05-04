@@ -561,7 +561,10 @@ const Students = () => {
           dob: studentData.dob ? moment(studentData.dob) : null,
           address: studentData.profile?.address,
           blood_group: studentData.profile?.blood_group,
-          nationality: studentData.profile?.nationality,
+          profile: {
+            nationality: studentData.profile?.nationality,
+            class_name: studentData.profile?.class_name
+          },
           student_id: studentData.student_profile?.student_id,
           admission_number: studentData.student_profile?.admission_number,
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
