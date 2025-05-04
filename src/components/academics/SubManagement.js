@@ -59,19 +59,10 @@ const SubManagement = () => {
     setModalVisible(true);
   };
 
-  const handleEdit = async (subject) => {
-    try {
-      setLoading(true);
-      const response = await api.subject.getSubject(subject.id);
-      setEditingSubject(response.data);
-      form.setFieldsValue(response.data);
-      setModalVisible(true);
-    } catch (error) {
-      messageApi.error('Failed to load subject details');
-      console.error('Error loading subject:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleEdit = (subject) => {
+    setEditingSubject(subject);
+    form.setFieldsValue(subject);
+    setModalVisible(true);
   };
 
   const handleDelete = async (id) => {

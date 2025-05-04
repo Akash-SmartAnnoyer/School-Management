@@ -129,24 +129,16 @@ const ExamManagement = () => {
     });
   };
 
-  const handleEdit = async (record) => {
-    try {
-      setLoading(true);
-      setEditingExam(record);
-      form.setFieldsValue({
-        ...record,
-        date: moment(record.exam_date),
-        startTime: moment(record.start_time, 'HH:mm:ss'),
-        exam_code: record.exam_code,
-        maxMarks: record.maximum_marks
-      });
-      setExamModalVisible(true);
-    } catch (error) {
-      messageApi.error('Failed to load exam details');
-      console.error('Error loading exam:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleEdit = (record) => {
+    setEditingExam(record);
+    form.setFieldsValue({
+      ...record,
+      date: moment(record.exam_date),
+      startTime: moment(record.start_time, 'HH:mm:ss'),
+      exam_code: record.exam_code,
+      maxMarks: record.maximum_marks
+    });
+    setExamModalVisible(true);
   };
 
   const examColumns = [
