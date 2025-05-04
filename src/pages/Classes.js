@@ -68,34 +68,16 @@ const Classes = () => {
     setIsModalVisible(true);
   };
 
-  const handleEdit = async (record) => {
-    try {
-      setLoadingClasses(true);
-      // Load both classroom and teachers data in parallel
-      const [classResponse, teachersResponse] = await Promise.all([
-        api.class.getClass(record.id),
-        api.teacher.getTeachers()
-      ]);
-      
-      if (classResponse && teachersResponse) {
-        const classroomData = classResponse.data;
-        setTeachers(teachersResponse.data);
-        setEditingClass(classroomData);
-        form.setFieldsValue({
-          className: classroomData.class_name,
-          section: classroomData.section,
-          teacherId: classroomData.class_teacher?.user?.id || null,
-          capacity: classroomData.capacity,
-          status: classroomData.status.charAt(0).toUpperCase() + classroomData.status.slice(1)
-        });
-        setIsModalVisible(true);
-      }
-    } catch (error) {
-      messageApi.error('Failed to load class details');
-      console.error('Error loading class details:', error);
-    } finally {
-      setLoadingClasses(false);
-    }
+  const handleEdit = (record) => {
+    setEditingClass(record);
+    form.setFieldsValue({
+      className: record.class_name,
+      section: record.section,
+      teacherId: record.teacher?.id || null,
+      capacity: record.capacity,
+      status: record.status.charAt(0).toUpperCase() + record.status.slice(1)
+    });
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (classId) => {
