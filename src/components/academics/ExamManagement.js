@@ -16,6 +16,7 @@ import {
   Typography,
   Tag,
   Tooltip,
+  Popconfirm,
 } from 'antd';
 import {
   PlusOutlined,
@@ -46,6 +47,8 @@ const ExamManagement = () => {
   const [examModalVisible, setExamModalVisible] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
   const [form] = Form.useForm();
+  const [editLoading, setEditLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const messageApi = useContext(MessageContext);
 
   useEffect(() => {
@@ -77,24 +80,19 @@ const ExamManagement = () => {
 
   const handleExamSubmit = async (values) => {
     try {
-      setLoading(true);
+      setSubmitLoading(true);
       const examData = {
-        name: values.name,
-        exam_code: values.examCode,
-        type: values.type,
-        subjects: values.subjects || [],
-        teacher: values.teacher,
+        ...values,
         exam_date: values.date.format('YYYY-MM-DD'),
         start_time: values.startTime.format('HH:mm:ss'),
-        duration: values.duration,
-        maximum_marks: values.maxMarks,
-        instructions: values.instructions || ''
+        updatedAt: new Date().toISOString()
       };
 
       if (editingExam) {
         await api.exam.updateExam(editingExam.id, examData);
         messageApi.success('Exam updated successfully');
       } else {
+        examData.createdAt = new Date().toISOString();
         await api.exam.createExam(examData);
         messageApi.success('Exam added successfully');
       }
@@ -105,7 +103,7 @@ const ExamManagement = () => {
       messageApi.error('Failed to save exam');
       console.error('Error saving exam:', error);
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
@@ -129,6 +127,26 @@ const ExamManagement = () => {
       const subject = subjects.find(s => s.id === id);
       return subject ? subject.name : id;
     });
+  };
+
+  const handleEdit = async (record) => {
+    try {
+      setLoading(true);
+      setEditingExam(record);
+      form.setFieldsValue({
+        ...record,
+        date: moment(record.exam_date),
+        startTime: moment(record.start_time, 'HH:mm:ss'),
+        exam_code: record.exam_code,
+        maxMarks: record.maximum_marks
+      });
+      setExamModalVisible(true);
+    } catch (error) {
+      messageApi.error('Failed to load exam details');
+      console.error('Error loading exam:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const examColumns = [
@@ -219,26 +237,24 @@ const ExamManagement = () => {
             <Button 
               type="link" 
               icon={<EditOutlined />} 
-              onClick={() => {
-                setEditingExam(record);
-                form.setFieldsValue({
-                  ...record,
-                  date: moment(record.exam_date),
-                  startTime: moment(record.start_time, 'HH:mm:ss'),
-                  examCode: record.exam_code,
-                  maxMarks: record.maximum_marks
-                });
-                setExamModalVisible(true);
-              }}
+              onClick={() => handleEdit(record)}
+              loading={loading}
             />
           </Tooltip>
           <Tooltip title="Delete Exam">
-            <Button 
-              type="link" 
-              danger 
-              icon={<DeleteOutlined />} 
-              onClick={() => handleExamDelete(record.id)}
-            />
+            <Popconfirm
+              title="Are you sure you want to delete this exam?"
+              description="This action cannot be undone."
+              onConfirm={() => handleExamDelete(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button 
+                type="link" 
+                danger 
+                icon={<DeleteOutlined />} 
+              />
+            </Popconfirm>
           </Tooltip>
         </Space>
       ),
@@ -288,6 +304,7 @@ const ExamManagement = () => {
           setEditingExam(null);
         }}
         onOk={() => form.submit()}
+        confirmLoading={submitLoading}
         width={800}
       >
         <Form
@@ -307,7 +324,7 @@ const ExamManagement = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="examCode"
+                name="exam_code"
                 label="Exam Code"
                 rules={[{ required: true, message: 'Please enter exam code' }]}
               >
@@ -381,9 +398,19 @@ const ExamManagement = () => {
               <Form.Item
                 name="duration"
                 label="Duration"
-                rules={[{ required: true, message: 'Please select duration' }]}
+                rules={[
+                  { required: true, message: 'Please enter duration' },
+                  { 
+                    pattern: /^(\d{2}:)?\d{2}:\d{2}$/, 
+                    message: 'Duration must be in format HH:MM:SS (e.g., 02:00:00)' 
+                  }
+                ]}
+                extra="Format: HH:MM:SS (e.g., 02:00:00 for 2 hours)"
               >
-                <TimePicker format="HH:mm:ss" style={{ width: '100%' }} />
+                <Input 
+                  placeholder="HH:MM:SS" 
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>

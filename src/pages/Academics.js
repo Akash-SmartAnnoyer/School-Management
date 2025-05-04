@@ -545,9 +545,9 @@ const Academics = () => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  // useEffect(() => {
+  //   loadInitialData();
+  // }, []);
 
   const loadInitialData = async () => {
     try {
@@ -585,7 +585,7 @@ const Academics = () => {
 
   const loadExams = async () => {
     try {
-      const response = await api.exam.getAll();
+      const response = await api.examAPI.getExams();
       setExams(response.data.data);
     } catch (error) {
       messageApi.error('Failed to load exams');
@@ -594,9 +594,9 @@ const Academics = () => {
 
   const handleTabChange = (key) => {
     setActiveTab(key);
-    if (key === '1') {
-      loadExams();
-    }
+    // if (key === '1') {
+    //   loadExams();
+    // }
   };
 
   return (
@@ -622,7 +622,7 @@ const Academics = () => {
                   teachers={teachers}
                   subjects={subjects}
                   examTypes={examTypes}
-                  onRefresh={loadExams}
+                  // onRefresh={loadExams}
                 />
               },
               {
@@ -656,7 +656,7 @@ const Academics = () => {
                 label: (
                   <span>
                     <BarChartOutlined />
-                    Analytics
+                    Reports
                   </span>
                 ),
                 children: <Analytics

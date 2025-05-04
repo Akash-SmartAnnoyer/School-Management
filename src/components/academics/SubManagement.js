@@ -12,6 +12,8 @@ import {
   Col,
   Select,
   Typography,
+  Tooltip,
+  Popconfirm,
 } from 'antd';
 import {
   PlusOutlined,
@@ -30,6 +32,8 @@ const SubManagement = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [form] = Form.useForm();
+  const [editLoading, setEditLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const messageApi = useContext(MessageContext);
 
   useEffect(() => {
@@ -57,6 +61,7 @@ const SubManagement = () => {
 
   const handleEdit = async (subject) => {
     try {
+      setLoading(true);
       const response = await api.subject.getSubject(subject.id);
       setEditingSubject(response.data);
       form.setFieldsValue(response.data);
@@ -64,6 +69,8 @@ const SubManagement = () => {
     } catch (error) {
       messageApi.error('Failed to load subject details');
       console.error('Error loading subject:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +87,7 @@ const SubManagement = () => {
 
   const handleSubmit = async (values) => {
     try {
+      setSubmitLoading(true);
       const subjectData = {
         ...values,
         updatedAt: new Date().toISOString()
@@ -93,12 +101,14 @@ const SubManagement = () => {
         await api.subject.createSubject(subjectData);
         messageApi.success('Subject added successfully');
       }
-      loadSubjects();
       setModalVisible(false);
       setEditingSubject(null);
+      await loadSubjects();
     } catch (error) {
       messageApi.error('Failed to save subject');
       console.error('Error saving subject:', error);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -123,20 +133,29 @@ const SubManagement = () => {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            Delete
-          </Button>
+          <Tooltip title="Edit Subject">
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              loading={editLoading}
+            />
+          </Tooltip>
+          <Tooltip title="Delete Subject">
+            <Popconfirm
+              title="Are you sure you want to delete this subject?"
+              description="This action cannot be undone."
+              onConfirm={() => handleDelete(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="link"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
+          </Tooltip>
         </Space>
       ),
     },
@@ -171,6 +190,7 @@ const SubManagement = () => {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={() => form.submit()}
+        confirmLoading={submitLoading}
         width={600}
       >
         <Form
