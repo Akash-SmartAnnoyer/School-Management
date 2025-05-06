@@ -95,7 +95,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
               dataIndex="name"
               key="name"
               render={(_, record) => (
-                <span>{record.name} - {record.rollNumber}</span>
+                <span>{record.name} (Section {record.rollNumber})</span>
               )}
             />
             <Table.Column
@@ -170,7 +170,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
           <Select placeholder="Select student">
             {students.map(student => (
               <Option key={student.id} value={student.id}>
-                {student.name} - {student.rollNumber}
+                {student.name} (Section {student.rollNumber})
               </Option>
             ))}
           </Select>
@@ -369,8 +369,20 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.student.getByClass(selectedClass);
-      setLocalStudents(response.data.data || []);
+      console.log('Loading students for class:', selectedClass);
+      const response = await api.class.getClass(selectedClass);
+      console.log('Classroom data loaded:', response.data);
+
+      // Transform the students data to match the expected format
+      const students = response.data.students.map(student => ({
+        id: student.id,
+        name: `${student.user.first_name} ${student.user.last_name}`,
+        rollNumber: student.section,
+        user: student.user
+      }));
+      
+      console.log('Transformed students:', students);
+      setLocalStudents(students);
     } catch (error) {
       messageApi.error('Failed to load students');
       console.error('Error loading students:', error);
@@ -382,8 +394,9 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
   const loadMarks = async () => {
     try {
       setLoading(true);
-      const response = await api.marks.getByClassAndExam(selectedClass, selectedExam);
-      setMarks(response.data.data || []);
+      const response = await api.marks.getByExamClass(selectedExam, selectedClass, selectedSubject);
+      console.log('Marks loaded:', response.data);
+      setMarks(response.data.entries || []);
     } catch (error) {
       messageApi.error('Failed to load marks');
       console.error('Error loading marks:', error);
@@ -401,21 +414,29 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
       }
 
       const marksData = {
-        studentId: values.studentId,
-        examId: selectedExam,
-        classId: selectedClass,
-        subjectId: selectedSubject,
+        exam: selectedExam,
+        classroom: selectedClass,
+        subject: selectedSubject,
+        student: values.studentId,
+        roll: 100, // Default roll number, can be updated if needed
         marks: values.marks || 0,
         remarks: values.remarks || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        entry_type: 'single'
       };
 
       if (selectedMarks) {
-        await api.marks.update(selectedMarks.id, marksData);
+        // For update, we only send updatable fields
+        const updateData = {
+          student: values.studentId,
+          roll: 100,
+          marks: values.marks || 0,
+          remarks: values.remarks || '',
+          entry_type: 'single'
+        };
+        await api.marks.updateMarks(selectedMarks.id, updateData);
         messageApi.success('Marks updated successfully');
       } else {
-        await api.marks.create(marksData);
+        await api.marks.createMarks(marksData);
         messageApi.success('Marks added successfully');
       }
       loadMarks();
@@ -437,18 +458,23 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
         return;
       }
 
-      const marksData = values.marks.map(mark => ({
-        studentId: mark.studentId,
-        examId: selectedExam,
-        classId: selectedClass,
-        subjectId: selectedSubject,
-        marks: mark.marks || 0,
-        remarks: mark.remarks || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      const entries = Object.entries(values.marks).map(([studentId, data]) => ({
+        exam: selectedExam,
+        classroom: selectedClass,
+        subject: selectedSubject,
+        student: parseInt(studentId),
+        roll: 100, // Default roll number, can be updated if needed
+        marks: data.marks || 0,
+        remarks: data.remarks || '',
+        entry_type: 'bulk'
       }));
 
-      await api.marks.createBulk(marksData);
+      const bulkData = {
+        entry_type: 'bulk',
+        entries: entries
+      };
+
+      await api.marks.createBulkMarks(bulkData);
       messageApi.success('Marks added successfully');
       loadMarks();
       setModalVisible(false);
@@ -563,9 +589,10 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
   };
 
   const handleClassChange = async (classId) => {
+    console.log('Class changed to:', classId);
     setSelectedClass(classId);
     onClassSelect(classId);
-    await loadMarks(classId);
+    await loadStudents();
   };
 
   const filteredMarks = marks.filter(record => {

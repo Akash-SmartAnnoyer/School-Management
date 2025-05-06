@@ -800,6 +800,66 @@ export const contactAPI = {
   }
 };
 
+// Marks APIs
+export const marksAPI = {
+  getMarks: async () => {
+    return makeRequest(`${BASE_URL}/marks/`, {
+      method: 'GET'
+    });
+  },
+
+  getMarksById: async (id) => {
+    return makeRequest(`${BASE_URL}/marks/${id}/`, {
+      method: 'GET'
+    });
+  },
+
+  createMarks: async (marksData) => {
+    return makeRequest(`${BASE_URL}/marksentries/`, {
+      method: 'POST',
+      body: JSON.stringify(marksData)
+    });
+  },
+
+  createBulkMarks: async (bulkData) => {
+    return makeRequest(`${BASE_URL}/marks/bulk/`, {
+      method: 'POST',
+      body: JSON.stringify(bulkData)
+    });
+  },
+
+  updateMarks: async (id, marksData) => {
+    return makeRequest(`${BASE_URL}/marks/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(marksData)
+    });
+  },
+
+  deleteMarks: async (id) => {
+    return makeRequest(`${BASE_URL}/marks/${id}/`, {
+      method: 'DELETE'
+    });
+  },
+
+  getByExamClass: async (examId, classId, subjectId) => {
+    return makeRequest(`${BASE_URL}/marks/exam/${examId}/class/${classId}/subject/${subjectId}/`, {
+      method: 'GET'
+    });
+  },
+
+  getByExam: async (examId) => {
+    return makeRequest(`${BASE_URL}/marks/exam/${examId}/`, {
+      method: 'GET'
+    });
+  },
+
+  getByStudent: async (studentId) => {
+    return makeRequest(`${BASE_URL}/marks/student/${studentId}/`, {
+      method: 'GET'
+    });
+  }
+};
+
 // Export all APIs as a default export
 export default {
   auth: authAPI,
@@ -811,9 +871,10 @@ export default {
   attendance: attendanceAPI,
   exam: examAPI,
   result: resultAPI,
+  marks: marksAPI,
   fee: feeAPI,
   notice: noticeAPI,
   event: eventAPI,
   gallery: galleryAPI,
-  contact: contactAPI
+  contact: contactAPI,
 }; 
