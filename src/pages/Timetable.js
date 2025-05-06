@@ -12,7 +12,8 @@ import {
   Typography,
   Row,
   Col,
-  TimePicker
+  TimePicker,
+  Input
 } from 'antd';
 import {
   PlusOutlined,
@@ -22,6 +23,7 @@ import {
 } from '@ant-design/icons';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import moment from 'moment';
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -40,8 +42,19 @@ const Timetable = () => {
   const [activeTab, setActiveTab] = useState('1');
   const { currentUser } = useAuth();
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const timeSlots = Array.from({ length: 8 }, (_, i) => `${i + 1}`);
+  const days = [
+    { value: 'mon', label: 'Monday' },
+    { value: 'tue', label: 'Tuesday' },
+    { value: 'wed', label: 'Wednesday' },
+    { value: 'thu', label: 'Thursday' },
+    { value: 'fri', label: 'Friday' },
+    { value: 'sat', label: 'Saturday' }
+  ];
+
+  const classTypes = [
+    { value: 'theory', label: 'Theory' },
+    { value: 'practical', label: 'Practical' }
+  ];
 
   // Load classes only when the component mounts
   useEffect(() => {
@@ -57,8 +70,8 @@ const Timetable = () => {
 
   const loadClasses = async () => {
     try {
-      const response = await api.class.getAll();
-      setClasses(response.data.data);
+      const response = await api.class.getClasses();
+      setClasses(response.data);
     } catch (error) {
       message.error('Failed to load classes');
     }
@@ -66,8 +79,8 @@ const Timetable = () => {
 
   const loadSubjects = async () => {
     try {
-      const response = await api.subject.getAll();
-      setSubjects(response.data.data);
+      const response = await api.subject.getSubjects();
+      setSubjects(response.data);
     } catch (error) {
       message.error('Failed to load subjects');
     }
@@ -75,8 +88,8 @@ const Timetable = () => {
 
   const loadTeachers = async () => {
     try {
-      const response = await api.teacher.getAll();
-      setTeachers(response.data.data);
+      const response = await api.teacher.getTeachers();
+      setTeachers(response.data);
     } catch (error) {
       message.error('Failed to load teachers');
     }
@@ -85,15 +98,13 @@ const Timetable = () => {
   const loadTimetables = async () => {
     try {
       const response = await api.timetable.getByClass(selectedClass);
-      setTimetables(response.data.data);
+      setTimetables(response.data);
     } catch (error) {
       message.error('Failed to load timetables');
     }
   };
 
-  // Load subjects and teachers only when opening the modal
   const handleAddTimeSlot = () => {
-    // Load required data only when needed
     loadSubjects();
     loadTeachers();
     setEditingTimetable(null);
@@ -102,30 +113,57 @@ const Timetable = () => {
   };
 
   const handleEdit = async (timetable) => {
-    // Load required data only when needed
     await Promise.all([loadSubjects(), loadTeachers()]);
     setEditingTimetable(timetable);
-    form.setFieldsValue(timetable);
+    
+    // Convert time strings to moment objects for TimePicker
+    const formData = {
+      ...timetable,
+      start_time: moment(timetable.start_time, 'HH:mm:ss'),
+      end_time: moment(timetable.end_time, 'HH:mm:ss'),
+      duration: timetable.duration // Keep the original duration
+    };
+    
+    form.setFieldsValue(formData);
     setModalVisible(true);
   };
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const selectedTeacher = teachers.find(t => t.id === values.teacherId);
-      const selectedSubject = subjects.find(s => s.id === values.subjectId);
-      const selectedClassInfo = classes.find(c => c.id === selectedClass);
+      
+      // Get the raw time values from the TimePicker
+      const startTime = values.start_time;
+      const endTime = values.end_time;
+      
+      // Debug logs to check the values
+      console.log('Raw start time:', startTime);
+      console.log('Raw end time:', endTime);
+      
+      // Calculate duration in seconds
+      const durationInSeconds = endTime.diff(startTime, 'seconds');
+      console.log('Duration in seconds:', durationInSeconds);
+      
+      // Convert seconds to HH:mm:ss format
+      const hours = Math.floor(durationInSeconds / 3600);
+      const minutes = Math.floor((durationInSeconds % 3600) / 60);
+      const seconds = durationInSeconds % 60;
+      const duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      console.log('Formatted duration:', duration);
 
       const timetableData = {
-        ...values,
-        classId: selectedClass,
-        teacherId: values.teacherId,
-        teacherName: selectedTeacher?.name,
-        subjectId: values.subjectId,
-        subjectName: selectedSubject?.name,
-        className: selectedClassInfo?.className,
-        section: selectedClassInfo?.section,
+        classroom: selectedClass,
+        day: values.day,
+        start_time: startTime.format('HH:mm:ss'),
+        end_time: endTime.format('HH:mm:ss'),
+        duration: duration,
+        subject: values.subject,
+        teacher: values.teacher,
+        class_type: values.class_type
       };
+
+      console.log('Submitting timetable data:', timetableData);
 
       if (editingTimetable) {
         await api.timetable.update(editingTimetable.id, timetableData);
@@ -140,7 +178,14 @@ const Timetable = () => {
       setEditingTimetable(null);
       loadTimetables();
     } catch (error) {
-      message.error('Failed to save timetable');
+      console.error('Error submitting timetable:', error);
+      if (error.response?.data?.non_field_errors) {
+        message.error(error.response.data.non_field_errors[0]);
+      } else if (error.response?.data?.duration) {
+        message.error(error.response.data.duration[0]);
+      } else {
+        message.error('Failed to save timetable');
+      }
     } finally {
       setLoading(false);
     }
@@ -161,21 +206,38 @@ const Timetable = () => {
       title: 'Day',
       dataIndex: 'day',
       key: 'day',
+      render: (day) => days.find(d => d.value === day)?.label || day
     },
     {
-      title: 'Time Slot',
-      dataIndex: 'timeSlot',
-      key: 'timeSlot',
+      title: 'Start Time',
+      dataIndex: 'start_time',
+      key: 'start_time',
+    },
+    {
+      title: 'End Time',
+      dataIndex: 'end_time',
+      key: 'end_time',
+    },
+    {
+      title: 'Duration',
+      dataIndex: 'duration',
+      key: 'duration',
     },
     {
       title: 'Subject',
-      dataIndex: 'subjectName',
-      key: 'subjectName',
+      dataIndex: 'subject',
+      key: 'subject',
     },
     {
       title: 'Teacher',
-      dataIndex: 'teacherName',
-      key: 'teacherName',
+      dataIndex: 'teacher',
+      key: 'teacher',
+    },
+    {
+      title: 'Type',
+      dataIndex: 'class_type',
+      key: 'class_type',
+      render: (type) => type.charAt(0).toUpperCase() + type.slice(1)
     },
     {
       title: 'Actions',
@@ -214,7 +276,7 @@ const Timetable = () => {
                 >
                   {classes.map(cls => (
                     <Option key={cls.id} value={cls.id}>
-                      {cls.className} - Section {cls.section}
+                      {cls.class_name} - Section {cls.section}
                     </Option>
                   ))}
                 </Select>
@@ -253,7 +315,7 @@ const Timetable = () => {
                 >
                   {classes.map(cls => (
                     <Option key={cls.id} value={cls.id}>
-                      {cls.className} - Section {cls.section}
+                      {cls.class_name} - Section {cls.section}
                     </Option>
                   ))}
                 </Select>
@@ -286,6 +348,24 @@ const Timetable = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          onValuesChange={(changedValues, allValues) => {
+            // If start_time or end_time changes, calculate duration
+            if (changedValues.start_time || changedValues.end_time) {
+              const startTime = allValues.start_time;
+              const endTime = allValues.end_time;
+              
+              if (startTime && endTime) {
+                const durationInSeconds = endTime.diff(startTime, 'seconds');
+                const hours = Math.floor(durationInSeconds / 3600);
+                const minutes = Math.floor((durationInSeconds % 3600) / 60);
+                const seconds = durationInSeconds % 60;
+                const duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update the form's duration field
+                form.setFieldsValue({ duration });
+              }
+            }
+          }}
         >
           <Form.Item
             name="day"
@@ -294,25 +374,37 @@ const Timetable = () => {
           >
             <Select>
               {days.map(day => (
-                <Option key={day} value={day}>{day}</Option>
+                <Option key={day.value} value={day.value}>{day.label}</Option>
               ))}
             </Select>
           </Form.Item>
 
           <Form.Item
-            name="timeSlot"
-            label="Time Slot"
-            rules={[{ required: true, message: 'Please select time slot' }]}
+            name="start_time"
+            label="Start Time"
+            rules={[{ required: true, message: 'Please select start time' }]}
           >
-            <Select>
-              {timeSlots.map(slot => (
-                <Option key={slot} value={slot}>Period {slot}</Option>
-              ))}
-            </Select>
+            <TimePicker format="HH:mm:ss" />
           </Form.Item>
 
           <Form.Item
-            name="subjectId"
+            name="end_time"
+            label="End Time"
+            rules={[{ required: true, message: 'Please select end time' }]}
+          >
+            <TimePicker format="HH:mm:ss" />
+          </Form.Item>
+
+          <Form.Item
+            name="duration"
+            label="Duration"
+            rules={[{ required: true, message: 'Duration is required' }]}
+          >
+            <Input disabled placeholder="HH:mm:ss" />
+          </Form.Item>
+
+          <Form.Item
+            name="subject"
             label="Subject"
             rules={[{ required: true, message: 'Please select subject' }]}
           >
@@ -326,7 +418,7 @@ const Timetable = () => {
           </Form.Item>
 
           <Form.Item
-            name="teacherId"
+            name="teacher"
             label="Teacher"
             rules={[{ required: true, message: 'Please select teacher' }]}
           >
@@ -334,6 +426,20 @@ const Timetable = () => {
               {teachers.map(teacher => (
                 <Option key={teacher.id} value={teacher.id}>
                   {teacher.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="class_type"
+            label="Class Type"
+            rules={[{ required: true, message: 'Please select class type' }]}
+          >
+            <Select>
+              {classTypes.map(type => (
+                <Option key={type.value} value={type.value}>
+                  {type.label}
                 </Option>
               ))}
             </Select>

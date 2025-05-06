@@ -860,6 +860,93 @@ export const marksAPI = {
   }
 };
 
+// Timetable APIs
+export const timetableAPI = {
+  // Get all timetables
+  getAll: async () => {
+    const response = await fetch(`${BASE_URL}/timetable/`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Get timetable by ID
+  getById: async (id) => {
+    const response = await fetch(`${BASE_URL}/timetable/${id}/`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Get timetables by classroom
+  getByClass: async (classroomId) => {
+    const response = await fetch(`${BASE_URL}/timetable/?classroom=${classroomId}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Create timetable
+  create: async (timetableData) => {
+    const response = await fetch(`${BASE_URL}/timetable/`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(timetableData),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Update timetable
+  update: async (id, timetableData) => {
+    const response = await fetch(`${BASE_URL}/timetable/${id}/`, {
+      method: 'PUT',
+      headers: await getHeaders(),
+      body: JSON.stringify(timetableData),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Delete timetable
+  delete: async (id) => {
+    const response = await fetch(`${BASE_URL}/timetable/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Bulk create timetables for a classroom
+  bulkCreate: async (classroomId, entries) => {
+    const response = await fetch(`${BASE_URL}/timetable/bulk-create/classroom/${classroomId}/`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify({ entries }),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+
+  // Bulk update timetables for a classroom
+  bulkUpdate: async (classroomId, entries) => {
+    const response = await fetch(`${BASE_URL}/timetable/bulk-update/classroom/${classroomId}/`, {
+      method: 'PUT',
+      headers: await getHeaders(),
+      body: JSON.stringify({ entries }),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  }
+};
+
 // Export all APIs as a default export
 export default {
   auth: authAPI,
@@ -877,4 +964,5 @@ export default {
   event: eventAPI,
   gallery: galleryAPI,
   contact: contactAPI,
+  timetable: timetableAPI
 }; 
