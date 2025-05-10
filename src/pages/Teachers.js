@@ -64,9 +64,13 @@ const Teachers = () => {
   const [tempImage, setTempImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   useEffect(() => {
     loadTeachers();
+    loadClasses();
+    loadSubjects();
   }, []);
 
   useEffect(() => {
@@ -115,6 +119,21 @@ const Teachers = () => {
       message.error('Failed to load classes');
     } finally {
       setLoadingClasses(false);
+    }
+  };
+
+  const loadSubjects = async () => {
+    try {
+      setLoadingSubjects(true);
+      const response = await api.subject.getSubjects();
+      if (response.data) {
+        setSubjects(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      message.error('Failed to load subjects');
+    } finally {
+      setLoadingSubjects(false);
     }
   };
 
@@ -871,17 +890,12 @@ const Teachers = () => {
                       label="Subject"
                       rules={[{ required: true, message: 'Please select subject!' }]}
                     >
-                      <Select>
-                        <Option value="Mathematics">Mathematics</Option>
-                        <Option value="Science">Science</Option>
-                        <Option value="English">English</Option>
-                        <Option value="History">History</Option>
-                        <Option value="Geography">Geography</Option>
-                        <Option value="Computer Science">Computer Science</Option>
-                        <Option value="Physical Education">Physical Education</Option>
-                        <Option value="Art">Art</Option>
-                        <Option value="Music">Music</Option>
-                        <Option value="Languages">Languages</Option>
+                      <Select loading={loadingSubjects}>
+                        {subjects.map(subject => (
+                          <Option key={subject.id} value={subject.name}>
+                            {subject.name}
+                          </Option>
+                        ))}
                       </Select>
                     </Form.Item>
                   </Col>
