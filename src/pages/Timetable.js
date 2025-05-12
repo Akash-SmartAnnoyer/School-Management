@@ -15,21 +15,42 @@ import {
   TimePicker,
   Input,
   Spin,
-  Empty
+  Empty,
+  Tooltip,
+  Popconfirm
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  EyeOutlined
+  EyeOutlined,
+  CalendarOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import moment from 'moment';
 
+// Add CSS styles
+const styles = {
+  theoryRow: {
+    backgroundColor: '#e6f7ff',
+    '&:hover': {
+      backgroundColor: '#bae7ff',
+    },
+  },
+  practicalRow: {
+    backgroundColor: '#f6ffed',
+    '&:hover': {
+      backgroundColor: '#d9f7be',
+    },
+  },
+};
+
 const { Title } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
+const { Search } = Input;
 
 const Timetable = () => {
   const [form] = Form.useForm();
@@ -330,10 +351,12 @@ const Timetable = () => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        border: '1px solid #1890ff',
+        boxShadow: '0 2px 4px rgba(24, 144, 255, 0.1)'
       }}>
-        <div style={{ fontWeight: 'bold' }}>{getSubjectName(classDetails.subject)}</div>
-        <div style={{ fontSize: '12px' }}>{getTeacherName(classDetails.teacher)}</div>
+        <div style={{ fontWeight: 'bold', color: '#1890ff' }}>{getSubjectName(classDetails.subject)}</div>
+        <div style={{ fontSize: '12px', color: '#666' }}>{getTeacherName(classDetails.teacher)}</div>
         <div style={{ fontSize: '12px', color: '#666' }}>
           {formatTime(classDetails.start_time)} - {formatTime(classDetails.end_time)}
         </div>
@@ -388,12 +411,14 @@ const Timetable = () => {
             type="text" 
             icon={<EditOutlined />} 
             onClick={() => handleEdit(record)}
+            style={{ color: '#1890ff' }}
           />
           <Button 
             type="text" 
             danger 
             icon={<DeleteOutlined />} 
             onClick={() => handleDelete(record.id)}
+            style={{ color: '#ff4d4f' }}
           />
         </Space>
       ),
@@ -401,15 +426,105 @@ const Timetable = () => {
   ];
 
   return (
-    <div>
-      <Title level={2}>Timetable Management</Title>
-      <Card>
+    <div style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
+        <Col>
+          <Title level={3} style={{ 
+            color: '#9fb3df',
+            margin: 0,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <CalendarOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            Timetable Management
+          </Title>
+        </Col>
+        <Col>
+          <Space size="small">
+            <Search
+              placeholder="Search timetable..."
+              allowClear
+              style={{ 
+                width: 250,
+                borderRadius: '6px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                border: '1px solid rgba(159, 179, 223, 0.3)'
+              }}
+              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddTimeSlot}
+              style={{
+                height: '32px',
+                borderRadius: '6px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                background: '#9fb3df',
+                border: 'none',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.3s ease',
+                padding: '0 12px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                e.currentTarget.style.background = '#8ba1d1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                e.currentTarget.style.background = '#9fb3df';
+              }}
+            >
+              Add Time Slot
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+
+      <Card
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid rgba(159, 179, 223, 0.3)',
+          margin: '0 16px 16px 16px',
+          padding: 0
+        }}
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
         <Tabs defaultActiveKey="1" onChange={setActiveTab}>
           <TabPane tab="Set Timetable" key="1">
-            <Row gutter={[16, 16]}>
+            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
               <Col span={24}>
                 <Select
-                  style={{ width: '100%' }}
+                  style={{ 
+                    width: '100%',
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    border: '1px solid rgba(159, 179, 223, 0.3)'
+                  }}
                   placeholder="Select Class"
                   onChange={setSelectedClass}
                   value={selectedClass}
@@ -422,16 +537,6 @@ const Timetable = () => {
                 </Select>
               </Col>
               {selectedClass && (
-                <>
-                  <Col span={24}>
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={handleAddTimeSlot}
-                    >
-                      Add Time Slot
-                    </Button>
-                  </Col>
                   <Col span={24}>
                     <Table
                       columns={columns}
@@ -441,18 +546,29 @@ const Timetable = () => {
                       locale={{
                         emptyText: loadingTimetable ? 'Loading...' : 'No timetable set for this class'
                       }}
+                    rowClassName={(record) => record.class_type === 'theory' ? 'theory-row' : 'practical-row'}
+                    onRow={(record) => ({
+                      onClick: () => handleEdit(record),
+                      style: { cursor: 'pointer' }
+                    })}
+                    className="custom-table"
+                    scroll={{ y: 'calc(100vh - 250px)' }}
                     />
                   </Col>
-                </>
               )}
             </Row>
           </TabPane>
 
           <TabPane tab="View Timetable" key="2">
-            <Row gutter={[16, 16]}>
+            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
               <Col span={24}>
                 <Select
-                  style={{ width: '100%' }}
+                  style={{ 
+                    width: '100%',
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    border: '1px solid rgba(159, 179, 223, 0.3)'
+                  }}
                   placeholder="Select Class"
                   onChange={setSelectedClass}
                   value={selectedClass}
@@ -491,16 +607,20 @@ const Timetable = () => {
                           <tr>
                             <th style={{ 
                               padding: '12px',
-                              backgroundColor: '#fafafa',
-                              border: '1px solid #f0f0f0',
-                              minWidth: '120px'
+                              backgroundColor: 'rgba(159, 179, 223, 0.1)',
+                              border: '1px solid rgba(159, 179, 223, 0.2)',
+                              minWidth: '120px',
+                              color: '#9fb3df',
+                              fontWeight: 600
                             }}>Day</th>
                             {getUniqueTimeSlots().map(timeSlot => (
                               <th key={timeSlot} style={{ 
                                 padding: '12px',
-                                backgroundColor: '#fafafa',
-                                border: '1px solid #f0f0f0',
-                                minWidth: '180px'
+                                backgroundColor: 'rgba(159, 179, 223, 0.1)',
+                                border: '1px solid rgba(159, 179, 223, 0.2)',
+                                minWidth: '180px',
+                                color: '#9fb3df',
+                                fontWeight: 600
                               }}>
                                 {formatTime(timeSlot)}
                               </th>
@@ -512,17 +632,18 @@ const Timetable = () => {
                             <tr key={day.value}>
                               <td style={{ 
                                 padding: '12px',
-                                border: '1px solid #f0f0f0',
-                                backgroundColor: '#fafafa',
+                                border: '1px solid rgba(159, 179, 223, 0.2)',
+                                backgroundColor: 'rgba(159, 179, 223, 0.05)',
                                 textAlign: 'center',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                color: '#9fb3df'
                               }}>
                                 {day.label}
                               </td>
                               {getUniqueTimeSlots().map(timeSlot => (
                                 <td key={`${day.value}-${timeSlot}`} style={{ 
                                   padding: '8px',
-                                  border: '1px solid #f0f0f0',
+                                  border: '1px solid rgba(159, 179, 223, 0.2)',
                                   height: '100px'
                                 }}>
                                   {renderTimetableCell(day.value, timeSlot)}
@@ -541,142 +662,192 @@ const Timetable = () => {
         </Tabs>
       </Card>
 
-      <Modal
-        title={editingTimetable ? 'Edit Time Slot' : 'Add Time Slot'}
-        open={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          form.resetFields();
-          setEditingTimetable(null);
-        }}
-        footer={null}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          onValuesChange={(changedValues, allValues) => {
-            // If start_time or end_time changes, calculate duration
-            if (changedValues.start_time || changedValues.end_time) {
-              const startTime = allValues.start_time;
-              const endTime = allValues.end_time;
-              
-              if (startTime && endTime) {
-                const durationInSeconds = endTime.diff(startTime, 'seconds');
-                const hours = Math.floor(durationInSeconds / 3600);
-                const minutes = Math.floor((durationInSeconds % 3600) / 60);
-                const seconds = durationInSeconds % 60;
-                const duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                // Update the form's duration field
-                form.setFieldsValue({ duration });
+      <style>
+        {`
+          .custom-table .ant-table {
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+          }
+          
+          .custom-table .ant-table-container {
+            overflow: hidden !important;
+            height: 100%;
+            border-radius: 12px;
+          }
+          
+          .custom-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            height: calc(100% - 32px) !important;
+            border-radius: 0 0 12px 12px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
+            background: rgba(159, 179, 223, 0.3);
+            border-radius: 3px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar-track {
+            background: rgba(159, 179, 223, 0.1);
+            border-radius: 3px;
+          }
+          
+          .custom-table .ant-table-thead > tr > th:first-child {
+            border-top-left-radius: 12px;
+          }
+          
+          .custom-table .ant-table-thead > tr > th:last-child {
+            border-top-right-radius: 12px;
+          }
+
+          .custom-table .ant-table-tbody > tr > td:last-child {
+            position: sticky;
+            right: 0;
+            background: white;
+            z-index: 1;
+            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
+          }
+
+          .custom-table .ant-table-thead > tr > th:last-child {
+            position: sticky;
+            right: 0;
+            background: rgba(159, 179, 223, 0.1) !important;
+            z-index: 2;
+            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
               }
+
+          .custom-table .ant-table-tbody > tr:hover > td:last-child {
+            background: rgba(159, 179, 223, 0.05) !important;
             }
 
-            // If subject changes, update teacher options
-            if (changedValues.subject) {
-              handleSubjectChange(changedValues.subject);
-            }
-          }}
-        >
-          <Form.Item
-            name="day"
-            label="Day"
-            rules={[{ required: true, message: 'Please select day' }]}
-          >
-            <Select>
-              {days.map(day => (
-                <Option key={day.value} value={day.value}>{day.label}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
+            background: rgba(159, 179, 223, 0.1) !important;
+          }
 
-          <Form.Item
-            name="start_time"
-            label="Start Time"
-            rules={[{ required: true, message: 'Please select start time' }]}
-          >
-            <TimePicker format="HH:mm:ss" />
-          </Form.Item>
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
+            background: rgba(159, 179, 223, 0.15) !important;
+          }
+          
+          .custom-table .ant-table-thead > tr > th {
+            background: rgba(159, 179, 223, 0.1) !important;
+            color: #9fb3df !important;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
+            padding: 2px 12px !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            height: 28px;
+            font-size: 13px;
+          }
+          
+          .custom-table .ant-table-tbody > tr > td {
+            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
+            padding: 2px 12px !important;
+            height: 28px;
+            font-size: 13px;
+          }
+          
+          .custom-table .ant-table-tbody > tr:hover > td {
+            background: rgba(159, 179, 223, 0.05) !important;
+          }
 
-          <Form.Item
-            name="end_time"
-            label="End Time"
-            rules={[{ required: true, message: 'Please select end time' }]}
-          >
-            <TimePicker format="HH:mm:ss" />
-          </Form.Item>
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
+            background: rgba(159, 179, 223, 0.1) !important;
+          }
 
-          <Form.Item
-            name="duration"
-            label="Duration"
-            rules={[{ required: true, message: 'Duration is required' }]}
-          >
-            <Input disabled placeholder="HH:mm:ss" />
-          </Form.Item>
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+            background: rgba(159, 179, 223, 0.15) !important;
+          }
+          
+          .custom-table .ant-table-pagination {
+            border-top: 1px solid rgba(159, 179, 223, 0.2);
+            margin: 0 !important;
+            padding: 2px 12px !important;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            z-index: 2;
+            height: 32px;
+          }
+          
+          .custom-table .ant-pagination-item {
+            border: 1px solid rgba(159, 179, 223, 0.3);
+            min-width: 22px;
+            height: 22px;
+            line-height: 20px;
+            font-size: 12px;
+          }
+          
+          .custom-table .ant-pagination-item-active {
+            background: #9fb3df !important;
+            border-color: #9fb3df !important;
+          }
+          
+          .custom-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+          
+          .custom-table .ant-pagination-item:hover {
+            border-color: #9fb3df !important;
+          }
+          
+          .custom-table .ant-pagination-prev .ant-pagination-item-link,
+          .custom-table .ant-pagination-next .ant-pagination-item-link {
+            border: 1px solid rgba(159, 179, 223, 0.3);
+            min-width: 22px;
+            height: 22px;
+            line-height: 20px;
+            font-size: 12px;
+          }
+          
+          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #9fb3df !important;
+            color: #9fb3df !important;
+          }
 
-          <Form.Item
-            name="subject"
-            label="Subject"
-            rules={[{ required: true, message: 'Please select subject' }]}
-          >
-            <Select>
-              {subjects.map(subject => (
-                <Option key={subject.id} value={subject.id}>
-                  {subject.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          .custom-table .ant-table-cell {
+            white-space: nowrap;
+          }
 
-          <Form.Item
-            name="teacher"
-            label="Teacher"
-            rules={[{ required: true, message: 'Please select teacher' }]}
-          >
-            <Select
-              loading={loadingTeachers}
-              placeholder={loadingTeachers ? "Loading teachers..." : "Select teacher"}
-              disabled={loadingTeachers}
-            >
-              {teachers.map(teacher => (
-                <Option key={teacher.id} value={teacher.id}>
-                  {teacher.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          .custom-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 0 6px;
+            font-size: 12px;
+            height: 20px;
+            line-height: 18px;
+          }
 
-          <Form.Item
-            name="class_type"
-            label="Class Type"
-            rules={[{ required: true, message: 'Please select class type' }]}
-          >
-            <Select>
-              {classTypes.map(type => (
-                <Option key={type.value} value={type.value}>
-                  {type.label}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          .custom-table .ant-table-cell .ant-btn {
+            padding: 0 6px;
+            height: 22px;
+            font-size: 12px;
+          }
 
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                {editingTimetable ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={() => {
-                setModalVisible(false);
-                form.resetFields();
-                setEditingTimetable(null);
-              }}>
-                Cancel
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+          .theory-row {
+            background-color: rgba(159, 179, 223, 0.05) !important;
+          }
+
+          .theory-row:hover {
+            background-color: rgba(159, 179, 223, 0.1) !important;
+          }
+
+          .practical-row {
+            background-color: rgba(159, 179, 223, 0.02) !important;
+          }
+
+          .practical-row:hover {
+            background-color: rgba(159, 179, 223, 0.07) !important;
+          }
+        `}
+      </style>
     </div>
   );
 };
