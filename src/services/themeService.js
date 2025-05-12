@@ -193,22 +193,22 @@ const isValidTheme = (theme) => {
 
 const getDefaultTheme = () => ({
   // Login Page Colors
-  loginPrimaryBlue: '#3b82f6',
-  loginSecondaryBlue: '#60a5fa',
+  loginPrimaryBlue: '#7B83EB',
+  loginSecondaryBlue: '#8ba1d1',
   loginBackground: '#f8fafc',
   loginCardBg: '#ffffff',
   loginTextDark: '#1e293b',
   loginTextMedium: '#64748b',
   loginTextLight: '#475569',
   loginBorder: '#e2e8f0',
-  loginGradientStart: '#1e293b',
-  loginGradientEnd: '#334155',
-  loginShadow: 'rgba(0, 0, 0, 0.1)',
-  loginShadowLight: 'rgba(0, 0, 0, 0.06)',
+  loginGradientStart: '#7B83EB',
+  loginGradientEnd: '#8ba1d1',
+  loginShadow: 'rgba(123, 131, 235, 0.1)',
+  loginShadowLight: 'rgba(123, 131, 235, 0.06)',
   
   // Global Theme Colors
-  primaryColor: '#3b82f6',
-  secondaryColor: '#60a5fa',
+  primaryColor: '#7B83EB',
+  secondaryColor: '#8ba1d1',
   accentColor: '#FFE66D',
   backgroundColor: '#f8fafc',
   surfaceColor: '#ffffff',
@@ -220,5 +220,5 @@ const getDefaultTheme = () => ({
   successColor: '#00B894',
   warningColor: '#FDCB6E',
   errorColor: '#FF7675',
-  sideMenuBg: '#001529',
+  sideMenuBg: '#ffffff',
 }); 

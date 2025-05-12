@@ -90,6 +90,24 @@ const Dashboard = () => {
       type: 'Income',
       status: 'Completed',
       method: 'Cash'
+    },
+    {
+      id: 6,
+      date: '2024-03-15',
+      description: 'School Supplies Purchase',
+      amount: 50000,
+      type: 'Expense',
+      status: 'Completed',
+      method: 'Credit Card'
+    },
+    {
+      id: 7,
+      date: '2024-03-14',
+      description: 'Teacher Salary Payment',
+      amount: 180000,
+      type: 'Expense',
+      status: 'Completed',
+      method: 'Bank Transfer'
     }
   ];
 
@@ -195,6 +213,13 @@ const Dashboard = () => {
       { month: 'Feb', type: 'Pending', value: 1000 },
       { month: 'Mar', type: 'Collected', value: 7500 },
       { month: 'Mar', type: 'Pending', value: 2500 },
+      { month: 'Apr', type: 'Collected', value: 8000 },
+      { month: 'Apr', type: 'Pending', value: 2000 },
+      { month: 'May', type: 'Collected', value: 9500 },
+      { month: 'May', type: 'Pending', value: 1500 },
+      { month: 'Jun', type: 'Collected', value: 7000 },
+      { month: 'Jun', type: 'Pending', value: 3000 },
+      
     ]);
 
     // Sample library statistics

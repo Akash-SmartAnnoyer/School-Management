@@ -59,14 +59,14 @@
 }
 
 .side-menu .ant-menu-item:hover {
-  background: rgba(159, 179, 223, 0.05) !important;
+  background: rgba(123, 131, 235, 0.05) !important;
   color: #7B83EB !important;
   opacity: 1;
   transform: translateX(5px);
 }
 
 .side-menu .ant-menu-item-selected {
-  background: rgba(159, 179, 223, 0.1) !important;
+  background: rgba(123, 131, 235, 0.1) !important;
   border-radius: 8px;
   color: #7B83EB !important;
   opacity: 1;
@@ -128,12 +128,12 @@
 }
 
 .ant-layout-sider::-webkit-scrollbar-thumb {
-  background: rgba(159, 179, 223, 0.3);
+  background: rgba(123, 131, 235, 0.3);
   border-radius: 3px;
 }
 
 .ant-layout-sider::-webkit-scrollbar-track {
-  background: rgba(159, 179, 223, 0.1);
+  background: rgba(123, 131, 235, 0.1);
   border-radius: 3px;
 }
 
@@ -185,7 +185,7 @@
 }
 
 .side-menu .ant-menu-sub .ant-menu-item-selected {
-  background: rgba(159, 179, 223, 0.1) !important;
+  background: rgba(123, 131, 235, 0.1) !important;
 }
 
 /* Collapsed Submenu */
@@ -225,8 +225,8 @@
 }
 
 .ant-layout-header .ant-btn:hover {
-  background: rgba(159, 179, 223, 0.05) !important;
-  color: #8ba1d1 !important;
+  background: rgba(123, 131, 235, 0.05) !important;
+  color: #7B83EB !important;
   transform: translateY(-2px) !important;
 }
 
