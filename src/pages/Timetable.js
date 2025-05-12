@@ -13,7 +13,9 @@ import {
   Row,
   Col,
   TimePicker,
-  Input
+  Input,
+  Spin,
+  Empty
 } from 'antd';
 import {
   PlusOutlined,
@@ -41,6 +43,7 @@ const Timetable = () => {
   const [editingTimetable, setEditingTimetable] = useState(null);
   const [activeTab, setActiveTab] = useState('1');
   const [loadingTeachers, setLoadingTeachers] = useState(false);
+  const [loadingTimetable, setLoadingTimetable] = useState(false);
   const { currentUser } = useAuth();
 
   const days = [
@@ -113,10 +116,17 @@ const Timetable = () => {
 
   const loadTimetables = async () => {
     try {
+      setLoadingTimetable(true);
       const response = await api.timetable.getByClass(selectedClass);
-      setTimetables(response.data);
+      // Filter timetables to only show entries for the selected class
+      const filteredTimetables = response.data.filter(timetable => 
+        timetable.classroom === selectedClass
+      );
+      setTimetables(filteredTimetables);
     } catch (error) {
       message.error('Failed to load timetables');
+    } finally {
+      setLoadingTimetable(false);
     }
   };
 
@@ -296,7 +306,21 @@ const Timetable = () => {
   // Add function to render a timetable cell
   const renderTimetableCell = (day, timeSlot) => {
     const classDetails = getClassDetails(day, timeSlot);
-    if (!classDetails) return null;
+    if (!classDetails) return (
+      <div style={{ 
+        padding: '8px',
+        backgroundColor: '#fafafa',
+        borderRadius: '4px',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: '#999'
+      }}>
+        No Class
+      </div>
+    );
 
     return (
       <div style={{ 
@@ -413,6 +437,10 @@ const Timetable = () => {
                       columns={columns}
                       dataSource={timetables}
                       rowKey="id"
+                      loading={loadingTimetable}
+                      locale={{
+                        emptyText: loadingTimetable ? 'Loading...' : 'No timetable set for this class'
+                      }}
                     />
                   </Col>
                 </>
@@ -438,54 +466,74 @@ const Timetable = () => {
               </Col>
               {selectedClass && (
                 <Col span={24}>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ 
-                            padding: '12px',
-                            backgroundColor: '#fafafa',
-                            border: '1px solid #f0f0f0',
-                            minWidth: '120px'
-                          }}>Day</th>
-                          {getUniqueTimeSlots().map(timeSlot => (
-                            <th key={timeSlot} style={{ 
+                  {loadingTimetable ? (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>
+                      <Spin size="large" />
+                      <div style={{ marginTop: '10px' }}>Loading timetable...</div>
+                    </div>
+                  ) : timetables.length === 0 ? (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      padding: '40px',
+                      backgroundColor: '#fafafa',
+                      borderRadius: '4px',
+                      border: '1px dashed #d9d9d9'
+                    }}>
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description="No timetable set for this class"
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ 
                               padding: '12px',
                               backgroundColor: '#fafafa',
                               border: '1px solid #f0f0f0',
-                              minWidth: '180px'
-                            }}>
-                              {formatTime(timeSlot)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {days.map(day => (
-                          <tr key={day.value}>
-                            <td style={{ 
-                              padding: '12px',
-                              border: '1px solid #f0f0f0',
-                              backgroundColor: '#fafafa',
-                              textAlign: 'center',
-                              fontWeight: 'bold'
-                            }}>
-                              {day.label}
-                            </td>
+                              minWidth: '120px'
+                            }}>Day</th>
                             {getUniqueTimeSlots().map(timeSlot => (
-                              <td key={`${day.value}-${timeSlot}`} style={{ 
-                                padding: '8px',
+                              <th key={timeSlot} style={{ 
+                                padding: '12px',
+                                backgroundColor: '#fafafa',
                                 border: '1px solid #f0f0f0',
-                                height: '100px'
+                                minWidth: '180px'
                               }}>
-                                {renderTimetableCell(day.value, timeSlot)}
-                              </td>
+                                {formatTime(timeSlot)}
+                              </th>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {days.map(day => (
+                            <tr key={day.value}>
+                              <td style={{ 
+                                padding: '12px',
+                                border: '1px solid #f0f0f0',
+                                backgroundColor: '#fafafa',
+                                textAlign: 'center',
+                                fontWeight: 'bold'
+                              }}>
+                                {day.label}
+                              </td>
+                              {getUniqueTimeSlots().map(timeSlot => (
+                                <td key={`${day.value}-${timeSlot}`} style={{ 
+                                  padding: '8px',
+                                  border: '1px solid #f0f0f0',
+                                  height: '100px'
+                                }}>
+                                  {renderTimetableCell(day.value, timeSlot)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </Col>
               )}
             </Row>
