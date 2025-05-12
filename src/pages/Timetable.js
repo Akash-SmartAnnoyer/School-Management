@@ -56,9 +56,24 @@ const Timetable = () => {
     { value: 'practical', label: 'Practical' }
   ];
 
+  // Remove static timeSlots state and add function to get unique time slots
+  const getUniqueTimeSlots = () => {
+    if (!timetables.length) return [];
+    
+    // Get all unique start times and sort them
+    const timeSlots = [...new Set(timetables.map(t => t.start_time))].sort();
+    return timeSlots;
+  };
+
   // Load classes only when the component mounts
   useEffect(() => {
     loadClasses();
+  }, []);
+
+  // Load subjects and teachers when component mounts
+  useEffect(() => {
+    loadSubjects();
+    loadTeachers();
   }, []);
 
   // Load timetables only when a class is selected
@@ -102,6 +117,18 @@ const Timetable = () => {
     } catch (error) {
       message.error('Failed to load timetables');
     }
+  };
+
+  // Add function to get subject name
+  const getSubjectName = (subjectId) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    return subject ? subject.name : `Subject (${subjectId})`;
+  };
+
+  // Add function to get teacher name
+  const getTeacherName = (teacherId) => {
+    const teacher = teachers.find(t => t.id === teacherId);
+    return teacher ? teacher.name : `Teacher (${teacherId})`;
   };
 
   const handleAddTimeSlot = () => {
@@ -199,6 +226,43 @@ const Timetable = () => {
     } catch (error) {
       message.error('Failed to delete timetable');
     }
+  };
+
+  // Add function to get class details for a specific time slot and day
+  const getClassDetails = (day, timeSlot) => {
+    return timetables.find(t => 
+      t.day === day && 
+      t.start_time === timeSlot
+    );
+  };
+
+  // Add function to format time for display (remove seconds)
+  const formatTime = (timeString) => {
+    return timeString.split(':').slice(0, 2).join(':');
+  };
+
+  // Add function to render a timetable cell
+  const renderTimetableCell = (day, timeSlot) => {
+    const classDetails = getClassDetails(day, timeSlot);
+    if (!classDetails) return null;
+
+    return (
+      <div style={{ 
+        padding: '8px',
+        backgroundColor: classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed',
+        borderRadius: '4px',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
+      }}>
+        <div style={{ fontWeight: 'bold' }}>{getSubjectName(classDetails.subject)}</div>
+        <div style={{ fontSize: '12px' }}>{getTeacherName(classDetails.teacher)}</div>
+        <div style={{ fontSize: '12px', color: '#666' }}>
+          {formatTime(classDetails.start_time)} - {formatTime(classDetails.end_time)}
+        </div>
+      </div>
+    );
   };
 
   const columns = [
@@ -322,11 +386,54 @@ const Timetable = () => {
               </Col>
               {selectedClass && (
                 <Col span={24}>
-                  <Table
-                    columns={columns.filter(col => col.key !== 'actions')}
-                    dataSource={timetables}
-                    rowKey="id"
-                  />
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ 
+                            padding: '12px',
+                            backgroundColor: '#fafafa',
+                            border: '1px solid #f0f0f0',
+                            minWidth: '120px'
+                          }}>Day</th>
+                          {getUniqueTimeSlots().map(timeSlot => (
+                            <th key={timeSlot} style={{ 
+                              padding: '12px',
+                              backgroundColor: '#fafafa',
+                              border: '1px solid #f0f0f0',
+                              minWidth: '180px'
+                            }}>
+                              {formatTime(timeSlot)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {days.map(day => (
+                          <tr key={day.value}>
+                            <td style={{ 
+                              padding: '12px',
+                              border: '1px solid #f0f0f0',
+                              backgroundColor: '#fafafa',
+                              textAlign: 'center',
+                              fontWeight: 'bold'
+                            }}>
+                              {day.label}
+                            </td>
+                            {getUniqueTimeSlots().map(timeSlot => (
+                              <td key={`${day.value}-${timeSlot}`} style={{ 
+                                padding: '8px',
+                                border: '1px solid #f0f0f0',
+                                height: '100px'
+                              }}>
+                                {renderTimetableCell(day.value, timeSlot)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </Col>
               )}
             </Row>
