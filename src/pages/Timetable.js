@@ -131,6 +131,49 @@ const Timetable = () => {
     return teacher ? teacher.name : `Teacher (${teacherId})`;
   };
 
+  // Add function to get teachers for a subject
+  const getTeachersForSubject = async (subjectId) => {
+    try {
+      // Get all teachers
+      const response = await api.teacher.getTeachers();
+      const allTeachers = response.data;
+      
+      // Get the subject name for the given subjectId
+      const subject = subjects.find(s => s.id === subjectId);
+      if (!subject) {
+        console.error('Subject not found:', subjectId);
+        return [];
+      }
+
+      // Filter teachers who teach this subject
+      const subjectTeachers = allTeachers.filter(teacher => 
+        teacher.subject === subject.name
+      );
+      
+      return subjectTeachers;
+    } catch (error) {
+      console.error('Error fetching teachers for subject:', error);
+      message.error('Failed to fetch teachers for this subject');
+      return [];
+    }
+  };
+
+  // Update handleSubjectChange to be async
+  const handleSubjectChange = async (subjectId) => {
+    const subjectTeachers = await getTeachersForSubject(subjectId);
+    if (subjectTeachers.length === 1) {
+      // If there's only one teacher for this subject, auto-select them
+      form.setFieldsValue({ teacher: subjectTeachers[0].id });
+    } else if (subjectTeachers.length > 0) {
+      // If there are multiple teachers, show a message
+      message.info('Please select a teacher for this subject');
+    } else {
+      // If no teachers are found for this subject
+      message.warning('No teachers found for this subject');
+      form.setFieldsValue({ teacher: undefined });
+    }
+  };
+
   const handleAddTimeSlot = () => {
     loadSubjects();
     loadTeachers();
@@ -471,6 +514,11 @@ const Timetable = () => {
                 // Update the form's duration field
                 form.setFieldsValue({ duration });
               }
+            }
+
+            // If subject changes, update teacher options
+            if (changedValues.subject) {
+              handleSubjectChange(changedValues.subject);
             }
           }}
         >
