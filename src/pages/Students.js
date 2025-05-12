@@ -52,7 +52,9 @@ import {
   WomanOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  SwapOutlined,
+  DeleteFilled
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -1334,8 +1336,12 @@ const Students = () => {
                   style={{
                     background: '#9fb3df',
                     borderColor: '#9fb3df',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)'
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
+                  icon={<SwapOutlined />}
                 >
                   Change Status
                 </Button>
@@ -1350,8 +1356,12 @@ const Students = () => {
                     style={{
                       background: '#fff1f0',
                       borderColor: '#ffa39e',
-                      color: '#ff4d4f'
+                      color: '#ff4d4f',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
                     }}
+                    icon={<DeleteFilled />}
                   >
                     Delete Selected
                   </Button>
