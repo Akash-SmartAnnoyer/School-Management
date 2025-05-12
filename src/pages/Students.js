@@ -1179,10 +1179,10 @@ const Students = () => {
   );
 
   return (
-    <div>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden', margin: '0' }}>
+      <Row justify="space-between" align="middle" style={{ padding: '8px 0' }}>
         <Col>
-          <Title level={2} style={{ 
+          <Title level={3} style={{ 
             color: '#9fb3df',
             margin: 0,
             fontWeight: 600,
@@ -1190,19 +1190,19 @@ const Students = () => {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <TeamOutlined style={{ fontSize: '28px', color: '#9fb3df' }} />
+            <TeamOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
             Students
           </Title>
         </Col>
         <Col>
-          <Space>
+          <Space size="small">
             <Input.Search
               placeholder="Search students..."
               allowClear
               onSearch={setSearchText}
               style={{ 
-                width: 300,
-                borderRadius: '8px',
+                width: 250,
+                borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                 border: '1px solid rgba(159, 179, 223, 0.3)'
               }}
@@ -1213,16 +1213,17 @@ const Students = () => {
               icon={<PlusOutlined />}
               onClick={handleAdd}
               style={{
-                height: '40px',
-                borderRadius: '8px',
+                height: '32px',
+                borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                 background: '#9fb3df',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.3s ease'
+                gap: '4px',
+                transition: 'all 0.3s ease',
+                padding: '0 12px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
@@ -1243,11 +1244,15 @@ const Students = () => {
 
       <Card
         style={{
-          borderRadius: '12px',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '8px',
           boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
           overflow: 'hidden',
           background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)'
+          border: '1px solid rgba(159, 179, 223, 0.3)',
+          margin: 0
         }}
       >
         <Table
@@ -1268,8 +1273,8 @@ const Students = () => {
             showQuickJumper: true,
             showTotal: (total) => `Total ${total} students`,
             style: {
-              margin: '16px 0',
-              padding: '0 16px'
+              margin: 0,
+              padding: '8px 16px'
             }
           }}
           locale={{
@@ -1282,9 +1287,9 @@ const Students = () => {
             ),
           }}
           style={{
-            borderRadius: '12px',
-            overflow: 'hidden'
+            flex: 1
           }}
+          scroll={{ y: 'calc(100vh - 180px)' }}
           className="custom-table"
         />
       </Card>
@@ -1369,8 +1374,17 @@ const Students = () => {
       <style>
         {`
           .custom-table .ant-table {
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
+          }
+          
+          .custom-table .ant-table-container {
+            overflow: hidden !important;
+          }
+          
+          .custom-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
           }
           
           .custom-table .ant-table-thead > tr > th {
@@ -1378,10 +1392,17 @@ const Students = () => {
             color: #9fb3df !important;
             font-weight: 600;
             border-bottom: 2px solid rgba(159, 179, 223, 0.2);
+            padding: 6px 16px !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            height: 40px;
           }
           
           .custom-table .ant-table-tbody > tr > td {
             border-bottom: 1px solid rgba(159, 179, 223, 0.1);
+            padding: 6px 16px !important;
+            height: 40px;
           }
           
           .custom-table .ant-table-tbody > tr:hover > td {
@@ -1391,11 +1412,18 @@ const Students = () => {
           .custom-table .ant-table-pagination {
             border-top: 1px solid rgba(159, 179, 223, 0.2);
             margin: 0 !important;
-            padding: 16px !important;
+            padding: 6px 16px !important;
+            position: sticky;
+            bottom: 0;
+            background: white;
+            z-index: 2;
           }
           
           .custom-table .ant-pagination-item {
             border: 1px solid rgba(159, 179, 223, 0.3);
+            min-width: 28px;
+            height: 28px;
+            line-height: 26px;
           }
           
           .custom-table .ant-pagination-item-active {
@@ -1414,6 +1442,9 @@ const Students = () => {
           .custom-table .ant-pagination-prev .ant-pagination-item-link,
           .custom-table .ant-pagination-next .ant-pagination-item-link {
             border: 1px solid rgba(159, 179, 223, 0.3);
+            min-width: 28px;
+            height: 28px;
+            line-height: 26px;
           }
           
           .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
