@@ -20,7 +20,8 @@ import {
   Typography,
   Tooltip,
   Empty,
-  Popconfirm
+  Popconfirm,
+  Checkbox
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -66,6 +67,9 @@ const Teachers = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
+  const [bulkStatusForm] = Form.useForm();
 
   useEffect(() => {
     loadTeachers();
@@ -428,6 +432,44 @@ const Teachers = () => {
     }
   };
 
+  const handleBulkStatusChange = async () => {
+    try {
+      const values = await bulkStatusForm.validateFields();
+      console.log('Bulk status change for teachers:', {
+        ids: selectedRowKeys,
+        status: values.status
+      });
+      // TODO: Implement bulk status change API
+      messageApi.success('Status update simulated for selected teachers');
+      setBulkStatusModalVisible(false);
+      setSelectedRowKeys([]);
+    } catch (error) {
+      messageApi.error('Failed to update status');
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      console.log('Bulk delete for teachers:', {
+        ids: selectedRowKeys
+      });
+      // TODO: Implement bulk delete API
+      messageApi.success('Delete simulated for selected teachers');
+      setSelectedRowKeys([]);
+    } catch (error) {
+      messageApi.error('Failed to delete teachers');
+      console.error('Error deleting teachers:', error);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+    },
+  };
+
   const columns = [
     {
       title: 'Photo',
@@ -572,6 +614,7 @@ const Teachers = () => {
 
       <Card>
         <Table
+          rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredTeachers}
           rowKey="id"
@@ -586,6 +629,45 @@ const Teachers = () => {
           }}
         />
       </Card>
+
+      {selectedRowKeys.length > 0 && (
+        <Card
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            boxShadow: '0 -2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <Row justify="space-between" align="middle">
+            <Col>
+              <Space>
+                <span>{selectedRowKeys.length} teachers selected</span>
+              </Space>
+            </Col>
+            <Col>
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={() => setBulkStatusModalVisible(true)}
+                >
+                  Change Status
+                </Button>
+                <Popconfirm
+                  title="Are you sure you want to delete selected teachers?"
+                  onConfirm={handleBulkDelete}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <Button danger>Delete Selected</Button>
+                </Popconfirm>
+              </Space>
+            </Col>
+          </Row>
+        </Card>
+      )}
 
       <Modal
         title={
@@ -943,6 +1025,27 @@ const Teachers = () => {
               </Card>
             </Col>
           </Row>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Change Status"
+        open={bulkStatusModalVisible}
+        onOk={handleBulkStatusChange}
+        onCancel={() => setBulkStatusModalVisible(false)}
+        confirmLoading={loading}
+      >
+        <Form form={bulkStatusForm} layout="vertical">
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status' }]}
+          >
+            <Select>
+              <Option value="Active">Active</Option>
+              <Option value="Inactive">Inactive</Option>
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
 
