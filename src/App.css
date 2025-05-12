@@ -131,24 +131,36 @@
 
 /* Dashboard Stat Cards */
 .dashboard-stat-card {
-  border-radius: '12px';
-  box-shadow: '0 4px 16px rgba(159, 179, 223, 0.2)';
-  border: '1px solid rgba(159, 179, 223, 0.3)';
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(159, 179, 223, 0.2);
+  border: 1px solid rgba(159, 179, 223, 0.3);
   background: linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%);
   color: white;
   transition: all 0.3s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .dashboard-stat-card:hover {
-  background: white !important;
-  border: 1px solid #7B83EB;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(159, 179, 223, 0.3);
 }
 
-.dashboard-stat-card:hover .ant-statistic-title,
-.dashboard-stat-card:hover .ant-statistic-content,
-.dashboard-stat-card:hover .anticon {
-  color: #7B83EB !important;
+.dashboard-stat-card:hover::after {
+  opacity: 1;
 }
 
 .dashboard-stat-card .ant-statistic-title,
@@ -163,10 +175,27 @@
   transition: all 0.3s ease;
 }
 
-.dashboard-stat-card:hover .ant-progress-circle .ant-progress-text {
-  color: #7B83EB !important;
+.dashboard-stat-card .ant-progress-circle .ant-progress-circle-path {
+  stroke: white;
+  transition: all 0.3s ease;
 }
 
-.dashboard-stat-card:hover .ant-progress-circle .ant-progress-circle-path {
-  stroke: #7B83EB !important;
+/* Quick Action Buttons */
+.quick-action-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  background: #7B83EB;
+  border-color: #7B83EB;
+}
+
+.quick-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(159, 179, 223, 0.25);
+  background: #8ba1d1;
+  border-color: #8ba1d1;
 }

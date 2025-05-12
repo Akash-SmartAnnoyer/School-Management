@@ -379,6 +379,7 @@ const Dashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card
               className="dashboard-stat-card"
+              onClick={() => navigate('/students')}
             >
               <Statistic
                 title="Total Students"
@@ -390,6 +391,7 @@ const Dashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card
               className="dashboard-stat-card"
+              onClick={() => navigate('/teachers')}
             >
               <Statistic
                 title="Total Teachers"
@@ -401,6 +403,7 @@ const Dashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card
               className="dashboard-stat-card"
+              onClick={() => navigate('/classes')}
             >
               <Statistic
                 title="Total Classes"
@@ -412,6 +415,7 @@ const Dashboard = () => {
           <Col xs={24} sm={12} md={6}>
             <Card
               className="dashboard-stat-card"
+              onClick={() => navigate('/attendance')}
             >
               <Statistic
                 title="Today's Attendance"
@@ -716,7 +720,7 @@ const Dashboard = () => {
         </Col>
         <Col xs={24} md={12}>
           <Card
-            title="Upcoming Exams"
+            title="Upcoming Events & Exams"
             style={{
               borderRadius: '12px',
               boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
@@ -724,17 +728,119 @@ const Dashboard = () => {
             }}
           >
             <List
-              dataSource={upcomingExams}
+              dataSource={[...upcomingExams, ...calendarEvents.filter(event => 
+                moment(event.date).isAfter(moment()) && 
+                ['EXAM', 'EVENT', 'HOLIDAY'].includes(event.type)
+              )].sort((a, b) => moment(a.date).diff(moment(b.date)))}
               renderItem={item => (
                 <List.Item>
                   <List.Item.Meta
-                    avatar={<CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />}
-                    title={item.subject}
-                    description={`${moment(item.date).format('MMM DD, YYYY')} at ${item.time} (${item.duration})`}
+                    avatar={
+                      <Avatar style={{ 
+                        backgroundColor: 
+                          item.type === 'EXAM' ? '#7B83EB' :
+                          item.type === 'EVENT' ? '#52c41a' :
+                          item.type === 'HOLIDAY' ? '#faad14' : '#1890ff'
+                      }}>
+                        {item.type === 'EXAM' ? 'E' :
+                         item.type === 'EVENT' ? 'E' :
+                         item.type === 'HOLIDAY' ? 'H' : 'O'}
+                      </Avatar>
+                    }
+                    title={item.type === 'EXAM' ? item.subject : item.title}
+                    description={
+                      item.type === 'EXAM' 
+                        ? `${moment(item.date).format('MMM DD, YYYY')} at ${item.time} (${item.duration})`
+                        : `${moment(item.date).format('MMM DD, YYYY')} - ${item.description}`
+                    }
                   />
                 </List.Item>
               )}
             />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+        <Col xs={24}>
+          <Card
+            title="Quick Actions"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <Space wrap>
+              <Button
+                type="primary"
+                icon={<UserOutlined />}
+                onClick={() => navigate('/students')}
+                style={{
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  height: '40px',
+                  padding: '0 20px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                Add New Student
+              </Button>
+              <Button
+                type="primary"
+                icon={<TeamOutlined />}
+                onClick={() => navigate('/teachers')}
+                style={{
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  height: '40px',
+                  padding: '0 20px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                Add New Teacher
+              </Button>
+              <Button
+                type="primary"
+                icon={<BookOutlined />}
+                onClick={() => navigate('/classes')}
+                style={{
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  height: '40px',
+                  padding: '0 20px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                Add New Class
+              </Button>
+              <Button
+                type="primary"
+                icon={<CalendarOutlined />}
+                onClick={() => navigate('/attendance')}
+                style={{
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  height: '40px',
+                  padding: '0 20px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                Mark Attendance
+              </Button>
+            </Space>
           </Card>
         </Col>
       </Row>
