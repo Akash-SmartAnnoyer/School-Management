@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress, List, Typography, Space, Avatar, Timeline } from 'antd';
-import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined, DownloadOutlined, PrinterOutlined, CarOutlined } from '@ant-design/icons';
+import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined, DownloadOutlined, PrinterOutlined, CarOutlined, PlusOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import { subscribeToCollection, getStudents, getTeachers, getClasses, getAttendance } from '../firebase/services';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -774,7 +774,7 @@ const Dashboard = () => {
             <Space wrap>
               <Button
                 type="primary"
-                icon={<UserOutlined />}
+                icon={<PlusOutlined />}
                 onClick={() => navigate('/students')}
                 style={{
                   background: '#7B83EB',
@@ -791,7 +791,7 @@ const Dashboard = () => {
               </Button>
               <Button
                 type="primary"
-                icon={<TeamOutlined />}
+                icon={<PlusOutlined />}
                 onClick={() => navigate('/teachers')}
                 style={{
                   background: '#7B83EB',
@@ -808,7 +808,7 @@ const Dashboard = () => {
               </Button>
               <Button
                 type="primary"
-                icon={<BookOutlined />}
+                icon={<PlusOutlined />}
                 onClick={() => navigate('/classes')}
                 style={{
                   background: '#7B83EB',
@@ -825,7 +825,7 @@ const Dashboard = () => {
               </Button>
               <Button
                 type="primary"
-                icon={<CalendarOutlined />}
+                icon={<CheckSquareOutlined />}
                 onClick={() => navigate('/attendance')}
                 style={{
                   background: '#7B83EB',

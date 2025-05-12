@@ -429,9 +429,13 @@ function MainLayout() {
                   <Avatar
                     icon={<UserOutlined />}
                     style={{
-                      backgroundColor: '#1890ff',
+                      backgroundColor: '#7B83EB',
                       width: 32,
-                      height: 32
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.2)'
                     }}
                   />
                   <span style={{
