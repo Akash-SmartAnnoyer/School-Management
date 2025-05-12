@@ -765,8 +765,8 @@ const Teachers = () => {
       <Modal
         title={
           <Space>
-            <IdcardOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-            <Typography.Title level={5} style={{ margin: 0 }}>
+            <IdcardOutlined className="modal-icon" />
+            <Typography.Title level={5} className="modal-title">
               {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
             </Typography.Title>
           </Space>
@@ -780,19 +780,12 @@ const Teachers = () => {
         }}
         width={900}
         confirmLoading={loading}
+        className="teacher-form-modal"
       >
         <Form form={form} layout="vertical">
           <Row gutter={24}>
             <Col span={8}>
-              <Card 
-                style={{ 
-                  textAlign: 'center',
-                  background: '#fafafa',
-                  border: '1px dashed #d9d9d9',
-                  borderRadius: '8px',
-                  padding: '20px'
-                }}
-              >
+              <Card className="photo-upload-card">
                 <Upload
                   showUploadList={false}
                   beforeUpload={(file) => {
@@ -816,112 +809,95 @@ const Teachers = () => {
                   accept="image/*"
                   maxCount={1}
                 >
-                  <div style={{ cursor: 'pointer' }}>
-                    {(tempImage || editingTeacher?.photoURL) ? (
-                      <img 
-                        src={tempImage || editingTeacher.photoURL}
-                        alt="Teacher"
-                        style={{ 
-                          width: 150, 
-                          height: 150, 
-                          borderRadius: '50%', 
-                          objectFit: 'cover',
-                          border: '4px solid #fff',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}
-                      />
-                    ) : (
-                      <Avatar
-                        size={150}
-                        icon={<CameraOutlined style={{ fontSize: '40px' }} />}
-                        style={{ 
-                          backgroundColor: '#f0f2f5',
-                          border: '2px dashed #d9d9d9'
-                        }}
-                      />
-                    )}
-                    <div style={{ marginTop: '10px', color: '#666' }}>
-                      <CameraOutlined /> Click to upload photo
-                    </div>
+                  <div className="upload-placeholder">
+                    <PlusOutlined />
+                    <div>Upload Photo</div>
                   </div>
                 </Upload>
               </Card>
-            </Col>
-            <Col span={16}>
+
               <Card 
                 title={
                   <Space>
-                    <UserOutlined style={{ color: '#1890ff' }} />
-                    <span>Personal Information</span>
+                    <UserOutlined className="card-icon" />
+                    <span>Basic Information</span>
                   </Space>
                 }
-                style={{ marginBottom: '16px' }}
+                className="info-card"
               >
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="first_name"
-                      label="First Name"
-                      rules={[{ required: true, message: 'Please input first name!' }]}
-                    >
-                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="last_name"
-                      label="Last Name"
-                      rules={[{ required: true, message: 'Please input last name!' }]}
-                    >
-                      <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                <Form.Item
+                  name="first_name"
+                  label="First Name"
+                  rules={[{ required: true, message: 'Please input first name!' }]}
+                >
+                  <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
 
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="email"
-                      label="Email"
-                      rules={[
-                        { required: true, message: 'Please input email!' },
-                        { type: 'email', message: 'Please enter a valid email!' }
-                      ]}
-                    >
-                      <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="phone"
-                      label="Phone"
-                      rules={[{ required: true, message: 'Please input phone number!' }]}
-                    >
-                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                <Form.Item
+                  name="last_name"
+                  label="Last Name"
+                  rules={[{ required: true, message: 'Please input last name!' }]}
+                >
+                  <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
 
-                <Row gutter={16}>
-                  <Col span={12}>
+                <Form.Item
+                  name="email"
+                  label="Email"
+                  rules={[
+                    { required: true, message: 'Please input email!' },
+                    { type: 'email', message: 'Please enter a valid email!' }
+                  ]}
+                >
+                  <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
+
+                <Form.Item
+                  name="phone"
+                  label="Phone"
+                  rules={[{ required: true, message: 'Please input phone number!' }]}
+                >
+                  <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
+
+                <Form.Item
+                  name="gender"
+                  label="Gender"
+                  rules={[{ required: true, message: 'Please select gender!' }]}
+                >
+                  <Select>
+                    <Option value="M">Male</Option>
+                    <Option value="F">Female</Option>
+                    <Option value="O">Other</Option>
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
+                  name="dob"
+                  label="DOB"
+                  rules={[{ required: true, message: 'Please select date of birth!' }]}
+                >
+                  <DatePicker style={{ width: '100%' }} />
+                </Form.Item>
+
+                {!editingTeacher && (
+                  <>
                     <Form.Item
                       name="password"
                       label="Password"
                       rules={[
-                        { required: !editingTeacher, message: 'Please input password!' },
+                        { required: true, message: 'Please input password!' },
                         { min: 6, message: 'Password must be at least 6 characters!' }
                       ]}
                     >
                       <Input.Password />
                     </Form.Item>
-                  </Col>
-                  <Col span={12}>
                     <Form.Item
                       name="confirm_password"
                       label="Confirm Password"
                       dependencies={['password']}
                       rules={[
-                        { required: !editingTeacher, message: 'Please confirm password!' },
+                        { required: true, message: 'Please confirm password!' },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
                             if (!value || getFieldValue('password') === value) {
@@ -934,91 +910,20 @@ const Teachers = () => {
                     >
                       <Input.Password />
                     </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="gender"
-                      label="Gender"
-                      rules={[{ required: true, message: 'Please select gender!' }]}
-                    >
-                      <Select>
-                        <Option value="M">Male</Option>
-                        <Option value="F">Female</Option>
-                        <Option value="O">Other</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="dob"
-                      label="Date of Birth"
-                      rules={[{ required: true, message: 'Please select date of birth!' }]}
-                    >
-                      <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="blood_group"
-                      label="Blood Group"
-                      rules={[{ required: true, message: 'Please select blood group!' }]}
-                    >
-                      <Select>
-                        <Option value="A+">A+</Option>
-                        <Option value="A-">A-</Option>
-                        <Option value="B+">B+</Option>
-                        <Option value="B-">B-</Option>
-                        <Option value="AB+">AB+</Option>
-                        <Option value="AB-">AB-</Option>
-                        <Option value="O+">O+</Option>
-                        <Option value="O-">O-</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="nationality"
-                      label="Nationality"
-                      rules={[{ required: true, message: 'Please input nationality!' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                  </>
+                )}
               </Card>
+            </Col>
 
+            <Col span={16}>
               <Card 
                 title={
                   <Space>
-                    <PhoneOutlined style={{ color: '#1890ff' }} />
-                    <span>Contact Information</span>
-                  </Space>
-                }
-                style={{ marginBottom: '16px' }}
-              >
-                <Form.Item
-                  name="address"
-                  label="Address"
-                  rules={[{ required: true, message: 'Please input address!' }]}
-                >
-                  <Input.TextArea rows={3} />
-                </Form.Item>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <BookOutlined style={{ color: '#1890ff' }} />
+                    <BookOutlined className="card-icon" />
                     <span>Professional Information</span>
                   </Space>
                 }
-                style={{ marginBottom: '16px' }}
+                className="info-card"
               >
                 <Row gutter={16}>
                   <Col span={12}>
@@ -1104,11 +1009,60 @@ const Teachers = () => {
               <Card 
                 title={
                   <Space>
-                    <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                    <HomeOutlined className="card-icon" />
+                    <span>Contact Information</span>
+                  </Space>
+                }
+                className="info-card"
+              >
+                <Form.Item
+                  name="address"
+                  label="Address"
+                  rules={[{ required: true, message: 'Please input address!' }]}
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              </Card>
+
+              <Card 
+                title={
+                  <Space>
+                    <InfoCircleOutlined className="card-icon" />
                     <span>Additional Information</span>
                   </Space>
                 }
+                className="info-card"
               >
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="blood_group"
+                      label="Blood Group"
+                      rules={[{ required: true, message: 'Please select blood group!' }]}
+                    >
+                      <Select>
+                        <Option value="A+">A+</Option>
+                        <Option value="A-">A-</Option>
+                        <Option value="B+">B+</Option>
+                        <Option value="B-">B-</Option>
+                        <Option value="AB+">AB+</Option>
+                        <Option value="AB-">AB-</Option>
+                        <Option value="O+">O+</Option>
+                        <Option value="O-">O-</Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="nationality"
+                      label="Nationality"
+                      rules={[{ required: true, message: 'Please input nationality!' }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
                 <Form.Item
                   name="medicalConditions"
                   label="Medical Conditions"
@@ -1150,193 +1104,78 @@ const Teachers = () => {
 
       <style>
         {`
-          .custom-table .ant-table {
-            border-radius: 12px;
-            overflow: hidden;
-            height: 100%;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            height: 100%;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: calc(100% - 32px) !important;
-            border-radius: 0 0 12px 12px;
+          .teacher-form-modal .modal-icon {
+            font-size: 20px;
+            color: #7B83EB;
           }
 
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
-
-          .custom-table .ant-table-tbody > tr > td:last-child {
-            position: sticky;
-            right: 0;
-            background: white;
-            z-index: 1;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-thead > tr > th:last-child {
-            position: sticky;
-            right: 0;
-            background: rgba(159, 179, 223, 0.1) !important;
-            z-index: 2;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-tbody > tr:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 2px 12px !important;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 2px 12px !important;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-pagination {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
-            margin: 0 !important;
-            padding: 2px 12px !important;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            z-index: 2;
-            height: 32px;
-          }
-          
-          .custom-table .ant-pagination-item {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-item-active {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-          
-          .custom-table .ant-pagination-item:hover {
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-prev .ant-pagination-item-link,
-          .custom-table .ant-pagination-next .ant-pagination-item-link {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #7B83EB !important;
-            color: #7B83EB !important;
-          }
-
-          .custom-table .ant-table-cell {
-            white-space: nowrap;
-          }
-
-          .custom-table .ant-table-cell .ant-tag {
+          .teacher-form-modal .modal-title {
             margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
+            color: #7B83EB;
           }
 
-          .custom-table .ant-table-cell .ant-btn {
-            padding: 0 6px;
-            height: 22px;
-            font-size: 12px;
+          .teacher-form-modal .photo-upload-card {
+            text-align: center;
+            background: #fafafa;
+            border: 1px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
           }
 
-          .custom-table .ant-table-cell .ant-avatar {
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            font-size: 12px;
+          .teacher-form-modal .upload-placeholder {
+            cursor: pointer;
+            color: #7B83EB;
           }
 
-          .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+          .teacher-form-modal .info-card {
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .teacher-form-modal .card-icon {
+            color: #7B83EB;
+          }
+
+          .teacher-form-modal .ant-card-head {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+          }
+
+          .teacher-form-modal .ant-card-head-title {
+            padding: 0;
+          }
+
+          .teacher-form-modal .ant-form-item-label > label {
+            color: #595959;
+            font-weight: 500;
+          }
+
+          .teacher-form-modal .ant-input-affix-wrapper:hover,
+          .teacher-form-modal .ant-input-affix-wrapper:focus,
+          .teacher-form-modal .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB;
+          }
+
+          .teacher-form-modal .ant-select:hover .ant-select-selector,
+          .teacher-form-modal .ant-select-focused .ant-select-selector {
             border-color: #7B83EB !important;
           }
 
-          .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #7B83EB !important;
-            border-color: #7B83EB !important;
+          .teacher-form-modal .ant-picker:hover,
+          .teacher-form-modal .ant-picker-focused {
+            border-color: #7B83EB;
           }
 
-          .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #7B83EB !important;
+          .teacher-form-modal .ant-btn-primary {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .teacher-form-modal .ant-btn-primary:hover {
+            background: #8ba1d1;
+            border-color: #8ba1d1;
           }
         `}
       </style>

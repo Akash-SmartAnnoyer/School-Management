@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
@@ -410,7 +410,14 @@ const Classes = () => {
       )}
 
       <Modal
-        title={editingClass ? 'Edit Class' : 'Add Class'}
+        title={
+          <Space>
+            <BookOutlined className="modal-icon" />
+            <Typography.Title level={5} className="modal-title">
+              {editingClass ? 'Edit Class' : 'Add New Class'}
+            </Typography.Title>
+          </Space>
+        }
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
@@ -419,63 +426,90 @@ const Classes = () => {
         }}
         footer={null}
         confirmLoading={loadingModal}
+        className="class-form-modal"
       >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleModalOk}
         >
-          <Form.Item
-            name="className"
-            label="Class Name"
-            rules={[{ required: true, message: 'Please enter class name' }]}
-          >
-            <Input />
-          </Form.Item>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Card 
+                title={
+                  <Space>
+                    <BookOutlined className="card-icon" />
+                    <span>Basic Information</span>
+                  </Space>
+                }
+                className="info-card"
+              >
+                <Form.Item
+                  name="className"
+                  label="Class Name"
+                  rules={[{ required: true, message: 'Please enter class name' }]}
+                >
+                  <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
 
-          <Form.Item
-            name="section"
-            label="Section"
-            rules={[{ required: true, message: 'Please select section' }]}
-          >
-            <Select>
-              {sections.map(section => (
-                <Option key={section} value={section}>Section {section}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+                <Form.Item
+                  name="section"
+                  label="Section"
+                  rules={[{ required: true, message: 'Please select section' }]}
+                >
+                  <Select>
+                    {sections.map(section => (
+                      <Option key={section} value={section}>Section {section}</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
 
-          <Form.Item
-            name="teacherId"
-            label="Class Teacher"
-          >
-            <Select allowClear placeholder="Select teacher">
-              {teachers.map(teacher => (
-                <Option key={teacher.user_id} value={teacher.user_id}>
-                  {teacher.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+                <Form.Item
+                  name="capacity"
+                  label="Capacity"
+                  rules={[{ required: true, message: 'Please enter capacity' }]}
+                >
+                  <Input type="number" prefix={<TeamOutlined style={{ color: '#bfbfbf' }} />} />
+                </Form.Item>
+              </Card>
+            </Col>
 
-          <Form.Item
-            name="capacity"
-            label="Capacity"
-            rules={[{ required: true, message: 'Please enter capacity' }]}
-          >
-            <Input type="number" />
-          </Form.Item>
+            <Col span={12}>
+              <Card 
+                title={
+                  <Space>
+                    <TeamOutlined className="card-icon" />
+                    <span>Class Details</span>
+                  </Space>
+                }
+                className="info-card"
+              >
+                <Form.Item
+                  name="teacherId"
+                  label="Class Teacher"
+                >
+                  <Select allowClear placeholder="Select teacher">
+                    {teachers.map(teacher => (
+                      <Option key={teacher.user_id} value={teacher.user_id}>
+                        {teacher.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
 
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status' }]}
-          >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-            </Select>
-          </Form.Item>
+                <Form.Item
+                  name="status"
+                  label="Status"
+                  rules={[{ required: true, message: 'Please select status' }]}
+                >
+                  <Select>
+                    <Option value="Active">Active</Option>
+                    <Option value="Inactive">Inactive</Option>
+                  </Select>
+                </Form.Item>
+              </Card>
+            </Col>
+          </Row>
 
           <Form.Item>
             <Space>
@@ -711,6 +745,61 @@ const Classes = () => {
 
           .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
             background-color: #7B83EB !important;
+          }
+
+          .class-form-modal .modal-icon {
+            font-size: 20px;
+            color: #7B83EB;
+          }
+
+          .class-form-modal .modal-title {
+            margin: 0;
+            color: #7B83EB;
+          }
+
+          .class-form-modal .info-card {
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .class-form-modal .card-icon {
+            color: #7B83EB;
+          }
+
+          .class-form-modal .ant-card-head {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+          }
+
+          .class-form-modal .ant-card-head-title {
+            padding: 0;
+          }
+
+          .class-form-modal .ant-form-item-label > label {
+            color: #595959;
+            font-weight: 500;
+          }
+
+          .class-form-modal .ant-input-affix-wrapper:hover,
+          .class-form-modal .ant-input-affix-wrapper:focus,
+          .class-form-modal .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB;
+          }
+
+          .class-form-modal .ant-select:hover .ant-select-selector,
+          .class-form-modal .ant-select-focused .ant-select-selector {
+            border-color: #7B83EB !important;
+          }
+
+          .class-form-modal .ant-btn-primary {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .class-form-modal .ant-btn-primary:hover {
+            background: #8ba1d1;
+            border-color: #8ba1d1;
           }
         `}
       </style>
