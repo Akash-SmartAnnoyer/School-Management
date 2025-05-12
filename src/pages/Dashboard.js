@@ -378,73 +378,45 @@ const Dashboard = () => {
         <Row gutter={[16, 16]} style={{ padding: '16px' }}>
           <Col xs={24} sm={12} md={6}>
             <Card
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                color: 'white'
-              }}
+              className="dashboard-stat-card"
             >
               <Statistic
-                title={<span style={{ color: 'white' }}>Total Students</span>}
+                title="Total Students"
                 value={students.length}
-                prefix={<UserOutlined style={{ color: 'white' }} />}
-                valueStyle={{ color: 'white' }}
+                prefix={<TeamOutlined />}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                color: 'white'
-              }}
+              className="dashboard-stat-card"
             >
               <Statistic
-                title={<span style={{ color: 'white' }}>Total Teachers</span>}
+                title="Total Teachers"
                 value={teachers.length}
-                prefix={<TeamOutlined style={{ color: 'white' }} />}
-                valueStyle={{ color: 'white' }}
+                prefix={<TeamOutlined />}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                color: 'white'
-              }}
+              className="dashboard-stat-card"
             >
               <Statistic
-                title={<span style={{ color: 'white' }}>Total Classes</span>}
+                title="Total Classes"
                 value={classes.length}
-                prefix={<BookOutlined style={{ color: 'white' }} />}
-                valueStyle={{ color: 'white' }}
+                prefix={<BookOutlined />}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <Card
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                color: 'white'
-              }}
+              className="dashboard-stat-card"
             >
               <Statistic
-                title={<span style={{ color: 'white' }}>Today's Attendance</span>}
+                title="Today's Attendance"
                 value={`${presentCount}/${presentCount + absentCount}`}
-                prefix={<CalendarOutlined style={{ color: 'white' }} />}
-                valueStyle={{ color: 'white' }}
+                prefix={<CalendarOutlined />}
                 suffix={
                   <Progress 
                     type="circle" 
