@@ -262,6 +262,14 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 <Input />
               </Form.Item>
 
+              <Form.Item
+                name={['profile', 'class_name']}
+                label="Class Name"
+                rules={[{ required: true, message: 'Please input class name!' }]}
+              >
+                <Input />
+              </Form.Item>
+
               {!initialValues && (
                 <>
                   <Form.Item
@@ -755,10 +763,11 @@ const Students = () => {
           role: 'student',
           password: values.password,
           confirm_password: values.confirm_password,
+          classroom_id: values.profile?.classroom_id,
+          address: values.address,
+          blood_group: values.blood_group,
           profile: {
-            address: values.address,
-            blood_group: values.blood_group,
-            classroom_id: values.profile?.classroom_id,
+            class_name: values.profile?.class_name,
             nationality: values.profile?.nationality
           },
           student_profile: {
