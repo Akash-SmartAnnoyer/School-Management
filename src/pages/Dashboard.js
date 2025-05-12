@@ -28,6 +28,118 @@ const Dashboard = () => {
   const [transportStats, setTransportStats] = useState({});
   const navigate = useNavigate();
 
+  // Sample finance data
+  const monthlyFinanceData = [
+    { date: 'Jan', type: 'Income', value: 850000 },
+    { date: 'Jan', type: 'Expense', value: 650000 },
+    { date: 'Feb', type: 'Income', value: 920000 },
+    { date: 'Feb', type: 'Expense', value: 680000 },
+    { date: 'Mar', type: 'Income', value: 780000 },
+    { date: 'Mar', type: 'Expense', value: 720000 },
+    { date: 'Apr', type: 'Income', value: 890000 },
+    { date: 'Apr', type: 'Expense', value: 690000 },
+    { date: 'May', type: 'Income', value: 950000 },
+    { date: 'May', type: 'Expense', value: 710000 },
+    { date: 'Jun', type: 'Income', value: 880000 },
+    { date: 'Jun', type: 'Expense', value: 680000 },
+  ];
+
+  // Sample recent transactions
+  const recentTransactions = [
+    {
+      id: 1,
+      date: '2024-03-20',
+      description: 'Tuition Fee Collection - Class 10A',
+      amount: 250000,
+      type: 'Income',
+      status: 'Completed',
+      method: 'Online Transfer'
+    },
+    {
+      id: 2,
+      date: '2024-03-19',
+      description: 'Teacher Salary Payment',
+      amount: 180000,
+      type: 'Expense',
+      status: 'Completed',
+      method: 'Bank Transfer'
+    },
+    {
+      id: 3,
+      date: '2024-03-18',
+      description: 'Library Books Purchase',
+      amount: 45000,
+      type: 'Expense',
+      status: 'Completed',
+      method: 'Credit Card'
+    },
+    {
+      id: 4,
+      date: '2024-03-17',
+      description: 'Sports Equipment Purchase',
+      amount: 35000,
+      type: 'Expense',
+      status: 'Completed',
+      method: 'Debit Card'
+    },
+    {
+      id: 5,
+      date: '2024-03-16',
+      description: 'Transport Fee Collection',
+      amount: 120000,
+      type: 'Income',
+      status: 'Completed',
+      method: 'Cash'
+    }
+  ];
+
+  const transactionColumns = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date) => moment(date).format('MMM DD, YYYY'),
+      width: 120,
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      width: 250,
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount, record) => (
+        <span style={{ 
+          color: record.type === 'Income' ? '#52c41a' : '#ff4d4f',
+          fontWeight: 500
+        }}>
+          {record.type === 'Income' ? '+' : '-'}₹{amount.toLocaleString()}
+        </span>
+      ),
+      width: 150,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'Completed' ? '#52c41a' : '#faad14'}>
+          {status}
+        </Tag>
+      ),
+      width: 100,
+    },
+    {
+      title: 'Method',
+      dataIndex: 'method',
+      key: 'method',
+      width: 120,
+    }
+  ];
+
   useEffect(() => {
     // Subscribe to real-time updates for all collections
     const unsubscribeStudents = subscribeToCollection('students', (data) => {
@@ -77,12 +189,12 @@ const Dashboard = () => {
 
     // Sample fee collection data
     setFeeCollection([
-      { month: 'Jan', type: 'Collected', value: 85000 },
-      { month: 'Jan', type: 'Pending', value: 15000 },
-      { month: 'Feb', type: 'Collected', value: 90000 },
-      { month: 'Feb', type: 'Pending', value: 10000 },
-      { month: 'Mar', type: 'Collected', value: 75000 },
-      { month: 'Mar', type: 'Pending', value: 25000 },
+      { month: 'Jan', type: 'Collected', value: 8500 },
+      { month: 'Jan', type: 'Pending', value: 1500 },
+      { month: 'Feb', type: 'Collected', value: 9000 },
+      { month: 'Feb', type: 'Pending', value: 1000 },
+      { month: 'Mar', type: 'Collected', value: 7500 },
+      { month: 'Mar', type: 'Pending', value: 2500 },
     ]);
 
     // Sample library statistics
@@ -121,42 +233,7 @@ const Dashboard = () => {
   const absentCount = todayAttendance.filter(record => record.status === 'Absent').length;
 
   // Get recent transactions
-  const recentTransactions = finance
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, 5);
-
-  const transactionColumns = [
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      render: (date) => moment(date).format('MMM DD, YYYY'),
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount, record) => (
-        <span style={{ color: record.type === 'Income' ? '#52c41a' : '#ff4d4f' }}>
-          {record.type === 'Income' ? '+' : '-'}₹{amount.toLocaleString()}
-        </span>
-      ),
-    },
-  ];
-
-  const handleUploadSampleData = async () => {
-    try {
-      await uploadSampleData();
-      message.success('Sample data uploaded successfully!');
-    } catch (error) {
-      message.error('Error uploading sample data: ' + error.message);
-    }
-  };
+  const financeChartData = monthlyFinanceData;
 
   // Calculate attendance percentage
   const attendancePercentage = presentCount + absentCount > 0 
@@ -165,26 +242,9 @@ const Dashboard = () => {
 
   // Prepare data for charts
   const attendanceData = [
-    { type: 'Present', value: presentCount },
-    { type: 'Absent', value: absentCount }
+    { type: 'Present', value: presentCount || 0 },
+    { type: 'Absent', value: absentCount || 0 }
   ];
-
-  const monthlyFinanceData = finance
-    .filter(record => moment(record.date).isSame(moment(), 'month'))
-    .reduce((acc, record) => {
-      const date = moment(record.date).format('MMM DD');
-      if (!acc[date]) {
-        acc[date] = { date, income: 0, expense: 0 };
-      }
-      if (record.type === 'Income') {
-        acc[date].income += record.amount;
-      } else {
-        acc[date].expense += record.amount;
-      }
-      return acc;
-    }, {});
-
-  const financeChartData = Object.values(monthlyFinanceData);
 
   const getNextHoliday = () => {
     const today = moment();
@@ -224,7 +284,7 @@ const Dashboard = () => {
             School Dashboard
           </Title>
         </Col>
-        <Col>
+        {/* <Col>
           <Space>
             <Button
               type="primary"
@@ -257,7 +317,7 @@ const Dashboard = () => {
               Upload Sample Data
             </Button>
           </Space>
-        </Col>
+        </Col> */}
       </Row>
 
       <Card
@@ -381,12 +441,14 @@ const Dashboard = () => {
               style={{
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
+                border: '1px solid rgba(159, 179, 223, 0.3)',
+                height: '100%'
               }}
+              bodyStyle={{ height: 'calc(100% - 57px)', display: 'flex', flexDirection: 'column' }}
             >
-              <Row gutter={[16, 16]}>
+              <Row gutter={[16, 16]} style={{ flex: 1 }}>
                 <Col span={12}>
-                  <div className="attendance-chart">
+                  <div className="attendance-chart" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Pie
                       data={attendanceData}
                       angleField="value"
@@ -405,7 +467,7 @@ const Dashboard = () => {
                   </div>
                 </Col>
                 <Col span={12}>
-                  <div className="attendance-stats">
+                  <div className="attendance-stats" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div className="attendance-stat">
                       <span className="stat-label">Present</span>
                       <span className="stat-value present">{presentCount}</span>
@@ -420,47 +482,29 @@ const Dashboard = () => {
             </Card>
           </Col>
           <Col xs={24} lg={8}>
-            <div className="dashboard-side-cards">
-              <Card
-                title="Recent Transactions"
+            <Card
+              title="Recent Transactions"
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                border: '1px solid rgba(159, 179, 223, 0.3)',
+                height: '100%'
+              }}
+              bodyStyle={{ height: 'calc(100% - 57px)', padding: '0' }}
+            >
+              <Table
+                columns={transactionColumns}
+                dataSource={recentTransactions}
+                rowKey="id"
+                pagination={false}
+                size="small"
                 style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                  border: '1px solid rgba(159, 179, 223, 0.3)',
-                  marginBottom: '16px'
+                  borderRadius: '8px',
+                  overflow: 'hidden'
                 }}
-              >
-                <Table
-                  columns={transactionColumns}
-                  dataSource={recentTransactions}
-                  rowKey="id"
-                  pagination={false}
-                  size="small"
-                  style={{
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }}
-                />
-              </Card>
-              {nextHoliday && (
-                <Card
-                  title="Next Holiday"
-                  style={{
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)',
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    color: 'white'
-                  }}
-                >
-                  <div className="next-holiday-info">
-                    <h3>{nextHoliday.title}</h3>
-                    <p>{moment(nextHoliday.date).format('MMMM D, YYYY')}</p>
-                    <p>{moment(nextHoliday.date).diff(moment(), 'days')} days remaining</p>
-                  </div>
-                </Card>
-              )}
-            </div>
+                scroll={{ y: 'calc(100% - 39px)' }}
+              />
+            </Card>
           </Col>
         </Row>
 
@@ -471,22 +515,79 @@ const Dashboard = () => {
               style={{
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
+                border: '1px solid rgba(159, 179, 223, 0.3)',
+                height: '100%'
               }}
+              bodyStyle={{ height: '300px', padding: '12px' }}
             >
               <Column
                 data={financeChartData}
                 xField="date"
-                yField="income"
+                yField="value"
                 seriesField="type"
+                isGroup={true}
+                height={276}
                 columnStyle={{
                   radius: [4, 4, 0, 0],
                 }}
                 color={['#52c41a', '#ff4d4f']}
                 label={{
-                  position: 'middle',
+                  position: 'top',
                   style: {
-                    fill: '#FFFFFF',
+                    fill: '#666',
+                    opacity: 0.8,
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                  },
+                  formatter: (text) => `₹${(text.value / 1000).toFixed(1)}K`
+                }}
+                legend={{
+                  position: 'top',
+                  itemName: {
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  },
+                }}
+                xAxis={{
+                  label: {
+                    autoHide: true,
+                    autoRotate: false,
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  },
+                  line: {
+                    style: {
+                      stroke: '#ddd',
+                    },
+                  },
+                }}
+                yAxis={{
+                  label: {
+                    formatter: (value) => `₹${(value / 1000).toFixed(0)}K`,
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  },
+                  grid: {
+                    line: {
+                      style: {
+                        stroke: '#f0f0f0',
+                        lineDash: [4, 4],
+                      },
+                    },
+                  },
+                }}
+                tooltip={{
+                  formatter: (datum) => {
+                    return {
+                      name: datum.type,
+                      value: `₹${datum.value.toLocaleString()}`,
+                    };
                   },
                 }}
               />
@@ -498,8 +599,10 @@ const Dashboard = () => {
               style={{
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
+                border: '1px solid rgba(159, 179, 223, 0.3)',
+                height: '100%'
               }}
+              bodyStyle={{ height: '300px', padding: '12px' }}
             >
               <Line
                 data={[
@@ -512,6 +615,7 @@ const Dashboard = () => {
                 ]}
                 xField="month"
                 yField="students"
+                height={276}
                 smooth
                 point={{
                   size: 5,
@@ -519,7 +623,40 @@ const Dashboard = () => {
                 }}
                 label={{
                   style: {
-                    fill: '#aaa',
+                    fill: '#666',
+                    fontSize: 12,
+                  },
+                }}
+                xAxis={{
+                  label: {
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  },
+                }}
+                yAxis={{
+                  label: {
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  },
+                  grid: {
+                    line: {
+                      style: {
+                        stroke: '#f0f0f0',
+                        lineDash: [4, 4],
+                      },
+                    },
+                  },
+                }}
+                tooltip={{
+                  formatter: (datum) => {
+                    return {
+                      name: 'Students',
+                      value: datum.students,
+                    };
                   },
                 }}
               />
@@ -528,7 +665,7 @@ const Dashboard = () => {
         </Row>
       </Card>
 
-      <Row gutter={[16, 16]} style={{ padding: '16px' }}>
+      {/* <Row gutter={[16, 16]} style={{ padding: '16px' }}>
         <Col xs={24} sm={12} md={6}>
           <Card
             style={{
@@ -547,7 +684,7 @@ const Dashboard = () => {
             />
           </Card>
         </Col>
-      </Row>
+      </Row> */}
 
       <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
         <Col xs={24} md={12}>
@@ -612,23 +749,59 @@ const Dashboard = () => {
             style={{
               borderRadius: '12px',
               boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
+              border: '1px solid rgba(159, 179, 223, 0.3)',
+              height: '100%'
             }}
+            bodyStyle={{ height: '300px', padding: '12px' }}
           >
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Statistic
-                  title="Total Books"
-                  value={libraryStats.totalBooks}
-                  prefix={<BookOutlined />}
-                />
+            <Row gutter={[16, 16]} style={{ height: '100%' }}>
+              <Col span={8}>
+                <Card
+                  style={{
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+                    color: 'white',
+                    height: '100%'
+                  }}
+                >
+                  <Statistic
+                    title={<span style={{ color: 'white' }}>Total Books</span>}
+                    value={libraryStats.totalBooks}
+                    prefix={<BookOutlined style={{ color: 'white' }} />}
+                    valueStyle={{ color: 'white' }}
+                  />
+                </Card>
               </Col>
-              <Col span={12}>
-                <Statistic
-                  title="Issued Books"
-                  value={libraryStats.issuedBooks}
-                  prefix={<BookOutlined />}
-                />
+              <Col span={8}>
+                <Card
+                  style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Statistic
+                    title="Issued Books"
+                    value={libraryStats.issuedBooks}
+                    prefix={<BookOutlined />}
+                  />
+                </Card>
+              </Col>
+              <Col span={8}>
+                <Card
+                  style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Statistic
+                    title="Recent Additions"
+                    value={libraryStats.recentAdditions}
+                    prefix={<BookOutlined />}
+                  />
+                </Card>
               </Col>
               <Col span={24}>
                 <Title level={5}>Popular Categories</Title>
@@ -647,25 +820,45 @@ const Dashboard = () => {
             style={{
               borderRadius: '12px',
               boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
+              border: '1px solid rgba(159, 179, 223, 0.3)',
+              height: '100%'
             }}
+            bodyStyle={{ height: '300px', padding: '12px' }}
           >
-            <Row gutter={[16, 16]}>
+            <Row gutter={[16, 16]} style={{ height: '100%' }}>
               <Col span={12}>
-                <Statistic
-                  title="Total Buses"
-                  value={transportStats.totalBuses}
-                  prefix={<CarOutlined />}
-                />
+                <Card
+                  style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Statistic
+                    title="Total Buses"
+                    value={transportStats.totalBuses}
+                    prefix={<CarOutlined />}
+                  />
+                </Card>
               </Col>
               <Col span={12}>
-                <Statistic
-                  title="Active Routes"
-                  value={transportStats.activeRoutes}
-                  prefix={<CarOutlined />}
-                />
+                <Card
+                  style={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Statistic
+                    title="Active Routes"
+                    value={transportStats.activeRoutes}
+                    prefix={<CarOutlined />}
+                  />
+                </Card>
               </Col>
-              <Col span={24}>
+              <Col span={24} style={{ flex: 1, overflow: 'auto' }}>
                 <Title level={5}>Route Details</Title>
                 <List
                   size="small"
@@ -694,6 +887,7 @@ const Dashboard = () => {
               boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
               border: '1px solid rgba(159, 179, 223, 0.3)'
             }}
+            bodyStyle={{ height: '300px', padding: '12px' }}
           >
             <Column
               data={feeCollection}
@@ -701,24 +895,80 @@ const Dashboard = () => {
               yField="value"
               seriesField="type"
               isGroup={true}
+              height={276}
               columnStyle={{
                 radius: [4, 4, 0, 0],
               }}
-              color={['#7B83EB', '#ff4d4f']}
+              color={['#52c41a', '#ff4d4f']}
               label={{
-                position: 'middle',
+                position: 'top',
                 style: {
-                  fill: '#FFFFFF',
-                  opacity: 0.6,
+                  fill: '#666',
+                  opacity: 0.8,
+                  fontSize: 12,
+                  fontWeight: 'bold',
                 },
+                formatter: (text) => `₹${(text.value / 1000).toFixed(1)}K`
               }}
               legend={{
                 position: 'top',
+                itemName: {
+                  style: {
+                    fill: '#666',
+                    fontSize: 12,
+                  },
+                },
               }}
               xAxis={{
                 label: {
                   autoHide: true,
                   autoRotate: false,
+                  style: {
+                    fill: '#666',
+                    fontSize: 12,
+                  },
+                },
+                line: {
+                  style: {
+                    stroke: '#ddd',
+                  },
+                },
+              }}
+              yAxis={{
+                label: {
+                  formatter: (value) => `₹${(value / 1000).toFixed(0)}K`,
+                  style: {
+                    fill: '#666',
+                    fontSize: 12,
+                  },
+                },
+                grid: {
+                  line: {
+                    style: {
+                      stroke: '#f0f0f0',
+                      lineDash: [4, 4],
+                    },
+                  },
+                },
+              }}
+              tooltip={{
+                formatter: (datum) => {
+                  return {
+                    name: datum.type,
+                    value: `₹${datum.value.toLocaleString()}`,
+                  };
+                },
+              }}
+              interactions={[
+                {
+                  type: 'active-region',
+                  enable: false,
+                },
+              ]}
+              animation={{
+                appear: {
+                  animation: 'wave-in',
+                  duration: 1000,
                 },
               }}
             />
