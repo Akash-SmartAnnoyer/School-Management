@@ -112,6 +112,7 @@ const Teachers = () => {
       setLoadingClasses(true);
       const response = await api.class.getClasses();
       if (response.data.success) {
+        console.log('Loaded classes:', response.data.data);
         setClasses(response.data.data);
       }
     } catch (error) {
@@ -473,12 +474,15 @@ const Teachers = () => {
     },
     {
       title: 'Class',
-      dataIndex: 'classId',
-      key: 'classId',
-      render: (classId) => {
-        if (!classId) return 'Not Assigned';
-        const classInfo = classes.find(c => c.id === classId);
-        return classInfo ? `${classInfo.className} - Section ${classInfo.section}` : '-';
+      dataIndex: 'class_id',
+      key: 'class_id',
+      render: (class_id, record) => {
+        console.log('Rendering class for teacher:', record.name, 'class_id:', class_id);
+        console.log('Available classes:', classes);
+        if (!class_id) return 'Not Assigned';
+        const classInfo = classes.find(c => c.id === class_id);
+        console.log('Found class info:', classInfo);
+        return classInfo ? `${classInfo.className} - Section ${classInfo.section}` : record.class || '-';
       },
     },
     {

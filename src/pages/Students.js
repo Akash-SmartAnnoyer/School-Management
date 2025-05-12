@@ -241,14 +241,14 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
               </Form.Item>
 
               <Form.Item
-                name={['profile', 'class_name']}
+                name={['profile', 'classroom_id']}
                 label="Class"
                 rules={[{ required: true, message: 'Please select class!' }]}
               >
                 <Select loading={loadingClasses}>
                   {classes.map(cls => (
-                    <Option key={cls.id} value={`${cls.class_name} ${cls.section}`}>
-                      Class {cls.class_name} - Section {cls.section}
+                    <Option key={cls.id} value={cls.id}>
+                      {cls.class_name} - Section {cls.section}
                     </Option>
                   ))}
                 </Select>
@@ -415,7 +415,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                   <Form.Item
                     name="mother_occupation"
                     label="Mother's Occupation"
-                    rules={[{ required: true, message: 'Please input mother\'s occupation!' }]}
+                    rules={[{ required: true, message: "Please input mother's occupation!" }]}
                   >
                     <Input />
                   </Form.Item>
@@ -528,8 +528,13 @@ const Students = () => {
       setLoading(true);
       const response = await api.student.getStudents();
       if (response.success) {
-        setStudents(response.data);
-        setTotalStudents(response.data.length);
+        // Transform the data to ensure class information is properly set
+        const transformedStudents = response.data.map(student => ({
+          ...student,
+          class: student.class || 'Not Assigned'
+        }));
+        setStudents(transformedStudents);
+        setTotalStudents(transformedStudents.length);
       } else {
         messageApi.error('Failed to load students');
       }
@@ -563,6 +568,7 @@ const Students = () => {
           blood_group: studentData.profile?.blood_group,
           profile: {
             nationality: studentData.profile?.nationality,
+            classroom_id: studentData.profile?.classroom_id,
             class_name: studentData.profile?.class_name
           },
           student_id: studentData.student_profile?.student_id,
@@ -585,7 +591,7 @@ const Students = () => {
         setEditingStudent({
           ...formValues,
           id: student.user_id,
-          originalData: studentData // Store the original data for comparison
+          originalData: studentData
         });
         setModalVisible(true);
       }
@@ -668,8 +674,8 @@ const Students = () => {
         if (values.profile?.blood_group !== editingStudent.profile?.blood_group) {
           profileChanges.blood_group = values.profile?.blood_group;
         }
-        if (values.profile?.class_name !== editingStudent.profile?.class_name) {
-          profileChanges.class_name = values.profile?.class_name;
+        if (values.profile?.classroom_id !== editingStudent.profile?.classroom_id) {
+          profileChanges.classroom_id = values.profile?.classroom_id;
         }
         if (values.profile?.nationality !== editingStudent.profile?.nationality) {
           profileChanges.nationality = values.profile?.nationality;
@@ -731,7 +737,6 @@ const Students = () => {
 
         // Only send update request if there are changes
         if (Object.keys(updateData).length > 0) {
-          console.log('Update payload:', updateData); // Debug log to see what's being sent
           response = await api.student.updateStudent(editingStudent.id, updateData);
         } else {
           messageApi.info('No changes detected');
@@ -753,7 +758,7 @@ const Students = () => {
           profile: {
             address: values.address,
             blood_group: values.blood_group,
-            class_name: values.profile?.class_name,
+            classroom_id: values.profile?.classroom_id,
             nationality: values.profile?.nationality
           },
           student_profile: {
@@ -781,8 +786,8 @@ const Students = () => {
       if (response.status === 200 || response.status === 201) {
         messageApi.success(editingStudent ? 'Student updated successfully' : 'Student added successfully');
         setModalVisible(false);
-        setLoading(true); // Keep loading state while refreshing the list
-        await loadStudents(); // Wait for the list to refresh
+        setLoading(true);
+        await loadStudents();
       }
     } catch (error) {
       console.error('Error saving student:', error);
@@ -921,7 +926,7 @@ const Students = () => {
       title: 'Class',
       key: 'class',
       render: (_, record) => {
-        const classInfo = record.classId ? `Class ${record.classId}` : 'Not Assigned';
+        const classInfo = record.class || 'Not Assigned';
         return <Tag color="blue">{classInfo}</Tag>;
       },
     },
