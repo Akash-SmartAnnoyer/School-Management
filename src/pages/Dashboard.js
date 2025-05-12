@@ -361,16 +361,28 @@ const Dashboard = () => {
         bodyStyle={{ padding: 0, height: '100%' }}
       >
         <Carousel autoplay className="dashboard-carousel">
-          <div className="carousel-slide">
+          <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")' }}>
             <div className="carousel-content">
-              <h2>Welcome to School Management System</h2>
+              <h2>Welcome to Smart School</h2>
               <p>Empowering education through technology</p>
             </div>
           </div>
-          <div className="carousel-slide">
+          <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2032&q=80")' }}>
             <div className="carousel-content">
               <h2>Excellence in Education</h2>
               <p>Nurturing minds, Building futures</p>
+            </div>
+          </div>
+          <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")' }}>
+            <div className="carousel-content">
+              <h2>Modern Learning Environment</h2>
+              <p>State-of-the-art facilities for better education</p>
+            </div>
+          </div>
+          <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")' }}>
+            <div className="carousel-content">
+              <h2>Holistic Development</h2>
+              <p>Academic excellence meets personal growth</p>
             </div>
           </div>
         </Carousel>
@@ -1167,6 +1179,7 @@ const Dashboard = () => {
             background-size: cover;
             background-position: center;
             position: relative;
+            transition: all 0.3s ease;
           }
 
           .carousel-content {
@@ -1178,21 +1191,67 @@ const Dashboard = () => {
             color: white;
             width: 100%;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
           }
 
           .carousel-content h2 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 16px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             font-weight: 700;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
           }
 
           .carousel-content p {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            opacity: 0.9;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease 0.2s forwards;
+          }
+
+          @keyframes fadeInUp {
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .ant-carousel .slick-dots li button {
+            background: #fff;
+            opacity: 0.4;
+          }
+
+          .ant-carousel .slick-dots li.slick-active button {
+            opacity: 1;
+            background: #7B83EB;
+          }
+
+          .ant-carousel .slick-prev,
+          .ant-carousel .slick-next {
+            z-index: 1;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+          }
+
+          .ant-carousel .slick-prev:hover,
+          .ant-carousel .slick-next:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+          }
+
+          .ant-carousel .slick-prev {
+            left: 20px;
+          }
+
+          .ant-carousel .slick-next {
+            right: 20px;
           }
 
           .attendance-chart {
