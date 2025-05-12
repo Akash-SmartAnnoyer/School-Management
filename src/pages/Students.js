@@ -136,7 +136,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 
   return (
     <Modal
-      className="student-form-modal"
       title={
         <Space>
           <IdcardOutlined className="modal-icon" />
@@ -150,6 +149,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       onCancel={handleCancel}
       confirmLoading={loading}
       width={900}
+      className="student-form-modal"
     >
       <Form
         key={initialValues ? `edit-${initialValues.id}` : 'create'}
@@ -1584,6 +1584,80 @@ const Students = () => {
 
           .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
             background-color: #7B83EB !important;
+          }
+
+          .student-form-modal .modal-icon {
+            font-size: 20px;
+            color: #7B83EB;
+          }
+
+          .student-form-modal .modal-title {
+            margin: 0;
+            color: #7B83EB;
+          }
+
+          .student-form-modal .photo-upload-card {
+            text-align: center;
+            background: #fafafa;
+            border: 1px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+          }
+
+          .student-form-modal .upload-placeholder {
+            cursor: pointer;
+            color: #7B83EB;
+          }
+
+          .student-form-modal .info-card {
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .student-form-modal .card-icon {
+            color: #7B83EB;
+          }
+
+          .student-form-modal .ant-card-head {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+          }
+
+          .student-form-modal .ant-card-head-title {
+            padding: 0;
+          }
+
+          .student-form-modal .ant-form-item-label > label {
+            color: #595959;
+            font-weight: 500;
+          }
+
+          .student-form-modal .ant-input-affix-wrapper:hover,
+          .student-form-modal .ant-input-affix-wrapper:focus,
+          .student-form-modal .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB;
+          }
+
+          .student-form-modal .ant-select:hover .ant-select-selector,
+          .student-form-modal .ant-select-focused .ant-select-selector {
+            border-color: #7B83EB !important;
+          }
+
+          .student-form-modal .ant-picker:hover,
+          .student-form-modal .ant-picker-focused {
+            border-color: #7B83EB;
+          }
+
+          .student-form-modal .ant-btn-primary {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .student-form-modal .ant-btn-primary:hover {
+            background: #8ba1d1;
+            border-color: #8ba1d1;
           }
         `}
       </style>
