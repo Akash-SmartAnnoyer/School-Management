@@ -627,7 +627,9 @@ const Students = () => {
       
       if (response.status === 204) {
         messageApi.success('Student deleted successfully');
-        loadStudents();
+        // Update the students list immediately by filtering out the deleted student
+        setStudents(prevStudents => prevStudents.filter(student => student.user_id !== studentId));
+        setTotalStudents(prevTotal => prevTotal - 1);
       } else if (response.status === 403) {
         if (response.data?.detail === 'You do not have permission to perform this action.') {
           messageApi.error('You do not have permission to delete this student');
@@ -968,9 +970,10 @@ const Students = () => {
       ),
     },
     {
-      title: 'Roll Number',
+      title: 'Roll No',
       dataIndex: 'roll_no',
       key: 'roll_no',
+      width: 100,
       sorter: (a, b) => a.roll_no.localeCompare(b.roll_no),
     },
     {
