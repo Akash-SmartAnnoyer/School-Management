@@ -1056,20 +1056,24 @@ const Students = () => {
       render: (gender) => (
         <Tag 
           style={{ 
-            padding: '4px 8px',
+            padding: '2px 8px',
             borderRadius: '6px',
             fontSize: '13px',
             fontWeight: 500,
-            background: gender === 'M' ? '#e6f7ff' : '#fff0f6',
-            color: gender === 'M' ? '#1890ff' : '#eb2f96',
+            background: '#f5f5f5',
+            color: gender === 'M' ? '#40a9ff' : '#ff85c0',
             border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
           }}
         >
           {gender === 'M' ? (
-            <ManOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+            <ManOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#40a9ff' }} />
           ) : (
-            <WomanOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+            <WomanOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ff85c0' }} />
           )} 
           {gender}
         </Tag>
@@ -1082,22 +1086,26 @@ const Students = () => {
       render: (status) => (
         <Tag 
           style={{ 
-            padding: '4px 8px',
+            padding: '2px 8px',
             borderRadius: '6px',
             fontSize: '13px',
             fontWeight: 500,
-            background: status === 'Active' 
-              ? 'linear-gradient(45deg, #f6ffed, #e6f7ff)' 
-              : 'linear-gradient(45deg, #fff1f0, #fff2e8)',
-            color: status === 'Active' ? '#52c41a' : '#fa8c16',
+            background: '#f5f5f5',
+            color: status === 'Active' 
+              ? '#73d13d' 
+              : '#ffa940',
             border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
           }}
         >
           {status === 'Active' ? (
-            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#73d13d' }} />
           ) : (
-            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ffa940' }} />
           )} 
           {status}
         </Tag>
@@ -1307,13 +1315,15 @@ const Students = () => {
             left: 0,
             right: 0,
             zIndex: 1000,
-            boxShadow: '0 -2px 8px rgba(0,0,0,0.15)',
+            boxShadow: '0 -2px 8px rgba(159, 179, 223, 0.2)',
+            background: 'white',
+            borderTop: '1px solid rgba(159, 179, 223, 0.3)'
           }}
         >
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
-                <span>{selectedRowKeys.length} students selected</span>
+                <span style={{ color: '#9fb3df', fontWeight: 500 }}>{selectedRowKeys.length} students selected</span>
               </Space>
             </Col>
             <Col>
@@ -1321,6 +1331,11 @@ const Students = () => {
                 <Button
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
+                  style={{
+                    background: '#9fb3df',
+                    borderColor: '#9fb3df',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)'
+                  }}
                 >
                   Change Status
                 </Button>
@@ -1330,7 +1345,16 @@ const Students = () => {
                   okText="Yes"
                   cancelText="No"
                 >
-                  <Button danger>Delete Selected</Button>
+                  <Button 
+                    danger
+                    style={{
+                      background: '#fff1f0',
+                      borderColor: '#ffa39e',
+                      color: '#ff4d4f'
+                    }}
+                  >
+                    Delete Selected
+                  </Button>
                 </Popconfirm>
               </Space>
             </Col>
@@ -1418,6 +1442,14 @@ const Students = () => {
           .custom-table .ant-table-tbody > tr:hover > td {
             background: rgba(159, 179, 223, 0.05) !important;
           }
+
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
+            background: rgba(159, 179, 223, 0.1) !important;
+          }
+
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+            background: rgba(159, 179, 223, 0.15) !important;
+          }
           
           .custom-table .ant-table-pagination {
             border-top: 1px solid rgba(159, 179, 223, 0.2);
@@ -1489,6 +1521,21 @@ const Students = () => {
             height: 24px;
             line-height: 24px;
             font-size: 12px;
+          }
+
+          .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .custom-table .ant-checkbox:hover .ant-checkbox-inner,
+          .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #9fb3df !important;
+          }
+
+          .custom-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #9fb3df !important;
+            border-color: #9fb3df !important;
+          }
+
+          .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #9fb3df !important;
           }
         `}
       </style>
