@@ -55,6 +55,7 @@ import Timetable from './pages/Timetable';
 import AttendanceReport from './pages/AttendanceReport';
 import Register from './pages/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import SchoolLogo from './components/SchoolLogo';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -64,11 +65,11 @@ const { Search } = Input;
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { currentUser, loading } = useAuth();
   const { isLoading } = useLoading();
-  
+
   if (loading || isLoading) {
     return <SchoolLoader />;
   }
-  
+
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
@@ -219,7 +220,7 @@ function MainLayout() {
       // Update specific color
       const cssVar = field.replace(/([A-Z])/g, '-$1').toLowerCase();
       document.documentElement.style.setProperty(`--${cssVar}`, value);
-      
+
       // Save to localStorage
       const savedTheme = JSON.parse(localStorage.getItem('themeColors') || '{}');
       savedTheme[cssVar] = value;
@@ -229,9 +230,9 @@ function MainLayout() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider 
-        trigger={null} 
-        collapsible 
+      <Sider
+        trigger={null}
+        collapsible
         collapsed={collapsed}
         breakpoint="lg"
         onBreakpoint={(broken) => {
@@ -250,9 +251,9 @@ function MainLayout() {
           background: '#ffffff',
         }}
       >
-        <div 
-          className="logo" 
-          style={{ 
+        <div
+          className="logo"
+          style={{
             height: 64,
             padding: '16px',
             display: 'flex',
@@ -265,15 +266,15 @@ function MainLayout() {
             transition: 'all 0.3s'
           }}
         >
-          <BookOutlined style={{ 
+          <BookOutlined style={{
             fontSize: collapsed ? '32px' : '24px',
             color: '#ffffff',
             marginRight: collapsed ? '0' : '12px',
             transition: 'all 0.3s'
           }} />
-          <Title 
-            level={4} 
-            style={{ 
+          <Title
+            level={4}
+            style={{
               color: '#ffffff',
               margin: 0,
               whiteSpace: 'nowrap',
@@ -310,11 +311,11 @@ function MainLayout() {
         />
       </Sider>
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
-        <Header style={{ 
-          padding: '0 24px', 
-          background: '#fff', 
-          display: 'flex', 
-          alignItems: 'center', 
+        <Header style={{
+          padding: '0 24px',
+          background: '#fff',
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
           boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
           height: '64px',
@@ -323,9 +324,9 @@ function MainLayout() {
           zIndex: 1000
         }}>
           {/* Left Section */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '12px',
             flex: '1'
           }}>
@@ -333,23 +334,23 @@ function MainLayout() {
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              style={{ 
-                fontSize: '16px', 
-                width: 48, 
+              style={{
+                fontSize: '16px',
+                width: 48,
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
             />
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               gap: '12px',
               minWidth: '200px'
             }}>
-              <img 
-                src="https://via.placeholder.com/40" 
+              {/* <img 
+                src="" 
                 alt="School Logo" 
                 style={{ 
                   width: 40, 
@@ -357,15 +358,17 @@ function MainLayout() {
                   borderRadius: '50%',
                   objectFit: 'cover'
                 }}
-              />
+              /> */}
+              <SchoolLogo />
+
               <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
-                School Name
+                Usha Vidyalayam
               </Title>
             </div>
           </div>
 
           {/* Center Section - Search */}
-          <div style={{ 
+          <div style={{
             flex: '2',
             maxWidth: '300px',
             margin: '0 24px',
@@ -375,17 +378,17 @@ function MainLayout() {
           </div>
 
           {/* Right Section */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             gap: '16px',
             flex: '1',
             justifyContent: 'flex-end'
           }}>
             <Space>
               <Dropdown menu={{ items: quickActions }} placement="bottomRight">
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<PlusOutlined />}
                   style={{
                     display: 'flex',
@@ -411,9 +414,9 @@ function MainLayout() {
                   Quick Actions
                 </Button>
               </Dropdown>
-              
+
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <Space style={{ 
+                <Space style={{
                   cursor: 'pointer',
                   padding: '4px 8px',
                   borderRadius: '4px',
@@ -422,15 +425,15 @@ function MainLayout() {
                     backgroundColor: '#f5f5f5'
                   }
                 }}>
-                  <Avatar 
+                  <Avatar
                     icon={<UserOutlined />}
-                    style={{ 
+                    style={{
                       backgroundColor: '#1890ff',
                       width: 32,
                       height: 32
                     }}
                   />
-                  <span style={{ 
+                  <span style={{
                     color: '#1f1f1f',
                     fontWeight: 500
                   }}>
@@ -441,7 +444,7 @@ function MainLayout() {
             </Space>
           </div>
         </Header>
-        <Content style={{ 
+        <Content style={{
           margin: '16px',
           padding: '16px',
           background: '#fff',
@@ -518,7 +521,7 @@ function MainLayout() {
           </Routes>
         </Content>
       </Layout>
-      <ThemeConfigurator 
+      <ThemeConfigurator
         visible={themeVisible}
         onClose={() => setThemeVisible(false)}
         onThemeChange={handleThemeChange}

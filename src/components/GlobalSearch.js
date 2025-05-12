@@ -67,10 +67,10 @@ const GlobalSearch = () => {
 
   const getAvatarColor = (type) => {
     switch (type) {
-      case 'student': return '#1890ff';
-      case 'teacher': return '#52c41a';
-      case 'parent': return '#722ed1';
-      default: return '#1890ff';
+      case 'student': return '#7B83EB';
+      case 'teacher': return '#7B83EB';
+      case 'parent': return '#7B83EB';
+      default: return '#7B83EB';
     }
   };
 
@@ -213,18 +213,18 @@ const GlobalSearch = () => {
   };
 
   return (
-    <div ref={searchRef} style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+    <div ref={searchRef} style={{ position: 'relative', width: '100%' }}>
       <Search
-        placeholder="Search for students, teachers, or parents..."
+        placeholder="Search students, teachers, parents..."
         allowClear
-        enterButton={<SearchOutlined />}
-        size="small"
         value={searchValue}
         onChange={(e) => handleSearch(e.target.value)}
-        onSearch={handleSearch}
-        style={{ width: '100%' }}
+        style={{
+          width: '100%',
+          borderRadius: '8px',
+        }}
+        className="global-search-input"
       />
-      
       {showResults && (
         <Card
           style={{
@@ -232,45 +232,42 @@ const GlobalSearch = () => {
             top: '100%',
             left: 0,
             right: 0,
-            zIndex: 1000,
             marginTop: 8,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
             maxHeight: '400px',
             overflow: 'auto'
           }}
         >
           {loading ? (
             <div style={{ textAlign: 'center', padding: '20px' }}>
-              <Spin size="large" />
+              <Spin />
             </div>
           ) : searchResults.length > 0 ? (
             <List
               dataSource={searchResults}
-              renderItem={item => (
-                <List.Item 
-                  style={{ cursor: 'pointer' }}
+              renderItem={(item) => (
+                <List.Item
                   onClick={() => handleUserClick(item)}
+                  style={{
+                    cursor: 'pointer',
+                    padding: '8px',
+                    borderRadius: '4px',
+                    transition: 'background-color 0.3s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(123, 131, 235, 0.1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <List.Item.Meta
                     avatar={renderAvatar(item)}
-                    title={
+                    title={item.name}
+                    description={
                       <Space>
-                        <Text strong>{item.name}</Text>
-                        <Tag color={getAvatarColor(item.type)}>
+                        <Tag color="#7B83EB" style={{ margin: 0 }}>
                           {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
                         </Tag>
-                      </Space>
-                    }
-                    description={
-                      <Space direction="vertical" size="small">
-                        <Text type="secondary">{item.email}</Text>
-                        {item.contact && <Text type="secondary">{item.contact}</Text>}
-                        {item.type === 'student' && item.className && (
-                          <Text type="secondary">Class: {item.className}</Text>
-                        )}
-                        {item.type === 'teacher' && item.subject && (
-                          <Text type="secondary">Subject: {item.subject}</Text>
-                        )}
+                        {item.email && <Text type="secondary">{item.email}</Text>}
                       </Space>
                     }
                   />
@@ -278,11 +275,7 @@ const GlobalSearch = () => {
               )}
             />
           ) : (
-            <Empty
-              description="No results found"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              style={{ padding: '20px' }}
-            />
+            <Empty description="No results found" />
           )}
         </Card>
       )}
