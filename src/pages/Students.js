@@ -947,9 +947,26 @@ const Students = () => {
           accept="image/*"
         >
           <Avatar
-            size={40}
+            size={45}
             src={photoURL ? getCloudinaryImage(photoURL) : null}
-            icon={!photoURL && <UserOutlined />}
+            icon={!photoURL && <UserOutlined style={{ fontSize: '20px', color: '#8c8c8c' }} />}
+            style={{ 
+              border: '2px solid #f0f0f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              background: '#fafafa'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+              e.currentTarget.style.border = '2px solid #d9d9d9';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+              e.currentTarget.style.border = '2px solid #f0f0f0';
+            }}
           />
         </Upload>
       ),
@@ -963,7 +980,22 @@ const Students = () => {
         <Button 
           type="link" 
           onClick={() => handleViewDetails(record)}
-          style={{ padding: 0, height: 'auto' }}
+          style={{ 
+            padding: 0, 
+            height: 'auto',
+            fontSize: '15px',
+            fontWeight: 500,
+            color: '#595959',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#8c8c8c';
+            e.currentTarget.style.transform = 'translateX(5px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#595959';
+            e.currentTarget.style.transform = 'translateX(0)';
+          }}
         >
           {text}
         </Button>
@@ -975,13 +1007,44 @@ const Students = () => {
       key: 'roll_no',
       width: 100,
       sorter: (a, b) => a.roll_no.localeCompare(b.roll_no),
+      render: (text) => (
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Class',
       key: 'class',
       render: (_, record) => {
         const classInfo = record.class || 'Not Assigned';
-        return <Tag color="blue">{classInfo}</Tag>;
+        return (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            {classInfo}
+          </Tag>
+        );
       },
     },
     {
@@ -989,8 +1052,24 @@ const Students = () => {
       dataIndex: 'gender',
       key: 'gender',
       render: (gender) => (
-        <Tag color={gender === 'M' ? 'blue' : 'pink'}>
-          {gender === 'M' ? <ManOutlined /> : <WomanOutlined />} {gender}
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: gender === 'M' ? '#e6f7ff' : '#fff0f6',
+            color: gender === 'M' ? '#1890ff' : '#eb2f96',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          {gender === 'M' ? (
+            <ManOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+          ) : (
+            <WomanOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+          )} 
+          {gender}
         </Tag>
       ),
     },
@@ -999,22 +1078,60 @@ const Students = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'success' : 'error'}>
-          {status === 'Active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {status}
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: status === 'Active' 
+              ? 'linear-gradient(45deg, #f6ffed, #e6f7ff)' 
+              : 'linear-gradient(45deg, #fff1f0, #fff2e8)',
+            color: status === 'Active' ? '#52c41a' : '#fa8c16',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          {status === 'Active' ? (
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+          ) : (
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px' }} />
+          )} 
+          {status}
         </Tag>
       ),
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 100,
+      width: 120,
       render: (_, record) => (
-        <Space>
+        <Space size="middle">
           <Tooltip title="Edit">
             <Button
               type="text"
-              icon={<EditOutlined />}
+              icon={<EditOutlined style={{ fontSize: '16px', color: '#8c8c8c' }} />}
               onClick={() => handleEdit(record)}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+                background: '#f5f5f5'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f0f0f0';
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f5f5f5';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             />
           </Tooltip>
           <Popconfirm
@@ -1026,8 +1143,27 @@ const Students = () => {
             <Tooltip title="Delete">
               <Button
                 type="text"
-                danger
-                icon={<DeleteOutlined />}
+                icon={<DeleteOutlined style={{ fontSize: '16px', color: '#ff4d4f' }} />}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  background: '#fff1f0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ffccc7';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff1f0';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </Tooltip>
           </Popconfirm>
@@ -1046,7 +1182,17 @@ const Students = () => {
     <div>
       <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
         <Col>
-          <Title level={2}>Students</Title>
+          <Title level={2} style={{ 
+            color: '#9fb3df',
+            margin: 0,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <TeamOutlined style={{ fontSize: '28px', color: '#9fb3df' }} />
+            Students
+          </Title>
         </Col>
         <Col>
           <Space>
@@ -1054,12 +1200,40 @@ const Students = () => {
               placeholder="Search students..."
               allowClear
               onSearch={setSearchText}
-              style={{ width: 300 }}
+              style={{ 
+                width: 300,
+                borderRadius: '8px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                border: '1px solid rgba(159, 179, 223, 0.3)'
+              }}
+              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
             />
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleAdd}
+              style={{
+                height: '40px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                background: '#9fb3df',
+                border: 'none',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                e.currentTarget.style.background = '#8ba1d1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                e.currentTarget.style.background = '#9fb3df';
+              }}
             >
               Add Student
             </Button>
@@ -1067,7 +1241,15 @@ const Students = () => {
         </Col>
       </Row>
 
-      <Card>
+      <Card
+        style={{
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid rgba(159, 179, 223, 0.3)'
+        }}
+      >
         <Table
           rowSelection={rowSelection}
           columns={columns}
@@ -1085,15 +1267,25 @@ const Students = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total) => `Total ${total} students`,
+            style: {
+              margin: '16px 0',
+              padding: '0 16px'
+            }
           }}
           locale={{
             emptyText: (
               <Empty
                 description="No students found"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ padding: '40px 0' }}
               />
             ),
           }}
+          style={{
+            borderRadius: '12px',
+            overflow: 'hidden'
+          }}
+          className="custom-table"
         />
       </Card>
 
@@ -1173,6 +1365,64 @@ const Students = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <style>
+        {`
+          .custom-table .ant-table {
+            border-radius: 12px;
+            overflow: hidden;
+          }
+          
+          .custom-table .ant-table-thead > tr > th {
+            background: rgba(159, 179, 223, 0.1) !important;
+            color: #9fb3df !important;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
+          }
+          
+          .custom-table .ant-table-tbody > tr > td {
+            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
+          }
+          
+          .custom-table .ant-table-tbody > tr:hover > td {
+            background: rgba(159, 179, 223, 0.05) !important;
+          }
+          
+          .custom-table .ant-table-pagination {
+            border-top: 1px solid rgba(159, 179, 223, 0.2);
+            margin: 0 !important;
+            padding: 16px !important;
+          }
+          
+          .custom-table .ant-pagination-item {
+            border: 1px solid rgba(159, 179, 223, 0.3);
+          }
+          
+          .custom-table .ant-pagination-item-active {
+            background: #9fb3df !important;
+            border-color: #9fb3df !important;
+          }
+          
+          .custom-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+          
+          .custom-table .ant-pagination-item:hover {
+            border-color: #9fb3df !important;
+          }
+          
+          .custom-table .ant-pagination-prev .ant-pagination-item-link,
+          .custom-table .ant-pagination-next .ant-pagination-item-link {
+            border: 1px solid rgba(159, 179, 223, 0.3);
+          }
+          
+          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #9fb3df !important;
+            color: #9fb3df !important;
+          }
+        `}
+      </style>
     </div>
   );
 };
