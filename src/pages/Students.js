@@ -1254,8 +1254,10 @@ const Students = () => {
           overflow: 'hidden',
           background: '#ffffff',
           border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: 0
+          margin: 0,
+          padding: 0
         }}
+        bodyStyle={{ padding: 0, height: '100%' }}
       >
         <Table
           rowSelection={rowSelection}
@@ -1276,7 +1278,7 @@ const Students = () => {
             showTotal: (total) => `Total ${total} students`,
             style: {
               margin: 0,
-              padding: '8px 16px'
+              padding: '2px 12px'
             }
           }}
           locale={{
@@ -1284,14 +1286,15 @@ const Students = () => {
               <Empty
                 description="No students found"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '40px 0' }}
+                style={{ padding: '20px 0' }}
               />
             ),
           }}
           style={{
-            flex: 1
+            flex: 1,
+            height: '100%'
           }}
-          scroll={{ y: 'calc(100vh - 320px)' }}
+          scroll={{ y: 'calc(100vh - 250px)' }}
           className="custom-table"
         />
       </Card>
@@ -1378,15 +1381,18 @@ const Students = () => {
           .custom-table .ant-table {
             border-radius: 8px;
             overflow: hidden;
+            height: 100%;
           }
           
           .custom-table .ant-table-container {
             overflow: hidden !important;
+            height: 100%;
           }
           
           .custom-table .ant-table-body {
             overflow-y: auto !important;
             overflow-x: hidden !important;
+            height: calc(100% - 32px) !important;
           }
           
           .custom-table .ant-table-thead > tr > th {
@@ -1394,17 +1400,19 @@ const Students = () => {
             color: #9fb3df !important;
             font-weight: 600;
             border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 6px 16px !important;
+            padding: 2px 12px !important;
             position: sticky;
             top: 0;
             z-index: 2;
-            height: 40px;
+            height: 28px;
+            font-size: 13px;
           }
           
           .custom-table .ant-table-tbody > tr > td {
             border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 6px 16px !important;
-            height: 40px;
+            padding: 2px 12px !important;
+            height: 28px;
+            font-size: 13px;
           }
           
           .custom-table .ant-table-tbody > tr:hover > td {
@@ -1414,18 +1422,20 @@ const Students = () => {
           .custom-table .ant-table-pagination {
             border-top: 1px solid rgba(159, 179, 223, 0.2);
             margin: 0 !important;
-            padding: 6px 16px !important;
+            padding: 2px 12px !important;
             position: sticky;
             bottom: 0;
             background: white;
             z-index: 2;
+            height: 32px;
           }
           
           .custom-table .ant-pagination-item {
             border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 28px;
-            height: 28px;
-            line-height: 26px;
+            min-width: 22px;
+            height: 22px;
+            line-height: 20px;
+            font-size: 12px;
           }
           
           .custom-table .ant-pagination-item-active {
@@ -1444,15 +1454,41 @@ const Students = () => {
           .custom-table .ant-pagination-prev .ant-pagination-item-link,
           .custom-table .ant-pagination-next .ant-pagination-item-link {
             border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 28px;
-            height: 28px;
-            line-height: 26px;
+            min-width: 22px;
+            height: 22px;
+            line-height: 20px;
+            font-size: 12px;
           }
           
           .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
           .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
             border-color: #9fb3df !important;
             color: #9fb3df !important;
+          }
+
+          .custom-table .ant-table-cell {
+            white-space: nowrap;
+          }
+
+          .custom-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 0 6px;
+            font-size: 12px;
+            height: 20px;
+            line-height: 18px;
+          }
+
+          .custom-table .ant-table-cell .ant-btn {
+            padding: 0 6px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .custom-table .ant-table-cell .ant-avatar {
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            font-size: 12px;
           }
         `}
       </style>
