@@ -1191,8 +1191,19 @@ const Students = () => {
   );
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden', margin: '0' }}>
-      <Row justify="space-between" align="middle" style={{ padding: '8px 0' }}>
+    <div style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
             color: '#9fb3df',
@@ -1259,12 +1270,12 @@ const Students = () => {
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: '8px',
+          borderRadius: '12px',
           boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
           overflow: 'hidden',
           background: '#ffffff',
           border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: 0,
+          margin: '0 16px 16px 16px',
           padding: 0
         }}
         bodyStyle={{ padding: 0, height: '100%' }}
@@ -1413,7 +1424,7 @@ const Students = () => {
       <style>
         {`
           .custom-table .ant-table {
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             height: 100%;
           }
@@ -1421,12 +1432,65 @@ const Students = () => {
           .custom-table .ant-table-container {
             overflow: hidden !important;
             height: 100%;
+            border-radius: 12px;
           }
           
           .custom-table .ant-table-body {
             overflow-y: auto !important;
             overflow-x: hidden !important;
             height: calc(100% - 32px) !important;
+            border-radius: 0 0 12px 12px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
+            background: rgba(159, 179, 223, 0.3);
+            border-radius: 3px;
+          }
+
+          .custom-table .ant-table-body::-webkit-scrollbar-track {
+            background: rgba(159, 179, 223, 0.1);
+            border-radius: 3px;
+          }
+          
+          .custom-table .ant-table-thead > tr > th:first-child {
+            border-top-left-radius: 12px;
+          }
+          
+          .custom-table .ant-table-thead > tr > th:last-child {
+            border-top-right-radius: 12px;
+          }
+
+          .custom-table .ant-table-tbody > tr > td:last-child {
+            position: sticky;
+            right: 0;
+            background: white;
+            z-index: 1;
+            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
+          }
+
+          .custom-table .ant-table-thead > tr > th:last-child {
+            position: sticky;
+            right: 0;
+            background: rgba(159, 179, 223, 0.1) !important;
+            z-index: 2;
+            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
+          }
+
+          .custom-table .ant-table-tbody > tr:hover > td:last-child {
+            background: rgba(159, 179, 223, 0.05) !important;
+          }
+
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
+            background: rgba(159, 179, 223, 0.1) !important;
+          }
+
+          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
+            background: rgba(159, 179, 223, 0.15) !important;
           }
           
           .custom-table .ant-table-thead > tr > th {
