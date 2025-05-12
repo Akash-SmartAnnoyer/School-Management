@@ -94,3 +94,37 @@
 .global-search-input .ant-input-search-icon {
   color: #7B83EB;
 }
+
+/* Custom Menu Styles */
+.custom-menu .ant-menu-item {
+  border-radius: 8px;
+  margin: 4px 8px;
+  transition: all 0.3s ease;
+}
+
+.custom-menu .ant-menu-item:hover {
+  background-color: rgba(123, 131, 235, 0.1) !important;
+  color: #7B83EB !important;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background-color: #7B83EB !important;
+  color: white !important;
+}
+
+.custom-menu .ant-menu-item-selected .anticon {
+  color: white !important;
+}
+
+.custom-menu .ant-menu-item:hover .anticon {
+  color: #7B83EB !important;
+}
+
+.custom-menu .ant-menu-item-selected:hover {
+  background-color: #7B83EB !important;
+  color: white !important;
+}
+
+.custom-menu .ant-menu-item-selected:hover .anticon {
+  color: white !important;
+}

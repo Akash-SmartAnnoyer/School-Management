@@ -308,6 +308,7 @@ function MainLayout() {
             background: '#ffffff',
             color: '#595959'
           }}
+          className="custom-menu"
         />
       </Sider>
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
