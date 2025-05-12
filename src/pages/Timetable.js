@@ -40,6 +40,7 @@ const Timetable = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTimetable, setEditingTimetable] = useState(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [loadingTeachers, setLoadingTeachers] = useState(false);
   const { currentUser } = useAuth();
 
   const days = [
@@ -134,6 +135,7 @@ const Timetable = () => {
   // Add function to get teachers for a subject
   const getTeachersForSubject = async (subjectId) => {
     try {
+      setLoadingTeachers(true);
       // Get all teachers
       const response = await api.teacher.getTeachers();
       const allTeachers = response.data;
@@ -155,22 +157,29 @@ const Timetable = () => {
       console.error('Error fetching teachers for subject:', error);
       message.error('Failed to fetch teachers for this subject');
       return [];
+    } finally {
+      setLoadingTeachers(false);
     }
   };
 
   // Update handleSubjectChange to be async
   const handleSubjectChange = async (subjectId) => {
-    const subjectTeachers = await getTeachersForSubject(subjectId);
-    if (subjectTeachers.length === 1) {
-      // If there's only one teacher for this subject, auto-select them
-      form.setFieldsValue({ teacher: subjectTeachers[0].id });
-    } else if (subjectTeachers.length > 0) {
-      // If there are multiple teachers, show a message
-      message.info('Please select a teacher for this subject');
-    } else {
-      // If no teachers are found for this subject
-      message.warning('No teachers found for this subject');
-      form.setFieldsValue({ teacher: undefined });
+    setLoadingTeachers(true);
+    try {
+      const subjectTeachers = await getTeachersForSubject(subjectId);
+      if (subjectTeachers.length === 1) {
+        // If there's only one teacher for this subject, auto-select them
+        form.setFieldsValue({ teacher: subjectTeachers[0].id });
+      } else if (subjectTeachers.length > 0) {
+        // If there are multiple teachers, show a message
+        message.info('Please select a teacher for this subject');
+      } else {
+        // If no teachers are found for this subject
+        message.warning('No teachers found for this subject');
+        form.setFieldsValue({ teacher: undefined });
+      }
+    } finally {
+      setLoadingTeachers(false);
     }
   };
 
@@ -577,7 +586,11 @@ const Timetable = () => {
             label="Teacher"
             rules={[{ required: true, message: 'Please select teacher' }]}
           >
-            <Select>
+            <Select
+              loading={loadingTeachers}
+              placeholder={loadingTeachers ? "Loading teachers..." : "Select teacher"}
+              disabled={loadingTeachers}
+            >
               {teachers.map(teacher => (
                 <Option key={teacher.id} value={teacher.id}>
                   {teacher.name}
