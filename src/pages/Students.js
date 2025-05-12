@@ -161,7 +161,9 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 background: '#fafafa',
                 border: '1px dashed #d9d9d9',
                 borderRadius: '8px',
-                padding: '20px'
+                padding: '20px',
+                paddingBottom: '0px',
+                marginBottom: '0px'
               }}
             >
               <Upload
@@ -1289,7 +1291,7 @@ const Students = () => {
           style={{
             flex: 1
           }}
-          scroll={{ y: 'calc(100vh - 350px)' }}
+          scroll={{ y: 'calc(100vh - 320px)' }}
           className="custom-table"
         />
       </Card>
