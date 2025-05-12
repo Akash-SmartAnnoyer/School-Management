@@ -109,7 +109,7 @@ function MainLayout() {
         'success-color': '#00B894',
         'warning-color': '#FDCB6E',
         'error-color': '#FF7675',
-        'side-menu-bg': '#001529',
+        'side-menu-bg': '#ffffff',
       };
       Object.entries(defaultTheme).forEach(([key, value]) => {
         document.documentElement.style.setProperty(`--${key}`, value);
@@ -209,7 +209,7 @@ function MainLayout() {
         'success-color': '#00B894',
         'warning-color': '#FDCB6E',
         'error-color': '#FF7675',
-        'side-menu-bg': '#001529',
+        'side-menu-bg': '#ffffff',
       };
       Object.entries(defaultTheme).forEach(([key, value]) => {
         document.documentElement.style.setProperty(`--${key}`, value);
@@ -247,7 +247,7 @@ function MainLayout() {
           top: 0,
           bottom: 0,
           boxShadow: '2px 0 8px 0 rgba(29, 35, 41, 0.05)',
-          background: 'var(--side-menu-bg)',
+          background: '#ffffff',
         }}
       >
         <div 
@@ -258,9 +258,9 @@ function MainLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(255, 255, 255, 0.1)',
+            background: '#9fb3df',
             margin: '16px',
-            borderRadius: '4px',
+            borderRadius: '12px',
             overflow: 'hidden',
             transition: 'all 0.3s'
           }}
@@ -268,7 +268,7 @@ function MainLayout() {
           <Title 
             level={4} 
             style={{ 
-              color: '#fff',
+              color: '#ffffff',
               margin: 0,
               whiteSpace: 'nowrap',
               opacity: collapsed ? 0 : 1,
@@ -282,7 +282,7 @@ function MainLayout() {
           </Title>
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[location.pathname === '/' ? '1' : menuItems.find(item => item.path === location.pathname)?.key]}
           items={menuItems}
@@ -298,8 +298,8 @@ function MainLayout() {
           style={{
             borderRight: 'none',
             padding: '0 4px',
-            background: 'var(--side-menu-bg)',
-            color: '#fff'
+            background: '#ffffff',
+            color: '#595959'
           }}
         />
       </Sider>
@@ -384,7 +384,21 @@ function MainLayout() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '2px'
+                    gap: '2px',
+                    background: '#9fb3df',
+                    borderColor: '#9fb3df',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                    e.currentTarget.style.background = '#8ba1d1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                    e.currentTarget.style.background = '#9fb3df';
                   }}
                   size="small"
                 >

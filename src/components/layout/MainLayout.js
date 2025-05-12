@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, theme, Space, Avatar, Dropdown, message } from 'antd';
+import { Layout, Menu, Button, theme, Space, Avatar, Dropdown, message, Typography } from 'antd';
 import { 
   MenuFoldOutlined, 
   MenuUnfoldOutlined, 
@@ -21,6 +21,7 @@ import ThemeConfigurator from '../ThemeConfigurator';
 import '../styles/SideMenu.css';
 
 const { Header, Sider, Content } = Layout;
+const { Title } = Typography;
 
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -133,7 +134,7 @@ const MainLayout = ({ children }) => {
           <h5>School Management</h5>
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[location.pathname.split('/')[1]]}
           items={menuItems}
@@ -142,43 +143,77 @@ const MainLayout = ({ children }) => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: 'var(--surface-color)' }}>
+        <Header>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-              width: 64,
-              height: 64,
-              color: 'var(--text-primary)',
-            }}
           />
           <div style={{ float: 'right', marginRight: '24px' }}>
-            <Dropdown
-              menu={{
-                items: userMenuItems,
-                onClick: handleUserMenuClick,
-              }}
-              placement="bottomRight"
-            >
-              <Avatar
-                icon={<UserOutlined />}
+            <Space>
+              <Button
+                type="text"
+                icon={<BellOutlined />}
                 style={{
-                  cursor: 'pointer',
-                  background: 'var(--primary-color)',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  color: '#9fb3df',
+                  background: 'transparent',
+                  border: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(159, 179, 223, 0.05)';
+                  e.currentTarget.style.color = '#8ba1d1';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = '#9fb3df';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               />
-            </Dropdown>
+              <Dropdown
+                menu={{
+                  items: userMenuItems,
+                  onClick: handleUserMenuClick,
+                }}
+                placement="bottomRight"
+              >
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{
+                    cursor: 'pointer',
+                    background: '#9fb3df',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  }}
+                />
+              </Dropdown>
+            </Space>
           </div>
         </Header>
         <Content
           style={{
             margin: '24px 16px',
             padding: 24,
-            background: 'var(--surface-color)',
-            borderRadius: '8px',
+            background: '#ffffff',
+            borderRadius: '16px',
             minHeight: 280,
+            boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+            border: '1px solid rgba(159, 179, 223, 0.2)',
           }}
         >
           {children}

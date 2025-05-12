@@ -112,7 +112,7 @@ const Attendance = () => {
       title: 'Roll Number',
       dataIndex: 'rollNumber',
       key: 'rollNumber',
-      width: 100,
+      width: 130,
       fixed: 'left',
     },
     {
