@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress, List, Typography, Space } from 'antd';
-import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined, DownloadOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress, List, Typography, Space, Avatar, Timeline } from 'antd';
+import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined, DownloadOutlined, PrinterOutlined, CarOutlined } from '@ant-design/icons';
 import { subscribeToCollection, getStudents, getTeachers, getClasses, getAttendance } from '../firebase/services';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -20,6 +20,12 @@ const Dashboard = () => {
   const [attendance, setAttendance] = useState([]);
   const [finance, setFinance] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [upcomingExams, setUpcomingExams] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [feeCollection, setFeeCollection] = useState([]);
+  const [libraryStats, setLibraryStats] = useState({});
+  const [transportStats, setTransportStats] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +53,57 @@ const Dashboard = () => {
     // Initialize and load calendar events from local storage
     initializeSampleData();
     setCalendarEvents(getCalendarEvents());
+
+    // Sample notifications
+    setNotifications([
+      { id: 1, type: 'exam', message: 'Final exams schedule released', date: '2024-03-20', priority: 'high' },
+      { id: 2, type: 'fee', message: 'Last date for fee submission: March 25', date: '2024-03-18', priority: 'medium' },
+      { id: 3, type: 'event', message: 'Annual sports day on March 30', date: '2024-03-15', priority: 'low' },
+    ]);
+
+    // Sample upcoming exams
+    setUpcomingExams([
+      { id: 1, subject: 'Mathematics', date: '2024-03-25', time: '10:00 AM', duration: '3 hours' },
+      { id: 2, subject: 'Science', date: '2024-03-27', time: '10:00 AM', duration: '3 hours' },
+      { id: 3, subject: 'English', date: '2024-03-29', time: '10:00 AM', duration: '3 hours' },
+    ]);
+
+    // Sample recent activities
+    setRecentActivities([
+      { id: 1, type: 'attendance', message: 'Attendance marked for Class 10A', time: '2 hours ago' },
+      { id: 2, type: 'fee', message: 'Fee received from 15 students', time: '3 hours ago' },
+      { id: 3, type: 'exam', message: 'Exam results published for Class 9', time: '5 hours ago' },
+    ]);
+
+    // Sample fee collection data
+    setFeeCollection([
+      { month: 'Jan', type: 'Collected', value: 85000 },
+      { month: 'Jan', type: 'Pending', value: 15000 },
+      { month: 'Feb', type: 'Collected', value: 90000 },
+      { month: 'Feb', type: 'Pending', value: 10000 },
+      { month: 'Mar', type: 'Collected', value: 75000 },
+      { month: 'Mar', type: 'Pending', value: 25000 },
+    ]);
+
+    // Sample library statistics
+    setLibraryStats({
+      totalBooks: 5000,
+      issuedBooks: 350,
+      popularCategories: ['Science', 'Mathematics', 'Literature'],
+      recentAdditions: 50
+    });
+
+    // Sample transport statistics
+    setTransportStats({
+      totalBuses: 12,
+      activeRoutes: 8,
+      studentsUsingTransport: 450,
+      routes: [
+        { route: 'Route 1', students: 45, distance: '15 km' },
+        { route: 'Route 2', students: 38, distance: '12 km' },
+        { route: 'Route 3', students: 42, distance: '18 km' },
+      ]
+    });
 
     return () => {
       unsubscribeStudents();
@@ -470,6 +527,233 @@ const Dashboard = () => {
           </Col>
         </Row>
       </Card>
+
+      <Row gutter={[16, 16]} style={{ padding: '16px' }}>
+        <Col xs={24} sm={12} md={6}>
+          <Card
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)',
+              background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+              color: 'white'
+            }}
+          >
+            <Statistic
+              title={<span style={{ color: 'white' }}>Library Books</span>}
+              value={libraryStats.totalBooks}
+              prefix={<BookOutlined style={{ color: 'white' }} />}
+              valueStyle={{ color: 'white' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+        <Col xs={24} md={12}>
+          <Card
+            title="Recent Notifications"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <List
+              dataSource={notifications}
+              renderItem={item => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar style={{ 
+                        backgroundColor: item.priority === 'high' ? '#ff4d4f' : 
+                                       item.priority === 'medium' ? '#faad14' : '#52c41a' 
+                      }}>
+                        {item.type.charAt(0).toUpperCase()}
+                      </Avatar>
+                    }
+                    title={item.message}
+                    description={moment(item.date).format('MMM DD, YYYY')}
+                  />
+                </List.Item>
+              )}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card
+            title="Upcoming Exams"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <List
+              dataSource={upcomingExams}
+              renderItem={item => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={<CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />}
+                    title={item.subject}
+                    description={`${moment(item.date).format('MMM DD, YYYY')} at ${item.time} (${item.duration})`}
+                  />
+                </List.Item>
+              )}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+        <Col xs={24} md={12}>
+          <Card
+            title="Library Statistics"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Statistic
+                  title="Total Books"
+                  value={libraryStats.totalBooks}
+                  prefix={<BookOutlined />}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Issued Books"
+                  value={libraryStats.issuedBooks}
+                  prefix={<BookOutlined />}
+                />
+              </Col>
+              <Col span={24}>
+                <Title level={5}>Popular Categories</Title>
+                <Space wrap>
+                  {libraryStats.popularCategories?.map(category => (
+                    <Tag color="#7B83EB" key={category}>{category}</Tag>
+                  ))}
+                </Space>
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card
+            title="Transport Statistics"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Statistic
+                  title="Total Buses"
+                  value={transportStats.totalBuses}
+                  prefix={<CarOutlined />}
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title="Active Routes"
+                  value={transportStats.activeRoutes}
+                  prefix={<CarOutlined />}
+                />
+              </Col>
+              <Col span={24}>
+                <Title level={5}>Route Details</Title>
+                <List
+                  size="small"
+                  dataSource={transportStats.routes}
+                  renderItem={item => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={item.route}
+                        description={`${item.students} students • ${item.distance}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+        <Col span={24}>
+          <Card
+            title="Fee Collection Overview"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <Column
+              data={feeCollection}
+              xField="month"
+              yField="value"
+              seriesField="type"
+              isGroup={true}
+              columnStyle={{
+                radius: [4, 4, 0, 0],
+              }}
+              color={['#7B83EB', '#ff4d4f']}
+              label={{
+                position: 'middle',
+                style: {
+                  fill: '#FFFFFF',
+                  opacity: 0.6,
+                },
+              }}
+              legend={{
+                position: 'top',
+              }}
+              xAxis={{
+                label: {
+                  autoHide: true,
+                  autoRotate: false,
+                },
+              }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+        <Col span={24}>
+          <Card
+            title="Recent Activities"
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+          >
+            <Timeline>
+              {recentActivities.map(activity => (
+                <Timeline.Item 
+                  key={activity.id}
+                  color={
+                    activity.type === 'attendance' ? '#7B83EB' :
+                    activity.type === 'fee' ? '#52c41a' :
+                    activity.type === 'exam' ? '#faad14' : '#1890ff'
+                  }
+                >
+                  <p>{activity.message}</p>
+                  <small>{activity.time}</small>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          </Card>
+        </Col>
+      </Row>
 
       <style>
         {`
