@@ -764,9 +764,9 @@ const Students = () => {
           password: values.password,
           confirm_password: values.confirm_password,
           classroom_id: values.profile?.classroom_id,
-          address: values.address,
-          blood_group: values.blood_group,
           profile: {
+            address: values.address,
+            blood_group: values.blood_group,
             class_name: values.profile?.class_name,
             nationality: values.profile?.nationality
           },
