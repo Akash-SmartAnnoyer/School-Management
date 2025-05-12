@@ -1289,7 +1289,7 @@ const Students = () => {
           style={{
             flex: 1
           }}
-          scroll={{ y: 'calc(100vh - 180px)' }}
+          scroll={{ y: 'calc(100vh - 350px)' }}
           className="custom-table"
         />
       </Card>
