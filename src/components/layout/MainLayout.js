@@ -18,6 +18,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getThemeColors } from '../../services/themeService';
 import ThemeConfigurator from '../ThemeConfigurator';
+import '../styles/SideMenu.css';
 
 const { Header, Sider, Content } = Layout;
 
@@ -52,49 +53,34 @@ const MainLayout = ({ children }) => {
 
   const menuItems = [
     {
-      key: '/dashboard',
+      key: 'dashboard',
       icon: <DashboardOutlined />,
       label: 'Dashboard',
     },
     {
-      key: '/students',
+      key: 'students',
       icon: <TeamOutlined />,
       label: 'Students',
     },
     {
-      key: '/teachers',
-      icon: <TeamOutlined />,
+      key: 'teachers',
+      icon: <UserOutlined />,
       label: 'Teachers',
     },
     {
-      key: '/classes',
+      key: 'academics',
       icon: <BookOutlined />,
-      label: 'Classes',
+      label: 'Academics',
     },
     {
-      key: '/schedule',
+      key: 'timetable',
       icon: <CalendarOutlined />,
-      label: 'Schedule',
+      label: 'Timetable',
     },
     {
-      key: '/attendance',
-      icon: <FileTextOutlined />,
-      label: 'Attendance',
-    },
-    {
-      key: '/fees',
-      icon: <DollarOutlined />,
-      label: 'Fees',
-    },
-    {
-      key: '/notifications',
-      icon: <BellOutlined />,
-      label: 'Notifications',
-    },
-    {
-      key: '/help',
-      icon: <QuestionCircleOutlined />,
-      label: 'Help & Support',
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: 'Settings',
     },
   ];
 
@@ -110,21 +96,27 @@ const MainLayout = ({ children }) => {
       label: 'Settings',
     },
     {
-      key: 'theme',
-      icon: <SettingOutlined />,
-      label: 'Theme Settings',
-      onClick: () => setThemeDrawerVisible(true),
+      type: 'divider',
     },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Logout',
-      onClick: () => {
-        // Handle logout
-        navigate('/login');
-      },
     },
   ];
+
+  const handleMenuClick = ({ key }) => {
+    navigate(`/${key}`);
+  };
+
+  const handleUserMenuClick = ({ key }) => {
+    if (key === 'logout') {
+      // Handle logout
+      navigate('/login');
+    } else {
+      navigate(`/${key}`);
+    }
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -132,55 +124,25 @@ const MainLayout = ({ children }) => {
         trigger={null} 
         collapsible 
         collapsed={collapsed}
-        style={{
-          background: 'var(--side-menu-bg)',
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-        }}
+        className="side-menu"
       >
-        <div style={{ 
-          height: 32, 
-          margin: 16, 
-          background: 'rgba(255, 255, 255, 0.2)',
-          borderRadius: borderRadiusLG,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: collapsed ? '14px' : '18px',
-          fontWeight: 'bold',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
-        }}>
-          {collapsed ? 'UV' : 'Usha Vidyalayam'}
+        <div className="side-menu-logo">
+          <div className="school-icon">
+            <BookOutlined style={{ fontSize: '24px' }} />
+          </div>
+          <h5>School Management</h5>
         </div>
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={[location.pathname.split('/')[1]]}
           items={menuItems}
-          onClick={({ key }) => navigate(key)}
+          onClick={handleMenuClick}
+          className="side-menu"
         />
       </Sider>
-      <Layout style={{ marginLeft: collapsed ? 80 : 200 }}>
-        <Header
-          style={{
-            padding: 0,
-            background: colorBgContainer,
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 16px',
-          }}
-        >
+      <Layout>
+        <Header style={{ padding: 0, background: 'var(--surface-color)' }}>
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -189,29 +151,33 @@ const MainLayout = ({ children }) => {
               fontSize: '16px',
               width: 64,
               height: 64,
+              color: 'var(--text-primary)',
             }}
           />
-          <Space>
-            <Button
-              type="text"
-              icon={<SettingOutlined />}
-              onClick={() => setThemeDrawerVisible(true)}
-              style={{ fontSize: '16px' }}
-            />
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Space style={{ cursor: 'pointer' }}>
-                <Avatar icon={<UserOutlined />} />
-                <span>Admin</span>
-              </Space>
+          <div style={{ float: 'right', marginRight: '24px' }}>
+            <Dropdown
+              menu={{
+                items: userMenuItems,
+                onClick: handleUserMenuClick,
+              }}
+              placement="bottomRight"
+            >
+              <Avatar
+                icon={<UserOutlined />}
+                style={{
+                  cursor: 'pointer',
+                  background: 'var(--primary-color)',
+                }}
+              />
             </Dropdown>
-          </Space>
+          </div>
         </Header>
         <Content
           style={{
             margin: '24px 16px',
             padding: 24,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
+            background: 'var(--surface-color)',
+            borderRadius: '8px',
             minHeight: 280,
           }}
         >

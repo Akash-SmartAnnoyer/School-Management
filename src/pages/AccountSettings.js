@@ -24,7 +24,8 @@ import {
   LockOutlined,
   BellOutlined,
   SafetyCertificateOutlined,
-  GlobalOutlined
+  GlobalOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -109,19 +110,65 @@ const AccountSettings = () => {
   };
 
   return (
-    <div>
-      <Title level={2}>Account Settings</Title>
-      <Card>
+    <div style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
+        <Col>
+          <Title level={3} style={{ 
+            color: '#9fb3df',
+            margin: 0,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <SettingOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            Account Settings
+          </Title>
+        </Col>
+      </Row>
+
+      <Card
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid rgba(159, 179, 223, 0.3)',
+          margin: '0 16px 16px 16px',
+          padding: 0
+        }}
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
+          style={{ padding: '24px' }}
         >
           <Row gutter={24}>
             <Col span={12}>
               <Card 
                 title="Profile Picture"
-                style={{ marginBottom: 24 }}
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)',
+                  marginBottom: 24
+                }}
               >
                 <Form.Item
                   name="photoURL"
@@ -139,6 +186,29 @@ const AccountSettings = () => {
                     <Button 
                       icon={<UploadOutlined />} 
                       loading={imageLoading}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                        background: '#9fb3df',
+                        border: 'none',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                        e.currentTarget.style.background = '#8ba1d1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                        e.currentTarget.style.background = '#9fb3df';
+                      }}
                     >
                       Upload Picture
                     </Button>
@@ -146,13 +216,20 @@ const AccountSettings = () => {
                 </Form.Item>
               </Card>
             </Col>
+            
             <Col span={12}>
               <Form.Item
                 name="name"
                 label="Full Name"
                 rules={[{ required: true, message: 'Please enter your name' }]}
               >
-                <Input prefix={<UserOutlined />} />
+                <Input 
+                  prefix={<UserOutlined />}
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                />
               </Form.Item>
 
               <Form.Item
@@ -163,7 +240,13 @@ const AccountSettings = () => {
                   { type: 'email', message: 'Please enter a valid email' }
                 ]}
               >
-                <Input prefix={<MailOutlined />} />
+                <Input 
+                  prefix={<MailOutlined />}
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                />
               </Form.Item>
 
               <Form.Item
@@ -171,7 +254,13 @@ const AccountSettings = () => {
                 label="Phone"
                 rules={[{ required: true, message: 'Please enter your phone number' }]}
               >
-                <Input prefix={<PhoneOutlined />} />
+                <Input 
+                  prefix={<PhoneOutlined />}
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -185,42 +274,62 @@ const AccountSettings = () => {
                 layout="vertical"
                 onFinish={handlePasswordChange}
               >
-                <Form.Item
-                  name="currentPassword"
-                  label="Current Password"
-                  rules={[{ required: true, message: 'Please enter current password' }]}
-                >
-                  <Input.Password prefix={<LockOutlined />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="newPassword"
-                  label="New Password"
-                  rules={[
-                    { required: true, message: 'Please enter new password' },
-                    { min: 8, message: 'Password must be at least 8 characters' }
-                  ]}
-                >
-                  <Input.Password prefix={<LockOutlined />} />
-                </Form.Item>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="currentPassword"
+                      label="Current Password"
+                      rules={[{ required: true, message: 'Please enter your current password' }]}
+                    >
+                      <Input.Password 
+                        prefix={<LockOutlined />}
+                        style={{
+                          borderRadius: '6px',
+                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="newPassword"
+                      label="New Password"
+                      rules={[{ required: true, message: 'Please enter your new password' }]}
+                    >
+                      <Input.Password 
+                        prefix={<LockOutlined />}
+                        style={{
+                          borderRadius: '6px',
+                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
                 <Form.Item
                   name="confirmPassword"
                   label="Confirm New Password"
                   dependencies={['newPassword']}
                   rules={[
-                    { required: true, message: 'Please confirm new password' },
+                    { required: true, message: 'Please confirm your new password' },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('newPassword') === value) {
                           return Promise.resolve();
                         }
-                        return Promise.reject(new Error('Passwords do not match'));
+                        return Promise.reject(new Error('The two passwords do not match'));
                       },
                     }),
                   ]}
                 >
-                  <Input.Password prefix={<LockOutlined />} />
+                  <Input.Password 
+                    prefix={<LockOutlined />}
+                    style={{
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                    }}
+                  />
                 </Form.Item>
 
                 <Form.Item>
@@ -229,6 +338,29 @@ const AccountSettings = () => {
                     htmlType="submit" 
                     icon={<SafetyCertificateOutlined />}
                     loading={loading}
+                    style={{
+                      height: '32px',
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                      background: '#9fb3df',
+                      border: 'none',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.3s ease',
+                      padding: '0 12px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                      e.currentTarget.style.background = '#8ba1d1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                      e.currentTarget.style.background = '#9fb3df';
+                    }}
                   >
                     Change Password
                   </Button>
@@ -246,7 +378,11 @@ const AccountSettings = () => {
                 label="Email Notifications"
                 valuePropName="checked"
               >
-                <Switch />
+                <Switch 
+                  style={{
+                    backgroundColor: '#9fb3df'
+                  }}
+                />
               </Form.Item>
 
               <Form.Item
@@ -254,14 +390,24 @@ const AccountSettings = () => {
                 label="SMS Notifications"
                 valuePropName="checked"
               >
-                <Switch />
+                <Switch 
+                  style={{
+                    backgroundColor: '#9fb3df'
+                  }}
+                />
               </Form.Item>
 
               <Form.Item
                 name="notificationPreferences"
                 label="Notification Preferences"
               >
-                <Select mode="multiple">
+                <Select 
+                  mode="multiple"
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                >
                   <Option value="attendance">Attendance Updates</Option>
                   <Option value="exams">Exam Results</Option>
                   <Option value="events">School Events</Option>
@@ -280,7 +426,12 @@ const AccountSettings = () => {
                 name="language"
                 label="Preferred Language"
               >
-                <Select>
+                <Select
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                >
                   <Option value="en">English</Option>
                   <Option value="hi">Hindi</Option>
                   <Option value="ta">Tamil</Option>
@@ -293,7 +444,12 @@ const AccountSettings = () => {
                 name="timezone"
                 label="Timezone"
               >
-                <Select>
+                <Select
+                  style={{
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                  }}
+                >
                   <Option value="IST">India Standard Time (IST)</Option>
                   <Option value="UTC">UTC</Option>
                 </Select>
@@ -308,6 +464,29 @@ const AccountSettings = () => {
                 htmlType="submit" 
                 icon={<SaveOutlined />}
                 loading={loading}
+                style={{
+                  height: '32px',
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  background: '#9fb3df',
+                  border: 'none',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.3s ease',
+                  padding: '0 12px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#9fb3df';
+                }}
               >
                 Save Changes
               </Button>
@@ -315,6 +494,60 @@ const AccountSettings = () => {
           </Form.Item>
         </Form>
       </Card>
+
+      <style>
+        {`
+          .ant-card-head {
+            border-bottom: 1px solid rgba(159, 179, 223, 0.2);
+            padding: 16px 24px;
+          }
+
+          .ant-card-head-title {
+            color: #9fb3df;
+            font-weight: 600;
+          }
+
+          .ant-form-item-label > label {
+            color: #666;
+            font-weight: 500;
+          }
+
+          .ant-input-affix-wrapper {
+            border-color: rgba(159, 179, 223, 0.3);
+          }
+
+          .ant-input-affix-wrapper:hover,
+          .ant-input-affix-wrapper:focus {
+            border-color: #9fb3df;
+            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2);
+          }
+
+          .ant-select-selector {
+            border-color: rgba(159, 179, 223, 0.3) !important;
+            border-radius: 6px !important;
+          }
+
+          .ant-select-selector:hover,
+          .ant-select-focused .ant-select-selector {
+            border-color: #9fb3df !important;
+            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
+          }
+
+          .ant-switch-checked {
+            background-color: #9fb3df !important;
+          }
+
+          .ant-divider {
+            border-color: rgba(159, 179, 223, 0.2);
+            margin: 24px 0;
+          }
+
+          .ant-divider-inner-text {
+            color: #9fb3df;
+            font-weight: 500;
+          }
+        `}
+      </style>
     </div>
   );
 };

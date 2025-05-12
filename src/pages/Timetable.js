@@ -30,6 +30,7 @@ import {
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import moment from 'moment';
+import './Timetable.css';
 
 // Add CSS styles
 const styles = {
@@ -426,428 +427,182 @@ const Timetable = () => {
   ];
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#9fb3df',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <CalendarOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
-            Timetable Management
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Search
-              placeholder="Search timetable..."
-              allowClear
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAddTimeSlot}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
-              }}
-            >
-              Add Time Slot
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+    <div className="timetable-container">
+      <div className="timetable-header">
+        <Title level={4}>Timetable Management</Title>
+        <Space>
+          <Select
+            placeholder="Select Class"
+            value={selectedClass}
+            onChange={setSelectedClass}
+            style={{ width: 200 }}
+          >
+            {classes.map(cls => (
+              <Option key={cls.id} value={cls.id}>{cls.name}</Option>
+            ))}
+          </Select>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingTimetable(null);
+              setModalVisible(true);
+            }}
+            disabled={!selectedClass}
+          >
+            Add Time Slot
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
-        <Tabs defaultActiveKey="1" onChange={setActiveTab}>
-          <TabPane tab="Set Timetable" key="1">
-            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-              <Col span={24}>
-                <Select
-                  style={{ 
-                    width: '100%',
-                    borderRadius: '6px',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)'
-                  }}
-                  placeholder="Select Class"
-                  onChange={setSelectedClass}
-                  value={selectedClass}
-                >
-                  {classes.map(cls => (
-                    <Option key={cls.id} value={cls.id}>
-                      {cls.class_name} - Section {cls.section}
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-              {selectedClass && (
-                  <Col span={24}>
-                    <Table
-                      columns={columns}
-                      dataSource={timetables}
-                      rowKey="id"
-                      loading={loadingTimetable}
-                      locale={{
-                        emptyText: loadingTimetable ? 'Loading...' : 'No timetable set for this class'
-                      }}
-                    rowClassName={(record) => record.class_type === 'theory' ? 'theory-row' : 'practical-row'}
-                    onRow={(record) => ({
-                      onClick: () => handleEdit(record),
-                      style: { cursor: 'pointer' }
-                    })}
-                    className="custom-table"
-                    scroll={{ y: 'calc(100vh - 250px)' }}
-                    />
-                  </Col>
-              )}
-            </Row>
-          </TabPane>
-
-          <TabPane tab="View Timetable" key="2">
-            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-              <Col span={24}>
-                <Select
-                  style={{ 
-                    width: '100%',
-                    borderRadius: '6px',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)'
-                  }}
-                  placeholder="Select Class"
-                  onChange={setSelectedClass}
-                  value={selectedClass}
-                >
-                  {classes.map(cls => (
-                    <Option key={cls.id} value={cls.id}>
-                      {cls.class_name} - Section {cls.section}
-                    </Option>
-                  ))}
-                </Select>
-              </Col>
-              {selectedClass && (
-                <Col span={24}>
-                  {loadingTimetable ? (
-                    <div style={{ textAlign: 'center', padding: '20px' }}>
-                      <Spin size="large" />
-                      <div style={{ marginTop: '10px' }}>Loading timetable...</div>
-                    </div>
-                  ) : timetables.length === 0 ? (
-                    <div style={{ 
-                      textAlign: 'center', 
-                      padding: '40px',
-                      backgroundColor: '#fafafa',
-                      borderRadius: '4px',
-                      border: '1px dashed #d9d9d9'
-                    }}>
-                      <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description="No timetable set for this class"
-                      />
-                    </div>
-                  ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ 
-                              padding: '12px',
-                              backgroundColor: 'rgba(159, 179, 223, 0.1)',
-                              border: '1px solid rgba(159, 179, 223, 0.2)',
-                              minWidth: '120px',
-                              color: '#9fb3df',
-                              fontWeight: 600
-                            }}>Day</th>
-                            {getUniqueTimeSlots().map(timeSlot => (
-                              <th key={timeSlot} style={{ 
-                                padding: '12px',
-                                backgroundColor: 'rgba(159, 179, 223, 0.1)',
-                                border: '1px solid rgba(159, 179, 223, 0.2)',
-                                minWidth: '180px',
-                                color: '#9fb3df',
-                                fontWeight: 600
-                              }}>
-                                {formatTime(timeSlot)}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {days.map(day => (
-                            <tr key={day.value}>
-                              <td style={{ 
-                                padding: '12px',
-                                border: '1px solid rgba(159, 179, 223, 0.2)',
-                                backgroundColor: 'rgba(159, 179, 223, 0.05)',
-                                textAlign: 'center',
-                                fontWeight: 'bold',
-                                color: '#9fb3df'
-                              }}>
-                                {day.label}
-                              </td>
-                              {getUniqueTimeSlots().map(timeSlot => (
-                                <td key={`${day.value}-${timeSlot}`} style={{ 
-                                  padding: '8px',
-                                  border: '1px solid rgba(159, 179, 223, 0.2)',
-                                  height: '100px'
-                                }}>
-                                  {renderTimetableCell(day.value, timeSlot)}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </Col>
-              )}
-            </Row>
+      <Card className="timetable-card">
+        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          <TabPane tab="View Timetable" key="1">
+            {loadingTimetable ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Spin size="large" />
+              </div>
+            ) : !selectedClass ? (
+              <Empty description="Please select a class to view timetable" />
+            ) : (
+              <Table
+                className="timetable-table"
+                dataSource={getUniqueTimeSlots().map(time => ({
+                  key: time,
+                  time: formatTime(time),
+                  ...days.reduce((acc, day) => ({
+                    ...acc,
+                    [day.value]: getClassDetails(day.value, time)
+                  }), {})
+                }))}
+                columns={[
+                  {
+                    title: 'Time',
+                    dataIndex: 'time',
+                    key: 'time',
+                    width: 100,
+                    fixed: 'left'
+                  },
+                  ...days.map(day => ({
+                    title: day.label,
+                    dataIndex: day.value,
+                    key: day.value,
+                    render: (text, record) => renderTimetableCell(day.value, record.time)
+                  }))
+                ]}
+                pagination={false}
+                scroll={{ x: 'max-content' }}
+              />
+            )}
           </TabPane>
         </Tabs>
       </Card>
 
-      <style>
-        {`
-          .custom-table .ant-table {
-            border-radius: 12px;
-            overflow: hidden;
-            height: 100%;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            height: 100%;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: calc(100% - 32px) !important;
-            border-radius: 0 0 12px 12px;
-          }
+      <Modal
+        className="timetable-modal"
+        title={
+          <Space>
+            <CalendarOutlined />
+            <span>{editingTimetable ? 'Edit Time Slot' : 'Add Time Slot'}</span>
+          </Space>
+        }
+        open={modalVisible}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+        }}
+        footer={null}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          className="timetable-form"
+          onFinish={handleSubmit}
+          initialValues={editingTimetable}
+        >
+          <Form.Item
+            name="day"
+            label="Day"
+            rules={[{ required: true, message: 'Please select a day' }]}
+          >
+            <Select placeholder="Select Day">
+              {days.map(day => (
+                <Option key={day.value} value={day.value}>{day.label}</Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
+          <Form.Item
+            name="start_time"
+            label="Start Time"
+            rules={[{ required: true, message: 'Please select start time' }]}
+          >
+            <TimePicker format="HH:mm" style={{ width: '100%' }} />
+          </Form.Item>
 
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
+          <Form.Item
+            name="end_time"
+            label="End Time"
+            rules={[{ required: true, message: 'Please select end time' }]}
+          >
+            <TimePicker format="HH:mm" style={{ width: '100%' }} />
+          </Form.Item>
 
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
+          <Form.Item
+            name="subject"
+            label="Subject"
+            rules={[{ required: true, message: 'Please select a subject' }]}
+          >
+            <Select
+              placeholder="Select Subject"
+              onChange={handleSubjectChange}
+              loading={loadingTeachers}
+            >
+              {subjects.map(subject => (
+                <Option key={subject.id} value={subject.id}>{subject.name}</Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-          .custom-table .ant-table-tbody > tr > td:last-child {
-            position: sticky;
-            right: 0;
-            background: white;
-            z-index: 1;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
+          <Form.Item
+            name="teacher"
+            label="Teacher"
+            rules={[{ required: true, message: 'Please select a teacher' }]}
+          >
+            <Select placeholder="Select Teacher" loading={loadingTeachers}>
+              {teachers.map(teacher => (
+                <Option key={teacher.id} value={teacher.id}>{teacher.name}</Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-          .custom-table .ant-table-thead > tr > th:last-child {
-            position: sticky;
-            right: 0;
-            background: rgba(159, 179, 223, 0.1) !important;
-            z-index: 2;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-              }
+          <Form.Item
+            name="type"
+            label="Class Type"
+            rules={[{ required: true, message: 'Please select class type' }]}
+          >
+            <Select placeholder="Select Class Type">
+              {classTypes.map(type => (
+                <Option key={type.value} value={type.value}>{type.label}</Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-          .custom-table .ant-table-tbody > tr:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.05) !important;
-            }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 2px 12px !important;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 2px 12px !important;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-pagination {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
-            margin: 0 !important;
-            padding: 2px 12px !important;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            z-index: 2;
-            height: 32px;
-          }
-          
-          .custom-table .ant-pagination-item {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-item-active {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
-          }
-          
-          .custom-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-          
-          .custom-table .ant-pagination-item:hover {
-            border-color: #9fb3df !important;
-          }
-          
-          .custom-table .ant-pagination-prev .ant-pagination-item-link,
-          .custom-table .ant-pagination-next .ant-pagination-item-link {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #9fb3df !important;
-            color: #9fb3df !important;
-          }
-
-          .custom-table .ant-table-cell {
-            white-space: nowrap;
-          }
-
-          .custom-table .ant-table-cell .ant-tag {
-            margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
-          }
-
-          .custom-table .ant-table-cell .ant-btn {
-            padding: 0 6px;
-            height: 22px;
-            font-size: 12px;
-          }
-
-          .theory-row {
-            background-color: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .theory-row:hover {
-            background-color: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .practical-row {
-            background-color: rgba(159, 179, 223, 0.02) !important;
-          }
-
-          .practical-row:hover {
-            background-color: rgba(159, 179, 223, 0.07) !important;
-          }
-        `}
-      </style>
+          <Form.Item>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => {
+                setModalVisible(false);
+                form.resetFields();
+              }}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {editingTimetable ? 'Update' : 'Add'}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

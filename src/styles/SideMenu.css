@@ -1,0 +1,196 @@
+/* Side Menu Styling */
+.ant-layout-sider {
+  position: relative;
+  background: var(--side-menu-bg) !important;
+  border-right: 1px solid var(--border-color) !important;
+  box-shadow: 2px 0 8px var(--login-shadow) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Logo Section */
+.side-menu-logo {
+  height: 64px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1) !important;
+  margin: 16px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 2px 6px var(--login-shadow) !important;
+}
+
+.side-menu-logo h5 {
+  color: var(--text-light) !important;
+  margin: 0;
+  font-weight: 500;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.side-menu-logo .school-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+/* Menu Items Styling */
+.side-menu {
+  padding: 8px;
+  background: transparent !important;
+  border: none !important;
+}
+
+.side-menu .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-light) !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  opacity: 0.8;
+}
+
+.side-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-light) !important;
+  opacity: 1;
+}
+
+.side-menu .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px;
+  color: var(--text-light) !important;
+  opacity: 1;
+}
+
+.side-menu .ant-menu-item::after {
+  display: none;
+}
+
+.side-menu .ant-menu-item .anticon {
+  font-size: 18px;
+  color: var(--text-light);
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.side-menu .ant-menu-item:hover .anticon,
+.side-menu .ant-menu-item-selected .anticon {
+  opacity: 1;
+}
+
+/* Collapsed State */
+.ant-layout-sider-collapsed .side-menu-logo {
+  padding: 16px 8px;
+}
+
+.ant-layout-sider-collapsed .side-menu-logo h5 {
+  display: none;
+}
+
+.ant-layout-sider-collapsed .side-menu .ant-menu-item {
+  padding: 0 16px !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: fixed;
+    z-index: 1000;
+    height: 100vh;
+  }
+
+  .side-menu-logo {
+    margin: 8px;
+    padding: 12px;
+  }
+
+  .side-menu .ant-menu-item {
+    margin: 2px 4px;
+    height: 44px !important;
+    line-height: 44px !important;
+  }
+}
+
+/* Scrollbar Styling */
+.ant-layout-sider::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+/* Menu Item Groups */
+.side-menu .ant-menu-item-group-title {
+  color: var(--text-light);
+  opacity: 0.5;
+  font-size: 12px;
+  padding: 16px 16px 8px;
+  margin-top: 8px;
+}
+
+/* Submenu Styling */
+.side-menu .ant-menu-submenu {
+  background: transparent !important;
+}
+
+.side-menu .ant-menu-submenu-title {
+  color: var(--text-light) !important;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.side-menu .ant-menu-submenu-title:hover {
+  color: var(--text-light) !important;
+  opacity: 1;
+}
+
+.side-menu .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--text-light) !important;
+  opacity: 1;
+}
+
+.side-menu .ant-menu-submenu-arrow {
+  color: var(--text-light) !important;
+  opacity: 0.8;
+}
+
+.side-menu .ant-menu-submenu-title:hover .ant-menu-submenu-arrow,
+.side-menu .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-submenu-arrow {
+  opacity: 1;
+}
+
+/* Submenu Items */
+.side-menu .ant-menu-sub .ant-menu-item {
+  padding-left: 48px !important;
+  margin: 2px 8px;
+}
+
+.side-menu .ant-menu-sub .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Collapsed Submenu */
+.ant-layout-sider-collapsed .side-menu .ant-menu-submenu-title {
+  padding: 0 16px !important;
+}
+
+.ant-layout-sider-collapsed .side-menu .ant-menu-submenu-arrow {
+  display: none;
+} 

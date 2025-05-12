@@ -1,72 +1,390 @@
 .students-container {
-  padding: 24px;
-  background: #f0f2f5;
-  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 16px;
+  background: var(--surface-color);
+  box-shadow: 0 4px 20px var(--login-shadow);
+  border: 1px solid var(--border-color);
 }
 
 .students-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  padding: 16px 24px;
   gap: 16px;
   flex-wrap: wrap;
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-title {
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+}
+
+.title-icon {
+  font-size: 24px;
+  color: var(--primary-color);
 }
 
 .students-search {
-  flex: 1;
-  min-width: 200px;
+  width: 250px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px var(--login-shadow);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  transition: all 0.3s ease;
 }
 
-.student-form-modal .ant-modal-content {
+.students-search:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px var(--login-shadow);
+}
+
+.students-search:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-light);
+}
+
+.students-search .ant-input {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border: none;
+  height: 36px;
+}
+
+.students-search .ant-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.students-search .ant-input-prefix {
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.search-icon {
+  color: var(--primary-color);
+}
+
+.add-student-btn {
+  height: 36px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px var(--login-shadow);
+  background: var(--primary-color);
+  border: none;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+  padding: 0 16px;
+  font-weight: 500;
+}
+
+.add-student-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--login-shadow);
+  background: var(--primary-color-dark);
+}
+
+.add-student-btn .anticon {
+  font-size: 16px;
+}
+
+.students-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px var(--login-shadow);
+  overflow: hidden;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  margin: 0 16px 16px 16px;
   padding: 0;
 }
 
+.students-card .ant-card-body {
+  padding: 0;
+  height: 100%;
+}
+
+.students-table {
+  flex: 1;
+  height: 100%;
+}
+
+.students-table .ant-table {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100%;
+  background: var(--surface-color);
+}
+
+.students-table .ant-table-container {
+  overflow: hidden !important;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.students-table .ant-table-body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: calc(100% - 32px) !important;
+  border-radius: 0 0 12px 12px;
+  background: var(--surface-color);
+}
+
+.students-table .ant-table-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.students-table .ant-table-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.students-table .ant-table-body::-webkit-scrollbar-track {
+  background: var(--background-color);
+  border-radius: 3px;
+}
+
+.students-table .ant-table-thead > tr > th {
+  background: var(--background-color) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  border-bottom: 2px solid var(--border-color);
+  padding: 12px 16px !important;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 48px;
+  font-size: 14px;
+}
+
+.students-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px !important;
+  height: 48px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--surface-color);
+}
+
+.students-table .ant-table-tbody > tr:hover > td {
+  background: var(--hover-color) !important;
+}
+
+.students-table .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: var(--primary-color-light) !important;
+}
+
+.students-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+  background: var(--primary-color-lighter) !important;
+}
+
+.students-pagination {
+  border-top: 1px solid var(--border-color);
+  margin: 0 !important;
+  padding: 8px 16px !important;
+  position: sticky;
+  bottom: 0;
+  background: var(--surface-color);
+  z-index: 2;
+  height: 48px;
+}
+
+.students-pagination .ant-pagination-item {
+  border: 1px solid var(--border-color);
+  min-width: 32px;
+  height: 32px;
+  line-height: 30px;
+  font-size: 14px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.students-pagination .ant-pagination-item-active {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.students-pagination .ant-pagination-item-active a {
+  color: var(--text-light) !important;
+}
+
+.students-pagination .ant-pagination-item:hover {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color);
+}
+
+.students-pagination .ant-pagination-prev .ant-pagination-item-link,
+.students-pagination .ant-pagination-next .ant-pagination-item-link {
+  border: 1px solid var(--border-color);
+  min-width: 32px;
+  height: 32px;
+  line-height: 30px;
+  font-size: 14px;
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.students-pagination .ant-pagination-prev:hover .ant-pagination-item-link,
+.students-pagination .ant-pagination-next:hover .ant-pagination-item-link {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.bulk-actions-card {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px var(--login-shadow);
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  padding: 12px 24px;
+}
+
+.selected-count {
+  color: var(--primary-color);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.bulk-status-btn {
+  height: 36px;
+  border-radius: 6px;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-light);
+  box-shadow: 0 2px 6px var(--login-shadow);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.bulk-status-btn:hover {
+  background: var(--primary-color-dark);
+  border-color: var(--primary-color-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--login-shadow);
+}
+
+.bulk-delete-btn {
+  height: 36px;
+  border-radius: 6px;
+  background: var(--error-color-light);
+  border-color: var(--error-color);
+  color: var(--error-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.bulk-delete-btn:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--login-shadow);
+}
+
+.student-form-modal .ant-modal-content {
+  background: var(--surface-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--login-shadow);
+}
+
+.student-form-modal .ant-modal-header {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.student-form-modal .ant-modal-title {
+  color: var(--text-primary);
+}
+
 .student-form-modal .ant-modal-body {
+  background: var(--surface-color);
   padding: 24px;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
-.student-form-modal .ant-card {
+.student-form-modal .ant-modal-footer {
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-icon {
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.modal-title {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.photo-upload-card {
+  text-align: center;
+  background: var(--background-color);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.info-card {
   margin-bottom: 16px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
 }
 
-.student-form-modal .ant-card-head {
+.info-card .ant-card-head {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
   padding: 12px 16px;
-  min-height: 48px;
 }
 
-.student-form-modal .ant-card-head-title {
+.info-card .ant-card-head-title {
+  color: var(--text-primary);
   font-size: 16px;
 }
 
-.student-form-modal .ant-form-item {
-  margin-bottom: 16px;
+.card-icon {
+  color: var(--primary-color);
 }
 
-.student-form-modal .ant-form-item-label {
-  padding-bottom: 4px;
-}
-
-.student-form-modal .ant-form-item-label > label {
-  font-size: 14px;
-  height: 24px;
-}
-
-.student-form-modal .ant-input,
-.student-form-modal .ant-select-selector,
-.student-form-modal .ant-picker {
-  height: 36px;
-}
-
-.student-form-modal .ant-input-textarea textarea {
-  min-height: 80px;
-}
-
-.student-form-modal .ant-upload-list {
-  max-height: 200px;
-  overflow-y: auto;
+.empty-state {
+  padding: 20px 0;
 }
 
 /* Mobile Responsive Styles */
@@ -79,10 +397,15 @@
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
+    padding: 12px;
   }
 
   .students-search {
     width: 100%;
+  }
+
+  .students-card {
+    margin: 0;
   }
 
   .student-form-modal {
@@ -104,166 +427,26 @@
     overflow-y: auto;
   }
 
-  .student-form-modal .ant-card {
+  .info-card {
     margin-bottom: 12px;
   }
 
-  .student-form-modal .ant-row {
-    margin: 0 !important;
+  .info-card .ant-card-head {
+    padding: 8px 12px;
   }
 
-  .student-form-modal .ant-col {
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  .student-form-modal .ant-form-item {
-    margin-bottom: 12px;
-  }
-
-  .student-form-modal .ant-input,
-  .student-form-modal .ant-select-selector,
-  .student-form-modal .ant-picker {
-    height: 40px;
-  }
-
-  .student-form-modal .ant-input-textarea textarea {
-    min-height: 100px;
-  }
-
-  .student-form-modal .ant-upload-list {
-    max-height: 150px;
-  }
-
-  /* Table Responsive Styles */
-  .ant-table {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .ant-table-thead > tr > th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #fafafa;
-  }
-
-  .ant-table-tbody > tr > td {
-    min-width: 120px;
-  }
-
-  /* Add horizontal scroll indicator */
-  .ant-table-body::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 30px;
-    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1));
-    pointer-events: none;
-  }
-
-  /* Make table rows more touch-friendly */
-  .ant-table-tbody > tr {
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  /* Adjust table cell content */
-  .ant-table-thead > tr > th,
-  .ant-table-tbody > tr > td {
-    padding: 12px 8px;
-    font-size: 14px;
-  }
-
-  /* Add touch-friendly spacing */
-  .ant-table-tbody > tr > td {
-    padding: 16px 8px;
-  }
-
-  /* Make sure the table container doesn't overflow */
-  .ant-table-container {
-    border: none;
-    overflow: hidden;
-  }
-
-  /* Add a subtle shadow to indicate scrollable content */
-  .ant-table-body {
-    box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
-  }
-
-  .mobile-students-list {
-    display: block !important;
-  }
-
-  .desktop-students-table {
-    display: none;
-  }
-
-  .mobile-students-list .ant-list-item {
+  .info-card .ant-card-body {
     padding: 12px;
-    background: white;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
-  .mobile-students-list .ant-list-item-meta-title {
-    margin-bottom: 4px !important;
+  .bulk-actions-card {
+    padding: 12px;
   }
 
-  .mobile-students-list .ant-list-item-meta-description {
-    margin-bottom: 0 !important;
-  }
-
-  .mobile-students-list .ant-list-item-action {
-    margin-left: 8px;
-  }
-
-  .mobile-students-list .ant-list-item-action-split {
-    display: none;
-  }
-
-  .mobile-students-list .ant-avatar {
-    width: 48px;
-    height: 48px;
-  }
-
-  .mobile-students-list .ant-space-item {
-    font-size: 14px;
-  }
-
-  .mobile-students-list .ant-badge-status-text {
-    font-size: 12px;
-  }
-
-  /* Enhance touch targets */
-  .mobile-students-list .ant-btn {
-    padding: 8px;
+  .bulk-status-btn,
+  .bulk-delete-btn {
     height: 40px;
-    width: 40px;
-  }
-
-  .mobile-students-list .ant-list-item-action .ant-btn {
-    margin-left: 4px;
-  }
-
-  /* Add pull-to-refresh indicator */
-  .mobile-students-list::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #1890ff;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-
-  .mobile-students-list.pulling::before {
-    transform: scaleX(1);
+    font-size: 14px;
   }
 }
 

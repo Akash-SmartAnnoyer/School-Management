@@ -136,10 +136,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 
   return (
     <Modal
+      className="student-form-modal"
       title={
         <Space>
-          <IdcardOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
-          <Typography.Title level={5} style={{ margin: 0 }}>
+          <IdcardOutlined className="modal-icon" />
+          <Typography.Title level={5} className="modal-title">
             {initialValues ? 'Edit Student' : 'Add New Student'}
           </Typography.Title>
         </Space>
@@ -154,29 +155,20 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         key={initialValues ? `edit-${initialValues.id}` : 'create'}
         form={form}
         layout="vertical"
+        className="student-form"
       >
         <Row gutter={24}>
           <Col span={8}>
-            <Card 
-              style={{ 
-                textAlign: 'center',
-                background: '#fafafa',
-                border: '1px dashed #d9d9d9',
-                borderRadius: '8px',
-                padding: '20px',
-                paddingBottom: '0px',
-                marginBottom: '0px'
-              }}
-            >
+            <Card className="photo-upload-card">
               <Upload
                 name="photo"
                 listType="picture-card"
                 showUploadList={false}
                 beforeUpload={() => false}
               >
-                <div>
+                <div className="upload-placeholder">
                   <PlusOutlined />
-                  <div style={{ marginTop: 8 }}>Upload Photo</div>
+                  <div>Upload Photo</div>
                 </div>
               </Upload>
             </Card>
@@ -184,11 +176,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <UserOutlined style={{ color: '#1890ff' }} />
+                  <UserOutlined className="card-icon" />
                   <span>Basic Information</span>
                 </Space>
               }
-              style={{ marginTop: '16px' }}
+              className="info-card"
             >
               <Form.Item
                 name="first_name"
@@ -314,11 +306,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <BookOutlined style={{ color: '#1890ff' }} />
+                  <BookOutlined className="card-icon" />
                   <span>Academic Information</span>
                 </Space>
               }
-              style={{ marginBottom: '16px' }}
+              className="info-card"
             >
               <Row gutter={16}>
                 <Col span={12}>
@@ -387,11 +379,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <HomeOutlined style={{ color: '#1890ff' }} />
+                  <HomeOutlined className="card-icon" />
                   <span>Parent Information</span>
                 </Space>
               }
-              style={{ marginBottom: '16px' }}
+              className="info-card"
             >
               <Row gutter={16}>
                 <Col span={12}>
@@ -471,10 +463,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <InfoCircleOutlined style={{ color: '#1890ff' }} />
+                  <InfoCircleOutlined className="card-icon" />
                   <span>Additional Information</span>
                 </Space>
               }
+              className="info-card"
             >
               <Row gutter={16}>
                 <Col span={12}>
@@ -1191,195 +1184,78 @@ const Students = () => {
   );
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#9fb3df',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <TeamOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
-            Students
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Input.Search
-              placeholder="Search students..."
-              allowClear
-              onSearch={setSearchText}
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
-              }}
-            >
-              Add Student
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+    <div className="students-container">
+      <div className="students-header">
+        <h2 className="page-title">
+          <TeamOutlined className="title-icon" />
+          Students
+        </h2>
+        <Space>
+          <Input
+            placeholder="Search students..."
+            prefix={<SearchOutlined className="search-icon" />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="students-search"
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="add-student-btn"
+          >
+            Add Student
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
+      <Card className="students-card">
         <Table
           rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredStudents}
           rowKey="id"
           loading={loading}
+          className="students-table"
           pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: totalStudents,
-            onChange: (page, size) => {
-              setCurrentPage(page);
-              setPageSize(size);
-            },
+            className: 'students-pagination',
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total) => `Total ${total} students`,
-            style: {
-              margin: 0,
-              padding: '2px 12px'
-            }
           }}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No students found"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
-              />
-            ),
-          }}
-          style={{
-            flex: 1,
-            height: '100%'
-          }}
-          scroll={{ y: 'calc(100vh - 250px)' }}
-          className="custom-table"
         />
       </Card>
 
       {selectedRowKeys.length > 0 && (
-        <Card
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            boxShadow: '0 -2px 8px rgba(159, 179, 223, 0.2)',
-            background: 'white',
-            borderTop: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
-          <Row justify="space-between" align="middle">
-            <Col>
-              <Space>
-                <span style={{ color: '#9fb3df', fontWeight: 500 }}>{selectedRowKeys.length} students selected</span>
-              </Space>
-            </Col>
-            <Col>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => setBulkStatusModalVisible(true)}
-                  style={{
-                    background: '#9fb3df',
-                    borderColor: '#9fb3df',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                  icon={<SwapOutlined />}
-                >
-                  Change Status
-                </Button>
-                <Popconfirm
-                  title="Are you sure you want to delete selected students?"
-                  onConfirm={handleBulkDelete}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button 
-                    danger
-                    style={{
-                      background: '#fff1f0',
-                      borderColor: '#ffa39e',
-                      color: '#ff4d4f',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                    icon={<DeleteFilled />}
-                  >
-                    Delete Selected
-                  </Button>
-                </Popconfirm>
-              </Space>
-            </Col>
-          </Row>
+        <Card className="bulk-actions-card">
+          <Space>
+            <span className="selected-count">
+              {selectedRowKeys.length} students selected
+            </span>
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleBulkStatusChange('activate')}
+              className="bulk-status-btn"
+            >
+              Activate
+            </Button>
+            <Button
+              icon={<CloseCircleOutlined />}
+              onClick={() => handleBulkStatusChange('deactivate')}
+              className="bulk-status-btn"
+            >
+              Deactivate
+            </Button>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleBulkDelete}
+              className="bulk-delete-btn"
+            >
+              Delete
+            </Button>
+          </Space>
         </Card>
       )}
 
@@ -1406,6 +1282,7 @@ const Students = () => {
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
         confirmLoading={loading}
+        className="status-modal"
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
@@ -1420,199 +1297,6 @@ const Students = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      <style>
-        {`
-          .custom-table .ant-table {
-            border-radius: 12px;
-            overflow: hidden;
-            height: 100%;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            height: 100%;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: calc(100% - 32px) !important;
-            border-radius: 0 0 12px 12px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
-
-          .custom-table .ant-table-tbody > tr > td:last-child {
-            position: sticky;
-            right: 0;
-            background: white;
-            z-index: 1;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-thead > tr > th:last-child {
-            position: sticky;
-            right: 0;
-            background: rgba(159, 179, 223, 0.1) !important;
-            z-index: 2;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-tbody > tr:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 2px 12px !important;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 2px 12px !important;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-pagination {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
-            margin: 0 !important;
-            padding: 2px 12px !important;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            z-index: 2;
-            height: 32px;
-          }
-          
-          .custom-table .ant-pagination-item {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-item-active {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
-          }
-          
-          .custom-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-          
-          .custom-table .ant-pagination-item:hover {
-            border-color: #9fb3df !important;
-          }
-          
-          .custom-table .ant-pagination-prev .ant-pagination-item-link,
-          .custom-table .ant-pagination-next .ant-pagination-item-link {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #9fb3df !important;
-            color: #9fb3df !important;
-          }
-
-          .custom-table .ant-table-cell {
-            white-space: nowrap;
-          }
-
-          .custom-table .ant-table-cell .ant-tag {
-            margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
-          }
-
-          .custom-table .ant-table-cell .ant-btn {
-            padding: 0 6px;
-            height: 22px;
-            font-size: 12px;
-          }
-
-          .custom-table .ant-table-cell .ant-avatar {
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            font-size: 12px;
-          }
-
-          .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
-            border-color: #9fb3df !important;
-          }
-
-          .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #9fb3df !important;
-            border-color: #9fb3df !important;
-          }
-
-          .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #9fb3df !important;
-          }
-        `}
-      </style>
     </div>
   );
 };

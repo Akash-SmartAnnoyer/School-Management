@@ -59,6 +59,7 @@ import ExamManagement from '../components/academics/ExamManagement';
 import MarksEntry from '../components/academics/MarksEntry';
 import Analytics from '../components/academics/Analytics';
 import SubManagement from '../components/academics/SubManagement';
+import './Academics.css';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -119,9 +120,10 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
 
   return (
     <Modal
+      className="academics-modal"
       title={
         <Space>
-          <BookOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <BookOutlined style={{ fontSize: '20px', color: 'var(--primary-color)' }} />
           <Title level={5} style={{ margin: 0 }}>
             {initialValues ? 'Edit Marks' : 'Enter Marks'}
           </Title>
@@ -135,6 +137,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
       <Form
         form={form}
         layout="vertical"
+        className="academics-form"
         onFinish={handleSubmit}
         initialValues={{
           date: moment(),
@@ -209,42 +212,35 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
               rules={[{ required: true, message: 'Please enter marks!' }]}
             >
               <InputNumber
-                style={{ width: '100%' }}
                 min={0}
                 max={100}
-                placeholder="Enter marks (0-100)"
+                style={{ width: '100%' }}
+                placeholder="Enter marks"
               />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              name="maxMarks"
-              label="Maximum Marks"
-              rules={[{ required: true, message: 'Please enter maximum marks!' }]}
+              name="totalMarks"
+              label="Total Marks"
+              rules={[{ required: true, message: 'Please enter total marks!' }]}
             >
               <InputNumber
-                style={{ width: '100%' }}
                 min={0}
                 max={100}
-                placeholder="Enter maximum marks"
+                style={{ width: '100%' }}
+                placeholder="Enter total marks"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        <Form.Item
-          name="remarks"
-          label="Remarks"
-        >
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
         <Form.Item>
-          <Space>
+          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+            <Button onClick={onCancel}>Cancel</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               {initialValues ? 'Update' : 'Save'}
             </Button>
-            <Button onClick={onCancel}>Cancel</Button>
           </Space>
         </Form.Item>
       </Form>
@@ -544,6 +540,7 @@ const Academics = () => {
   const [marks, setMarks] = useState([]);
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [marksEntryVisible, setMarksEntryVisible] = useState(false);
 
   // useEffect(() => {
   //   loadInitialData();
@@ -599,307 +596,60 @@ const Academics = () => {
     // }
   };
 
-  return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#9fb3df',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <BookOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
-            Academics Management
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Search
-              placeholder="Search academics..."
-              allowClear
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
-            />
-          </Space>
-        </Col>
-      </Row>
+  const handleMarksSubmit = async (values) => {
+    try {
+      await api.marks.create(values);
+      message.success('Marks saved successfully');
+      loadMarks(values.examId);
+    } catch (error) {
+      message.error('Failed to save marks');
+    }
+  };
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
+  return (
+    <div className="academics-container">
+      <div className="academics-header">
+        <Title level={4}>Academic Management</Title>
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setMarksEntryVisible(true)}
+          >
+            Add Marks
+          </Button>
+        </Space>
+      </div>
+
+      <Card className="academics-card">
         <Tabs
+          className="academics-tabs"
           activeKey={activeTab}
           onChange={handleTabChange}
-          type="card"
-          items={[
-            {
-              key: '1',
-              label: (
-                <span>
-                  <TrophyOutlined style={{ color: '#9fb3df' }} />
-                  Exam Management
-                </span>
-              ),
-              children: <ExamManagement
-                exams={exams}
-                classes={classes}
-                teachers={teachers}
-                subjects={subjects}
-                examTypes={examTypes}
-              />
-            },
-            {
-              key: '2',
-              label: (
-                <span>
-                  <BookOutlined style={{ color: '#9fb3df' }} />
-                  Subject Management
-                </span>
-              ),
-              children: <SubManagement />
-            },
-            {
-              key: '3',
-              label: (
-                <span>
-                  <EditOutlined style={{ color: '#9fb3df' }} />
-                  Marks Entry
-                </span>
-              ),
-              children: <MarksEntry
-                students={students}
-                classes={classes}
-                subjects={subjects}
-                examTypes={examTypes}
-                onClassSelect={loadStudents}
-              />
-            },
-            {
-              key: '4',
-              label: (
-                <span>
-                  <BarChartOutlined style={{ color: '#9fb3df' }} />
-                  Reports
-                </span>
-              ),
-              children: <Analytics
-                marks={marks}
-                students={students}
-                classes={classes}
-                subjects={subjects}
-                examTypes={examTypes}
-                onExamSelect={loadMarks}
-              />
-            }
-          ]}
-          style={{
-            '& .ant-tabs-nav': {
-              margin: 0,
-              padding: '0 16px',
-              background: 'rgba(159, 179, 223, 0.05)',
-              borderBottom: '1px solid rgba(159, 179, 223, 0.2)'
-            },
-            '& .ant-tabs-tab': {
-              padding: '12px 16px',
-              margin: '0 4px 0 0',
-              background: 'transparent',
-              border: 'none',
-              color: '#9fb3df',
-              transition: 'all 0.3s ease'
-            },
-            '& .ant-tabs-tab:hover': {
-              color: '#8ba1d1'
-            },
-            '& .ant-tabs-tab-active': {
-              background: '#9fb3df',
-              color: '#ffffff'
-            },
-            '& .ant-tabs-content': {
-              padding: '16px'
-            }
-          }}
-        />
+        >
+          <TabPane tab="Marks Entry" key="1">
+            <MarksEntry />
+          </TabPane>
+          <TabPane tab="Exam Management" key="2">
+            <ExamManagement />
+          </TabPane>
+          <TabPane tab="Subject Management" key="3">
+            <SubManagement />
+          </TabPane>
+          <TabPane tab="Analytics" key="4">
+            <Analytics />
+          </TabPane>
+        </Tabs>
       </Card>
 
-      <style>
-        {`
-          .ant-tabs-nav {
-            margin: 0 !important;
-            padding: 0 16px !important;
-            background: rgba(159, 179, 223, 0.05) !important;
-            border-bottom: 1px solid rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-tabs-tab {
-            padding: 12px 16px !important;
-            margin: 0 4px 0 0 !important;
-            background: transparent !important;
-            border: none !important;
-            color: #9fb3df !important;
-            transition: all 0.3s ease !important;
-          }
-
-          .ant-tabs-tab:hover {
-            color: #8ba1d1 !important;
-          }
-
-          .ant-tabs-tab-active {
-            background: #9fb3df !important;
-            color: #ffffff !important;
-          }
-
-          .ant-tabs-content {
-            padding: 16px !important;
-          }
-
-          .ant-tabs-ink-bar {
-            background: #9fb3df !important;
-          }
-
-          .ant-card {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            box-shadow: 0 4px 16px rgba(159, 179, 223, 0.2) !important;
-            border: 1px solid rgba(159, 179, 223, 0.3) !important;
-          }
-
-          .ant-card-head {
-            background: rgba(159, 179, 223, 0.05) !important;
-            border-bottom: 1px solid rgba(159, 179, 223, 0.2) !important;
-            padding: 12px 16px !important;
-          }
-
-          .ant-card-head-title {
-            color: #9fb3df !important;
-            font-weight: 600 !important;
-          }
-
-          .ant-card-body {
-            padding: 16px !important;
-          }
-
-          .ant-table {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-          }
-
-          .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
-            font-weight: 600 !important;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2) !important;
-            padding: 12px 16px !important;
-          }
-
-          .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1) !important;
-            padding: 12px 16px !important;
-          }
-
-          .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .ant-btn-primary {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-          }
-
-          .ant-btn-primary:hover {
-            background: #8ba1d1 !important;
-            border-color: #8ba1d1 !important;
-            box-shadow: 0 4px 12px rgba(159, 179, 223, 0.25) !important;
-          }
-
-          .ant-select-selector {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-            border-radius: 6px !important;
-          }
-
-          .ant-select-selector:hover {
-            border-color: #9fb3df !important;
-          }
-
-          .ant-select-focused .ant-select-selector {
-            border-color: #9fb3df !important;
-            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-input {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-            border-radius: 6px !important;
-          }
-
-          .ant-input:hover {
-            border-color: #9fb3df !important;
-          }
-
-          .ant-input:focus {
-            border-color: #9fb3df !important;
-            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-modal-content {
-            border-radius: 12px !important;
-            overflow: hidden !important;
-            box-shadow: 0 4px 16px rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-modal-header {
-            background: rgba(159, 179, 223, 0.05) !important;
-            border-bottom: 1px solid rgba(159, 179, 223, 0.2) !important;
-            padding: 16px 24px !important;
-          }
-
-          .ant-modal-title {
-            color: #9fb3df !important;
-            font-weight: 600 !important;
-          }
-
-          .ant-modal-body {
-            padding: 24px !important;
-          }
-
-          .ant-modal-footer {
-            border-top: 1px solid rgba(159, 179, 223, 0.2) !important;
-            padding: 16px 24px !important;
-          }
-        `}
-      </style>
+      <MarksEntryForm
+        visible={marksEntryVisible}
+        onCancel={() => setMarksEntryVisible(false)}
+        onSubmit={handleMarksSubmit}
+        students={students}
+        subjects={subjects}
+        examTypes={examTypes}
+      />
     </div>
   );
 };

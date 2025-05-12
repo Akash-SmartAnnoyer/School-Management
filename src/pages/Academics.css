@@ -1,0 +1,236 @@
+.academics-container {
+  padding: 24px;
+  background: var(--background-color);
+  min-height: 100vh;
+}
+
+.academics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.academics-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--login-shadow);
+}
+
+.academics-card .ant-card-head {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 24px;
+}
+
+.academics-card .ant-card-head-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.academics-card .ant-card-body {
+  padding: 24px;
+  background: var(--surface-color);
+}
+
+.academics-table {
+  background: var(--surface-color);
+}
+
+.academics-table .ant-table-thead > tr > th {
+  background: var(--surface-color);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 500;
+}
+
+.academics-table .ant-table-tbody > tr > td {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.academics-table .ant-table-tbody > tr:hover > td {
+  background: var(--hover-color);
+}
+
+.academics-form .ant-form-item-label > label {
+  color: var(--text-primary);
+}
+
+.academics-form .ant-input,
+.academics-form .ant-select-selector,
+.academics-form .ant-picker {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.academics-form .ant-input:hover,
+.academics-form .ant-select-selector:hover,
+.academics-form .ant-picker:hover {
+  border-color: var(--primary-color);
+}
+
+.academics-form .ant-input:focus,
+.academics-form .ant-select-selector:focus,
+.academics-form .ant-picker:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-light);
+}
+
+.academics-modal .ant-modal-content {
+  background: var(--surface-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--login-shadow);
+}
+
+.academics-modal .ant-modal-header {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.academics-modal .ant-modal-title {
+  color: var(--text-primary);
+}
+
+.academics-modal .ant-modal-body {
+  background: var(--surface-color);
+}
+
+.academics-modal .ant-modal-footer {
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.academics-tabs .ant-tabs-nav {
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
+.academics-tabs .ant-tabs-tab {
+  color: var(--text-primary);
+}
+
+.academics-tabs .ant-tabs-tab-active {
+  color: var(--primary-color);
+}
+
+.academics-tabs .ant-tabs-ink-bar {
+  background: var(--primary-color);
+}
+
+.academics-statistic .ant-statistic-title {
+  color: var(--text-secondary);
+}
+
+.academics-statistic .ant-statistic-content {
+  color: var(--text-primary);
+}
+
+.academics-progress .ant-progress-text {
+  color: var(--text-primary);
+}
+
+.academics-tag {
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.academics-tag-grade-a {
+  background: var(--success-color-light);
+  color: var(--success-color);
+  border: 1px solid var(--success-color);
+}
+
+.academics-tag-grade-b {
+  background: var(--primary-color-light);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.academics-tag-grade-c {
+  background: var(--warning-color-light);
+  color: var(--warning-color);
+  border: 1px solid var(--warning-color);
+}
+
+.academics-tag-grade-d {
+  background: var(--error-color-light);
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+
+.academics-tag-grade-f {
+  background: var(--error-color-lighter);
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .academics-container {
+    padding: 16px;
+  }
+
+  .academics-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .academics-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .academics-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .academics-table .ant-table-thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .academics-table .ant-table-tbody > tr > td {
+    min-width: 120px;
+  }
+
+  .academics-table-body::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to right, transparent, var(--login-shadow));
+    pointer-events: none;
+  }
+
+  .academics-modal {
+    width: 100% !important;
+    max-width: 100%;
+    margin: 0;
+    top: 0;
+  }
+
+  .academics-modal .ant-modal-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .academics-modal .ant-modal-body {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+} 

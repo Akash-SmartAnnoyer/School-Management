@@ -209,37 +209,135 @@ const Profile = () => {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
-        <Row gutter={[24, 24]}>
+    <div style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
+        <Col>
+          <Title level={3} style={{ 
+            color: '#9fb3df',
+            margin: 0,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <UserOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            Profile Settings
+          </Title>
+        </Col>
+      </Row>
+
+      <Card
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid rgba(159, 179, 223, 0.3)',
+          margin: '0 16px 16px 16px',
+          padding: 0
+        }}
+        bodyStyle={{ padding: 0, height: '100%' }}
+      >
+        <Row gutter={[24, 24]} style={{ padding: '24px' }}>
           <Col span={8}>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Avatar
-                  size={120}
-                  src={currentUser?.profilePic}
-                  icon={<UserOutlined />}
-                />
-                <Upload
-                  showUploadList={false}
-                  beforeUpload={handleProfilePicUpload}
-                  accept="image/*"
-                >
-                  <Button icon={<UploadOutlined />}>Change Profile Picture</Button>
-                </Upload>
-                <Title level={4} style={{ margin: 0 }}>
-                  {currentUser?.name}
-                </Title>
-                <Tag color={currentUser?.role === ROLES.PRINCIPAL ? 'blue' : 'green'}>
-                  {currentUser?.role}
-                </Tag>
-              </Space>
-            </div>
+            <Card
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                border: '1px solid rgba(159, 179, 223, 0.3)',
+                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                color: 'white'
+              }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                  <Avatar
+                    size={120}
+                    src={currentUser?.profilePic}
+                    icon={<UserOutlined />}
+                    style={{ 
+                      border: '4px solid rgba(255, 255, 255, 0.2)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Upload
+                    showUploadList={false}
+                    beforeUpload={handleProfilePicUpload}
+                    accept="image/*"
+                  >
+                    <Button 
+                      icon={<UploadOutlined />}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                      }}
+                    >
+                      Change Profile Picture
+                    </Button>
+                  </Upload>
+                  <Title level={4} style={{ margin: 0, color: 'white' }}>
+                    {currentUser?.name}
+                  </Title>
+                  <Tag 
+                    color={currentUser?.role === ROLES.PRINCIPAL ? '#9fb3df' : '#52c41a'}
+                    style={{
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '14px',
+                      fontWeight: 500
+                    }}
+                  >
+                    {currentUser?.role}
+                  </Tag>
+                </Space>
+              </div>
+            </Card>
           </Col>
+
           <Col span={16}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
               {/* Personal Profile Section */}
-              <Card title="Personal Profile">
+              <Card 
+                title="Personal Profile"
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+              >
                 <Form
                   form={form}
                   layout="vertical"
@@ -253,7 +351,13 @@ const Profile = () => {
                         label="Full Name"
                         rules={[{ required: true, message: 'Please enter your name' }]}
                       >
-                        <Input prefix={<UserOutlined />} />
+                        <Input 
+                          prefix={<UserOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -265,7 +369,13 @@ const Profile = () => {
                           { type: 'email', message: 'Please enter a valid email' }
                         ]}
                       >
-                        <Input prefix={<MailOutlined />} />
+                        <Input 
+                          prefix={<MailOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -277,7 +387,13 @@ const Profile = () => {
                         label="Phone"
                         rules={[{ required: true, message: 'Please enter your phone number' }]}
                       >
-                        <Input prefix={<PhoneOutlined />} />
+                        <Input 
+                          prefix={<PhoneOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -286,7 +402,13 @@ const Profile = () => {
                         label="Address"
                         rules={[{ required: true, message: 'Please enter your address' }]}
                       >
-                        <Input prefix={<HomeOutlined />} />
+                        <Input 
+                          prefix={<HomeOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -297,6 +419,29 @@ const Profile = () => {
                       htmlType="submit"
                       icon={<SaveOutlined />}
                       loading={loading}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                        background: '#9fb3df',
+                        border: 'none',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                        e.currentTarget.style.background = '#8ba1d1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                        e.currentTarget.style.background = '#9fb3df';
+                      }}
                     >
                       Save Profile
                     </Button>
@@ -306,23 +451,62 @@ const Profile = () => {
 
               {/* School Profile Section - Only visible for Principal */}
               {currentUser?.role === ROLES.PRINCIPAL && (
-                <Card title="School Profile">
+                <Card 
+                  title="School Profile"
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                    border: '1px solid rgba(159, 179, 223, 0.3)'
+                  }}
+                >
                   <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <Space direction="vertical" size="large">
                       <Avatar
                         size={120}
                         src={school?.logo}
                         icon={<BankOutlined />}
+                        style={{ 
+                          border: '4px solid rgba(159, 179, 223, 0.2)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                        }}
                       />
                       <Upload
                         showUploadList={false}
                         beforeUpload={handleSchoolPicUpload}
                         accept="image/*"
                       >
-                        <Button icon={<UploadOutlined />}>Change School Logo</Button>
+                        <Button 
+                          icon={<UploadOutlined />}
+                          style={{
+                            height: '32px',
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                            background: '#9fb3df',
+                            border: 'none',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.3s ease',
+                            padding: '0 12px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                            e.currentTarget.style.background = '#8ba1d1';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                            e.currentTarget.style.background = '#9fb3df';
+                          }}
+                        >
+                          Change School Logo
+                        </Button>
                       </Upload>
                     </Space>
                   </div>
+
                   <Form
                     form={schoolForm}
                     layout="vertical"
@@ -335,7 +519,13 @@ const Profile = () => {
                           label="School Name"
                           rules={[{ required: true, message: 'Please enter school name' }]}
                         >
-                          <Input prefix={<BankOutlined />} />
+                          <Input 
+                            prefix={<BankOutlined />}
+                            style={{
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                            }}
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
@@ -347,7 +537,13 @@ const Profile = () => {
                             { type: 'email', message: 'Please enter a valid email' }
                           ]}
                         >
-                          <Input prefix={<MailOutlined />} />
+                          <Input 
+                            prefix={<MailOutlined />}
+                            style={{
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                            }}
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -359,7 +555,13 @@ const Profile = () => {
                           label="School Phone"
                           rules={[{ required: true, message: 'Please enter school phone number' }]}
                         >
-                          <Input prefix={<PhoneOutlined />} />
+                          <Input 
+                            prefix={<PhoneOutlined />}
+                            style={{
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                            }}
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={12}>
@@ -368,7 +570,13 @@ const Profile = () => {
                           label="School Address"
                           rules={[{ required: true, message: 'Please enter school address' }]}
                         >
-                          <Input prefix={<HomeOutlined />} />
+                          <Input 
+                            prefix={<HomeOutlined />}
+                            style={{
+                              borderRadius: '6px',
+                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                            }}
+                          />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -379,6 +587,29 @@ const Profile = () => {
                         htmlType="submit"
                         icon={<SaveOutlined />}
                         loading={loading}
+                        style={{
+                          height: '32px',
+                          borderRadius: '6px',
+                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                          background: '#9fb3df',
+                          border: 'none',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.3s ease',
+                          padding: '0 12px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                          e.currentTarget.style.background = '#8ba1d1';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                          e.currentTarget.style.background = '#9fb3df';
+                        }}
                       >
                         Save School Profile
                       </Button>
@@ -389,8 +620,21 @@ const Profile = () => {
 
               {/* Teacher Profile Section - Only visible for Teachers */}
               {currentUser?.role === ROLES.TEACHER && school && (
-                <Card title="School Information">
-                  <Descriptions bordered>
+                <Card 
+                  title="School Information"
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                    border: '1px solid rgba(159, 179, 223, 0.3)'
+                  }}
+                >
+                  <Descriptions 
+                    bordered
+                    style={{
+                      borderRadius: '8px',
+                      overflow: 'hidden'
+                    }}
+                  >
                     <Descriptions.Item label="School Name">
                       {school.name}
                     </Descriptions.Item>
@@ -408,29 +652,50 @@ const Profile = () => {
               )}
 
               {/* Change Password Section */}
-              <Card title="Change Password">
+              <Card 
+                title="Change Password"
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+              >
                 <Form
                   layout="vertical"
                   onFinish={handlePasswordChange}
                 >
-                  <Form.Item
-                    name="oldPassword"
-                    label="Current Password"
-                    rules={[{ required: true, message: 'Please enter your current password' }]}
-                  >
-                    <Input.Password prefix={<LockOutlined />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="newPassword"
-                    label="New Password"
-                    rules={[
-                      { required: true, message: 'Please enter a new password' },
-                      { min: 6, message: 'Password must be at least 6 characters' }
-                    ]}
-                  >
-                    <Input.Password prefix={<LockOutlined />} />
-                  </Form.Item>
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="oldPassword"
+                        label="Current Password"
+                        rules={[{ required: true, message: 'Please enter your current password' }]}
+                      >
+                        <Input.Password 
+                          prefix={<LockOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="newPassword"
+                        label="New Password"
+                        rules={[{ required: true, message: 'Please enter your new password' }]}
+                      >
+                        <Input.Password 
+                          prefix={<LockOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
 
                   <Form.Item
                     name="confirmPassword"
@@ -443,12 +708,18 @@ const Profile = () => {
                           if (!value || getFieldValue('newPassword') === value) {
                             return Promise.resolve();
                           }
-                          return Promise.reject(new Error('Passwords do not match'));
+                          return Promise.reject(new Error('The two passwords do not match'));
                         },
                       }),
                     ]}
                   >
-                    <Input.Password prefix={<LockOutlined />} />
+                    <Input.Password 
+                      prefix={<LockOutlined />}
+                      style={{
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                      }}
+                    />
                   </Form.Item>
 
                   <Form.Item>
@@ -457,6 +728,29 @@ const Profile = () => {
                       htmlType="submit"
                       icon={<LockOutlined />}
                       loading={loading}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                        background: '#9fb3df',
+                        border: 'none',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                        e.currentTarget.style.background = '#8ba1d1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                        e.currentTarget.style.background = '#9fb3df';
+                      }}
                     >
                       Change Password
                     </Button>
@@ -467,6 +761,55 @@ const Profile = () => {
           </Col>
         </Row>
       </Card>
+
+      <style>
+        {`
+          .ant-card-head {
+            border-bottom: 1px solid rgba(159, 179, 223, 0.2);
+            padding: 16px 24px;
+          }
+
+          .ant-card-head-title {
+            color: #9fb3df;
+            font-weight: 600;
+          }
+
+          .ant-form-item-label > label {
+            color: #666;
+            font-weight: 500;
+          }
+
+          .ant-input-affix-wrapper {
+            border-color: rgba(159, 179, 223, 0.3);
+          }
+
+          .ant-input-affix-wrapper:hover,
+          .ant-input-affix-wrapper:focus {
+            border-color: #9fb3df;
+            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2);
+          }
+
+          .ant-descriptions-item-label {
+            background: rgba(159, 179, 223, 0.1);
+            color: #9fb3df;
+            font-weight: 500;
+          }
+
+          .ant-descriptions-item-content {
+            background: #fff;
+          }
+
+          .ant-divider {
+            border-color: rgba(159, 179, 223, 0.2);
+            margin: 24px 0;
+          }
+
+          .ant-divider-inner-text {
+            color: #9fb3df;
+            font-weight: 500;
+          }
+        `}
+      </style>
     </div>
   );
 };
