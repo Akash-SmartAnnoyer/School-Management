@@ -167,14 +167,14 @@ const Attendance = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <CalendarOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Attendance Management
           </Title>
         </Col>
@@ -241,7 +241,7 @@ const Attendance = () => {
                 height: '40px',
                 borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
+                background: '#7B83EB',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
@@ -258,7 +258,7 @@ const Attendance = () => {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
+                e.currentTarget.style.background = '#7B83EB';
               }}
             >
               Save Attendance
@@ -295,8 +295,8 @@ const Attendance = () => {
               <Statistic
                 title="Total"
                 value={totalCount}
-                prefix={<TeamOutlined style={{ color: '#9fb3df' }} />}
-                valueStyle={{ color: '#9fb3df' }}
+                prefix={<TeamOutlined style={{ color: '#7B83EB' }} />}
+                valueStyle={{ color: '#7B83EB' }}
               />
             </Col>
           </Row>
@@ -364,7 +364,7 @@ const Attendance = () => {
 
           .custom-table .ant-table-thead > tr > th {
             background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
             font-weight: 600;
             border-bottom: 2px solid rgba(159, 179, 223, 0.2);
             padding: 12px 16px !important;
@@ -385,8 +385,8 @@ const Attendance = () => {
           }
 
           .custom-table .ant-btn-primary {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
           }
 
@@ -398,11 +398,11 @@ const Attendance = () => {
 
           .custom-table .ant-btn-default {
             border-color: rgba(159, 179, 223, 0.3) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
           }
 
           .custom-table .ant-btn-default:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             color: #8ba1d1 !important;
             background: rgba(159, 179, 223, 0.05) !important;
           }
@@ -414,11 +414,11 @@ const Attendance = () => {
           }
 
           .ant-select-selector:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-select-focused .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
 
@@ -429,11 +429,11 @@ const Attendance = () => {
           }
 
           .ant-picker:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-picker-focused {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
         `}

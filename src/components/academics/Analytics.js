@@ -147,14 +147,14 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <BarChartOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <BarChartOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Academic Reports
           </Title>
         </Col>
@@ -167,7 +167,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
                 height: '32px',
                 borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
+                background: '#7B83EB',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
@@ -184,7 +184,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
+                e.currentTarget.style.background = '#7B83EB';
               }}
             >
               Export
@@ -196,7 +196,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
                 height: '32px',
                 borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
+                background: '#7B83EB',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
@@ -213,7 +213,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
+                e.currentTarget.style.background = '#7B83EB';
               }}
             >
               Print
@@ -256,7 +256,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
               placeholder="Select Class"
               onChange={setSelectedClass}
               allowClear
-              suffixIcon={<FilterOutlined style={{ color: '#9fb3df' }} />}
+              suffixIcon={<FilterOutlined style={{ color: '#7B83EB' }} />}
             >
               {classes.map(cls => (
                 <Select.Option key={cls.id} value={cls.id}>
@@ -274,7 +274,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
               placeholder="Select Subject"
               onChange={setSelectedSubject}
               allowClear
-              suffixIcon={<FilterOutlined style={{ color: '#9fb3df' }} />}
+              suffixIcon={<FilterOutlined style={{ color: '#7B83EB' }} />}
             >
               {subjects.map(subject => (
                 <Select.Option key={subject.value} value={subject.value}>
@@ -292,7 +292,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
               placeholder="Select Exam Type"
               onChange={setSelectedExamType}
               allowClear
-              suffixIcon={<FilterOutlined style={{ color: '#9fb3df' }} />}
+              suffixIcon={<FilterOutlined style={{ color: '#7B83EB' }} />}
             >
               {examTypes.map(type => (
                 <Select.Option key={type.value} value={type.value}>
@@ -319,7 +319,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -345,7 +345,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -371,7 +371,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -481,11 +481,11 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
           }
 
           .ant-select:hover .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-select-focused .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
 
@@ -495,11 +495,11 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
           }
 
           .ant-picker:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-picker-focused {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
 
@@ -510,7 +510,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
 
           .ant-table-thead > tr > th {
             background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
             font-weight: 600;
           }
 
@@ -532,7 +532,7 @@ const Analytics = ({ marks, students, classes, subjects, examTypes, onExamSelect
           }
 
           .ant-card-head-title {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 600;
           }
 

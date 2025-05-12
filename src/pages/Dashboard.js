@@ -156,14 +156,14 @@ const Dashboard = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <BarChartOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <BarChartOutlined style={{ fontSize: '24px', color: '#7B83EB', fontWeight: 'bold'}} />
             School Dashboard
           </Title>
         </Col>
@@ -176,7 +176,7 @@ const Dashboard = () => {
                 height: '32px',
                 borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
+                background: '#7B83EB',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
@@ -193,7 +193,7 @@ const Dashboard = () => {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
+                e.currentTarget.style.background = '#7B83EB';
               }}
               onClick={handleUploadSampleData}
             >
@@ -240,7 +240,7 @@ const Dashboard = () => {
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -258,7 +258,7 @@ const Dashboard = () => {
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -276,7 +276,7 @@ const Dashboard = () => {
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -294,7 +294,7 @@ const Dashboard = () => {
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -392,7 +392,7 @@ const Dashboard = () => {
                     borderRadius: '12px',
                     boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                     border: '1px solid rgba(159, 179, 223, 0.3)',
-                    background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                     color: 'white'
                   }}
                 >
@@ -479,7 +479,7 @@ const Dashboard = () => {
           }
 
           .ant-card-head-title {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 600;
           }
 
@@ -490,7 +490,7 @@ const Dashboard = () => {
 
           .ant-table-thead > tr > th {
             background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
             font-weight: 600;
           }
 

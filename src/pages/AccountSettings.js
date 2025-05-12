@@ -125,14 +125,14 @@ const AccountSettings = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <SettingOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <SettingOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Account Settings
           </Title>
         </Col>
@@ -190,7 +190,7 @@ const AccountSettings = () => {
                         height: '32px',
                         borderRadius: '6px',
                         boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                        background: '#9fb3df',
+                        background: '#7B83EB',
                         border: 'none',
                         color: '#ffffff',
                         display: 'flex',
@@ -207,7 +207,7 @@ const AccountSettings = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                        e.currentTarget.style.background = '#9fb3df';
+                        e.currentTarget.style.background = '#7B83EB';
                       }}
                     >
                       Upload Picture
@@ -342,7 +342,7 @@ const AccountSettings = () => {
                       height: '32px',
                       borderRadius: '6px',
                       boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                      background: '#9fb3df',
+                      background: '#7B83EB',
                       border: 'none',
                       color: '#ffffff',
                       display: 'flex',
@@ -359,7 +359,7 @@ const AccountSettings = () => {
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
                       e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                      e.currentTarget.style.background = '#9fb3df';
+                      e.currentTarget.style.background = '#7B83EB';
                     }}
                   >
                     Change Password
@@ -380,7 +380,7 @@ const AccountSettings = () => {
               >
                 <Switch 
                   style={{
-                    backgroundColor: '#9fb3df'
+                    backgroundColor: '#7B83EB'
                   }}
                 />
               </Form.Item>
@@ -392,7 +392,7 @@ const AccountSettings = () => {
               >
                 <Switch 
                   style={{
-                    backgroundColor: '#9fb3df'
+                    backgroundColor: '#7B83EB'
                   }}
                 />
               </Form.Item>
@@ -468,7 +468,7 @@ const AccountSettings = () => {
                   height: '32px',
                   borderRadius: '6px',
                   boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                  background: '#9fb3df',
+                  background: '#7B83EB',
                   border: 'none',
                   color: '#ffffff',
                   display: 'flex',
@@ -485,7 +485,7 @@ const AccountSettings = () => {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                  e.currentTarget.style.background = '#9fb3df';
+                  e.currentTarget.style.background = '#7B83EB';
                 }}
               >
                 Save Changes
@@ -503,7 +503,7 @@ const AccountSettings = () => {
           }
 
           .ant-card-head-title {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 600;
           }
 
@@ -518,7 +518,7 @@ const AccountSettings = () => {
 
           .ant-input-affix-wrapper:hover,
           .ant-input-affix-wrapper:focus {
-            border-color: #9fb3df;
+            border-color: #7B83EB;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2);
           }
 
@@ -529,12 +529,12 @@ const AccountSettings = () => {
 
           .ant-select-selector:hover,
           .ant-select-focused .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
 
           .ant-switch-checked {
-            background-color: #9fb3df !important;
+            background-color: #7B83EB !important;
           }
 
           .ant-divider {
@@ -543,7 +543,7 @@ const AccountSettings = () => {
           }
 
           .ant-divider-inner-text {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 500;
           }
         `}

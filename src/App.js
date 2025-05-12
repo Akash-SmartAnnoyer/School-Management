@@ -258,13 +258,19 @@ function MainLayout() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#9fb3df',
+            background: '#7B83EB',
             margin: '16px',
             borderRadius: '12px',
             overflow: 'hidden',
             transition: 'all 0.3s'
           }}
         >
+          <BookOutlined style={{ 
+            fontSize: collapsed ? '32px' : '24px',
+            color: '#ffffff',
+            marginRight: collapsed ? '0' : '12px',
+            transition: 'all 0.3s'
+          }} />
           <Title 
             level={4} 
             style={{ 
@@ -278,7 +284,7 @@ function MainLayout() {
               borderRadius: '16px'
             }}
           >
-            Smart Schooling
+            Smart School
           </Title>
         </div>
         <Menu
@@ -385,8 +391,8 @@ function MainLayout() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '2px',
-                    background: '#9fb3df',
-                    borderColor: '#9fb3df',
+                    background: '#7B83EB',
+                    borderColor: '#7B83EB',
                     boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                     transition: 'all 0.3s ease'
                   }}
@@ -398,7 +404,7 @@ function MainLayout() {
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                    e.currentTarget.style.background = '#9fb3df';
+                    e.currentTarget.style.background = '#7B83EB';
                   }}
                   size="small"
                 >

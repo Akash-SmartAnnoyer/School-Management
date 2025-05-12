@@ -121,14 +121,14 @@ const AcademicCalendar = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <CalendarOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Academic Calendar
           </Title>
         </Col>
@@ -141,7 +141,7 @@ const AcademicCalendar = () => {
               height: '32px',
               borderRadius: '6px',
               boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-              background: '#9fb3df',
+              background: '#7B83EB',
               border: 'none',
               color: '#ffffff',
               display: 'flex',
@@ -158,7 +158,7 @@ const AcademicCalendar = () => {
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
               e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-              e.currentTarget.style.background = '#9fb3df';
+              e.currentTarget.style.background = '#7B83EB';
             }}
           >
             Add Event
@@ -218,7 +218,7 @@ const AcademicCalendar = () => {
                     actions={[
                       <Button
                         type="text"
-                        icon={<EditOutlined style={{ color: '#9fb3df' }} />}
+                        icon={<EditOutlined style={{ color: '#7B83EB' }} />}
                         onClick={() => handleEditEvent(event)}
                         style={{
                           width: '32px',
@@ -295,7 +295,7 @@ const AcademicCalendar = () => {
                   borderRadius: '12px',
                   boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                   border: '1px solid rgba(159, 179, 223, 0.3)',
-                  background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                  background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                   color: 'white'
                 }}
               >
@@ -319,7 +319,7 @@ const AcademicCalendar = () => {
       <Modal
         title={
           <Space>
-            <CalendarOutlined style={{ fontSize: '20px', color: '#9fb3df' }} />
+            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
             <Typography.Title level={5} style={{ margin: 0 }}>
               {editingEvent ? 'Edit Event' : 'Add Event'}
             </Typography.Title>
@@ -395,12 +395,12 @@ const AcademicCalendar = () => {
           }
 
           .custom-calendar .ant-picker-calendar-header .ant-picker-calendar-mode-switch label {
-            color: #9fb3df;
+            color: #7B83EB;
           }
 
           .custom-calendar .ant-picker-calendar-header .ant-picker-calendar-mode-switch label.ant-radio-button-wrapper-checked {
-            background: #9fb3df;
-            border-color: #9fb3df;
+            background: #7B83EB;
+            border-color: #7B83EB;
           }
 
           .custom-calendar .ant-picker-cell {
@@ -422,7 +422,7 @@ const AcademicCalendar = () => {
           }
 
           .custom-calendar .ant-picker-cell-today .ant-picker-calendar-date {
-            border: 1px solid #9fb3df;
+            border: 1px solid #7B83EB;
           }
 
           .custom-calendar .ant-picker-calendar-date {
@@ -443,7 +443,7 @@ const AcademicCalendar = () => {
           }
 
           .custom-calendar .ant-picker-calendar-date-today .ant-picker-calendar-date-value {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 600;
           }
 
@@ -478,7 +478,7 @@ const AcademicCalendar = () => {
           }
 
           .ant-modal-title {
-            color: #9fb3df;
+            color: #7B83EB;
           }
 
           .ant-modal-body {
@@ -504,19 +504,19 @@ const AcademicCalendar = () => {
           .ant-input:hover,
           .ant-picker:hover,
           .ant-select:hover .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-input:focus,
           .ant-picker-focused,
           .ant-select-focused .ant-select-selector {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
           }
 
           .ant-btn-primary {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
           }
 
           .ant-btn-primary:hover {
@@ -526,11 +526,11 @@ const AcademicCalendar = () => {
 
           .ant-btn-default {
             border-color: rgba(159, 179, 223, 0.3) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
           }
 
           .ant-btn-default:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
             color: #8ba1d1 !important;
           }
         `}

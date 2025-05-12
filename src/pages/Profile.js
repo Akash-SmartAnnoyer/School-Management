@@ -224,14 +224,14 @@ const Profile = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <UserOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <UserOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Profile Settings
           </Title>
         </Col>
@@ -259,7 +259,7 @@ const Profile = () => {
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #9fb3df 0%, #8ba1d1 100%)',
+                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
                 color: 'white'
               }}
             >
@@ -312,7 +312,7 @@ const Profile = () => {
                     {currentUser?.name}
                   </Title>
                   <Tag 
-                    color={currentUser?.role === ROLES.PRINCIPAL ? '#9fb3df' : '#52c41a'}
+                    color={currentUser?.role === ROLES.PRINCIPAL ? '#7B83EB' : '#52c41a'}
                     style={{
                       borderRadius: '4px',
                       padding: '4px 8px',
@@ -423,7 +423,7 @@ const Profile = () => {
                         height: '32px',
                         borderRadius: '6px',
                         boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                        background: '#9fb3df',
+                        background: '#7B83EB',
                         border: 'none',
                         color: '#ffffff',
                         display: 'flex',
@@ -440,7 +440,7 @@ const Profile = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                        e.currentTarget.style.background = '#9fb3df';
+                        e.currentTarget.style.background = '#7B83EB';
                       }}
                     >
                       Save Profile
@@ -481,7 +481,7 @@ const Profile = () => {
                             height: '32px',
                             borderRadius: '6px',
                             boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                            background: '#9fb3df',
+                            background: '#7B83EB',
                             border: 'none',
                             color: '#ffffff',
                             display: 'flex',
@@ -498,7 +498,7 @@ const Profile = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'translateY(0)';
                             e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                            e.currentTarget.style.background = '#9fb3df';
+                            e.currentTarget.style.background = '#7B83EB';
                           }}
                         >
                           Change School Logo
@@ -591,7 +591,7 @@ const Profile = () => {
                           height: '32px',
                           borderRadius: '6px',
                           boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                          background: '#9fb3df',
+                          background: '#7B83EB',
                           border: 'none',
                           color: '#ffffff',
                           display: 'flex',
@@ -608,7 +608,7 @@ const Profile = () => {
                         onMouseLeave={(e) => {
                           e.currentTarget.style.transform = 'translateY(0)';
                           e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                          e.currentTarget.style.background = '#9fb3df';
+                          e.currentTarget.style.background = '#7B83EB';
                         }}
                       >
                         Save School Profile
@@ -732,7 +732,7 @@ const Profile = () => {
                         height: '32px',
                         borderRadius: '6px',
                         boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                        background: '#9fb3df',
+                        background: '#7B83EB',
                         border: 'none',
                         color: '#ffffff',
                         display: 'flex',
@@ -749,7 +749,7 @@ const Profile = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                        e.currentTarget.style.background = '#9fb3df';
+                        e.currentTarget.style.background = '#7B83EB';
                       }}
                     >
                       Change Password
@@ -770,7 +770,7 @@ const Profile = () => {
           }
 
           .ant-card-head-title {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 600;
           }
 
@@ -785,13 +785,13 @@ const Profile = () => {
 
           .ant-input-affix-wrapper:hover,
           .ant-input-affix-wrapper:focus {
-            border-color: #9fb3df;
+            border-color: #7B83EB;
             box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2);
           }
 
           .ant-descriptions-item-label {
             background: rgba(159, 179, 223, 0.1);
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 500;
           }
 
@@ -805,7 +805,7 @@ const Profile = () => {
           }
 
           .ant-divider-inner-text {
-            color: #9fb3df;
+            color: #7B83EB;
             font-weight: 500;
           }
         `}

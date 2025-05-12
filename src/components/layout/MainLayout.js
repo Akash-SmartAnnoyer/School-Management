@@ -129,9 +129,9 @@ const MainLayout = ({ children }) => {
       >
         <div className="side-menu-logo">
           <div className="school-icon">
-            <BookOutlined style={{ fontSize: '24px' }} />
+            <BookOutlined style={{ fontSize: collapsed ? '32px' : '24px' }} />
           </div>
-          <h5>School Management</h5>
+          {!collapsed && <h5>Smart Schooling</h5>}
         </div>
         <Menu
           theme="light"
@@ -162,7 +162,7 @@ const MainLayout = ({ children }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  color: '#9fb3df',
+                  color: '#7B83EB',
                   background: 'transparent',
                   border: 'none',
                 }}
@@ -173,7 +173,7 @@ const MainLayout = ({ children }) => {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = '#9fb3df';
+                  e.currentTarget.style.color = '#7B83EB';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               />
@@ -188,7 +188,7 @@ const MainLayout = ({ children }) => {
                   icon={<UserOutlined />}
                   style={{
                     cursor: 'pointer',
-                    background: '#9fb3df',
+                    background: '#7B83EB',
                     boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                     transition: 'all 0.3s ease',
                   }}

@@ -1199,14 +1199,14 @@ const Students = () => {
       <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
         <Col>
           <Title level={3} style={{ 
-            color: '#9fb3df',
+            color: '#7B83EB',
             margin: 0,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             gap: '8px'
           }}>
-            <TeamOutlined style={{ fontSize: '24px', color: '#9fb3df' }} />
+            <TeamOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
             Students
           </Title>
         </Col>
@@ -1222,7 +1222,7 @@ const Students = () => {
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                 border: '1px solid rgba(159, 179, 223, 0.3)'
               }}
-              prefix={<SearchOutlined style={{ color: '#9fb3df' }} />}
+              prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
             />
             <Button
               type="primary"
@@ -1232,7 +1232,7 @@ const Students = () => {
                 height: '32px',
                 borderRadius: '6px',
                 boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#9fb3df',
+                background: '#7B83EB',
                 border: 'none',
                 color: '#ffffff',
                 display: 'flex',
@@ -1249,7 +1249,7 @@ const Students = () => {
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#9fb3df';
+                e.currentTarget.style.background = '#7B83EB';
               }}
             >
               Add Student
@@ -1309,7 +1309,7 @@ const Students = () => {
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
-                <span style={{ color: '#9fb3df', fontWeight: 500 }}>{selectedRowKeys.length} students selected</span>
+                <span style={{ color: '#7B83EB', fontWeight: 500 }}>{selectedRowKeys.length} students selected</span>
               </Space>
             </Col>
             <Col>
@@ -1318,8 +1318,8 @@ const Students = () => {
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
                   style={{
-                    background: '#9fb3df',
-                    borderColor: '#9fb3df',
+                    background: '#7B83EB',
+                    borderColor: '#7B83EB',
                     boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                     display: 'flex',
                     alignItems: 'center',
@@ -1469,7 +1469,7 @@ const Students = () => {
           
           .custom-table .ant-table-thead > tr > th {
             background: rgba(159, 179, 223, 0.1) !important;
-            color: #9fb3df !important;
+            color: #7B83EB !important;
             font-weight: 600;
             border-bottom: 2px solid rgba(159, 179, 223, 0.2);
             padding: 2px 12px !important;
@@ -1519,8 +1519,8 @@ const Students = () => {
           }
           
           .custom-table .ant-pagination-item-active {
-            background: #9fb3df !important;
-            border-color: #9fb3df !important;
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
           }
           
           .custom-table .ant-pagination-item-active a {
@@ -1528,7 +1528,7 @@ const Students = () => {
           }
           
           .custom-table .ant-pagination-item:hover {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
           
           .custom-table .ant-pagination-prev .ant-pagination-item-link,
@@ -1542,8 +1542,8 @@ const Students = () => {
           
           .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
           .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #9fb3df !important;
-            color: #9fb3df !important;
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
           }
 
           .custom-table .ant-table-cell {
@@ -1574,16 +1574,16 @@ const Students = () => {
           .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
           .custom-table .ant-checkbox:hover .ant-checkbox-inner,
           .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
-            border-color: #9fb3df !important;
+            border-color: #7B83EB !important;
           }
 
           .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #9fb3df !important;
-            border-color: #9fb3df !important;
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
           }
 
           .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #9fb3df !important;
+            background-color: #7B83EB !important;
           }
         `}
       </style>
