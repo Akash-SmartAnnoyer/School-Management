@@ -573,10 +573,10 @@ const Students = () => {
           gender: studentData.gender,
           dob: studentData.dob ? moment(studentData.dob) : null,
           address: studentData.profile?.address,
-          blood_group: studentData.profile?.blood_group,
+          blood_group: studentData.profile.blood_group,
           profile: {
             nationality: studentData.profile?.nationality,
-            classroom_id: studentData.profile?.classroom_id,
+            classroom_id: studentData.student_profile?.classroom,
             class_name: studentData.profile?.class_name
           },
           student_id: studentData.student_profile?.student_id,
