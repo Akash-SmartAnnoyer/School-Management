@@ -555,7 +555,7 @@ const Dashboard = () => {
                 columnStyle={{
                   radius: [4, 4, 0, 0],
                 }}
-                color={['#52c41a', '#ff4d4f']}
+                color={['#7B83EB', '#FF6B6B']}
                 label={{
                   position: 'top',
                   style: {
@@ -924,7 +924,7 @@ const Dashboard = () => {
               columnStyle={{
                 radius: [4, 4, 0, 0],
               }}
-              color={['#52c41a', '#ff4d4f']}
+              color={['#7B83EB', '#FF6B6B']}
               label={{
                 position: 'top',
                 style: {
