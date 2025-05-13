@@ -776,83 +776,136 @@ const Dashboard = () => {
       <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
         <Col xs={24}>
           <Card
-            title="Quick Actions"
+            title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BarChartOutlined style={{ color: '#7B83EB', fontSize: '20px' }} />
+                <span>Quick Actions</span>
+              </div>
+            }
             style={{
               borderRadius: '12px',
               boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
               border: '1px solid rgba(159, 179, 223, 0.3)'
             }}
           >
-            <Space wrap>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/students')}
-                style={{
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  height: '40px',
-                  padding: '0 20px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                Add New Student
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/teachers')}
-                style={{
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  height: '40px',
-                  padding: '0 20px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                Add New Teacher
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/classes')}
-                style={{
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  height: '40px',
-                  padding: '0 20px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                Add New Class
-              </Button>
-              <Button
-                type="primary"
-                icon={<CheckSquareOutlined />}
-                onClick={() => navigate('/attendance')}
-                style={{
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  height: '40px',
-                  padding: '0 20px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                Mark Attendance
-              </Button>
-            </Space>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  hoverable
+                  onClick={() => navigate('/students')}
+                  style={{
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    height: '100%',
+                    transition: 'all 0.3s ease'
+                  }}
+                  bodyStyle={{ padding: '24px', height: '100%' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                      background: 'rgba(255, 255, 255, 0.2)', 
+                      padding: '16px', 
+                      borderRadius: '12px',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Student</h3>
+                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Register a new student</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  hoverable
+                  onClick={() => navigate('/teachers')}
+                  style={{
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    height: '100%',
+                    transition: 'all 0.3s ease'
+                  }}
+                  bodyStyle={{ padding: '24px', height: '100%' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                      background: 'rgba(255, 255, 255, 0.2)', 
+                      padding: '16px', 
+                      borderRadius: '12px',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      <UserOutlined style={{ fontSize: '32px', color: 'white' }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Teacher</h3>
+                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Register a new teacher</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  hoverable
+                  onClick={() => navigate('/classes')}
+                  style={{
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    height: '100%',
+                    transition: 'all 0.3s ease'
+                  }}
+                  bodyStyle={{ padding: '24px', height: '100%' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                      background: 'rgba(255, 255, 255, 0.2)', 
+                      padding: '16px', 
+                      borderRadius: '12px',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      <BookOutlined style={{ fontSize: '32px', color: 'white' }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Class</h3>
+                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Create a new class</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  hoverable
+                  onClick={() => navigate('/attendance')}
+                  style={{
+                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    height: '100%',
+                    transition: 'all 0.3s ease'
+                  }}
+                  bodyStyle={{ padding: '24px', height: '100%' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ 
+                      background: 'rgba(255, 255, 255, 0.2)', 
+                      padding: '16px', 
+                      borderRadius: '12px',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      <CheckSquareOutlined style={{ fontSize: '32px', color: 'white' }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Mark Attendance</h3>
+                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Record daily attendance</p>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
