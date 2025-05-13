@@ -334,15 +334,15 @@ const MainLayout = ({ children }) => {
         </Header>
         <Content 
           style={{ 
-            margin: '24px 16px', 
-            padding: 24, 
+            margin: '16px',
+            padding: '16px',
             background: 'var(--surface-color)',
             borderRadius: '16px',
             boxShadow: '0 2px 8px var(--shadow-color)',
-            minHeight: 'calc(100vh - 112px)',
+            minHeight: 'calc(100vh - 96px)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             position: 'relative',
-            overflow: 'hidden',
+            overflow: 'auto',
           }}
         >
           {children}

@@ -283,84 +283,15 @@ const Dashboard = () => {
   const nextHoliday = getNextHoliday();
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#7B83EB',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <BarChartOutlined style={{ fontSize: '24px', color: '#7B83EB', fontWeight: 'bold'}} />
-            School Dashboard
-          </Title>
-        </Col>
-        {/* <Col>
-          <Space>
-            <Button
-              type="primary"
-              icon={<DownloadOutlined />}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#7B83EB',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#7B83EB';
-              }}
-              onClick={handleUploadSampleData}
-            >
-              Upload Sample Data
-            </Button>
-          </Space>
-        </Col> */}
-      </Row>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <Title level={3}>
+          <BarChartOutlined /> School Dashboard
+        </Title>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
-        <Carousel autoplay className="dashboard-carousel">
+      <div className="dashboard-carousel">
+        <Carousel autoplay>
           <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")' }}>
             <div className="carousel-content">
               <h2>Welcome to Smart School</h2>
@@ -386,53 +317,47 @@ const Dashboard = () => {
             </div>
           </div>
         </Carousel>
+      </div>
 
-        <Row gutter={[16, 16]} style={{ padding: '16px' }}>
+      <div className="dashboard-stats">
+        <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
-            <Card
-              className="dashboard-stat-card"
-              onClick={() => navigate('/students')}
-            >
+            <div className="stat-card gradient-primary" onClick={() => navigate('/students')}>
               <Statistic
                 title="Total Students"
                 value={students.length}
                 prefix={<TeamOutlined />}
+                valueStyle={{ color: 'white' }}
               />
-            </Card>
+            </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card
-              className="dashboard-stat-card"
-              onClick={() => navigate('/teachers')}
-            >
+            <div className="stat-card gradient-primary" onClick={() => navigate('/teachers')}>
               <Statistic
                 title="Total Teachers"
                 value={teachers.length}
                 prefix={<TeamOutlined />}
+                valueStyle={{ color: 'white' }}
               />
-            </Card>
+            </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card
-              className="dashboard-stat-card"
-              onClick={() => navigate('/classes')}
-            >
+            <div className="stat-card gradient-primary" onClick={() => navigate('/classes')}>
               <Statistic
                 title="Total Classes"
                 value={classes.length}
                 prefix={<BookOutlined />}
+                valueStyle={{ color: 'white' }}
               />
-            </Card>
+            </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card
-              className="dashboard-stat-card"
-              onClick={() => navigate('/attendance')}
-            >
+            <div className="stat-card gradient-primary attendance-card">
               <Statistic
                 title="Today's Attendance"
                 value={`${presentCount}/${presentCount + absentCount}`}
                 prefix={<CalendarOutlined />}
+                valueStyle={{ color: 'white' }}
                 suffix={
                   <Progress 
                     type="circle" 
@@ -443,620 +368,395 @@ const Dashboard = () => {
                   />
                 }
               />
-            </Card>
+            </div>
           </Col>
         </Row>
+      </div>
 
-        <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
+      <div className="dashboard-main">
+        <Row gutter={[16, 16]}>
           <Col xs={24} lg={16}>
-            <Card
-              title="Today's Attendance Summary"
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                height: '100%'
-              }}
-              bodyStyle={{ height: 'calc(100% - 57px)', display: 'flex', flexDirection: 'column' }}
-            >
-              <Row gutter={[16, 16]} style={{ flex: 1 }}>
-                <Col span={12}>
-                  <div className="attendance-chart" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Pie
-                      data={attendanceData}
-                      angleField="value"
-                      colorField="type"
-                      radius={0.8}
-                      label={{
-                        content: '{name} {percentage}%',
-                        style: {
-                          fontSize: 14,
-                          textAlign: 'center',
-                          fill: '#fff'
-                        }
-                      }}
-                      color={['#52c41a', '#ff4d4f']}
-                    />
-                  </div>
-                </Col>
-                <Col span={12}>
-                  <div className="attendance-stats" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div className="attendance-stat">
-                      <span className="stat-label">Present</span>
-                      <span className="stat-value present">{presentCount}</span>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Today's Attendance Summary</Title>
+              </div>
+              <div className="section-content">
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <div className="attendance-chart">
+                      <Pie
+                        data={attendanceData}
+                        angleField="value"
+                        colorField="type"
+                        radius={0.8}
+                        label={{
+                          content: '{name} {percentage}%',
+                          style: {
+                            fontSize: 14,
+                            textAlign: 'center',
+                            fill: '#fff'
+                          }
+                        }}
+                        color={['#52c41a', '#ff4d4f']}
+                      />
                     </div>
-                    <div className="attendance-stat">
-                      <span className="stat-label">Absent</span>
-                      <span className="stat-value absent">{absentCount}</span>
+                  </Col>
+                  <Col span={12}>
+                    <div className="attendance-stats">
+                      <div className="attendance-stat">
+                        <span className="stat-label">Present</span>
+                        <span className="stat-value present">{presentCount}</span>
+                      </div>
+                      <div className="attendance-stat">
+                        <span className="stat-label">Absent</span>
+                        <span className="stat-value absent">{absentCount}</span>
+                      </div>
                     </div>
-                  </div>
-                </Col>
-              </Row>
-            </Card>
+                  </Col>
+                </Row>
+              </div>
+            </div>
           </Col>
           <Col xs={24} lg={8}>
-            <Card
-              title="Recent Transactions"
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                height: '100%'
-              }}
-              bodyStyle={{ height: 'calc(100% - 57px)', padding: '0' }}
-            >
-              <Table
-                columns={transactionColumns}
-                dataSource={recentTransactions}
-                rowKey="id"
-                pagination={false}
-                size="small"
-                style={{
-                  borderRadius: '8px',
-                  overflow: 'hidden'
-                }}
-                scroll={{ y: 'calc(100% - 39px)' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-          <Col xs={24} lg={12}>
-            <Card
-              title="Monthly Finance Overview"
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                height: '100%'
-              }}
-              bodyStyle={{ height: '300px', padding: '12px' }}
-            >
-              <Column
-                data={financeChartData}
-                xField="date"
-                yField="value"
-                seriesField="type"
-                isGroup={true}
-                height={276}
-                columnStyle={{
-                  radius: [4, 4, 0, 0],
-                }}
-                color={['#7B83EB', '#FF6B6B']}
-                label={{
-                  position: 'top',
-                  style: {
-                    fill: '#666',
-                    opacity: 0.8,
-                    fontSize: 12,
-                    fontWeight: 'bold',
-                  },
-                  formatter: (text) => `₹${(text.value / 1000).toFixed(1)}K`
-                }}
-                legend={{
-                  position: 'top',
-                  itemName: {
-                    style: {
-                      fill: '#666',
-                      fontSize: 12,
-                    },
-                  },
-                }}
-                xAxis={{
-                  label: {
-                    autoHide: true,
-                    autoRotate: false,
-                    style: {
-                      fill: '#666',
-                      fontSize: 12,
-                    },
-                  },
-                  line: {
-                    style: {
-                      stroke: '#ddd',
-                    },
-                  },
-                }}
-                yAxis={{
-                  label: {
-                    formatter: (value) => `₹${(value / 1000).toFixed(0)}K`,
-                    style: {
-                      fill: '#666',
-                      fontSize: 12,
-                    },
-                  },
-                  grid: {
-                    line: {
-                      style: {
-                        stroke: '#f0f0f0',
-                        lineDash: [4, 4],
-                      },
-                    },
-                  },
-                }}
-                tooltip={{
-                  formatter: (datum) => {
-                    return {
-                      name: datum.type,
-                      value: `₹${datum.value.toLocaleString()}`,
-                    };
-                  },
-                }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} lg={12}>
-            <Card
-              title="Student Growth Trend"
-              style={{
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                height: '100%'
-              }}
-              bodyStyle={{ height: '300px', padding: '12px' }}
-            >
-              <Line
-                data={[
-                  { month: 'Jan', students: 150 },
-                  { month: 'Feb', students: 165 },
-                  { month: 'Mar', students: 180 },
-                  { month: 'Apr', students: 190 },
-                  { month: 'May', students: 200 },
-                  { month: 'Jun', students: students.length },
-                ]}
-                xField="month"
-                yField="students"
-                height={276}
-                smooth
-                point={{
-                  size: 5,
-                  shape: 'diamond',
-                }}
-                label={{
-                  style: {
-                    fill: '#666',
-                    fontSize: 12,
-                  },
-                }}
-                xAxis={{
-                  label: {
-                    style: {
-                      fill: '#666',
-                      fontSize: 12,
-                    },
-                  },
-                }}
-                yAxis={{
-                  label: {
-                    style: {
-                      fill: '#666',
-                      fontSize: 12,
-                    },
-                  },
-                  grid: {
-                    line: {
-                      style: {
-                        stroke: '#f0f0f0',
-                        lineDash: [4, 4],
-                      },
-                    },
-                  },
-                }}
-                tooltip={{
-                  formatter: (datum) => {
-                    return {
-                      name: 'Students',
-                      value: datum.students,
-                    };
-                  },
-                }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-        <Col xs={24} sm={12} md={6}>
-          <Card
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)',
-              background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-              color: 'white'
-            }}
-          >
-            <Statistic
-              title={<span style={{ color: 'white' }}>Library Books</span>}
-              value={libraryStats.totalBooks}
-              prefix={<BookOutlined style={{ color: 'white' }} />}
-              valueStyle={{ color: 'white' }}
-            />
-          </Card>
-        </Col>
-      </Row> */}
-
-      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-        <Col xs={24} md={12}>
-          <Card
-            title="Recent Notifications"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-          >
-            <List
-              dataSource={notifications}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar style={{ 
-                        backgroundColor: item.priority === 'high' ? '#ff4d4f' : 
-                                       item.priority === 'medium' ? '#faad14' : '#52c41a' 
-                      }}>
-                        {item.type.charAt(0).toUpperCase()}
-                      </Avatar>
-                    }
-                    title={item.message}
-                    description={moment(item.date).format('MMM DD, YYYY')}
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} md={12}>
-          <Card
-            title="Upcoming Events & Exams"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-          >
-            <List
-              dataSource={[...upcomingExams, ...calendarEvents.filter(event => 
-                moment(event.date).isAfter(moment()) && 
-                ['EXAM', 'EVENT', 'HOLIDAY'].includes(event.type)
-              )].sort((a, b) => moment(a.date).diff(moment(b.date)))}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar style={{ 
-                        backgroundColor: 
-                          item.type === 'EXAM' ? '#7B83EB' :
-                          item.type === 'EVENT' ? '#52c41a' :
-                          item.type === 'HOLIDAY' ? '#faad14' : '#1890ff'
-                      }}>
-                        {item.type === 'EXAM' ? 'E' :
-                         item.type === 'EVENT' ? 'E' :
-                         item.type === 'HOLIDAY' ? 'H' : 'O'}
-                      </Avatar>
-                    }
-                    title={item.type === 'EXAM' ? item.subject : item.title}
-                    description={
-                      item.type === 'EXAM' 
-                        ? `${moment(item.date).format('MMM DD, YYYY')} at ${item.time} (${item.duration})`
-                        : `${moment(item.date).format('MMM DD, YYYY')} - ${item.description}`
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-        <Col xs={24}>
-          <Card
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BarChartOutlined style={{ color: '#7B83EB', fontSize: '20px' }} />
-                <span>Quick Actions</span>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Recent Transactions</Title>
               </div>
-            }
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-          >
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={6}>
-                <Card
-                  hoverable
-                  onClick={() => navigate('/students')}
-                  style={{
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    height: '100%',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '24px', height: '100%' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                      background: 'rgba(255, 255, 255, 0.2)', 
-                      padding: '16px', 
-                      borderRadius: '12px',
-                      backdropFilter: 'blur(4px)'
-                    }}>
-                      <TeamOutlined style={{ fontSize: '32px', color: 'white' }} />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Student</h3>
-                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Register a new student</p>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card
-                  hoverable
-                  onClick={() => navigate('/teachers')}
-                  style={{
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    height: '100%',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '24px', height: '100%' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                      background: 'rgba(255, 255, 255, 0.2)', 
-                      padding: '16px', 
-                      borderRadius: '12px',
-                      backdropFilter: 'blur(4px)'
-                    }}>
-                      <UserOutlined style={{ fontSize: '32px', color: 'white' }} />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Teacher</h3>
-                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Register a new teacher</p>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card
-                  hoverable
-                  onClick={() => navigate('/classes')}
-                  style={{
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    height: '100%',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '24px', height: '100%' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                      background: 'rgba(255, 255, 255, 0.2)', 
-                      padding: '16px', 
-                      borderRadius: '12px',
-                      backdropFilter: 'blur(4px)'
-                    }}>
-                      <BookOutlined style={{ fontSize: '32px', color: 'white' }} />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Add New Class</h3>
-                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Create a new class</p>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card
-                  hoverable
-                  onClick={() => navigate('/attendance')}
-                  style={{
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    height: '100%',
-                    transition: 'all 0.3s ease'
-                  }}
-                  bodyStyle={{ padding: '24px', height: '100%' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                      background: 'rgba(255, 255, 255, 0.2)', 
-                      padding: '16px', 
-                      borderRadius: '12px',
-                      backdropFilter: 'blur(4px)'
-                    }}>
-                      <CheckSquareOutlined style={{ fontSize: '32px', color: 'white' }} />
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                      <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Mark Attendance</h3>
-                      <p style={{ color: 'rgba(255, 255, 255, 0.8)', margin: '8px 0 0 0' }}>Record daily attendance</p>
-                    </div>
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-        <Col xs={24} md={12}>
-          <Card
-            title="Library Statistics"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)',
-              height: '100%'
-            }}
-            bodyStyle={{ height: '300px', padding: '12px' }}
-          >
-            <Row gutter={[16, 16]} style={{ height: '100%' }}>
-              <Col span={8}>
-                <Card
-                  style={{
-                    background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                    color: 'white',
-                    height: '100%'
-                  }}
-                >
-                  <Statistic
-                    title={<span style={{ color: 'white' }}>Total Books</span>}
-                    value={libraryStats.totalBooks}
-                    prefix={<BookOutlined style={{ color: 'white' }} />}
-                    valueStyle={{ color: 'white' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Statistic
-                    title="Issued Books"
-                    value={libraryStats.issuedBooks}
-                    prefix={<BookOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={8}>
-                <Card
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Statistic
-                    title="Recent Additions"
-                    value={libraryStats.recentAdditions}
-                    prefix={<BookOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={24}>
-                <Title level={5}>Popular Categories</Title>
-                <Space wrap>
-                  {libraryStats.popularCategories?.map(category => (
-                    <Tag color="#7B83EB" key={category}>{category}</Tag>
-                  ))}
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col xs={24} md={12}>
-          <Card
-            title="Transport Statistics"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)',
-              height: '100%'
-            }}
-            bodyStyle={{ height: '300px', padding: '12px' }}
-          >
-            <Row gutter={[16, 16]} style={{ height: '100%' }}>
-              <Col span={12}>
-                <Card
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Statistic
-                    title="Total Buses"
-                    value={transportStats.totalBuses}
-                    prefix={<CarOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Statistic
-                    title="Active Routes"
-                    value={transportStats.activeRoutes}
-                    prefix={<CarOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={24} style={{ flex: 1, overflow: 'auto' }}>
-                <Title level={5}>Route Details</Title>
-                <List
+              <div className="section-content">
+                <Table
+                  columns={transactionColumns}
+                  dataSource={recentTransactions}
+                  rowKey="id"
+                  pagination={false}
                   size="small"
-                  dataSource={transportStats.routes}
+                  scroll={{ y: 'calc(100% - 39px)' }}
+                />
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      <div className="dashboard-charts">
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Monthly Finance Overview</Title>
+              </div>
+              <div className="section-content">
+                <Column
+                  data={financeChartData}
+                  xField="date"
+                  yField="value"
+                  seriesField="type"
+                  isGroup={true}
+                  height={276}
+                  columnStyle={{
+                    radius: [4, 4, 0, 0],
+                  }}
+                  color={['#7B83EB', '#FF6B6B']}
+                  label={{
+                    position: 'top',
+                    style: {
+                      fill: '#666',
+                      opacity: 0.8,
+                      fontSize: 12,
+                      fontWeight: 'bold',
+                    },
+                    formatter: (text) => `₹${(text.value / 1000).toFixed(1)}K`
+                  }}
+                  legend={{
+                    position: 'top',
+                    itemName: {
+                      style: {
+                        fill: '#666',
+                        fontSize: 12,
+                      },
+                    },
+                  }}
+                  xAxis={{
+                    label: {
+                      autoHide: true,
+                      autoRotate: false,
+                      style: {
+                        fill: '#666',
+                        fontSize: 12,
+                      },
+                    },
+                    line: {
+                      style: {
+                        stroke: '#ddd',
+                      },
+                    },
+                  }}
+                  yAxis={{
+                    label: {
+                      formatter: (value) => `₹${(value / 1000).toFixed(0)}K`,
+                      style: {
+                        fill: '#666',
+                        fontSize: 12,
+                      },
+                    },
+                    grid: {
+                      line: {
+                        style: {
+                          stroke: '#f0f0f0',
+                          lineDash: [4, 4],
+                        },
+                      },
+                    },
+                  }}
+                  tooltip={{
+                    formatter: (datum) => {
+                      return {
+                        name: datum.type,
+                        value: `₹${datum.value.toLocaleString()}`,
+                      };
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} lg={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Student Growth Trend</Title>
+              </div>
+              <div className="section-content">
+                <Line
+                  data={[
+                    { month: 'Jan', students: 150 },
+                    { month: 'Feb', students: 165 },
+                    { month: 'Mar', students: 180 },
+                    { month: 'Apr', students: 190 },
+                    { month: 'May', students: 200 },
+                    { month: 'Jun', students: students.length },
+                  ]}
+                  xField="month"
+                  yField="students"
+                  height={276}
+                  smooth
+                  point={{
+                    size: 5,
+                    shape: 'diamond',
+                  }}
+                  label={{
+                    style: {
+                      fill: '#666',
+                      fontSize: 12,
+                    },
+                  }}
+                  xAxis={{
+                    label: {
+                      style: {
+                        fill: '#666',
+                        fontSize: 12,
+                      },
+                    },
+                  }}
+                  yAxis={{
+                    label: {
+                      style: {
+                        fill: '#666',
+                        fontSize: 12,
+                      },
+                    },
+                    grid: {
+                      line: {
+                        style: {
+                          stroke: '#f0f0f0',
+                          lineDash: [4, 4],
+                        },
+                      },
+                    },
+                  }}
+                  tooltip={{
+                    formatter: (datum) => {
+                      return {
+                        name: 'Students',
+                        value: datum.students,
+                      };
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      <div className="dashboard-info">
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Recent Activities</Title>
+              </div>
+              <div className="section-content">
+                <Timeline>
+                  {recentActivities.map(activity => (
+                    <Timeline.Item 
+                      key={activity.id}
+                      color={
+                        activity.type === 'attendance' ? '#7B83EB' :
+                        activity.type === 'fee' ? '#52c41a' :
+                        activity.type === 'exam' ? '#faad14' : '#1890ff'
+                      }
+                    >
+                      <p>{activity.message}</p>
+                      <small>{activity.time}</small>
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} md={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Upcoming Events & Exams</Title>
+              </div>
+              <div className="section-content">
+                <List
+                  dataSource={[...upcomingExams, ...calendarEvents.filter(event => 
+                    moment(event.date).isAfter(moment()) && 
+                    ['EXAM', 'EVENT', 'HOLIDAY'].includes(event.type)
+                  )].sort((a, b) => moment(a.date).diff(moment(b.date)))}
                   renderItem={item => (
                     <List.Item>
                       <List.Item.Meta
-                        title={item.route}
-                        description={`${item.students} students • ${item.distance}`}
+                        avatar={
+                          <Avatar style={{ 
+                            backgroundColor: 
+                              item.type === 'EXAM' ? '#7B83EB' :
+                              item.type === 'EVENT' ? '#52c41a' :
+                              item.type === 'HOLIDAY' ? '#faad14' : '#1890ff'
+                          }}>
+                            {item.type === 'EXAM' ? 'E' :
+                             item.type === 'EVENT' ? 'E' :
+                             item.type === 'HOLIDAY' ? 'H' : 'O'}
+                          </Avatar>
+                        }
+                        title={item.type === 'EXAM' ? item.subject : item.title}
+                        description={
+                          item.type === 'EXAM' 
+                            ? `${moment(item.date).format('MMM DD, YYYY')} at ${item.time} (${item.duration})`
+                            : `${moment(item.date).format('MMM DD, YYYY')} - ${item.description}`
+                        }
                       />
                     </List.Item>
                   )}
                 />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
 
-      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-        <Col span={24}>
-          <Card
-            title="Fee Collection Overview"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-            bodyStyle={{ height: '300px', padding: '12px' }}
-          >
+      <div className="dashboard-stats-extended">
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Library Statistics</Title>
+              </div>
+              <div className="section-content">
+                <Row gutter={[16, 16]}>
+                  <Col span={8}>
+                    <div className="stat-card gradient-primary">
+                      <Statistic
+                        title="Total Books"
+                        value={libraryStats.totalBooks}
+                        prefix={<BookOutlined />}
+                        valueStyle={{ color: 'white' }}
+                      />
+                    </div>
+                  </Col>
+                  <Col span={8}>
+                    <div className="stat-card">
+                      <Statistic
+                        title="Issued Books"
+                        value={libraryStats.issuedBooks}
+                        prefix={<BookOutlined />}
+                      />
+                    </div>
+                  </Col>
+                  <Col span={8}>
+                    <div className="stat-card">
+                      <Statistic
+                        title="Recent Additions"
+                        value={libraryStats.recentAdditions}
+                        prefix={<BookOutlined />}
+                      />
+                    </div>
+                  </Col>
+                  <Col span={24}>
+                    <Title level={5}>Popular Categories</Title>
+                    <Space wrap>
+                      {libraryStats.popularCategories?.map(category => (
+                        <Tag color="#7B83EB" key={category}>{category}</Tag>
+                      ))}
+                    </Space>
+                  </Col>
+                </Row>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} md={12}>
+            <div className="dashboard-section">
+              <div className="section-header">
+                <Title level={4}>Transport Statistics</Title>
+              </div>
+              <div className="section-content">
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <div className="stat-card">
+                      <Statistic
+                        title="Total Buses"
+                        value={transportStats.totalBuses}
+                        prefix={<CarOutlined />}
+                      />
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div className="stat-card">
+                      <Statistic
+                        title="Active Routes"
+                        value={transportStats.activeRoutes}
+                        prefix={<CarOutlined />}
+                      />
+                    </div>
+                  </Col>
+                  <Col span={24}>
+                    <Title level={5}>Route Details</Title>
+                    <List
+                      size="small"
+                      dataSource={transportStats.routes}
+                      renderItem={item => (
+                        <List.Item>
+                          <List.Item.Meta
+                            title={item.route}
+                            description={`${item.students} students • ${item.distance}`}
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      <div className="dashboard-fee">
+        <div className="dashboard-section">
+          <div className="section-header">
+            <Title level={4}>Fee Collection Overview</Title>
+          </div>
+          <div className="section-content">
             <Column
               data={feeCollection}
               xField="month"
@@ -1127,104 +827,88 @@ const Dashboard = () => {
                   };
                 },
               }}
-              interactions={[
-                {
-                  type: 'active-region',
-                  enable: false,
-                },
-              ]}
-              animation={{
-                appear: {
-                  animation: 'wave-in',
-                  duration: 1000,
-                },
-              }}
             />
-          </Card>
-        </Col>
-      </Row>
+          </div>
+        </div>
+      </div>
 
-      <Row gutter={[16, 16]} style={{ padding: '0 16px 16px 16px' }}>
-        <Col span={24}>
-          <Card
-            title="Recent Activities"
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-          >
-            <Timeline>
-              {recentActivities.map(activity => (
-                <Timeline.Item 
-                  key={activity.id}
-                  color={
-                    activity.type === 'attendance' ? '#7B83EB' :
-                    activity.type === 'fee' ? '#52c41a' :
-                    activity.type === 'exam' ? '#faad14' : '#1890ff'
-                  }
-                >
-                  <p>{activity.message}</p>
-                  <small>{activity.time}</small>
-                </Timeline.Item>
-              ))}
-            </Timeline>
-          </Card>
-        </Col>
-      </Row>
+      <div className="dashboard-actions">
+        <div className="section-header">
+          <Title level={4}><BarChartOutlined /> Quick Actions</Title>
+        </div>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={6}>
+            <div className="action-card" onClick={() => navigate('/students')}>
+              <div className="action-icon">
+                <TeamOutlined />
+              </div>
+              <div className="action-content">
+                <h3>Add New Student</h3>
+                <p>Register a new student</p>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <div className="action-card" onClick={() => navigate('/teachers')}>
+              <div className="action-icon">
+                <UserOutlined />
+              </div>
+              <div className="action-content">
+                <h3>Add New Teacher</h3>
+                <p>Register a new teacher</p>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <div className="action-card" onClick={() => navigate('/classes')}>
+              <div className="action-icon">
+                <BookOutlined />
+              </div>
+              <div className="action-content">
+                <h3>Add New Class</h3>
+                <p>Create a new class</p>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <div className="action-card" onClick={() => navigate('/attendance')}>
+              <div className="action-icon">
+                <CalendarOutlined />
+              </div>
+              <div className="action-content">
+                <h3>Mark Attendance</h3>
+                <p>Record daily attendance</p>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </div>
 
       <style>
         {`
-          .ant-card-head {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.2);
-            padding: 16px 24px;
+          .dashboard-container {
+            padding: 16px;
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px var(--shadow-color);
           }
 
-          .ant-card-head-title {
+          .dashboard-header {
+            margin-bottom: 24px;
+          }
+
+          .dashboard-header h3 {
             color: #7B83EB;
-            font-weight: 600;
-          }
-
-          .ant-table {
-            border-radius: 8px;
-            overflow: hidden;
-          }
-
-          .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-          }
-
-          .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .ant-tag {
-            border-radius: 4px;
-            padding: 0 8px;
-            height: 24px;
-            line-height: 22px;
-            font-weight: 500;
-          }
-
-          .ant-statistic-title {
-            color: rgba(255, 255, 255, 0.85);
-          }
-
-          .ant-statistic-content {
-            color: white;
-          }
-
-          .ant-progress-text {
-            color: white !important;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
 
           .dashboard-carousel {
             margin-bottom: 24px;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(159, 179, 223, 0.15);
           }
 
           .carousel-slide {
@@ -1232,7 +916,6 @@ const Dashboard = () => {
             background-size: cover;
             background-position: center;
             position: relative;
-            transition: all 0.3s ease;
           }
 
           .carousel-content {
@@ -1246,7 +929,6 @@ const Dashboard = () => {
             padding: 20px;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
-            transition: all 0.3s ease;
           }
 
           .carousel-content h2 {
@@ -1254,57 +936,53 @@ const Dashboard = () => {
             margin-bottom: 16px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             font-weight: 700;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s ease forwards;
           }
 
           .carousel-content p {
             font-size: 1.2rem;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s ease 0.2s forwards;
           }
 
-          @keyframes fadeInUp {
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+          .dashboard-stats {
+            margin-bottom: 24px;
           }
 
-          .ant-carousel .slick-dots li button {
-            background: #fff;
-            opacity: 0.4;
+          .stat-card {
+            padding: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
           }
 
-          .ant-carousel .slick-dots li.slick-active button {
-            opacity: 1;
-            background: #7B83EB;
+          .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
           }
 
-          .ant-carousel .slick-prev,
-          .ant-carousel .slick-next {
-            z-index: 1;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-radius: 50%;
-            backdrop-filter: blur(4px);
+          .gradient-primary {
+            background: linear-gradient(135deg, #7B83EB 0%, #9FA3DF 100%);
+            color: white;
           }
 
-          .ant-carousel .slick-prev:hover,
-          .ant-carousel .slick-next:hover {
-            background: rgba(255, 255, 255, 0.3) !important;
+          .dashboard-section {
+            background: var(--surface-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            height: 100%;
           }
 
-          .ant-carousel .slick-prev {
-            left: 20px;
+          .section-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
           }
 
-          .ant-carousel .slick-next {
-            right: 20px;
+          .section-header h4 {
+            margin: 0;
+            color: #7B83EB;
+          }
+
+          .section-content {
+            padding: 24px;
           }
 
           .attendance-chart {
@@ -1358,30 +1036,135 @@ const Dashboard = () => {
           }
 
           .stat-value.present {
-            color: #52c41a;
+            color: #7B83EB;
           }
 
           .stat-value.absent {
-            color: #ff4d4f;
+            color: #FF6B6B;
           }
 
-          .next-holiday-info {
-            text-align: center;
+          .action-card {
+            background: linear-gradient(135deg, #7B83EB 0%, #9FA3DF 100%);
+            padding: 24px;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+          }
+
+          .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+          }
+
+          .action-icon {
+            background: rgba(255, 255, 255, 0.2);
             padding: 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
           }
 
-          .next-holiday-info h3 {
-            margin: 0 0 8px 0;
-            font-size: 20px;
+          .action-icon .anticon {
+            font-size: 32px;
+            color: white;
+          }
+
+          .action-content {
+            text-align: center;
+          }
+
+          .action-content h3 {
+            margin: 0;
+            font-size: 18px;
             font-weight: 500;
-            color: white;
           }
 
-          .next-holiday-info p {
-            margin: 4px 0;
-            font-size: 16px;
-            opacity: 0.9;
-            color: white;
+          .action-content p {
+            margin: 8px 0 0 0;
+            color: rgba(255, 255, 255, 0.8);
+          }
+
+          .ant-table {
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
+          }
+
+          .ant-table-tbody > tr:hover > td {
+            background: rgba(123, 131, 235, 0.05) !important;
+          }
+
+          .ant-list-item {
+            padding: 12px 0;
+          }
+
+          .ant-list-item-meta-title {
+            color: var(--text-primary);
+            font-weight: 500;
+          }
+
+          .ant-list-item-meta-description {
+            color: var(--text-secondary);
+          }
+
+          .ant-avatar {
+            background: #7B83EB;
+          }
+
+          .dashboard-stats-extended {
+            margin-bottom: 24px;
+          }
+
+          .dashboard-fee {
+            margin-bottom: 24px;
+          }
+
+          .ant-timeline-item-content {
+            margin-left: 28px;
+          }
+
+          .ant-timeline-item-content p {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 500;
+          }
+
+          .ant-timeline-item-content small {
+            color: var(--text-secondary);
+            font-size: 12px;
+          }
+
+          .ant-tag {
+            border-radius: 4px;
+            padding: 0 8px;
+            height: 24px;
+            line-height: 22px;
+            font-weight: 500;
+            background: rgba(123, 131, 235, 0.1);
+            border-color: #7B83EB;
+            color: #7B83EB;
+          }
+
+          .ant-timeline-item-head {
+            background-color: #7B83EB;
+          }
+
+          .ant-progress-text {
+            color: #7B83EB !important;
+          }
+
+          .ant-progress-circle-path {
+            stroke: #7B83EB !important;
           }
         `}
       </style>
