@@ -284,12 +284,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
-        <Title level={3}>
-          <BarChartOutlined /> School Dashboard
-        </Title>
-      </div>
-
       <div className="dashboard-carousel">
         <Carousel autoplay>
           <div className="carousel-slide" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")' }}>
@@ -375,7 +369,7 @@ const Dashboard = () => {
 
       <div className="dashboard-main">
         <Row gutter={[16, 16]}>
-          <Col xs={24} lg={16}>
+          <Col xs={24} lg={12}>
             <div className="dashboard-section">
               <div className="section-header">
                 <Title level={4}>Today's Attendance Summary</Title>
@@ -388,16 +382,18 @@ const Dashboard = () => {
                         data={attendanceData}
                         angleField="value"
                         colorField="type"
-                        radius={0.8}
+                        radius={0.9}
                         label={{
                           content: '{name} {percentage}%',
                           style: {
-                            fontSize: 14,
+                            fontSize: 16,
                             textAlign: 'center',
-                            fill: '#fff'
+                            fill: '#fff',
+                            fontWeight: 'bold'
                           }
                         }}
-                        color={['#52c41a', '#ff4d4f']}
+                        color={['#7B83EB', '#FF6B6B']}
+                        height={300}
                       />
                     </div>
                   </Col>
@@ -417,7 +413,7 @@ const Dashboard = () => {
               </div>
             </div>
           </Col>
-          <Col xs={24} lg={8}>
+          <Col xs={24} lg={12}>
             <div className="dashboard-section">
               <div className="section-header">
                 <Title level={4}>Recent Transactions</Title>
@@ -952,23 +948,36 @@ const Dashboard = () => {
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: white;
+            border: 1px solid rgba(123, 131, 235, 0.1);
           }
 
           .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(123, 131, 235, 0.15);
+            border-color: rgba(123, 131, 235, 0.3);
           }
 
           .gradient-primary {
-            background: linear-gradient(135deg, #7B83EB 0%, #9FA3DF 100%);
+            background: linear-gradient(135deg, rgba(123, 131, 235, 0.9) 0%, rgba(159, 163, 223, 0.9) 100%);
             color: white;
+            border: none;
+          }
+
+          .gradient-primary:hover {
+            background: linear-gradient(135deg, rgba(123, 131, 235, 1) 0%, rgba(159, 163, 223, 1) 100%);
           }
 
           .dashboard-section {
-            background: var(--surface-color);
+            background: white;
             border-radius: 12px;
-            box-shadow: 0 2px 8px var(--shadow-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             height: 100%;
+            transition: all 0.3s ease;
+          }
+
+          .dashboard-section:hover {
+            box-shadow: 0 4px 12px rgba(123, 131, 235, 0.1);
           }
 
           .section-header {
@@ -1009,7 +1018,7 @@ const Dashboard = () => {
 
           .attendance-stat {
             text-align: center;
-            padding: 20px;
+            padding: 24px;
             border-radius: 12px;
             background: white;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -1022,15 +1031,15 @@ const Dashboard = () => {
 
           .stat-label {
             display: block;
-            font-size: 1.1rem;
+            font-size: 1.4rem;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: 500;
           }
 
           .stat-value {
             display: block;
-            font-size: 2.5rem;
+            font-size: 3.5rem;
             font-weight: bold;
             line-height: 1;
           }
@@ -1044,7 +1053,7 @@ const Dashboard = () => {
           }
 
           .action-card {
-            background: linear-gradient(135deg, #7B83EB 0%, #9FA3DF 100%);
+            background: linear-gradient(135deg, rgba(123, 131, 235, 0.9) 0%, rgba(159, 163, 223, 0.9) 100%);
             padding: 24px;
             border-radius: 12px;
             color: white;
@@ -1055,23 +1064,26 @@ const Dashboard = () => {
             flex-direction: column;
             align-items: center;
             gap: 16px;
+            border: none;
           }
 
           .action-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(123, 131, 235, 0.15);
+            background: linear-gradient(135deg, rgba(123, 131, 235, 1) 0%, rgba(159, 163, 223, 1) 100%);
           }
 
           .action-icon {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             padding: 16px;
             border-radius: 12px;
             backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
           }
 
-          .action-icon .anticon {
-            font-size: 32px;
-            color: white;
+          .action-card:hover .action-icon {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
           }
 
           .action-content {
@@ -1095,13 +1107,21 @@ const Dashboard = () => {
           }
 
           .ant-table-thead > tr > th {
-            background: rgba(123, 131, 235, 0.1) !important;
+            background: rgba(123, 131, 235, 0.08) !important;
             color: #7B83EB !important;
             font-weight: 600;
           }
 
           .ant-table-tbody > tr:hover > td {
-            background: rgba(123, 131, 235, 0.05) !important;
+            background: rgba(123, 131, 235, 0.04) !important;
+          }
+
+          .ant-table-tbody > tr > td {
+            transition: all 0.3s ease;
+          }
+
+          .ant-table-tbody > tr:hover > td {
+            transform: translateY(-1px);
           }
 
           .ant-list-item {
