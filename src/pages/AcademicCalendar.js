@@ -17,6 +17,7 @@ const AcademicCalendar = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCustomType, setShowCustomType] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -83,6 +84,7 @@ const AcademicCalendar = () => {
 
   const handleModalOk = async () => {
     try {
+      setSubmitting(true);
       const values = await form.validateFields();
       const eventData = {
         event_title: values.event_title,
@@ -107,6 +109,8 @@ const AcademicCalendar = () => {
       fetchEvents();
     } catch (error) {
       message.error('Error saving event: ' + error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -465,6 +469,15 @@ const AcademicCalendar = () => {
           setShowCustomType(false);
         }}
         width={600}
+        confirmLoading={submitting}
+        okText={editingEvent ? "Update" : "Create"}
+        okButtonProps={{
+          style: {
+            background: '#7B83EB',
+            borderColor: '#7B83EB',
+          },
+          loading: submitting
+        }}
       >
         <Form form={form} layout="vertical">
           <Form.Item
