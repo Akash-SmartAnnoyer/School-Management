@@ -201,17 +201,55 @@
   margin-bottom: 2px;
 }
 
-.events .ant-tag {
+.events .event-tag {
   margin: 0;
-  padding: 0 4px;
-  font-size: 10px;
-  height: 16px;
-  line-height: 14px;
-  border-radius: 2px;
+  padding: 2px 8px;
+  font-size: 11px;
+  height: 20px;
+  line-height: 16px;
+  border-radius: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.events .event-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom colors for different event types */
+.events .event-tag[class*="ant-tag-red"] {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  color: white;
+}
+
+.events .event-tag[class*="ant-tag-green"] {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  color: white;
+}
+
+.events .event-tag[class*="ant-tag-blue"] {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  color: white;
+}
+
+.events .event-tag[class*="ant-tag-purple"] {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  color: white;
+}
+
+/* Calendar cell hover effect */
+.ant-picker-cell-in-view:hover .events .event-tag {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Events List Container */

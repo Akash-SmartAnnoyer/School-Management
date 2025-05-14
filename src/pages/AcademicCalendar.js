@@ -16,6 +16,7 @@ const AcademicCalendar = () => {
   const [form] = Form.useForm();
   const [editingEvent, setEditingEvent] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showCustomType, setShowCustomType] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -41,14 +42,18 @@ const AcademicCalendar = () => {
 
   const handleEditEvent = (event) => {
     setEditingEvent(event);
+    const isCustomType = !['holiday', 'sports', 'school'].includes(event.event_type);
+    
     form.setFieldsValue({
       event_title: event.event_title,
       start_datetime: moment(event.start_datetime),
       end_datetime: moment(event.end_datetime),
-      event_type: event.event_type,
+      event_type: isCustomType ? 'other' : event.event_type,
+      custom_type: isCustomType ? event.event_type : undefined,
       description: event.description,
       status: event.status
     });
+    setShowCustomType(isCustomType);
     setIsModalVisible(true);
   };
 
@@ -83,7 +88,7 @@ const AcademicCalendar = () => {
         event_title: values.event_title,
         start_datetime: values.start_datetime.toISOString(),
         end_datetime: values.end_datetime.toISOString(),
-        event_type: values.event_type,
+        event_type: values.event_type === 'other' ? values.custom_type : values.event_type,
         description: values.description,
         status: values.status
       };
@@ -98,9 +103,17 @@ const AcademicCalendar = () => {
 
       setIsModalVisible(false);
       form.resetFields();
+      setShowCustomType(false);
       fetchEvents();
     } catch (error) {
       message.error('Error saving event: ' + error.message);
+    }
+  };
+
+  const handleEventTypeChange = (value) => {
+    setShowCustomType(value === 'other');
+    if (value !== 'other') {
+      form.setFieldsValue({ custom_type: undefined });
     }
   };
 
@@ -114,13 +127,16 @@ const AcademicCalendar = () => {
       <ul className="events">
         {dayEvents.map(event => (
           <li key={event.id}>
-            <Tag color={
-              event.event_type === 'holiday' ? 'red' :
-              event.event_type === 'exam' ? 'blue' :
-              event.event_type === 'sports' ? 'green' :
-              'default'
-            }>
-              {event.event_title}
+            <Tag 
+              color={
+                event.event_type === 'holiday' ? 'red' :
+                event.event_type === 'sports' ? 'green' :
+                event.event_type === 'school' ? 'blue' :
+                'purple'
+              }
+              className="event-tag"
+            >
+              {event.event_type}
             </Tag>
           </li>
         ))}
@@ -444,7 +460,10 @@ const AcademicCalendar = () => {
         }
         open={isModalVisible}
         onOk={handleModalOk}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          setShowCustomType(false);
+        }}
         width={600}
       >
         <Form form={form} layout="vertical">
@@ -474,14 +493,22 @@ const AcademicCalendar = () => {
             label="Event Type"
             rules={[{ required: true, message: 'Please select event type' }]}
           >
-            <Select>
+            <Select onChange={handleEventTypeChange}>
               <Option value="holiday">Holiday</Option>
-              <Option value="exam">Exam</Option>
               <Option value="sports">Sports</Option>
               <Option value="school">School Event</Option>
               <Option value="other">Other</Option>
             </Select>
           </Form.Item>
+          {showCustomType && (
+            <Form.Item
+              name="custom_type"
+              label="Custom Event Type"
+              rules={[{ required: true, message: 'Please enter custom event type' }]}
+            >
+              <Input placeholder="Enter custom event type" />
+            </Form.Item>
+          )}
           <Form.Item
             name="status"
             label="Status"
