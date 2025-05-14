@@ -99,4 +99,189 @@
   .calendar-header h1 {
     font-size: 24px;
   }
+}
+
+.academic-calendar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+  border: 1px solid rgba(159, 179, 223, 0.2);
+}
+
+/* Calendar Styles */
+.ant-picker-calendar {
+  background: transparent;
+}
+
+.ant-picker-calendar-date {
+  height: 80px;
+}
+
+.ant-picker-calendar-date-content {
+  height: 40px;
+}
+
+.ant-picker-calendar-date-value {
+  font-size: 14px;
+}
+
+.ant-picker-calendar-header {
+  padding: 12px;
+  background: rgba(159, 179, 223, 0.1);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.ant-picker-calendar-header .ant-picker-calendar-mode-switch {
+  margin-top: 0;
+}
+
+.ant-picker-calendar-header .ant-picker-calendar-mode-switch label {
+  color: #7B83EB;
+}
+
+.ant-picker-calendar-header .ant-picker-calendar-mode-switch label.ant-radio-button-wrapper-checked {
+  background: #7B83EB;
+  border-color: #7B83EB;
+}
+
+.ant-picker-cell {
+  padding: 4px;
+}
+
+.ant-picker-cell-in-view {
+  background: #ffffff;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-picker-cell-in-view:hover {
+  background: rgba(159, 179, 223, 0.05);
+}
+
+.ant-picker-cell-selected .ant-picker-calendar-date {
+  background: rgba(159, 179, 223, 0.1);
+}
+
+.ant-picker-cell-today .ant-picker-calendar-date {
+  border: 1px solid #7B83EB;
+}
+
+.ant-picker-calendar-date {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-picker-calendar-date:hover {
+  background: rgba(159, 179, 223, 0.05);
+}
+
+.ant-picker-calendar-date-value {
+  color: #595959;
+}
+
+.ant-picker-calendar-date-content {
+  color: #595959;
+}
+
+.ant-picker-calendar-date-today .ant-picker-calendar-date-value {
+  color: #7B83EB;
+  font-weight: 600;
+}
+
+/* Events List Styles */
+.events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.events li {
+  margin-bottom: 4px;
+}
+
+.events .ant-tag {
+  margin: 0;
+  padding: 0 6px;
+  font-size: 12px;
+  height: 20px;
+  line-height: 18px;
+  border-radius: 4px;
+}
+
+/* Modal Styles */
+.ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ant-modal-header {
+  background: rgba(159, 179, 223, 0.1);
+  border-bottom: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+.ant-modal-title {
+  color: #7B83EB;
+}
+
+.ant-modal-body {
+  padding: 24px;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+/* Form Styles */
+.ant-form-item-label > label {
+  color: #595959;
+}
+
+.ant-input,
+.ant-picker,
+.ant-select-selector {
+  border-color: rgba(159, 179, 223, 0.3) !important;
+  border-radius: 6px !important;
+}
+
+.ant-input:hover,
+.ant-picker:hover,
+.ant-select:hover .ant-select-selector {
+  border-color: #7B83EB !important;
+}
+
+.ant-input:focus,
+.ant-picker-focused,
+.ant-select-focused .ant-select-selector {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
+}
+
+/* Button Styles */
+.ant-btn-primary {
+  background: #7B83EB !important;
+  border-color: #7B83EB !important;
+}
+
+.ant-btn-primary:hover {
+  background: #8ba1d1 !important;
+  border-color: #8ba1d1 !important;
+}
+
+.ant-btn-default {
+  border-color: rgba(159, 179, 223, 0.3) !important;
+  color: #7B83EB !important;
+}
+
+.ant-btn-default:hover {
+  border-color: #7B83EB !important;
+  color: #8ba1d1 !important;
 } 

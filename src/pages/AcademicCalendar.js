@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Calendar, Modal, Form, Input, DatePicker, Select, Button, List, Tag, message, Row, Col, Typography, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Card, Calendar, Modal, Form, Input, DatePicker, Select, Button, List, Tag, message, Row, Col, Typography, Space, Descriptions, Tabs } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CalendarOutlined, EyeOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import './AcademicCalendar.css';
-import { getCalendarEvents, addCalendarEvent, updateCalendarEvent, deleteCalendarEvent, initializeSampleData } from '../services/localStorage';
+import { eventAPI } from '../services/api';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -11,15 +11,27 @@ const { Title } = Typography;
 const AcademicCalendar = () => {
   const [events, setEvents] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [form] = Form.useForm();
   const [editingEvent, setEditingEvent] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Initialize sample data if needed
-    initializeSampleData();
-    // Load events from local storage
-    setEvents(getCalendarEvents());
+    fetchEvents();
   }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await eventAPI.getEvents();
+      setEvents(response.data || []);
+    } catch (error) {
+      message.error('Failed to fetch events: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddEvent = () => {
     setEditingEvent(null);
@@ -30,42 +42,63 @@ const AcademicCalendar = () => {
   const handleEditEvent = (event) => {
     setEditingEvent(event);
     form.setFieldsValue({
-      title: event.title,
-      date: moment(event.date),
-      type: event.type,
-      description: event.description
+      event_title: event.event_title,
+      start_datetime: moment(event.start_datetime),
+      end_datetime: moment(event.end_datetime),
+      event_type: event.event_type,
+      description: event.description,
+      status: event.status
     });
     setIsModalVisible(true);
   };
 
-  const handleDeleteEvent = (eventId) => {
-    const updatedEvents = deleteCalendarEvent(eventId);
-    setEvents(updatedEvents);
-    message.success('Event deleted successfully');
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setIsViewModalVisible(true);
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this event?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await eventAPI.deleteEvent(eventId);
+          message.success('Event deleted successfully');
+          fetchEvents();
+        } catch (error) {
+          message.error('Failed to delete event: ' + error.message);
+        }
+      }
+    });
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
       const eventData = {
-        title: values.title,
-        date: values.date.toDate(),
-        type: values.type,
-        description: values.description
+        event_title: values.event_title,
+        start_datetime: values.start_datetime.toISOString(),
+        end_datetime: values.end_datetime.toISOString(),
+        event_type: values.event_type,
+        description: values.description,
+        status: values.status
       };
 
-      let updatedEvents;
       if (editingEvent) {
-        updatedEvents = updateCalendarEvent(editingEvent.id, eventData);
+        await eventAPI.updateEvent(editingEvent.id, eventData);
         message.success('Event updated successfully');
       } else {
-        updatedEvents = addCalendarEvent(eventData);
+        await eventAPI.createEvent(eventData);
         message.success('Event added successfully');
       }
 
-      setEvents(updatedEvents);
       setIsModalVisible(false);
       form.resetFields();
+      fetchEvents();
     } catch (error) {
       message.error('Error saving event: ' + error.message);
     }
@@ -74,7 +107,7 @@ const AcademicCalendar = () => {
   const dateCellRender = (value) => {
     const date = value.format('YYYY-MM-DD');
     const dayEvents = events.filter(event => 
-      moment(event.date).format('YYYY-MM-DD') === date
+      moment(event.start_datetime).format('YYYY-MM-DD') === date
     );
 
     return (
@@ -82,11 +115,12 @@ const AcademicCalendar = () => {
         {dayEvents.map(event => (
           <li key={event.id}>
             <Tag color={
-              event.type === 'HOLIDAY' ? 'red' :
-              event.type === 'EXAM' ? 'blue' :
-              'green'
+              event.event_type === 'holiday' ? 'red' :
+              event.event_type === 'exam' ? 'blue' :
+              event.event_type === 'sports' ? 'green' :
+              'default'
             }>
-              {event.title}
+              {event.event_title}
             </Tag>
           </li>
         ))}
@@ -97,8 +131,8 @@ const AcademicCalendar = () => {
   const getNextHoliday = () => {
     const today = moment();
     const upcomingHolidays = events
-      .filter(event => event.type === 'HOLIDAY' && moment(event.date).isAfter(today))
-      .sort((a, b) => moment(a.date).diff(moment(b.date)));
+      .filter(event => event.event_type === 'holiday' && moment(event.start_datetime).isAfter(today))
+      .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)));
 
     return upcomingHolidays[0];
   };
@@ -106,215 +140,484 @@ const AcademicCalendar = () => {
   const nextHoliday = getNextHoliday();
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#7B83EB',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
-            Academic Calendar
-          </Title>
-        </Col>
-        <Col>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddEvent}
-            style={{
-              height: '32px',
-              borderRadius: '6px',
-              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-              background: '#7B83EB',
-              border: 'none',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.3s ease',
-              padding: '0 12px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-              e.currentTarget.style.background = '#8ba1d1';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-              e.currentTarget.style.background = '#7B83EB';
+    <div className="academic-calendar">
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={16}>
+          <Card 
+            title={
+              <Space>
+                <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+                <Title level={4} style={{ margin: 0 }}>Academic Calendar</Title>
+              </Space>
+            }
+            extra={
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAddEvent}
+                style={{
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)'
+                }}
+              >
+                Add Event
+              </Button>
+            }
+            style={{ 
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
             }}
           >
-            Add Event
-          </Button>
+            <Calendar dateCellRender={dateCellRender} />
+          </Card>
         </Col>
-      </Row>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
-        <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-          <Col xs={24} lg={16}>
+        <Col xs={24} lg={8}>
+          <Card 
+            title={
+              <Space>
+                <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+                <Typography.Title level={5} style={{ margin: 0 }}>All Events</Typography.Title>
+              </Space>
+            }
+            style={{ 
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+              border: '1px solid rgba(159, 179, 223, 0.3)',
+              marginBottom: '16px'
+            }}
+          >
+            <Tabs defaultActiveKey="upcoming">
+              <Tabs.TabPane tab="Upcoming" key="upcoming">
+                <List
+                  loading={loading}
+                  dataSource={events
+                    .filter(event => moment(event.start_datetime).isAfter(moment()))
+                    .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
+                  renderItem={event => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleViewEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />,
+                        <Button
+                          type="text"
+                          icon={<EditOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleEditEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />,
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                          onClick={() => handleDeleteEvent(event.id)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#fff1f0'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#ffccc7';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#fff1f0';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <Tag color={
+                              event.event_type === 'holiday' ? 'red' :
+                              event.event_type === 'exam' ? 'blue' :
+                              event.event_type === 'sports' ? 'green' :
+                              'default'
+                            }>
+                              {event.event_type}
+                            </Tag>
+                            <span style={{ color: '#595959' }}>{event.event_title}</span>
+                          </Space>
+                        }
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                            </span>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Tabs.TabPane>
+
+              <Tabs.TabPane tab="Ongoing" key="ongoing">
+                <List
+                  loading={loading}
+                  dataSource={events
+                    .filter(event => 
+                      moment().isBetween(moment(event.start_datetime), moment(event.end_datetime))
+                    )
+                    .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
+                  renderItem={event => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleViewEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />,
+                        <Button
+                          type="text"
+                          icon={<EditOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleEditEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />,
+                        <Button
+                          type="text"
+                          icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                          onClick={() => handleDeleteEvent(event.id)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#fff1f0'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#ffccc7';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#fff1f0';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <Tag color={
+                              event.event_type === 'holiday' ? 'red' :
+                              event.event_type === 'exam' ? 'blue' :
+                              event.event_type === 'sports' ? 'green' :
+                              'default'
+                            }>
+                              {event.event_type}
+                            </Tag>
+                            <span style={{ color: '#595959' }}>{event.event_title}</span>
+                          </Space>
+                        }
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                            </span>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Tabs.TabPane>
+
+              <Tabs.TabPane tab="Completed" key="completed">
+                <List
+                  loading={loading}
+                  dataSource={events
+                    .filter(event => moment(event.end_datetime).isBefore(moment()))
+                    .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
+                  renderItem={event => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleViewEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <Tag color={
+                              event.event_type === 'holiday' ? 'red' :
+                              event.event_type === 'exam' ? 'blue' :
+                              event.event_type === 'sports' ? 'green' :
+                              'default'
+                            }>
+                              {event.event_type}
+                            </Tag>
+                            <span style={{ color: '#595959' }}>{event.event_title}</span>
+                          </Space>
+                        }
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                            </span>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Tabs.TabPane>
+
+              <Tabs.TabPane tab="Cancelled" key="cancelled">
+                <List
+                  loading={loading}
+                  dataSource={events
+                    .filter(event => event.status === 'cancelled')
+                    .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
+                  renderItem={event => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                          onClick={() => handleViewEvent(event)}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background: '#f5f5f5'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f0f0f0';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = '#f5f5f5';
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                          }}
+                        />
+                      ]}
+                    >
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <Tag color={
+                              event.event_type === 'holiday' ? 'red' :
+                              event.event_type === 'exam' ? 'blue' :
+                              event.event_type === 'sports' ? 'green' :
+                              'default'
+                            }>
+                              {event.event_type}
+                            </Tag>
+                            <span style={{ color: '#595959' }}>{event.event_title}</span>
+                          </Space>
+                        }
+                        description={
+                          <Space direction="vertical" size={0}>
+                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                            </span>
+                          </Space>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              </Tabs.TabPane>
+            </Tabs>
+          </Card>
+
+          {nextHoliday && (
             <Card 
+              title="Next Holiday" 
               style={{ 
                 borderRadius: '12px',
                 boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
                 border: '1px solid rgba(159, 179, 223, 0.3)'
               }}
             >
-              <Calendar
-                dateCellRender={dateCellRender}
-                fullscreen={false}
-                style={{ background: '#fff' }}
-                className="custom-calendar"
-              />
+              <List.Item>
+                <List.Item.Meta
+                  title={nextHoliday.event_title}
+                  description={moment(nextHoliday.start_datetime).format('MMMM D, YYYY')}
+                />
+              </List.Item>
             </Card>
-          </Col>
-          <Col xs={24} lg={8}>
-            <Card 
-              title="Upcoming Events" 
-              style={{ 
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                marginBottom: '16px'
-              }}
-            >
-              <List
-                dataSource={events
-                  .filter(event => moment(event.date).isAfter(moment()))
-                  .sort((a, b) => moment(a.date).diff(moment(b.date)))
-                  .slice(0, 5)}
-                renderItem={event => (
-                  <List.Item
-                    actions={[
-                      <Button
-                        type="text"
-                        icon={<EditOutlined style={{ color: '#7B83EB' }} />}
-                        onClick={() => handleEditEvent(event)}
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease',
-                          background: '#f5f5f5'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#f0f0f0';
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#f5f5f5';
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />,
-                      <Button
-                        type="text"
-                        icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
-                        onClick={() => handleDeleteEvent(event.id)}
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease',
-                          background: '#fff1f0'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#ffccc7';
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = '#fff1f0';
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      />
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <Space>
-                          <Tag color={
-                            event.type === 'HOLIDAY' ? 'red' :
-                            event.type === 'EXAM' ? 'blue' :
-                            'green'
-                          }>
-                            {event.type}
-                          </Tag>
-                          <span style={{ color: '#595959' }}>{event.title}</span>
-                        </Space>
-                      }
-                      description={moment(event.date).format('MMMM D, YYYY')}
-                    />
-                  </List.Item>
-                )}
-              />
-            </Card>
-            
-            {nextHoliday && (
-              <Card 
-                title="Next Holiday" 
-                style={{ 
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                  border: '1px solid rgba(159, 179, 223, 0.3)',
-                  background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                  color: 'white'
-                }}
-              >
-                <div style={{ textAlign: 'center', padding: '16px' }}>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 500, color: 'white' }}>
-                    {nextHoliday.title}
-                  </h3>
-                  <p style={{ margin: '4px 0', fontSize: '16px', opacity: 0.9, color: 'white' }}>
-                    {moment(nextHoliday.date).format('MMMM D, YYYY')}
-                  </p>
-                  <p style={{ margin: '4px 0', fontSize: '16px', opacity: 0.9, color: 'white' }}>
-                    {moment(nextHoliday.date).diff(moment(), 'days')} days remaining
-                  </p>
-                </div>
-              </Card>
-            )}
-          </Col>
-        </Row>
-      </Card>
+          )}
+        </Col>
+      </Row>
+
+      <Modal
+        title={
+          <Space>
+            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              Event Details
+            </Typography.Title>
+          </Space>
+        }
+        open={isViewModalVisible}
+        onCancel={() => setIsViewModalVisible(false)}
+        footer={[
+          <Button key="edit" type="primary" onClick={() => {
+            setIsViewModalVisible(false);
+            handleEditEvent(selectedEvent);
+          }}>
+            Edit Event
+          </Button>,
+          <Button key="close" onClick={() => setIsViewModalVisible(false)}>
+            Close
+          </Button>
+        ]}
+      >
+        {selectedEvent && (
+          <div>
+            <Descriptions bordered column={1}>
+              <Descriptions.Item label="Event Title">{selectedEvent.event_title}</Descriptions.Item>
+              <Descriptions.Item label="Event Type">{selectedEvent.event_type}</Descriptions.Item>
+              <Descriptions.Item label="Start Date & Time">
+                {moment(selectedEvent.start_datetime).format('MMMM D, YYYY h:mm A')}
+              </Descriptions.Item>
+              <Descriptions.Item label="End Date & Time">
+                {moment(selectedEvent.end_datetime).format('MMMM D, YYYY h:mm A')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Status">{selectedEvent.status}</Descriptions.Item>
+              <Descriptions.Item label="Description">{selectedEvent.description}</Descriptions.Item>
+              <Descriptions.Item label="Created By">{selectedEvent.created_by}</Descriptions.Item>
+              <Descriptions.Item label="Created At">
+                {moment(selectedEvent.created_at).format('MMMM D, YYYY h:mm A')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Last Updated">
+                {moment(selectedEvent.updated_at).format('MMMM D, YYYY h:mm A')}
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         title={
@@ -332,28 +635,49 @@ const AcademicCalendar = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="title"
+            name="event_title"
             label="Event Title"
             rules={[{ required: true, message: 'Please enter event title' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="date"
-            label="Date"
-            rules={[{ required: true, message: 'Please select date' }]}
+            name="start_datetime"
+            label="Start Date & Time"
+            rules={[{ required: true, message: 'Please select start date and time' }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker showTime style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item
-            name="type"
+            name="end_datetime"
+            label="End Date & Time"
+            rules={[{ required: true, message: 'Please select end date and time' }]}
+          >
+            <DatePicker showTime style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="event_type"
             label="Event Type"
             rules={[{ required: true, message: 'Please select event type' }]}
           >
             <Select>
-              <Option value="HOLIDAY">Holiday</Option>
-              <Option value="EXAM">Exam</Option>
-              <Option value="EVENT">Event</Option>
+              <Option value="holiday">Holiday</Option>
+              <Option value="exam">Exam</Option>
+              <Option value="sports">Sports</Option>
+              <Option value="school">School Event</Option>
+              <Option value="other">Other</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select status' }]}
+          >
+            <Select>
+              <Option value="upcoming">Upcoming</Option>
+              <Option value="ongoing">Ongoing</Option>
+              <Option value="completed">Completed</Option>
+              <Option value="cancelled">Cancelled</Option>
             </Select>
           </Form.Item>
           <Form.Item
@@ -364,177 +688,6 @@ const AcademicCalendar = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      <style>
-        {`
-          .custom-calendar .ant-picker-calendar {
-            background: transparent;
-          }
-
-          .custom-calendar .ant-picker-calendar-date {
-            height: 80px;
-          }
-
-          .custom-calendar .ant-picker-calendar-date-content {
-            height: 40px;
-          }
-
-          .custom-calendar .ant-picker-calendar-date-value {
-            font-size: 14px;
-          }
-
-          .custom-calendar .ant-picker-calendar-header {
-            padding: 12px;
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 8px;
-            margin-bottom: 16px;
-          }
-
-          .custom-calendar .ant-picker-calendar-header .ant-picker-calendar-mode-switch {
-            margin-top: 0;
-          }
-
-          .custom-calendar .ant-picker-calendar-header .ant-picker-calendar-mode-switch label {
-            color: #7B83EB;
-          }
-
-          .custom-calendar .ant-picker-calendar-header .ant-picker-calendar-mode-switch label.ant-radio-button-wrapper-checked {
-            background: #7B83EB;
-            border-color: #7B83EB;
-          }
-
-          .custom-calendar .ant-picker-cell {
-            padding: 4px;
-          }
-
-          .custom-calendar .ant-picker-cell-in-view {
-            background: #ffffff;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-          }
-
-          .custom-calendar .ant-picker-cell-in-view:hover {
-            background: rgba(159, 179, 223, 0.05);
-          }
-
-          .custom-calendar .ant-picker-cell-selected .ant-picker-calendar-date {
-            background: rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-calendar .ant-picker-cell-today .ant-picker-calendar-date {
-            border: 1px solid #7B83EB;
-          }
-
-          .custom-calendar .ant-picker-calendar-date {
-            border-radius: 8px;
-            transition: all 0.3s ease;
-          }
-
-          .custom-calendar .ant-picker-calendar-date:hover {
-            background: rgba(159, 179, 223, 0.05);
-          }
-
-          .custom-calendar .ant-picker-calendar-date-value {
-            color: #595959;
-          }
-
-          .custom-calendar .ant-picker-calendar-date-content {
-            color: #595959;
-          }
-
-          .custom-calendar .ant-picker-calendar-date-today .ant-picker-calendar-date-value {
-            color: #7B83EB;
-            font-weight: 600;
-          }
-
-          .events {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-          }
-
-          .events li {
-            margin-bottom: 4px;
-          }
-
-          .events .ant-tag {
-            margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
-            border-radius: 4px;
-          }
-
-          .ant-modal-content {
-            border-radius: 12px;
-            overflow: hidden;
-          }
-
-          .ant-modal-header {
-            background: rgba(159, 179, 223, 0.1);
-            border-bottom: 1px solid rgba(159, 179, 223, 0.2);
-            padding: 16px 24px;
-          }
-
-          .ant-modal-title {
-            color: #7B83EB;
-          }
-
-          .ant-modal-body {
-            padding: 24px;
-          }
-
-          .ant-modal-footer {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
-            padding: 16px 24px;
-          }
-
-          .ant-form-item-label > label {
-            color: #595959;
-          }
-
-          .ant-input,
-          .ant-picker,
-          .ant-select-selector {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            border-radius: 6px !important;
-          }
-
-          .ant-input:hover,
-          .ant-picker:hover,
-          .ant-select:hover .ant-select-selector {
-            border-color: #7B83EB !important;
-          }
-
-          .ant-input:focus,
-          .ant-picker-focused,
-          .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-btn-primary {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-
-          .ant-btn-primary:hover {
-            background: #8ba1d1 !important;
-            border-color: #8ba1d1 !important;
-          }
-
-          .ant-btn-default {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            color: #7B83EB !important;
-          }
-
-          .ant-btn-default:hover {
-            border-color: #7B83EB !important;
-            color: #8ba1d1 !important;
-          }
-        `}
-      </style>
     </div>
   );
 };
