@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Calendar, Modal, Form, Input, DatePicker, Select, Button, List, Tag, message, Row, Col, Typography, Space, Descriptions, Tabs } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, CalendarOutlined, EyeOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, CalendarOutlined, EyeOutlined, FieldTimeOutlined, TagOutlined, FileTextOutlined, CheckCircleOutlined, UserOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import './AcademicCalendar.css';
 import { eventAPI } from '../services/api';
@@ -478,68 +478,154 @@ const AcademicCalendar = () => {
           },
           loading: submitting
         }}
+        className="event-form-modal"
       >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="event_title"
-            label="Event Title"
-            rules={[{ required: true, message: 'Please enter event title' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="start_datetime"
-            label="Start Date & Time"
-            rules={[{ required: true, message: 'Please select start date and time' }]}
-          >
-            <DatePicker showTime style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="end_datetime"
-            label="End Date & Time"
-            rules={[{ required: true, message: 'Please select end date and time' }]}
-          >
-            <DatePicker showTime style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="event_type"
-            label="Event Type"
-            rules={[{ required: true, message: 'Please select event type' }]}
-          >
-            <Select onChange={handleEventTypeChange}>
-              <Option value="holiday">Holiday</Option>
-              <Option value="sports">Sports</Option>
-              <Option value="school">School Event</Option>
-              <Option value="other">Other</Option>
-            </Select>
-          </Form.Item>
+        <Form 
+          form={form} 
+          layout="vertical"
+          className="event-form"
+        >
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="event_title"
+                label={
+                  <Space>
+                    <UserOutlined style={{ color: '#7B83EB' }} />
+                    <span>Event Title</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please enter event title' }]}
+              >
+                <Input placeholder="Enter event title" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="start_datetime"
+                label={
+                  <Space>
+                    <CalendarOutlined style={{ color: '#7B83EB' }} />
+                    <span>Start Date & Time</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select start date and time' }]}
+              >
+                <DatePicker 
+                  showTime 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD HH:mm"
+                  placeholder="Select start date and time"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="end_datetime"
+                label={
+                  <Space>
+                    <FieldTimeOutlined style={{ color: '#7B83EB' }} />
+                    <span>End Date & Time</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select end date and time' }]}
+              >
+                <DatePicker 
+                  showTime 
+                  style={{ width: '100%' }}
+                  format="YYYY-MM-DD HH:mm"
+                  placeholder="Select end date and time"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="event_type"
+                label={
+                  <Space>
+                    <TagOutlined style={{ color: '#7B83EB' }} />
+                    <span>Event Type</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select event type' }]}
+              >
+                <Select 
+                  onChange={handleEventTypeChange}
+                  placeholder="Select event type"
+                >
+                  <Option value="holiday">Holiday</Option>
+                  <Option value="sports">Sports</Option>
+                  <Option value="school">School Event</Option>
+                  <Option value="other">Other</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label={
+                  <Space>
+                    <CheckCircleOutlined style={{ color: '#7B83EB' }} />
+                    <span>Status</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select status' }]}
+              >
+                <Select placeholder="Select status">
+                  <Option value="upcoming">Upcoming</Option>
+                  <Option value="ongoing">Ongoing</Option>
+                  <Option value="completed">Completed</Option>
+                  <Option value="cancelled">Cancelled</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
           {showCustomType && (
-            <Form.Item
-              name="custom_type"
-              label="Custom Event Type"
-              rules={[{ required: true, message: 'Please enter custom event type' }]}
-            >
-              <Input placeholder="Enter custom event type" />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item
+                  name="custom_type"
+                  label={
+                    <Space>
+                      <TagOutlined style={{ color: '#7B83EB' }} />
+                      <span>Custom Event Type</span>
+                    </Space>
+                  }
+                  rules={[{ required: true, message: 'Please enter custom event type' }]}
+                >
+                  <Input placeholder="Enter custom event type" />
+                </Form.Item>
+              </Col>
+            </Row>
           )}
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status' }]}
-          >
-            <Select>
-              <Option value="upcoming">Upcoming</Option>
-              <Option value="ongoing">Ongoing</Option>
-              <Option value="completed">Completed</Option>
-              <Option value="cancelled">Cancelled</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                name="description"
+                label={
+                  <Space>
+                    <FileTextOutlined style={{ color: '#7B83EB' }} />
+                    <span>Description</span>
+                  </Space>
+                }
+              >
+                <Input.TextArea 
+                  rows={3} 
+                  placeholder="Enter event description"
+                  showCount
+                  maxLength={500}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
       </Modal>
     </div>

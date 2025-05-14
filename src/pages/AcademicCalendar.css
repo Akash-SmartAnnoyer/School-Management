@@ -330,4 +330,117 @@
 .ant-btn-default:hover {
   border-color: #7B83EB !important;
   color: #8ba1d1 !important;
+}
+
+/* Event Form Styles */
+.event-form-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.event-form-modal .ant-modal-header {
+  background: rgba(159, 179, 223, 0.1);
+  border-bottom: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+.event-form-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.event-form-modal .ant-modal-footer {
+  border-top: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+.event-form .ant-form-item-label > label {
+  color: #595959;
+  font-weight: 500;
+}
+
+.event-form .ant-form-item-label > label .anticon {
+  margin-right: 8px;
+}
+
+.event-form .ant-input,
+.event-form .ant-picker,
+.event-form .ant-select-selector {
+  border-radius: 8px !important;
+  border-color: rgba(159, 179, 223, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+.event-form .ant-input:hover,
+.event-form .ant-picker:hover,
+.event-form .ant-select:hover .ant-select-selector {
+  border-color: #7B83EB !important;
+}
+
+.event-form .ant-input:focus,
+.event-form .ant-picker-focused,
+.event-form .ant-select-focused .ant-select-selector {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.1) !important;
+}
+
+.event-form .ant-input::placeholder,
+.event-form .ant-picker-input > input::placeholder {
+  color: #bfbfbf;
+}
+
+.event-form .ant-select-selection-placeholder {
+  color: #bfbfbf;
+}
+
+.event-form .ant-input-textarea {
+  border-radius: 8px;
+}
+
+.event-form .ant-input-textarea textarea {
+  border-radius: 8px;
+  resize: none;
+}
+
+.event-form .ant-input-textarea .ant-input-data-count {
+  background: transparent;
+  color: #8c8c8c;
+}
+
+.event-form .ant-row {
+  margin-bottom: 8px;
+}
+
+.event-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.event-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Custom styles for date picker */
+.event-form .ant-picker {
+  width: 100%;
+}
+
+.event-form .ant-picker-input > input {
+  height: 32px;
+}
+
+/* Custom styles for select */
+.event-form .ant-select-selector {
+  height: 40px !important;
+  padding: 4px 11px !important;
+  display: flex;
+  align-items: center;
+}
+
+.event-form .ant-select-selection-item {
+  line-height: 32px !important;
+}
+
+/* Custom styles for textarea */
+.event-form .ant-input-textarea textarea {
+  min-height: 80px !important;
+  padding: 8px 12px;
 } 
