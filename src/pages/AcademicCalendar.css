@@ -443,4 +443,125 @@
 .event-form .ant-input-textarea textarea {
   min-height: 80px !important;
   padding: 8px 12px;
+}
+
+/* Event View Modal Styles */
+.event-view-modal .ant-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.event-view-modal .ant-modal-header {
+  background: rgba(159, 179, 223, 0.1);
+  border-bottom: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+.event-view-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.event-view-modal .ant-modal-footer {
+  border-top: 1px solid rgba(159, 179, 223, 0.2);
+  padding: 16px 24px;
+}
+
+.event-details {
+  color: #595959;
+}
+
+.event-header {
+  margin-bottom: 8px;
+}
+
+.event-header .event-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.event-timeline {
+  background: rgba(159, 179, 223, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.timeline-item {
+  padding: 8px 0;
+}
+
+.timeline-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.timeline-value {
+  color: #262626;
+  font-weight: 500;
+}
+
+.event-description {
+  background: rgba(159, 179, 223, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.description-label {
+  color: #8c8c8c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.description-content {
+  color: #262626;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.event-meta {
+  background: rgba(159, 179, 223, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.meta-item {
+  padding: 8px 0;
+}
+
+.meta-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.meta-value {
+  color: #262626;
+  font-weight: 500;
+}
+
+/* Status tag colors */
+.event-header .ant-tag[class*="ant-tag-blue"] {
+  background: rgba(24, 144, 255, 0.1);
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.event-header .ant-tag[class*="ant-tag-green"] {
+  background: rgba(82, 196, 26, 0.1);
+  border-color: #52c41a;
+  color: #52c41a;
+}
+
+.event-header .ant-tag[class*="ant-tag-red"] {
+  background: rgba(255, 77, 79, 0.1);
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.event-header .ant-tag[class*="ant-tag-default"] {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: #d9d9d9;
+  color: #595959;
 } 

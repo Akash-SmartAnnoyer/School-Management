@@ -417,38 +417,148 @@ const AcademicCalendar = () => {
         open={isViewModalVisible}
         onCancel={() => setIsViewModalVisible(false)}
         footer={[
-          <Button key="edit" type="primary" onClick={() => {
-            setIsViewModalVisible(false);
-            handleEditEvent(selectedEvent);
-          }}>
+          <Button 
+            key="edit" 
+            type="primary" 
+            onClick={() => {
+              setIsViewModalVisible(false);
+              handleEditEvent(selectedEvent);
+            }}
+            icon={<EditOutlined />}
+            style={{
+              background: '#7B83EB',
+              borderColor: '#7B83EB',
+            }}
+          >
             Edit Event
           </Button>,
-          <Button key="close" onClick={() => setIsViewModalVisible(false)}>
+          <Button 
+            key="close" 
+            onClick={() => setIsViewModalVisible(false)}
+          >
             Close
           </Button>
         ]}
+        className="event-view-modal"
+        width={500}
       >
         {selectedEvent && (
-          <div>
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label="Event Title">{selectedEvent.event_title}</Descriptions.Item>
-              <Descriptions.Item label="Event Type">{selectedEvent.event_type}</Descriptions.Item>
-              <Descriptions.Item label="Start Date & Time">
-                {moment(selectedEvent.start_datetime).format('MMMM D, YYYY h:mm A')}
-              </Descriptions.Item>
-              <Descriptions.Item label="End Date & Time">
-                {moment(selectedEvent.end_datetime).format('MMMM D, YYYY h:mm A')}
-              </Descriptions.Item>
-              <Descriptions.Item label="Status">{selectedEvent.status}</Descriptions.Item>
-              <Descriptions.Item label="Description">{selectedEvent.description}</Descriptions.Item>
-              <Descriptions.Item label="Created By">{selectedEvent.created_by}</Descriptions.Item>
-              <Descriptions.Item label="Created At">
-                {moment(selectedEvent.created_at).format('MMMM D, YYYY h:mm A')}
-              </Descriptions.Item>
-              <Descriptions.Item label="Last Updated">
-                {moment(selectedEvent.updated_at).format('MMMM D, YYYY h:mm A')}
-              </Descriptions.Item>
-            </Descriptions>
+          <div className="event-details">
+            <Row gutter={[16, 16]}>
+              <Col span={24}>
+                <div className="event-header">
+                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                    <Space>
+                      <Tag 
+                        color={
+                          selectedEvent.event_type === 'holiday' ? 'red' :
+                          selectedEvent.event_type === 'sports' ? 'green' :
+                          selectedEvent.event_type === 'school' ? 'blue' :
+                          'purple'
+                        }
+                        className="event-tag"
+                      >
+                        {selectedEvent.event_type}
+                      </Tag>
+                      <Tag color={
+                        selectedEvent.status === 'upcoming' ? 'blue' :
+                        selectedEvent.status === 'ongoing' ? 'green' :
+                        selectedEvent.status === 'completed' ? 'default' :
+                        'red'
+                      }>
+                        {selectedEvent.status}
+                      </Tag>
+                    </Space>
+                    <Typography.Title level={4} style={{ margin: 0 }}>
+                      {selectedEvent.event_title}
+                    </Typography.Title>
+                  </Space>
+                </div>
+              </Col>
+
+              <Col span={24}>
+                <div className="event-timeline">
+                  <Row gutter={[16, 8]}>
+                    <Col span={12}>
+                      <Space>
+                        <CalendarOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                        <div>
+                          <div className="timeline-label">Start</div>
+                          <div className="timeline-value">
+                            {moment(selectedEvent.start_datetime).format('MMM D, h:mm A')}
+                          </div>
+                        </div>
+                      </Space>
+                    </Col>
+                    <Col span={12}>
+                      <Space>
+                        <FieldTimeOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                        <div>
+                          <div className="timeline-label">End</div>
+                          <div className="timeline-value">
+                            {moment(selectedEvent.end_datetime).format('MMM D, h:mm A')}
+                          </div>
+                        </div>
+                      </Space>
+                    </Col>
+                  </Row>
+                </div>
+              </Col>
+
+              {selectedEvent.description && (
+                <Col span={24}>
+                  <div className="event-description">
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <div className="description-label">
+                        <FileTextOutlined style={{ color: '#7B83EB', marginRight: '8px' }} />
+                        Description
+                      </div>
+                      <div className="description-content">
+                        {selectedEvent.description}
+                      </div>
+                    </Space>
+                  </div>
+                </Col>
+              )}
+
+              <Col span={24}>
+                <div className="event-meta">
+                  <Row gutter={[16, 8]}>
+                    <Col span={8}>
+                      <Space>
+                        <UserOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                        <div>
+                          <div className="meta-label">Created By</div>
+                          <div className="meta-value">{selectedEvent.created_by}</div>
+                        </div>
+                      </Space>
+                    </Col>
+                    <Col span={8}>
+                      <Space>
+                        <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                        <div>
+                          <div className="meta-label">Created</div>
+                          <div className="meta-value">
+                            {moment(selectedEvent.created_at).format('MMM D')}
+                          </div>
+                        </div>
+                      </Space>
+                    </Col>
+                    <Col span={8}>
+                      <Space>
+                        <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                        <div>
+                          <div className="meta-label">Updated</div>
+                          <div className="meta-value">
+                            {moment(selectedEvent.updated_at).format('MMM D')}
+                          </div>
+                        </div>
+                      </Space>
+                    </Col>
+                  </Row>
+                </div>
+              </Col>
+            </Row>
           </div>
         )}
       </Modal>
@@ -468,7 +578,7 @@ const AcademicCalendar = () => {
           setIsModalVisible(false);
           setShowCustomType(false);
         }}
-        width={600}
+        width={500}
         confirmLoading={submitting}
         okText={editingEvent ? "Update" : "Create"}
         okButtonProps={{
@@ -485,7 +595,7 @@ const AcademicCalendar = () => {
           layout="vertical"
           className="event-form"
         >
-          <Row gutter={16}>
+          <Row gutter={[16, 12]}>
             <Col span={24}>
               <Form.Item
                 name="event_title"
@@ -500,16 +610,14 @@ const AcademicCalendar = () => {
                 <Input placeholder="Enter event title" />
               </Form.Item>
             </Col>
-          </Row>
 
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="start_datetime"
                 label={
                   <Space>
                     <CalendarOutlined style={{ color: '#7B83EB' }} />
-                    <span>Start Date & Time</span>
+                    <span>Start</span>
                   </Space>
                 }
                 rules={[{ required: true, message: 'Please select start date and time' }]}
@@ -517,8 +625,8 @@ const AcademicCalendar = () => {
                 <DatePicker 
                   showTime 
                   style={{ width: '100%' }}
-                  format="YYYY-MM-DD HH:mm"
-                  placeholder="Select start date and time"
+                  format="MMM D, h:mm A"
+                  placeholder="Select start"
                 />
               </Form.Item>
             </Col>
@@ -528,7 +636,7 @@ const AcademicCalendar = () => {
                 label={
                   <Space>
                     <FieldTimeOutlined style={{ color: '#7B83EB' }} />
-                    <span>End Date & Time</span>
+                    <span>End</span>
                   </Space>
                 }
                 rules={[{ required: true, message: 'Please select end date and time' }]}
@@ -536,28 +644,26 @@ const AcademicCalendar = () => {
                 <DatePicker 
                   showTime 
                   style={{ width: '100%' }}
-                  format="YYYY-MM-DD HH:mm"
-                  placeholder="Select end date and time"
+                  format="MMM D, h:mm A"
+                  placeholder="Select end"
                 />
               </Form.Item>
             </Col>
-          </Row>
 
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 name="event_type"
                 label={
                   <Space>
                     <TagOutlined style={{ color: '#7B83EB' }} />
-                    <span>Event Type</span>
+                    <span>Type</span>
                   </Space>
                 }
                 rules={[{ required: true, message: 'Please select event type' }]}
               >
                 <Select 
                   onChange={handleEventTypeChange}
-                  placeholder="Select event type"
+                  placeholder="Select type"
                 >
                   <Option value="holiday">Holiday</Option>
                   <Option value="sports">Sports</Option>
@@ -585,17 +691,15 @@ const AcademicCalendar = () => {
                 </Select>
               </Form.Item>
             </Col>
-          </Row>
 
-          {showCustomType && (
-            <Row gutter={16}>
+            {showCustomType && (
               <Col span={24}>
                 <Form.Item
                   name="custom_type"
                   label={
                     <Space>
                       <TagOutlined style={{ color: '#7B83EB' }} />
-                      <span>Custom Event Type</span>
+                      <span>Custom Type</span>
                     </Space>
                   }
                   rules={[{ required: true, message: 'Please enter custom event type' }]}
@@ -603,10 +707,8 @@ const AcademicCalendar = () => {
                   <Input placeholder="Enter custom event type" />
                 </Form.Item>
               </Col>
-            </Row>
-          )}
+            )}
 
-          <Row gutter={16}>
             <Col span={24}>
               <Form.Item
                 name="description"
@@ -618,10 +720,10 @@ const AcademicCalendar = () => {
                 }
               >
                 <Input.TextArea 
-                  rows={3} 
+                  rows={2} 
                   placeholder="Enter event description"
                   showCount
-                  maxLength={500}
+                  maxLength={200}
                 />
               </Form.Item>
             </Col>
