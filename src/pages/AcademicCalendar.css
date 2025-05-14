@@ -105,59 +105,46 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: 16px;
   overflow: hidden;
   margin: 0;
-  border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
-  border: 1px solid rgba(159, 179, 223, 0.2);
 }
 
 /* Calendar Styles */
 .ant-picker-calendar {
   background: transparent;
+  margin-bottom: 24px;
 }
 
 .ant-picker-calendar-date {
-  height: 80px;
+  height: 60px !important;
+  padding: 2px !important;
 }
 
 .ant-picker-calendar-date-content {
-  height: 40px;
+  height: 30px !important;
+  overflow-y: auto;
 }
 
 .ant-picker-calendar-date-value {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .ant-picker-calendar-header {
-  padding: 12px;
+  padding: 8px;
   background: rgba(159, 179, 223, 0.1);
   border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.ant-picker-calendar-header .ant-picker-calendar-mode-switch {
-  margin-top: 0;
-}
-
-.ant-picker-calendar-header .ant-picker-calendar-mode-switch label {
-  color: #7B83EB;
-}
-
-.ant-picker-calendar-header .ant-picker-calendar-mode-switch label.ant-radio-button-wrapper-checked {
-  background: #7B83EB;
-  border-color: #7B83EB;
+  margin-bottom: 12px;
 }
 
 .ant-picker-cell {
-  padding: 4px;
+  padding: 2px;
 }
 
 .ant-picker-cell-in-view {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all 0.3s ease;
 }
 
@@ -174,25 +161,12 @@
 }
 
 .ant-picker-calendar-date {
-  border-radius: 8px;
+  border-radius: 4px;
   transition: all 0.3s ease;
 }
 
 .ant-picker-calendar-date:hover {
   background: rgba(159, 179, 223, 0.05);
-}
-
-.ant-picker-calendar-date-value {
-  color: #595959;
-}
-
-.ant-picker-calendar-date-content {
-  color: #595959;
-}
-
-.ant-picker-calendar-date-today .ant-picker-calendar-date-value {
-  color: #7B83EB;
-  font-weight: 600;
 }
 
 /* Events List Styles */
@@ -203,16 +177,29 @@
 }
 
 .events li {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .events .ant-tag {
   margin: 0;
-  padding: 0 6px;
-  font-size: 12px;
-  height: 20px;
-  line-height: 18px;
-  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 10px;
+  height: 16px;
+  line-height: 14px;
+  border-radius: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Events List Container */
+.events-list-container {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-top: 16px;
 }
 
 /* Modal Styles */

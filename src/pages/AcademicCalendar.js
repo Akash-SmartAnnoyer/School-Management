@@ -141,435 +141,249 @@ const AcademicCalendar = () => {
 
   return (
     <div className="academic-calendar">
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
-          <Card 
-            title={
-              <Space>
-                <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
-                <Title level={4} style={{ margin: 0 }}>Academic Calendar</Title>
-              </Space>
-            }
-            extra={
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAddEvent}
-                style={{
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  borderRadius: '6px',
-                  boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)'
-                }}
-              >
-                Add Event
-              </Button>
-            }
-            style={{ 
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
+      <Card 
+        title={
+          <Space>
+            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            <Title level={4} style={{ margin: 0 }}>Academic Calendar</Title>
+          </Space>
+        }
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddEvent}
+            style={{
+              background: '#7B83EB',
+              borderColor: '#7B83EB',
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)'
             }}
           >
-            <Calendar dateCellRender={dateCellRender} />
-          </Card>
-        </Col>
+            Add Event
+          </Button>
+        }
+        style={{ 
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+          border: '1px solid rgba(159, 179, 223, 0.3)',
+          marginBottom: '16px'
+        }}
+      >
+        <Calendar dateCellRender={dateCellRender} />
+      </Card>
 
-        <Col xs={24} lg={8}>
-          <Card 
-            title={
-              <Space>
-                <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
-                <Typography.Title level={5} style={{ margin: 0 }}>All Events</Typography.Title>
-              </Space>
-            }
-            style={{ 
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-              border: '1px solid rgba(159, 179, 223, 0.3)',
-              marginBottom: '16px'
-            }}
-          >
-            <Tabs defaultActiveKey="upcoming">
-              <Tabs.TabPane tab="Upcoming" key="upcoming">
-                <List
-                  loading={loading}
-                  dataSource={events
-                    .filter(event => moment(event.start_datetime).isAfter(moment()))
-                    .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
-                  renderItem={event => (
-                    <List.Item
-                      actions={[
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleViewEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />,
-                        <Button
-                          type="text"
-                          icon={<EditOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleEditEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />,
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
-                          onClick={() => handleDeleteEvent(event.id)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#fff1f0'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#ffccc7';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#fff1f0';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={
-                          <Space>
-                            <Tag color={
-                              event.event_type === 'holiday' ? 'red' :
-                              event.event_type === 'exam' ? 'blue' :
-                              event.event_type === 'sports' ? 'green' :
-                              'default'
-                            }>
-                              {event.event_type}
-                            </Tag>
-                            <span style={{ color: '#595959' }}>{event.event_title}</span>
-                          </Space>
-                        }
-                        description={
-                          <Space direction="vertical" size={0}>
-                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
-                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
-                            </span>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Tabs.TabPane>
+      <div className="events-list-container">
+        <Tabs defaultActiveKey="upcoming">
+          <Tabs.TabPane tab="Upcoming" key="upcoming">
+            <List
+              loading={loading}
+              dataSource={events
+                .filter(event => moment(event.start_datetime).isAfter(moment()))
+                .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
+              renderItem={event => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleViewEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<EditOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleEditEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                      onClick={() => handleDeleteEvent(event.id)}
+                    />
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        <Tag color={
+                          event.event_type === 'holiday' ? 'red' :
+                          event.event_type === 'exam' ? 'blue' :
+                          event.event_type === 'sports' ? 'green' :
+                          'default'
+                        }>
+                          {event.event_type}
+                        </Tag>
+                        <span style={{ color: '#595959' }}>{event.event_title}</span>
+                      </Space>
+                    }
+                    description={
+                      <Space direction="vertical" size={0}>
+                        <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                        <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                          {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                        </span>
+                      </Space>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Tabs.TabPane>
 
-              <Tabs.TabPane tab="Ongoing" key="ongoing">
-                <List
-                  loading={loading}
-                  dataSource={events
-                    .filter(event => 
-                      moment().isBetween(moment(event.start_datetime), moment(event.end_datetime))
-                    )
-                    .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
-                  renderItem={event => (
-                    <List.Item
-                      actions={[
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleViewEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />,
-                        <Button
-                          type="text"
-                          icon={<EditOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleEditEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />,
-                        <Button
-                          type="text"
-                          icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
-                          onClick={() => handleDeleteEvent(event.id)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#fff1f0'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#ffccc7';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#fff1f0';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={
-                          <Space>
-                            <Tag color={
-                              event.event_type === 'holiday' ? 'red' :
-                              event.event_type === 'exam' ? 'blue' :
-                              event.event_type === 'sports' ? 'green' :
-                              'default'
-                            }>
-                              {event.event_type}
-                            </Tag>
-                            <span style={{ color: '#595959' }}>{event.event_title}</span>
-                          </Space>
-                        }
-                        description={
-                          <Space direction="vertical" size={0}>
-                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
-                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
-                            </span>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Tabs.TabPane>
+          <Tabs.TabPane tab="Ongoing" key="ongoing">
+            <List
+              loading={loading}
+              dataSource={events
+                .filter(event => 
+                  moment().isBetween(moment(event.start_datetime), moment(event.end_datetime))
+                )
+                .sort((a, b) => moment(a.start_datetime).diff(moment(b.start_datetime)))}
+              renderItem={event => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleViewEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<EditOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleEditEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                      onClick={() => handleDeleteEvent(event.id)}
+                    />
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        <Tag color={
+                          event.event_type === 'holiday' ? 'red' :
+                          event.event_type === 'exam' ? 'blue' :
+                          event.event_type === 'sports' ? 'green' :
+                          'default'
+                        }>
+                          {event.event_type}
+                        </Tag>
+                        <span style={{ color: '#595959' }}>{event.event_title}</span>
+                      </Space>
+                    }
+                    description={
+                      <Space direction="vertical" size={0}>
+                        <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                        <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                          {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                        </span>
+                      </Space>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Tabs.TabPane>
 
-              <Tabs.TabPane tab="Completed" key="completed">
-                <List
-                  loading={loading}
-                  dataSource={events
-                    .filter(event => moment(event.end_datetime).isBefore(moment()))
-                    .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
-                  renderItem={event => (
-                    <List.Item
-                      actions={[
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleViewEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={
-                          <Space>
-                            <Tag color={
-                              event.event_type === 'holiday' ? 'red' :
-                              event.event_type === 'exam' ? 'blue' :
-                              event.event_type === 'sports' ? 'green' :
-                              'default'
-                            }>
-                              {event.event_type}
-                            </Tag>
-                            <span style={{ color: '#595959' }}>{event.event_title}</span>
-                          </Space>
-                        }
-                        description={
-                          <Space direction="vertical" size={0}>
-                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
-                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
-                            </span>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Tabs.TabPane>
+          <Tabs.TabPane tab="Completed" key="completed">
+            <List
+              loading={loading}
+              dataSource={events
+                .filter(event => moment(event.end_datetime).isBefore(moment()))
+                .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
+              renderItem={event => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleViewEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<EditOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleEditEvent(event)}
+                    />,
+                    <Button
+                      type="text"
+                      icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                      onClick={() => handleDeleteEvent(event.id)}
+                    />
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        <Tag color={
+                          event.event_type === 'holiday' ? 'red' :
+                          event.event_type === 'exam' ? 'blue' :
+                          event.event_type === 'sports' ? 'green' :
+                          'default'
+                        }>
+                          {event.event_type}
+                        </Tag>
+                        <span style={{ color: '#595959' }}>{event.event_title}</span>
+                      </Space>
+                    }
+                    description={
+                      <Space direction="vertical" size={0}>
+                        <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                        <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                          {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                        </span>
+                      </Space>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Tabs.TabPane>
 
-              <Tabs.TabPane tab="Cancelled" key="cancelled">
-                <List
-                  loading={loading}
-                  dataSource={events
-                    .filter(event => event.status === 'cancelled')
-                    .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
-                  renderItem={event => (
-                    <List.Item
-                      actions={[
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
-                          onClick={() => handleViewEvent(event)}
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background: '#f5f5f5'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#f0f0f0';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#f5f5f5';
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = 'none';
-                          }}
-                        />
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={
-                          <Space>
-                            <Tag color={
-                              event.event_type === 'holiday' ? 'red' :
-                              event.event_type === 'exam' ? 'blue' :
-                              event.event_type === 'sports' ? 'green' :
-                              'default'
-                            }>
-                              {event.event_type}
-                            </Tag>
-                            <span style={{ color: '#595959' }}>{event.event_title}</span>
-                          </Space>
-                        }
-                        description={
-                          <Space direction="vertical" size={0}>
-                            <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
-                            <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                              {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
-                            </span>
-                          </Space>
-                        }
-                      />
-                    </List.Item>
-                  )}
-                />
-              </Tabs.TabPane>
-            </Tabs>
-          </Card>
-
-          {nextHoliday && (
-            <Card 
-              title="Next Holiday" 
-              style={{ 
-                borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-            >
-              <List.Item>
-                <List.Item.Meta
-                  title={nextHoliday.event_title}
-                  description={moment(nextHoliday.start_datetime).format('MMMM D, YYYY')}
-                />
-              </List.Item>
-            </Card>
-          )}
-        </Col>
-      </Row>
+          <Tabs.TabPane tab="Cancelled" key="cancelled">
+            <List
+              loading={loading}
+              dataSource={events
+                .filter(event => event.status === 'cancelled')
+                .sort((a, b) => moment(b.start_datetime).diff(moment(a.start_datetime)))}
+              renderItem={event => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined style={{ color: '#7B83EB' }} />}
+                      onClick={() => handleViewEvent(event)}
+                    />
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        <Tag color={
+                          event.event_type === 'holiday' ? 'red' :
+                          event.event_type === 'exam' ? 'blue' :
+                          event.event_type === 'sports' ? 'green' :
+                          'default'
+                        }>
+                          {event.event_type}
+                        </Tag>
+                        <span style={{ color: '#595959' }}>{event.event_title}</span>
+                      </Space>
+                    }
+                    description={
+                      <Space direction="vertical" size={0}>
+                        <span>{moment(event.start_datetime).format('MMMM D, YYYY')}</span>
+                        <span style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                          {moment(event.start_datetime).format('h:mm A')} - {moment(event.end_datetime).format('h:mm A')}
+                        </span>
+                      </Space>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Tabs.TabPane>
+        </Tabs>
+      </div>
 
       <Modal
         title={
