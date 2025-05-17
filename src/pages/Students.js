@@ -1195,8 +1195,13 @@ const Students = () => {
             placeholder="Search students..."
             allowClear
             onSearch={setSearchText}
-            className="students-search"
-            prefix={<SearchOutlined className="search-icon" />}
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
           />
           <Button
             type="primary"
@@ -1345,85 +1350,6 @@ const Students = () => {
           .title-icon {
             font-size: 20px;
             color: #7B83EB;
-          }
-
-          .students-search {
-            width: 250px;
-            margin-top: 2px;
-          }
-
-          .students-search .ant-input {
-            border: 1px solid #7B83EB;
-            border-radius: 6px;
-            padding: 8px 12px;
-            height: 36px;
-            color: #333;
-            transition: all 0.3s ease;
-            line-height: 20px;
-          }
-
-          .students-search .ant-input::placeholder {
-            color: #999;
-            font-size: 13px;
-            line-height: 20px;
-            vertical-align: middle;
-          }
-
-          .students-search .ant-input:hover {
-            border-color: #7B83EB;
-            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.1);
-          }
-
-          .students-search .ant-input:focus {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
-            color: #7B83EB;
-          }
-
-          .students-search .ant-input-affix-wrapper {
-            border-radius: 6px;
-            overflow: hidden;
-            border-color: #7B83EB;
-          }
-
-          .students-search .ant-input-affix-wrapper:hover {
-            border-color: #7B83EB;
-          }
-
-          .students-search .ant-input-affix-wrapper-focused {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
-          }
-
-          .students-search .ant-input-affix-wrapper-focused .ant-input {
-            color: #7B83EB;
-          }
-
-          .students-search .ant-input-affix-wrapper:focus-within {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
-          }
-
-          .search-icon {
-            color: #7B83EB;
-            font-size: 16px;
-          }
-
-          .students-search .ant-input-clear-icon {
-            color: #999;
-          }
-
-          .students-search .ant-input-clear-icon:hover {
-            color: #7B83EB;
-          }
-
-          .students-search .ant-input-affix-wrapper .ant-input {
-            padding-left: 32px;
-          }
-
-          .students-search .ant-input-affix-wrapper .ant-input:focus {
-            border-color: #7B83EB !important;
-            box-shadow: none !important;
           }
 
           .add-student-btn {
