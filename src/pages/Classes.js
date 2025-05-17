@@ -237,7 +237,7 @@ const Classes = () => {
   );
 
   return (
-    <div style={{ 
+    <div className="classes-page" style={{ 
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column', 
@@ -249,91 +249,55 @@ const Classes = () => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#7B83EB',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <BookOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
-            Classes
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Search
-              placeholder="Search classes..."
-              allowClear
-              onSearch={setSearchText}
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#7B83EB',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#7B83EB';
-              }}
-            >
-              Add Class
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+      <div className="classes-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#ffffff'
+      }}>
+        <Title level={3} className="page-title">
+          <BookOutlined className="title-icon" />
+          Classes
+        </Title>
+        <Space size="small">
+          <Input.Search
+            placeholder="Search classes..."
+            allowClear
+            onSearch={setSearchText}
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="add-class-btn"
+          >
+            Add Class
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
-        <Table 
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
+        <Table
           rowSelection={rowSelection}
-          columns={columns} 
-          dataSource={filteredClasses} 
+          columns={columns}
+          dataSource={filteredClasses}
           rowKey="id"
           loading={loadingClasses}
-          scroll={{ y: 'calc(100vh - 280px)' }}
-          className="custom-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          className="classes-table"
           locale={{
             emptyText: (
               <Empty
@@ -344,25 +308,14 @@ const Classes = () => {
             ),
           }}
         />
-      </Card>
+      </div>
 
       {selectedRowKeys.length > 0 && (
-        <Card
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            boxShadow: '0 -2px 8px rgba(159, 179, 223, 0.2)',
-            background: 'white',
-            borderTop: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
+        <div className="bulk-actions-bar">
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
-                <span style={{ color: '#7B83EB', fontWeight: 500 }}>{selectedRowKeys.length} classes selected</span>
+                <span className="selected-count">{selectedRowKeys.length} classes selected</span>
               </Space>
             </Col>
             <Col>
@@ -370,14 +323,7 @@ const Classes = () => {
                 <Button
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
-                  style={{
-                    background: '#7B83EB',
-                    borderColor: '#7B83EB',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  className="bulk-action-btn"
                   icon={<SwapOutlined />}
                 >
                   Change Status
@@ -390,14 +336,7 @@ const Classes = () => {
                 >
                   <Button 
                     danger
-                    style={{
-                      background: '#fff1f0',
-                      borderColor: '#ffa39e',
-                      color: '#ff4d4f',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    className="bulk-delete-btn"
                     icon={<DeleteFilled />}
                   >
                     Delete Selected
@@ -406,7 +345,7 @@ const Classes = () => {
               </Space>
             </Col>
           </Row>
-        </Card>
+        </div>
       )}
 
       <Modal
@@ -419,19 +358,20 @@ const Classes = () => {
           </Space>
         }
         open={isModalVisible}
+        onOk={handleModalOk}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
           setEditingClass(null);
         }}
-        footer={null}
         confirmLoading={loadingModal}
+        width={800}
         className="class-form-modal"
       >
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleModalOk}
+          className="class-form"
         >
           <Row gutter={24}>
             <Col span={12}>
@@ -447,7 +387,7 @@ const Classes = () => {
                 <Form.Item
                   name="className"
                   label="Class Name"
-                  rules={[{ required: true, message: 'Please enter class name' }]}
+                  rules={[{ required: true, message: 'Please input class name!' }]}
                 >
                   <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />
                 </Form.Item>
@@ -455,7 +395,7 @@ const Classes = () => {
                 <Form.Item
                   name="section"
                   label="Section"
-                  rules={[{ required: true, message: 'Please select section' }]}
+                  rules={[{ required: true, message: 'Please select section!' }]}
                 >
                   <Select>
                     {sections.map(section => (
@@ -510,21 +450,6 @@ const Classes = () => {
               </Card>
             </Col>
           </Row>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={loadingModal}>
-                {editingClass ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={() => {
-                setIsModalVisible(false);
-                form.resetFields();
-                setEditingClass(null);
-              }}>
-                Cancel
-              </Button>
-            </Space>
-          </Form.Item>
         </Form>
       </Modal>
 
@@ -534,6 +459,7 @@ const Classes = () => {
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
         confirmLoading={loadingClasses}
+        className="status-modal"
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
@@ -558,248 +484,337 @@ const Classes = () => {
 
       <style>
         {`
-          .custom-table .ant-table {
-            border-radius: 12px;
+          .classes-page {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
             overflow: hidden;
-            height: 100%;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            height: 100%;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: calc(100% - 32px) !important;
-            border-radius: 0 0 12px 12px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
-
-          .custom-table .ant-table-tbody > tr > td:last-child {
-            position: sticky;
-            right: 0;
-            background: white;
-            z-index: 1;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-thead > tr > th:last-child {
-            position: sticky;
-            right: 0;
-            background: rgba(159, 179, 223, 0.1) !important;
-            z-index: 2;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-tbody > tr:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 2px 12px !important;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 2px 12px !important;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-pagination {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
-            margin: 0 !important;
-            padding: 2px 12px !important;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            z-index: 2;
-            height: 32px;
-          }
-          
-          .custom-table .ant-pagination-item {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-item-active {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-          
-          .custom-table .ant-pagination-item:hover {
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-prev .ant-pagination-item-link,
-          .custom-table .ant-pagination-next .ant-pagination-item-link {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #7B83EB !important;
-            color: #7B83EB !important;
-          }
-
-          .custom-table .ant-table-cell {
-            white-space: nowrap;
-          }
-
-          .custom-table .ant-table-cell .ant-tag {
             margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+            border: 1px solid rgba(159, 179, 223, 0.2);
           }
 
-          .custom-table .ant-table-cell .ant-btn {
-            padding: 0 6px;
-            height: 22px;
-            font-size: 12px;
+          .classes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #ffffff;
           }
 
-          .custom-table .ant-table-cell .ant-avatar {
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            font-size: 12px;
+          .page-title {
+            margin: 0 !important;
+            color: #7B83EB !important;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 20px;
+            font-weight: 600;
+            padding-top: 2px;
           }
 
-          .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
-            border-color: #7B83EB !important;
+          .page-title .ant-typography {
+            color: #7B83EB !important;
+            margin: 0 !important;
           }
 
-          .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-
-          .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #7B83EB !important;
-          }
-
-          .class-form-modal .modal-icon {
+          .title-icon {
             font-size: 20px;
             color: #7B83EB;
           }
 
-          .class-form-modal .modal-title {
-            margin: 0;
-            color: #7B83EB;
-          }
-
-          .class-form-modal .info-card {
-            margin-bottom: 16px;
+          .classes-table {
+            flex: 1;
+            background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+            height: 100%;
           }
 
-          .class-form-modal .card-icon {
-            color: #7B83EB;
+          .classes-table .ant-table {
+            border-radius: 8px;
+            overflow: visible;
           }
 
-          .class-form-modal .ant-card-head {
+          .classes-table .ant-table-container {
+            border-radius: 8px;
+            overflow: visible;
+          }
+
+          .classes-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            margin-right: 1px;
+          }
+
+          .classes-table .ant-spin-nested-loading {
+            height: 100%;
+          }
+
+          .classes-table .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .classes-table .ant-table-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .classes-table .ant-spin {
+            max-height: none;
+          }
+
+          .classes-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+          }
+
+          .classes-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
+          }
+
+          .classes-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
             border-bottom: 1px solid #f0f0f0;
-            padding: 12px 16px;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .class-form-modal .ant-card-head-title {
-            padding: 0;
+          .classes-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .class-form-modal .ant-form-item-label > label {
-            color: #595959;
+          .classes-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .classes-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .classes-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 0 4px;
+            font-size: 12px;
+            height: 18px;
+            line-height: 16px;
+          }
+
+          .classes-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .classes-table .ant-table-pagination {
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
+          .classes-table .ant-pagination-item {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+            margin: 0 4px;
+          }
+
+          .classes-table .ant-pagination-prev .ant-pagination-item-link,
+          .classes-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .classes-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .classes-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .classes-table .ant-select-selector {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
+          }
+
+          .classes-table .ant-select-selection-item {
+            line-height: 22px !important;
+            font-size: 12px;
+          }
+
+          .add-class-btn {
+            background: #7B83EB;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 6px;
+            color: white !important;
             font-weight: 500;
           }
 
-          .class-form-modal .ant-input-affix-wrapper:hover,
-          .class-form-modal .ant-input-affix-wrapper:focus,
-          .class-form-modal .ant-input-affix-wrapper-focused {
-            border-color: #7B83EB;
+          .add-class-btn:hover {
+            background: #7B83EB;
+            opacity: 0.9;
+            color: white !important;
+          }
+          
+          .add-class-btn .anticon {
+            color: white;
+            font-size: 16px;
           }
 
-          .class-form-modal .ant-select:hover .ant-select-selector,
-          .class-form-modal .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
+          .bulk-actions-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 24px;
+            background: white;
+            border-top: 1px solid #7B83EB;
+            box-shadow: 0 -2px 8px rgba(123, 131, 235, 0.2);
+            z-index: 1000;
           }
 
-          .class-form-modal .ant-btn-primary {
+          .selected-count {
+            color: #7B83EB;
+            font-weight: 500;
+          }
+
+          .bulk-action-btn {
             background: #7B83EB;
             border-color: #7B83EB;
           }
 
-          .class-form-modal .ant-btn-primary:hover {
-            background: #8ba1d1;
-            border-color: #8ba1d1;
+          .bulk-action-btn:hover {
+            background: #7B83EB;
+            border-color: #7B83EB;
+            opacity: 0.9;
+          }
+
+          .bulk-delete-btn {
+            background: #fff1f0;
+            border-color: #ffa39e;
+            color: #ff4d4f;
+          }
+
+          .bulk-delete-btn:hover {
+            background: #ffccc7;
+            border-color: #ff7875;
+            color: #ff4d4f;
+          }
+
+          .classes-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .classes-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .classes-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .classes-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .classes-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .classes-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .classes-table .ant-checkbox:hover .ant-checkbox-inner,
+          .classes-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB !important;
+          }
+
+          .classes-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .classes-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB !important;
+          }
+
+          .class-form-modal .ant-modal-content {
+            border-radius: 16px;
+            overflow: hidden;
+          }
+
+          .class-form-modal .ant-modal-header {
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 24px;
+          }
+
+          .class-form-modal .ant-modal-body {
+            padding: 24px;
+          }
+
+          .class-form-modal .ant-modal-footer {
+            border-top: 1px solid #f0f0f0;
+            padding: 16px 24px;
+          }
+
+          .info-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+          }
+
+          .info-card .ant-card-head {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+          }
+
+          .info-card .ant-card-head-title {
+            padding: 0;
+          }
+
+          .card-icon {
+            color: #7B83EB;
+            font-size: 16px;
+          }
+
+          .modal-icon {
+            color: #7B83EB;
+            font-size: 20px;
+          }
+
+          .modal-title {
+            margin: 0 !important;
+            color: #262626 !important;
           }
         `}
       </style>

@@ -590,7 +590,7 @@ const Teachers = () => {
   );
 
   return (
-    <div style={{ 
+    <div className="teachers-page" style={{ 
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column', 
@@ -602,91 +602,55 @@ const Teachers = () => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#7B83EB',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <TeamOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
-            Teachers
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Input.Search
-              placeholder="Search teachers..."
-              allowClear
-              onSearch={setSearchText}
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#7B83EB',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#7B83EB';
-              }}
-            >
-              Add Teacher
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+      <div className="teachers-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#ffffff'
+      }}>
+        <Title level={3} className="page-title">
+          <TeamOutlined className="title-icon" />
+          Teachers
+        </Title>
+        <Space size="small">
+          <Input.Search
+            placeholder="Search teachers..."
+            allowClear
+            onSearch={setSearchText}
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="add-teacher-btn"
+          >
+            Add Teacher
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
         <Table
           rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredTeachers}
           rowKey="id"
           loading={loading}
-          scroll={{ y: 'calc(100vh - 280px)' }}
-          className="custom-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          className="teachers-table"
           locale={{
             emptyText: (
               <Empty
@@ -697,25 +661,14 @@ const Teachers = () => {
             ),
           }}
         />
-      </Card>
+      </div>
 
       {selectedRowKeys.length > 0 && (
-        <Card
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            boxShadow: '0 -2px 8px rgba(159, 179, 223, 0.2)',
-            background: 'white',
-            borderTop: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
+        <div className="bulk-actions-bar">
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
-                <span style={{ color: '#7B83EB', fontWeight: 500 }}>{selectedRowKeys.length} teachers selected</span>
+                <span className="selected-count">{selectedRowKeys.length} teachers selected</span>
               </Space>
             </Col>
             <Col>
@@ -723,14 +676,7 @@ const Teachers = () => {
                 <Button
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
-                  style={{
-                    background: '#7B83EB',
-                    borderColor: '#7B83EB',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  className="bulk-action-btn"
                   icon={<SwapOutlined />}
                 >
                   Change Status
@@ -743,14 +689,7 @@ const Teachers = () => {
                 >
                   <Button 
                     danger
-                    style={{
-                      background: '#fff1f0',
-                      borderColor: '#ffa39e',
-                      color: '#ff4d4f',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    className="bulk-delete-btn"
                     icon={<DeleteFilled />}
                   >
                     Delete Selected
@@ -759,13 +698,13 @@ const Teachers = () => {
               </Space>
             </Col>
           </Row>
-        </Card>
+        </div>
       )}
 
       <Modal
         title={
           <Space>
-            <IdcardOutlined className="modal-icon" />
+            <UserOutlined className="modal-icon" />
             <Typography.Title level={5} className="modal-title">
               {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
             </Typography.Title>
@@ -776,38 +715,25 @@ const Teachers = () => {
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
-          setTempImage(null);
+          setEditingTeacher(null);
         }}
-        width={900}
         confirmLoading={loading}
+        width={900}
         className="teacher-form-modal"
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          className="teacher-form"
+        >
           <Row gutter={24}>
             <Col span={8}>
               <Card className="photo-upload-card">
                 <Upload
+                  name="photo"
+                  listType="picture-card"
                   showUploadList={false}
-                  beforeUpload={(file) => {
-                    const isImage = file.type.startsWith('image/');
-                    if (!isImage) {
-                      messageApi.error('You can only upload image files!');
-                      return false;
-                    }
-                    const isLt2M = file.size / 1024 / 1024 < 2;
-                    if (!isLt2M) {
-                      messageApi.error('Image must be smaller than 2MB!');
-                      return false;
-                    }
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => {
-                      setTempImage(reader.result);
-                    };
-                    return false;
-                  }}
-                  accept="image/*"
-                  maxCount={1}
+                  beforeUpload={() => false}
                 >
                   <div className="upload-placeholder">
                     <PlusOutlined />
@@ -953,7 +879,7 @@ const Teachers = () => {
                       label="Qualification"
                       rules={[{ required: true, message: 'Please input qualification!' }]}
                     >
-                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
+                      <Input />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -972,15 +898,9 @@ const Teachers = () => {
                     <Form.Item
                       name="subject"
                       label="Subject"
-                      rules={[{ required: true, message: 'Please select subject!' }]}
+                      rules={[{ required: true, message: 'Please input subject!' }]}
                     >
-                      <Select loading={loadingSubjects}>
-                        {subjects.map(subject => (
-                          <Option key={subject.id} value={subject.name}>
-                            {subject.name}
-                          </Option>
-                        ))}
-                      </Select>
+                      <Input />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -1022,6 +942,27 @@ const Teachers = () => {
                 >
                   <Input.TextArea rows={3} />
                 </Form.Item>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="emergency_contact"
+                      label="Emergency Contact"
+                      rules={[{ required: true, message: 'Please input emergency contact!' }]}
+                    >
+                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      name="emergency_contact_relation"
+                      label="Relation"
+                      rules={[{ required: true, message: 'Please input relation!' }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
               </Card>
 
               <Card 
@@ -1054,20 +995,23 @@ const Teachers = () => {
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      name="nationality"
-                      label="Nationality"
-                      rules={[{ required: true, message: 'Please input nationality!' }]}
+                      name="status"
+                      label="Status"
+                      rules={[{ required: true, message: 'Please select status!' }]}
                     >
-                      <Input />
+                      <Select>
+                        <Option value="Active">Active</Option>
+                        <Option value="Inactive">Inactive</Option>
+                      </Select>
                     </Form.Item>
                   </Col>
                 </Row>
 
                 <Form.Item
-                  name="medicalConditions"
-                  label="Medical Conditions"
+                  name="remarks"
+                  label="Remarks"
                 >
-                  <Input.TextArea rows={2} />
+                  <Input.TextArea rows={3} />
                 </Form.Item>
               </Card>
             </Col>
@@ -1081,6 +1025,7 @@ const Teachers = () => {
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
         confirmLoading={loading}
+        className="status-modal"
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
@@ -1104,78 +1049,357 @@ const Teachers = () => {
 
       <style>
         {`
-          .teacher-form-modal .modal-icon {
+          .teachers-page {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+            margin: 0;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+            border: 1px solid rgba(159, 179, 223, 0.2);
+          }
+
+          .teachers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
+          .page-title {
+            margin: 0 !important;
+            color: #7B83EB !important;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 20px;
+            font-weight: 600;
+            padding-top: 2px;
+          }
+
+          .page-title .ant-typography {
+            color: #7B83EB !important;
+            margin: 0 !important;
+          }
+
+          .title-icon {
             font-size: 20px;
             color: #7B83EB;
           }
 
-          .teacher-form-modal .modal-title {
-            margin: 0;
-            color: #7B83EB;
-          }
-
-          .teacher-form-modal .photo-upload-card {
-            text-align: center;
-            background: #fafafa;
-            border: 1px dashed #d9d9d9;
+          .teachers-table {
+            flex: 1;
+            background: #ffffff;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 16px;
+            border: 1px solid #f0f0f0;
+            height: 100%;
           }
 
-          .teacher-form-modal .upload-placeholder {
-            cursor: pointer;
-            color: #7B83EB;
-          }
-
-          .teacher-form-modal .info-card {
-            margin-bottom: 16px;
+          .teachers-table .ant-table {
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: visible;
           }
 
-          .teacher-form-modal .card-icon {
-            color: #7B83EB;
+          .teachers-table .ant-table-container {
+            border-radius: 8px;
+            overflow: visible;
           }
 
-          .teacher-form-modal .ant-card-head {
+          .teachers-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            margin-right: 1px;
+          }
+
+          .teachers-table .ant-spin-nested-loading {
+            height: 100%;
+          }
+
+          .teachers-table .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .teachers-table .ant-table-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .teachers-table .ant-spin {
+            max-height: none;
+          }
+
+          .teachers-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+          }
+
+          .teachers-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
+          }
+
+          .teachers-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
             border-bottom: 1px solid #f0f0f0;
-            padding: 12px 16px;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .teacher-form-modal .ant-card-head-title {
-            padding: 0;
+          .teachers-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .teacher-form-modal .ant-form-item-label > label {
-            color: #595959;
+          .teachers-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .teachers-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .teachers-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 0 4px;
+            font-size: 12px;
+            height: 18px;
+            line-height: 16px;
+          }
+
+          .teachers-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .teachers-table .ant-table-pagination {
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
+          .teachers-table .ant-pagination-item {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+            margin: 0 4px;
+          }
+
+          .teachers-table .ant-pagination-prev .ant-pagination-item-link,
+          .teachers-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .teachers-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .teachers-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .teachers-table .ant-select-selector {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
+          }
+
+          .teachers-table .ant-select-selection-item {
+            line-height: 22px !important;
+            font-size: 12px;
+          }
+
+          .add-teacher-btn {
+            background: #7B83EB;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 6px;
+            color: white !important;
             font-weight: 500;
           }
 
-          .teacher-form-modal .ant-input-affix-wrapper:hover,
-          .teacher-form-modal .ant-input-affix-wrapper:focus,
-          .teacher-form-modal .ant-input-affix-wrapper-focused {
-            border-color: #7B83EB;
+          .add-teacher-btn:hover {
+            background: #7B83EB;
+            opacity: 0.9;
+            color: white !important;
+          }
+          
+          .add-teacher-btn .anticon {
+            color: white;
+            font-size: 16px;
           }
 
-          .teacher-form-modal .ant-select:hover .ant-select-selector,
-          .teacher-form-modal .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
+          .bulk-actions-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 24px;
+            background: white;
+            border-top: 1px solid #7B83EB;
+            box-shadow: 0 -2px 8px rgba(123, 131, 235, 0.2);
+            z-index: 1000;
           }
 
-          .teacher-form-modal .ant-picker:hover,
-          .teacher-form-modal .ant-picker-focused {
-            border-color: #7B83EB;
+          .selected-count {
+            color: #7B83EB;
+            font-weight: 500;
           }
 
-          .teacher-form-modal .ant-btn-primary {
+          .bulk-action-btn {
             background: #7B83EB;
             border-color: #7B83EB;
           }
 
-          .teacher-form-modal .ant-btn-primary:hover {
-            background: #8ba1d1;
-            border-color: #8ba1d1;
+          .bulk-action-btn:hover {
+            background: #7B83EB;
+            border-color: #7B83EB;
+            opacity: 0.9;
+          }
+
+          .bulk-delete-btn {
+            background: #fff1f0;
+            border-color: #ffa39e;
+            color: #ff4d4f;
+          }
+
+          .bulk-delete-btn:hover {
+            background: #ffccc7;
+            border-color: #ff7875;
+            color: #ff4d4f;
+          }
+
+          .teachers-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .teachers-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .teachers-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .teachers-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .teachers-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .teachers-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .teachers-table .ant-checkbox:hover .ant-checkbox-inner,
+          .teachers-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB !important;
+          }
+
+          .teachers-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .teachers-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB !important;
+          }
+
+          .teacher-form-modal .ant-modal-content {
+            border-radius: 16px;
+            overflow: hidden;
+          }
+
+          .teacher-form-modal .ant-modal-header {
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 24px;
+          }
+
+          .teacher-form-modal .ant-modal-body {
+            padding: 24px;
+          }
+
+          .teacher-form-modal .ant-modal-footer {
+            border-top: 1px solid #f0f0f0;
+            padding: 16px 24px;
+          }
+
+          .info-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+          }
+
+          .info-card .ant-card-head {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+          }
+
+          .info-card .ant-card-head-title {
+            padding: 0;
+          }
+
+          .card-icon {
+            color: #7B83EB;
+            font-size: 16px;
+          }
+
+          .modal-icon {
+            color: #7B83EB;
+            font-size: 20px;
+          }
+
+          .modal-title {
+            margin: 0 !important;
+            color: #262626 !important;
+          }
+
+          .photo-upload-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+          }
+
+          .upload-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #bfbfbf;
+          }
+
+          .upload-placeholder .anticon {
+            font-size: 24px;
+            margin-bottom: 8px;
           }
         `}
       </style>
