@@ -1110,8 +1110,9 @@ const Students = () => {
       title: 'Actions',
       key: 'actions',
       width: 120,
+      fixed: 'right',
       render: (_, record) => (
-        <Space size="middle">
+        <Space size="middle" style={{ justifyContent: 'flex-end', width: '100%' }}>
           <Tooltip title="Edit">
             <Button
               type="text"

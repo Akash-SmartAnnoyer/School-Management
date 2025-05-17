@@ -542,26 +542,35 @@ const Teachers = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 120,
+      fixed: 'right',
       render: (_, record) => (
-        <Space>
-          <Tooltip title="Upload Photo">
-            <Upload
-              showUploadList={false}
-              beforeUpload={(file) => {
-                handleImageUpload(file, record.user_id);
-                return false;
-              }}
-              accept="image/*"
-              maxCount={1}
-            >
-              <Button icon={<UploadOutlined />} size="small" />
-            </Upload>
-          </Tooltip>
+        <Space size="middle" style={{ justifyContent: 'flex-end', width: '100%' }}>
           <Tooltip title="Edit">
             <Button
-              icon={<EditOutlined />}
-              size="small"
+              type="text"
+              icon={<EditOutlined style={{ fontSize: '16px', color: '#8c8c8c' }} />}
               onClick={() => handleEdit(record)}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+                background: '#f5f5f5'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f0f0f0';
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f5f5f5';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             />
           </Tooltip>
           <Popconfirm
@@ -572,9 +581,28 @@ const Teachers = () => {
           >
             <Tooltip title="Delete">
               <Button
-                icon={<DeleteOutlined />}
-                size="small"
-                danger
+                type="text"
+                icon={<DeleteOutlined style={{ fontSize: '16px', color: '#ff4d4f' }} />}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  background: '#fff1f0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ffccc7';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff1f0';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </Tooltip>
           </Popconfirm>
