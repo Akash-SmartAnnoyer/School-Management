@@ -1184,103 +1184,40 @@ const Students = () => {
   );
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      padding: '0', 
-      overflow: 'hidden', 
-      margin: '0',
-      borderRadius: '16px',
-      background: '#ffffff',
-      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
-      border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
-      <Row justify="space-between" align="middle" style={{ padding: '16px 24px' }}>
-        <Col>
-          <Title level={3} style={{ 
-            color: '#7B83EB',
-            margin: 0,
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <TeamOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
-            Students
-          </Title>
-        </Col>
-        <Col>
-          <Space size="small">
-            <Input.Search
-              placeholder="Search students..."
-              allowClear
-              onSearch={setSearchText}
-              style={{ 
-                width: 250,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-            />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAdd}
-              style={{
-                height: '32px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#7B83EB',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease',
-                padding: '0 12px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#7B83EB';
-              }}
-            >
-              Add Student
-            </Button>
-          </Space>
-        </Col>
-      </Row>
+    <div className="students-page">
+      <div className="students-header">
+        <Title level={3} className="page-title">
+          <TeamOutlined className="title-icon" />
+          Students
+        </Title>
+        <Space size="small">
+          <Input.Search
+            placeholder="Search students..."
+            allowClear
+            onSearch={setSearchText}
+            className="students-search"
+            prefix={<SearchOutlined className="search-icon" />}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="add-student-btn"
+          >
+            Add Student
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          borderRadius: '12px',
-          boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-          overflow: 'hidden',
-          background: '#ffffff',
-          border: '1px solid rgba(159, 179, 223, 0.3)',
-          margin: '0 16px 16px 16px',
-          padding: 0
-        }}
-        bodyStyle={{ padding: 0, height: '100%' }}
-      >
+      <div style={{ flex: 1, overflow: 'hidden' }}>
         <Table
           rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredStudents}
           rowKey="id"
           loading={loading}
-          scroll={{ y: 'calc(100vh - 280px)' }}
-          className="custom-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          className="students-table"
           locale={{
             emptyText: (
               <Empty
@@ -1291,25 +1228,14 @@ const Students = () => {
             ),
           }}
         />
-      </Card>
+      </div>
 
       {selectedRowKeys.length > 0 && (
-        <Card
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            boxShadow: '0 -2px 8px rgba(159, 179, 223, 0.2)',
-            background: 'white',
-            borderTop: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
+        <div className="bulk-actions-bar">
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
-                <span style={{ color: '#7B83EB', fontWeight: 500 }}>{selectedRowKeys.length} students selected</span>
+                <span className="selected-count">{selectedRowKeys.length} students selected</span>
               </Space>
             </Col>
             <Col>
@@ -1317,14 +1243,7 @@ const Students = () => {
                 <Button
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
-                  style={{
-                    background: '#7B83EB',
-                    borderColor: '#7B83EB',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
+                  className="bulk-action-btn"
                   icon={<SwapOutlined />}
                 >
                   Change Status
@@ -1337,14 +1256,7 @@ const Students = () => {
                 >
                   <Button 
                     danger
-                    style={{
-                      background: '#fff1f0',
-                      borderColor: '#ffa39e',
-                      color: '#ff4d4f',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
+                    className="bulk-delete-btn"
                     icon={<DeleteFilled />}
                   >
                     Delete Selected
@@ -1353,7 +1265,7 @@ const Students = () => {
               </Space>
             </Col>
           </Row>
-        </Card>
+        </div>
       )}
 
       <StudentForm
@@ -1397,267 +1309,281 @@ const Students = () => {
 
       <style>
         {`
-          .custom-table .ant-table {
-            border-radius: 12px;
-            overflow: hidden;
+          .students-page {
             height: 100%;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            height: 100%;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            height: calc(100% - 32px) !important;
-            border-radius: 0 0 12px 12px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            background: #ffffff;
           }
 
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+          .students-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 0 8px;
           }
 
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
-
-          .custom-table .ant-table-tbody > tr > td:last-child {
-            position: sticky;
-            right: 0;
-            background: white;
-            z-index: 1;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-thead > tr > th:last-child {
-            position: sticky;
-            right: 0;
-            background: rgba(159, 179, 223, 0.1) !important;
-            z-index: 2;
-            box-shadow: -2px 0 8px rgba(159, 179, 223, 0.1);
-          }
-
-          .custom-table .ant-table-tbody > tr:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td:last-child {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td:last-child {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 2px 12px !important;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 2px 12px !important;
-            height: 28px;
-            font-size: 13px;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected > td {
-            background: rgba(159, 179, 223, 0.1) !important;
-          }
-
-          .custom-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
-            background: rgba(159, 179, 223, 0.15) !important;
-          }
-          
-          .custom-table .ant-table-pagination {
-            border-top: 1px solid rgba(159, 179, 223, 0.2);
+          .page-title {
             margin: 0 !important;
-            padding: 2px 12px !important;
-            position: sticky;
-            bottom: 0;
-            background: white;
-            z-index: 2;
-            height: 32px;
-          }
-          
-          .custom-table .ant-pagination-item {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-item-active {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-          
-          .custom-table .ant-pagination-item:hover {
-            border-color: #7B83EB !important;
-          }
-          
-          .custom-table .ant-pagination-prev .ant-pagination-item-link,
-          .custom-table .ant-pagination-next .ant-pagination-item-link {
-            border: 1px solid rgba(159, 179, 223, 0.3);
-            min-width: 22px;
-            height: 22px;
-            line-height: 20px;
-            font-size: 12px;
-          }
-          
-          .custom-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .custom-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #7B83EB !important;
             color: #7B83EB !important;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 20px;
+            font-weight: 600;
           }
 
-          .custom-table .ant-table-cell {
-            white-space: nowrap;
+          .page-title .ant-typography {
+            color: #7B83EB !important;
+            margin: 0 !important;
           }
 
-          .custom-table .ant-table-cell .ant-tag {
-            margin: 0;
-            padding: 0 6px;
-            font-size: 12px;
-            height: 20px;
-            line-height: 18px;
-          }
-
-          .custom-table .ant-table-cell .ant-btn {
-            padding: 0 6px;
-            height: 22px;
-            font-size: 12px;
-          }
-
-          .custom-table .ant-table-cell .ant-avatar {
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            font-size: 12px;
-          }
-
-          .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox:hover .ant-checkbox-inner,
-          .custom-table .ant-checkbox-input:focus + .ant-checkbox-inner {
-            border-color: #7B83EB !important;
-          }
-
-          .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-
-          .custom-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #7B83EB !important;
-          }
-
-          .student-form-modal .modal-icon {
+          .title-icon {
             font-size: 20px;
             color: #7B83EB;
           }
 
-          .student-form-modal .modal-title {
-            margin: 0;
+          .students-search {
+            width: 250px;
+          }
+
+          .students-search .ant-input {
+            border: 1px solid #7B83EB;
+            border-radius: 6px;
+            padding: 8px 12px;
+            height: 36px;
+            color: #333;
+          }
+
+          .students-search .ant-input::placeholder {
+            color: #999;
+            font-size: 13px;
+          }
+
+          .students-search .ant-input:hover,
+          .students-search .ant-input:focus {
+            border-color: #7B83EB;
+            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2);
+          }
+
+          .search-icon {
             color: #7B83EB;
+            font-size: 16px;
           }
 
-          .student-form-modal .photo-upload-card {
-            text-align: center;
-            background: #fafafa;
-            border: 1px dashed #d9d9d9;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 16px;
-          }
-
-          .student-form-modal .upload-placeholder {
-            cursor: pointer;
-            color: #7B83EB;
-          }
-
-          .student-form-modal .info-card {
-            margin-bottom: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          }
-
-          .student-form-modal .card-icon {
-            color: #7B83EB;
-          }
-
-          .student-form-modal .ant-card-head {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 12px 16px;
-          }
-
-          .student-form-modal .ant-card-head-title {
-            padding: 0;
-          }
-
-          .student-form-modal .ant-form-item-label > label {
-            color: #595959;
+          .add-student-btn {
+            background: #7B83EB;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 6px;
+            color: white !important;
             font-weight: 500;
           }
 
-          .student-form-modal .ant-input-affix-wrapper:hover,
-          .student-form-modal .ant-input-affix-wrapper:focus,
-          .student-form-modal .ant-input-affix-wrapper-focused {
-            border-color: #7B83EB;
+          .add-student-btn:hover {
+            background: #7B83EB;
+            opacity: 0.9;
+            color: white !important;
           }
 
-          .student-form-modal .ant-select:hover .ant-select-selector,
-          .student-form-modal .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
+          .add-student-btn .anticon {
+            color: white;
+            font-size: 16px;
           }
 
-          .student-form-modal .ant-picker:hover,
-          .student-form-modal .ant-picker-focused {
-            border-color: #7B83EB;
+          .students-table {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
           }
 
-          .student-form-modal .ant-btn-primary {
+          .students-table .ant-table {
+            border-radius: 8px;
+            overflow: visible;
+          }
+
+          .students-table .ant-table-container {
+            border-radius: 8px;
+            overflow: visible;
+          }
+
+          .students-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            margin-right: 1px;
+          }
+
+          .students-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .students-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .students-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .students-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .students-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 0 4px;
+            font-size: 12px;
+            height: 18px;
+            line-height: 16px;
+          }
+
+          .students-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .students-table .ant-table-cell .ant-avatar {
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .students-table .ant-table-pagination {
+            margin: 4px 0 !important;
+            padding: 0 8px !important;
+            height: 28px;
+            border-top: 1px solid #f0f0f0;
+          }
+
+          .students-table .ant-pagination-item {
+            min-width: 20px;
+            height: 20px;
+            line-height: 18px;
+            font-size: 12px;
+            margin: 0 2px;
+          }
+
+          .students-table .ant-pagination-prev .ant-pagination-item-link,
+          .students-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 20px;
+            height: 20px;
+            line-height: 18px;
+            font-size: 12px;
+          }
+
+          .students-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .students-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .students-table .ant-select-selector {
+            height: 20px !important;
+            line-height: 18px !important;
+            padding: 0 4px !important;
+          }
+
+          .students-table .ant-select-selection-item {
+            line-height: 18px !important;
+            font-size: 12px;
+          }
+
+          .bulk-actions-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 24px;
+            background: white;
+            border-top: 1px solid #7B83EB;
+            box-shadow: 0 -2px 8px rgba(123, 131, 235, 0.2);
+            z-index: 1000;
+          }
+
+          .selected-count {
+            color: #7B83EB;
+            font-weight: 500;
+          }
+
+          .bulk-action-btn {
             background: #7B83EB;
             border-color: #7B83EB;
           }
 
-          .student-form-modal .ant-btn-primary:hover {
-            background: #8ba1d1;
-            border-color: #8ba1d1;
+          .bulk-action-btn:hover {
+            background: #7B83EB;
+            border-color: #7B83EB;
+            opacity: 0.9;
+          }
+
+          .bulk-delete-btn {
+            background: #fff1f0;
+            border-color: #ffa39e;
+            color: #ff4d4f;
+          }
+
+          .bulk-delete-btn:hover {
+            background: #ffccc7;
+            border-color: #ff7875;
+            color: #ff4d4f;
+          }
+
+          .students-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .students-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .students-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .students-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .students-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .students-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .students-table .ant-checkbox:hover .ant-checkbox-inner,
+          .students-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB !important;
+          }
+
+          .students-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .students-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB !important;
           }
         `}
       </style>
