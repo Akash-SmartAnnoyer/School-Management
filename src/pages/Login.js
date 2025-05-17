@@ -62,7 +62,7 @@ const Login = () => {
     <div className="login-container">
       <div className="login-left">
         <div className="login-left-content">
-          <Title level={1} className="login-left-title">School Management System</Title>
+          <Title level={1} className="login-left-title">Smart Schooling System</Title>
           <Text className="login-left-subtitle">Welcome back! Please login to your account</Text>
           
           <div className="feature-grid">
