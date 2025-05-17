@@ -1184,8 +1184,26 @@ const Students = () => {
   );
 
   return (
-    <div className="students-page">
-      <div className="students-header">
+    <div className="students-page" style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <div className="students-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#ffffff'
+      }}>
         <Title level={3} className="page-title">
           <TeamOutlined className="title-icon" />
           Students
@@ -1214,7 +1232,11 @@ const Students = () => {
         </Space>
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
         <Table
           rowSelection={rowSelection}
           columns={columns}
@@ -1318,17 +1340,22 @@ const Students = () => {
             height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 8px;
+            padding: 0;
+            overflow: hidden;
+            margin: 0;
+            border-radius: 16px;
             background: #ffffff;
+            box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+            border: 1px solid rgba(159, 179, 223, 0.2);
           }
 
           .students-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding: 0 8px 12px 8px;
+            padding: 16px 24px;
             border-bottom: 1px solid #f0f0f0;
+            background: #ffffff;
           }
 
           .page-title {
@@ -1352,36 +1379,12 @@ const Students = () => {
             color: #7B83EB;
           }
 
-          .add-student-btn {
-            background: #7B83EB;
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            height: 36px;
-            padding: 0 16px;
-            border-radius: 6px;
-            color: white !important;
-            font-weight: 500;
-          }
-
-          .add-student-btn:hover {
-            background: #7B83EB;
-            opacity: 0.9;
-            color: white !important;
-          }
-
-          .add-student-btn .anticon {
-            color: white;
-            font-size: 16px;
-          }
-
           .students-table {
             flex: 1;
             background: #ffffff;
             border-radius: 8px;
             border: 1px solid #f0f0f0;
-            min-height: calc(100vh - 200px);
+            height: 100%;
           }
 
           .students-table .ant-table {
@@ -1398,19 +1401,20 @@ const Students = () => {
             overflow-y: auto !important;
             overflow-x: auto !important;
             margin-right: 1px;
-            min-height: calc(100vh - 250px);
           }
 
           .students-table .ant-spin-nested-loading {
-            min-height: calc(100vh - 250px);
+            height: 100%;
           }
 
           .students-table .ant-spin-container {
-            min-height: calc(100vh - 250px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
           }
 
           .students-table .ant-table-placeholder {
-            min-height: calc(100vh - 250px);
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1482,25 +1486,26 @@ const Students = () => {
           }
 
           .students-table .ant-table-pagination {
-            margin: 4px 0 !important;
-            padding: 0 8px !important;
-            height: 28px;
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
             border-top: 1px solid #f0f0f0;
+            background: #ffffff;
           }
 
           .students-table .ant-pagination-item {
-            min-width: 20px;
-            height: 20px;
-            line-height: 18px;
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
             font-size: 12px;
-            margin: 0 2px;
+            margin: 0 4px;
           }
 
           .students-table .ant-pagination-prev .ant-pagination-item-link,
           .students-table .ant-pagination-next .ant-pagination-item-link {
-            min-width: 20px;
-            height: 20px;
-            line-height: 18px;
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
             font-size: 12px;
           }
 
@@ -1513,14 +1518,38 @@ const Students = () => {
           }
 
           .students-table .ant-select-selector {
-            height: 20px !important;
-            line-height: 18px !important;
-            padding: 0 4px !important;
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
           }
 
           .students-table .ant-select-selection-item {
-            line-height: 18px !important;
+            line-height: 22px !important;
             font-size: 12px;
+          }
+
+          .add-student-btn {
+            background: #7B83EB;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 6px;
+            color: white !important;
+            font-weight: 500;
+          }
+
+          .add-student-btn:hover {
+            background: #7B83EB;
+            opacity: 0.9;
+            color: white !important;
+          }
+          
+          .add-student-btn .anticon {
+            color: white;
+            font-size: 16px;
           }
 
           .bulk-actions-bar {
