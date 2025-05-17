@@ -1321,8 +1321,9 @@ const Students = () => {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            padding: 0 8px;
+            margin-bottom: 12px;
+            padding: 0 8px 12px 8px;
+            border-bottom: 1px solid #f0f0f0;
           }
 
           .page-title {
@@ -1333,6 +1334,7 @@ const Students = () => {
             gap: 4px;
             font-size: 20px;
             font-weight: 600;
+            padding-top: 2px;
           }
 
           .page-title .ant-typography {
@@ -1347,6 +1349,7 @@ const Students = () => {
 
           .students-search {
             width: 250px;
+            margin-top: 2px;
           }
 
           .students-search .ant-input {
@@ -1355,22 +1358,72 @@ const Students = () => {
             padding: 8px 12px;
             height: 36px;
             color: #333;
+            transition: all 0.3s ease;
+            line-height: 20px;
           }
 
           .students-search .ant-input::placeholder {
             color: #999;
             font-size: 13px;
+            line-height: 20px;
+            vertical-align: middle;
           }
 
-          .students-search .ant-input:hover,
-          .students-search .ant-input:focus {
+          .students-search .ant-input:hover {
             border-color: #7B83EB;
-            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2);
+            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.1);
+          }
+
+          .students-search .ant-input:focus {
+            border-color: #7B83EB !important;
+            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+            color: #7B83EB;
+          }
+
+          .students-search .ant-input-affix-wrapper {
+            border-radius: 6px;
+            overflow: hidden;
+            border-color: #7B83EB;
+          }
+
+          .students-search .ant-input-affix-wrapper:hover {
+            border-color: #7B83EB;
+          }
+
+          .students-search .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB !important;
+            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+          }
+
+          .students-search .ant-input-affix-wrapper-focused .ant-input {
+            color: #7B83EB;
+          }
+
+          .students-search .ant-input-affix-wrapper:focus-within {
+            border-color: #7B83EB !important;
+            box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
           }
 
           .search-icon {
             color: #7B83EB;
             font-size: 16px;
+          }
+
+          .students-search .ant-input-clear-icon {
+            color: #999;
+          }
+
+          .students-search .ant-input-clear-icon:hover {
+            color: #7B83EB;
+          }
+
+          .students-search .ant-input-affix-wrapper .ant-input {
+            padding-left: 32px;
+          }
+
+          .students-search .ant-input-affix-wrapper .ant-input:focus {
+            border-color: #7B83EB !important;
+            box-shadow: none !important;
           }
 
           .add-student-btn {
@@ -1402,6 +1455,7 @@ const Students = () => {
             background: #ffffff;
             border-radius: 8px;
             border: 1px solid #f0f0f0;
+            min-height: calc(100vh - 200px);
           }
 
           .students-table .ant-table {
@@ -1418,6 +1472,37 @@ const Students = () => {
             overflow-y: auto !important;
             overflow-x: auto !important;
             margin-right: 1px;
+            min-height: calc(100vh - 250px);
+          }
+
+          .students-table .ant-spin-nested-loading {
+            min-height: calc(100vh - 250px);
+          }
+
+          .students-table .ant-spin-container {
+            min-height: calc(100vh - 250px);
+          }
+
+          .students-table .ant-table-placeholder {
+            min-height: calc(100vh - 250px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .students-table .ant-spin {
+            max-height: none;
+          }
+
+          .students-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+          }
+
+          .students-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
           }
 
           .students-table .ant-table-thead > tr > th {
