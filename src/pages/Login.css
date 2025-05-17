@@ -14,8 +14,8 @@
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(123, 131, 235, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(123, 131, 235, 0.05) 0%, transparent 50%);
   z-index: 0;
 }
 
@@ -69,7 +69,7 @@
   font-weight: 800;
   margin-bottom: 16px;
   line-height: 1.2;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
@@ -83,7 +83,7 @@
   left: 0;
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  background: linear-gradient(90deg, #7B83EB, #8ba1d1);
   border-radius: 2px;
   transform: scaleX(0);
   transform-origin: left;
@@ -125,8 +125,8 @@
   overflow: hidden;
   backdrop-filter: blur(10px);
   box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    0 4px 6px -1px rgba(123, 131, 235, 0.1),
+    0 2px 4px -1px rgba(123, 131, 235, 0.06);
 }
 
 .feature-item::before {
@@ -136,7 +136,7 @@
   left: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+  background: linear-gradient(to bottom, #7B83EB, #8ba1d1);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -148,7 +148,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+  background: linear-gradient(135deg, rgba(123, 131, 235, 0.1), rgba(139, 161, 209, 0.1));
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -156,9 +156,9 @@
 .feature-item:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border-color: rgba(59, 130, 246, 0.2);
+    0 20px 25px -5px rgba(123, 131, 235, 0.1),
+    0 10px 10px -5px rgba(123, 131, 235, 0.04);
+  border-color: rgba(123, 131, 235, 0.2);
 }
 
 .feature-item:hover::before {
@@ -172,7 +172,7 @@
 .feature-icon {
   font-size: 20px;
   margin-bottom: 12px;
-  color: #3b82f6;
+  color: #7B83EB;
   transition: transform 0.4s ease;
 }
 
@@ -189,7 +189,7 @@
 }
 
 .feature-item:hover .feature-title {
-  color: #3b82f6;
+  color: #7B83EB;
 }
 
 .feature-description {
@@ -210,7 +210,7 @@
   justify-content: center;
   padding: 40px;
   position: relative;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%);
   overflow: hidden;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
@@ -238,7 +238,7 @@
   width: 200px;
   background: #f8fafc;
   transform: skewX(-15deg);
-  box-shadow: -10px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: -10px 0 20px rgba(123, 131, 235, 0.1);
   z-index: 1;
 }
 
@@ -254,8 +254,8 @@
   background: rgba(255, 255, 255, 0.95);
   border-radius: 24px;
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 20px 40px rgba(123, 131, 235, 0.1),
+    0 0 0 1px rgba(123, 131, 235, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   backdrop-filter: blur(10px);
@@ -264,8 +264,8 @@
 .login-card:hover {
   transform: translateY(-5px);
   box-shadow: 
-    0 30px 60px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+    0 30px 60px rgba(123, 131, 235, 0.15),
+    0 0 0 1px rgba(123, 131, 235, 0.2);
 }
 
 .login-header {
@@ -283,7 +283,7 @@
   transform: translateX(-50%);
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  background: linear-gradient(90deg, #7B83EB, #8ba1d1);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
@@ -316,10 +316,10 @@
 
 .login-card .ant-input-affix-wrapper:hover,
 .login-card .ant-input-affix-wrapper-focused {
-  border-color: #3b82f6;
+  border-color: #7B83EB;
   box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    0 0 0 3px rgba(123, 131, 235, 0.1),
+    0 4px 6px -1px rgba(123, 131, 235, 0.1);
   transform: translateY(-2px);
 }
 
@@ -345,7 +345,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.2),
+    rgba(123, 131, 235, 0.2),
     transparent
   );
   transition: 0.5s;
@@ -356,18 +356,18 @@
 }
 
 .login-card .ant-btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  background: linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%);
   border: none;
   position: relative;
   overflow: hidden;
 }
 
 .login-card .ant-btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #6a72da 0%, #7a90c1 100%);
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 20px rgba(59, 130, 246, 0.2),
-    0 0 0 1px rgba(59, 130, 246, 0.1);
+    0 8px 20px rgba(123, 131, 235, 0.2),
+    0 0 0 1px rgba(123, 131, 235, 0.1);
 }
 
 .login-card .ant-select {
@@ -383,10 +383,10 @@
 }
 
 .login-card .ant-select-focused .ant-select-selector {
-  border-color: #3b82f6 !important;
+  border-color: #7B83EB !important;
   box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    0 0 0 3px rgba(123, 131, 235, 0.1),
+    0 4px 6px -1px rgba(123, 131, 235, 0.1) !important;
   transform: translateY(-2px);
 }
 
@@ -458,7 +458,7 @@
     clip-path: none;
     order: 1;
     min-height: 60vh;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%);
   }
 
   .login-right::after {

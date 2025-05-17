@@ -612,7 +612,7 @@ const Dashboard = () => {
           <Col xs={24} md={12}>
             <div className="dashboard-section">
               <div className="section-header">
-                <Title level={4}>Upcoming Events & Exams</Title>
+l                <Title level={4}>Upcoming Events</Title>
               </div>
               <div className="section-content">
                 <List
