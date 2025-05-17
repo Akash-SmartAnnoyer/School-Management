@@ -358,20 +358,19 @@ const Classes = () => {
           </Space>
         }
         open={isModalVisible}
-        onOk={handleModalOk}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
           setEditingClass(null);
         }}
+        footer={null}
         confirmLoading={loadingModal}
-        width={800}
         className="class-form-modal"
       >
         <Form
           form={form}
           layout="vertical"
-          className="class-form"
+          onFinish={handleModalOk}
         >
           <Row gutter={24}>
             <Col span={12}>
@@ -387,7 +386,7 @@ const Classes = () => {
                 <Form.Item
                   name="className"
                   label="Class Name"
-                  rules={[{ required: true, message: 'Please input class name!' }]}
+                  rules={[{ required: true, message: 'Please enter class name' }]}
                 >
                   <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />
                 </Form.Item>
@@ -395,7 +394,7 @@ const Classes = () => {
                 <Form.Item
                   name="section"
                   label="Section"
-                  rules={[{ required: true, message: 'Please select section!' }]}
+                  rules={[{ required: true, message: 'Please select section' }]}
                 >
                   <Select>
                     {sections.map(section => (
@@ -450,6 +449,21 @@ const Classes = () => {
               </Card>
             </Col>
           </Row>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={loadingModal}>
+                {editingClass ? 'Update' : 'Add'}
+              </Button>
+              <Button onClick={() => {
+                setIsModalVisible(false);
+                form.resetFields();
+                setEditingClass(null);
+              }}>
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -459,7 +473,6 @@ const Classes = () => {
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
         confirmLoading={loadingClasses}
-        className="status-modal"
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
@@ -626,6 +639,13 @@ const Classes = () => {
             font-size: 12px;
           }
 
+          .classes-table .ant-table-cell .ant-avatar {
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
           .classes-table .ant-table-pagination {
             margin: 16px 0 !important;
             padding: 8px 8px !important;
@@ -767,54 +787,59 @@ const Classes = () => {
             background-color: #7B83EB !important;
           }
 
-          .class-form-modal .ant-modal-content {
-            border-radius: 16px;
-            overflow: hidden;
+          .class-form-modal .modal-icon {
+            font-size: 20px;
+            color: #7B83EB;
           }
 
-          .class-form-modal .ant-modal-header {
-            background: #fafafa;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 16px 24px;
+          .class-form-modal .modal-title {
+            margin: 0;
+            color: #7B83EB;
           }
 
-          .class-form-modal .ant-modal-body {
-            padding: 24px;
-          }
-
-          .class-form-modal .ant-modal-footer {
-            border-top: 1px solid #f0f0f0;
-            padding: 16px 24px;
-          }
-
-          .info-card {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          .class-form-modal .info-card {
             margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
           }
 
-          .info-card .ant-card-head {
+          .class-form-modal .card-icon {
+            color: #7B83EB;
+          }
+
+          .class-form-modal .ant-card-head {
             border-bottom: 1px solid #f0f0f0;
             padding: 12px 16px;
           }
 
-          .info-card .ant-card-head-title {
+          .class-form-modal .ant-card-head-title {
             padding: 0;
           }
 
-          .card-icon {
-            color: #7B83EB;
-            font-size: 16px;
+          .class-form-modal .ant-form-item-label > label {
+            color: #595959;
+            font-weight: 500;
           }
 
-          .modal-icon {
-            color: #7B83EB;
-            font-size: 20px;
+          .class-form-modal .ant-input-affix-wrapper:hover,
+          .class-form-modal .ant-input-affix-wrapper:focus,
+          .class-form-modal .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB;
           }
 
-          .modal-title {
-            margin: 0 !important;
-            color: #262626 !important;
+          .class-form-modal .ant-select:hover .ant-select-selector,
+          .class-form-modal .ant-select-focused .ant-select-selector {
+            border-color: #7B83EB !important;
+          }
+
+          .class-form-modal .ant-btn-primary {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .class-form-modal .ant-btn-primary:hover {
+            background: #8ba1d1;
+            border-color: #8ba1d1;
           }
         `}
       </style>

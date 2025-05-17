@@ -704,7 +704,7 @@ const Teachers = () => {
       <Modal
         title={
           <Space>
-            <UserOutlined className="modal-icon" />
+            <IdcardOutlined className="modal-icon" />
             <Typography.Title level={5} className="modal-title">
               {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
             </Typography.Title>
@@ -715,25 +715,38 @@ const Teachers = () => {
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
-          setEditingTeacher(null);
+          setTempImage(null);
         }}
-        confirmLoading={loading}
         width={900}
+        confirmLoading={loading}
         className="teacher-form-modal"
       >
-        <Form
-          form={form}
-          layout="vertical"
-          className="teacher-form"
-        >
+        <Form form={form} layout="vertical">
           <Row gutter={24}>
             <Col span={8}>
               <Card className="photo-upload-card">
                 <Upload
-                  name="photo"
-                  listType="picture-card"
                   showUploadList={false}
-                  beforeUpload={() => false}
+                  beforeUpload={(file) => {
+                    const isImage = file.type.startsWith('image/');
+                    if (!isImage) {
+                      messageApi.error('You can only upload image files!');
+                      return false;
+                    }
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+                    if (!isLt2M) {
+                      messageApi.error('Image must be smaller than 2MB!');
+                      return false;
+                    }
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                      setTempImage(reader.result);
+                    };
+                    return false;
+                  }}
+                  accept="image/*"
+                  maxCount={1}
                 >
                   <div className="upload-placeholder">
                     <PlusOutlined />
@@ -879,7 +892,7 @@ const Teachers = () => {
                       label="Qualification"
                       rules={[{ required: true, message: 'Please input qualification!' }]}
                     >
-                      <Input />
+                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -898,9 +911,15 @@ const Teachers = () => {
                     <Form.Item
                       name="subject"
                       label="Subject"
-                      rules={[{ required: true, message: 'Please input subject!' }]}
+                      rules={[{ required: true, message: 'Please select subject!' }]}
                     >
-                      <Input />
+                      <Select loading={loadingSubjects}>
+                        {subjects.map(subject => (
+                          <Option key={subject.id} value={subject.name}>
+                            {subject.name}
+                          </Option>
+                        ))}
+                      </Select>
                     </Form.Item>
                   </Col>
                   <Col span={12}>
@@ -942,27 +961,6 @@ const Teachers = () => {
                 >
                   <Input.TextArea rows={3} />
                 </Form.Item>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="emergency_contact"
-                      label="Emergency Contact"
-                      rules={[{ required: true, message: 'Please input emergency contact!' }]}
-                    >
-                      <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="emergency_contact_relation"
-                      label="Relation"
-                      rules={[{ required: true, message: 'Please input relation!' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                </Row>
               </Card>
 
               <Card 
@@ -995,23 +993,20 @@ const Teachers = () => {
                   </Col>
                   <Col span={12}>
                     <Form.Item
-                      name="status"
-                      label="Status"
-                      rules={[{ required: true, message: 'Please select status!' }]}
+                      name="nationality"
+                      label="Nationality"
+                      rules={[{ required: true, message: 'Please input nationality!' }]}
                     >
-                      <Select>
-                        <Option value="Active">Active</Option>
-                        <Option value="Inactive">Inactive</Option>
-                      </Select>
+                      <Input />
                     </Form.Item>
                   </Col>
                 </Row>
 
                 <Form.Item
-                  name="remarks"
-                  label="Remarks"
+                  name="medicalConditions"
+                  label="Medical Conditions"
                 >
-                  <Input.TextArea rows={3} />
+                  <Input.TextArea rows={2} />
                 </Form.Item>
               </Card>
             </Col>
@@ -1025,7 +1020,6 @@ const Teachers = () => {
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
         confirmLoading={loading}
-        className="status-modal"
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
@@ -1191,6 +1185,13 @@ const Teachers = () => {
             font-size: 12px;
           }
 
+          .teachers-table .ant-table-cell .ant-avatar {
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
           .teachers-table .ant-table-pagination {
             margin: 16px 0 !important;
             padding: 8px 8px !important;
@@ -1332,74 +1333,78 @@ const Teachers = () => {
             background-color: #7B83EB !important;
           }
 
-          .teacher-form-modal .ant-modal-content {
-            border-radius: 16px;
-            overflow: hidden;
+          .teacher-form-modal .modal-icon {
+            font-size: 20px;
+            color: #7B83EB;
           }
 
-          .teacher-form-modal .ant-modal-header {
+          .teacher-form-modal .modal-title {
+            margin: 0;
+            color: #7B83EB;
+          }
+
+          .teacher-form-modal .photo-upload-card {
+            text-align: center;
             background: #fafafa;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 16px 24px;
-          }
-
-          .teacher-form-modal .ant-modal-body {
-            padding: 24px;
-          }
-
-          .teacher-form-modal .ant-modal-footer {
-            border-top: 1px solid #f0f0f0;
-            padding: 16px 24px;
-          }
-
-          .info-card {
+            border: 1px dashed #d9d9d9;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
             margin-bottom: 16px;
           }
 
-          .info-card .ant-card-head {
+          .teacher-form-modal .upload-placeholder {
+            cursor: pointer;
+            color: #7B83EB;
+          }
+
+          .teacher-form-modal .info-card {
+            margin-bottom: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .teacher-form-modal .card-icon {
+            color: #7B83EB;
+          }
+
+          .teacher-form-modal .ant-card-head {
             border-bottom: 1px solid #f0f0f0;
             padding: 12px 16px;
           }
 
-          .info-card .ant-card-head-title {
+          .teacher-form-modal .ant-card-head-title {
             padding: 0;
           }
 
-          .card-icon {
-            color: #7B83EB;
-            font-size: 16px;
+          .teacher-form-modal .ant-form-item-label > label {
+            color: #595959;
+            font-weight: 500;
           }
 
-          .modal-icon {
-            color: #7B83EB;
-            font-size: 20px;
+          .teacher-form-modal .ant-input-affix-wrapper:hover,
+          .teacher-form-modal .ant-input-affix-wrapper:focus,
+          .teacher-form-modal .ant-input-affix-wrapper-focused {
+            border-color: #7B83EB;
           }
 
-          .modal-title {
-            margin: 0 !important;
-            color: #262626 !important;
+          .teacher-form-modal .ant-select:hover .ant-select-selector,
+          .teacher-form-modal .ant-select-focused .ant-select-selector {
+            border-color: #7B83EB !important;
           }
 
-          .photo-upload-card {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            margin-bottom: 16px;
+          .teacher-form-modal .ant-picker:hover,
+          .teacher-form-modal .ant-picker-focused {
+            border-color: #7B83EB;
           }
 
-          .upload-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #bfbfbf;
+          .teacher-form-modal .ant-btn-primary {
+            background: #7B83EB;
+            border-color: #7B83EB;
           }
 
-          .upload-placeholder .anticon {
-            font-size: 24px;
-            margin-bottom: 8px;
+          .teacher-form-modal .ant-btn-primary:hover {
+            background: #8ba1d1;
+            border-color: #8ba1d1;
           }
         `}
       </style>
