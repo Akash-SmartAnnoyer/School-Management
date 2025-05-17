@@ -42,7 +42,9 @@ import {
   InfoCircleOutlined,
   LoadingOutlined,
   SwapOutlined,
-  DeleteFilled
+  DeleteFilled,
+  CheckCircleOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
@@ -534,7 +536,27 @@ const Teachers = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Active' ? 'green' : 'red'}>
+        <Tag 
+          style={{ 
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: status === 'Active' ? '#73d13d' : '#ffa940',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
+          }}
+        >
+          {status === 'Active' ? (
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#73d13d' }} />
+          ) : (
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ffa940' }} />
+          )} 
           {status}
         </Tag>
       ),
