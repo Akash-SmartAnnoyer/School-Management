@@ -341,7 +341,8 @@ function MainLayout() {
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                color: '#7B83EB'
               }}
             />
             <div style={{
@@ -362,7 +363,7 @@ function MainLayout() {
               /> */}
               <SchoolLogo />
 
-              <Title level={5} style={{ margin: 0, color: '#1f1f1f' }}>
+              <Title level={5} style={{ margin: 0, color: '#7B83EB' }}>
                 Usha Vidyalayam
               </Title>
             </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
@@ -170,10 +170,29 @@ const Classes = () => {
       dataIndex: 'class_name',
       key: 'class_name',
       render: (text, record) => (
-        <Button type="link" onClick={() => {
-          setSelectedClass(record);
-          setDrawerVisible(true);
-        }}>
+        <Button 
+          type="link" 
+          onClick={() => {
+            setSelectedClass(record);
+            setDrawerVisible(true);
+          }}
+          style={{ 
+            padding: 0, 
+            height: 'auto',
+            fontSize: '15px',
+            fontWeight: 500,
+            color: '#595959',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#8c8c8c';
+            e.currentTarget.style.transform = 'translateX(5px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#595959';
+            e.currentTarget.style.transform = 'translateX(0)';
+          }}
+        >
           {text}
         </Button>
       ),
@@ -182,29 +201,109 @@ const Classes = () => {
       title: 'Section',
       dataIndex: 'section',
       key: 'section',
-      render: (section) => `Section ${section}`,
+      render: (section) => (
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          Section {section}
+        </Tag>
+      ),
     },
     {
       title: 'Teacher',
       dataIndex: 'teacher',
       key: 'teacher',
       render: (teacher) => {
-        if (!teacher) return 'Not Assigned';
-        return `${teacher.first_name} ${teacher.last_name}`;
+        if (!teacher) return (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: '#fff1f0',
+              color: '#ff4d4f',
+              border: '1px solid #ffccc7',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            Not Assigned
+          </Tag>
+        );
+        return (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            {teacher.first_name} {teacher.last_name}
+          </Tag>
+        );
       },
     },
     {
       title: 'Capacity',
       dataIndex: 'capacity',
       key: 'capacity',
-      render: (capacity) => `${capacity} students`,
+      render: (capacity) => (
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}
+        >
+          {capacity} students
+        </Tag>
+      ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'active' ? 'green' : 'red'}>
+        <Tag 
+          style={{ 
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: status === 'active' ? '#73d13d' : '#ffa940',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
+          }}
+        >
+          {status === 'active' ? (
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#73d13d' }} />
+          ) : (
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ffa940' }} />
+          )} 
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </Tag>
       ),
@@ -212,19 +311,69 @@ const Classes = () => {
     {
       title: 'Actions',
       key: 'actions',
+      width: 120,
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            onClick={() => handleDelete(record.id)}
-          />
+        <Space size="middle">
+          <Tooltip title="Edit">
+            <Button
+              type="text"
+              icon={<EditOutlined style={{ fontSize: '16px', color: '#8c8c8c' }} />}
+              onClick={() => handleEdit(record)}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease',
+                background: '#f5f5f5'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f0f0f0';
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f5f5f5';
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this class?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Tooltip title="Delete">
+              <Button
+                type="text"
+                icon={<DeleteOutlined style={{ fontSize: '16px', color: '#ff4d4f' }} />}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  background: '#fff1f0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ffccc7';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff1f0';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
