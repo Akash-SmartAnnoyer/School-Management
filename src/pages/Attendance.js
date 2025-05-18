@@ -14,34 +14,91 @@ const Attendance = () => {
   const [selectedDate, setSelectedDate] = useState(moment());
   const [selectedClass, setSelectedClass] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [classesLoading, setClassesLoading] = useState(false);
+  const [studentsLoading, setStudentsLoading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
+  const [timetableId, setTimetableId] = useState(null);
 
   useEffect(() => {
     loadClasses();
   }, []);
 
   useEffect(() => {
-    if (selectedClass) {
+    if (selectedClass && selectedDate) {
       loadStudents();
-      loadAttendance();
+      loadTimetable();
     }
   }, [selectedClass, selectedDate]);
 
   const loadClasses = async () => {
+    setClassesLoading(true);
     try {
-      const response = await api.class.getAll();
-      setClasses(response.data.data);
+      const response = await api.class.getClasses();
+      console.log('Classes API Response:', response);
+      if (response && response.data) {
+        setClasses(response.data || []);
+      } else {
+        console.error('Unexpected API response structure:', response);
+        setClasses([]);
+      }
     } catch (error) {
+      console.error('Error loading classes:', error);
       message.error('Failed to load classes');
+      setClasses([]);
+    } finally {
+      setClassesLoading(false);
     }
   };
 
   const loadStudents = async () => {
+    setStudentsLoading(true);
     try {
-      const response = await api.student.getByClass(selectedClass);
-      setStudents(response.data.data);
+      const response = await api.class.getClass(selectedClass);
+      console.log('Class Details Response:', response);
+      
+      if (response && response.data) {
+        const classData = response.data;
+        const mappedStudents = classData.students.map(student => ({
+          id: student.id,
+          name: `${student.user.first_name} ${student.user.last_name}`,
+          rollNumber: student.user.id,
+          classId: student.classroom,
+          email: student.user.email,
+          phone: student.user.phone
+        }));
+        console.log('Mapped Students:', mappedStudents);
+        setStudents(mappedStudents);
+      } else {
+        console.error('Unexpected API response structure:', response);
+        setStudents([]);
+      }
     } catch (error) {
+      console.error('Error loading students:', error);
       message.error('Failed to load students');
+      setStudents([]);
+    } finally {
+      setStudentsLoading(false);
+    }
+  };
+
+  const loadTimetable = async () => {
+    try {
+      const response = await api.timetable.getByClass(selectedClass);
+      if (response && response.data) {
+        // Get timetable for the selected date
+        const dayOfWeek = selectedDate.format('dddd').toLowerCase();
+        const timetable = response.data.find(t => t.day.toLowerCase() === dayOfWeek);
+        if (timetable) {
+          setTimetableId(timetable.id);
+        } else {
+          message.error('No timetable found for selected date');
+          setTimetableId(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading timetable:', error);
+      message.error('Failed to load timetable');
+      setTimetableId(null);
     }
   };
 
@@ -80,28 +137,51 @@ const Attendance = () => {
       return;
     }
 
+    if (!timetableId) {
+      message.error('No timetable found for selected date');
+      return;
+    }
+
     setLoading(true);
     try {
       const dateStr = selectedDate.format('YYYY-MM-DD');
       const classStudents = students.filter(s => s.classId === selectedClass);
       
+      // Get teacher ID from the selected class
+      const selectedClassData = classes.find(c => c.id === selectedClass);
+      const teacherId = selectedClassData?.teacher?.id;
+
+      if (!teacherId) {
+        message.error('Teacher information not found');
+        return;
+      }
+      
       // Create attendance records for all students in the class
       const attendanceRecords = classStudents.map(student => ({
-        studentId: student.id,
-        classId: selectedClass,
+        student: student.id,
+        timetable: timetableId,
+        classroom: selectedClass,
+        status: attendanceStatus[student.id]?.toLowerCase() || 'absent',
         date: dateStr,
-        status: attendanceStatus[student.id] || 'Absent',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        taken_by_teacher: teacherId
       }));
 
       // Save all attendance records
-      await Promise.all(attendanceRecords.map(record => api.attendance.create(record)));
+      await Promise.all(attendanceRecords.map(record => api.attendance.createAttendance(record)));
       
       message.success('Attendance saved successfully');
       loadAttendance();
     } catch (error) {
-      message.error('Error saving attendance');
+      console.error('Error saving attendance:', error);
+      if (error.message?.includes('already exists')) {
+        message.error('Attendance already marked for some students');
+      } else if (error.message?.includes('Date must be today or yesterday')) {
+        message.error('Attendance can only be marked for today or yesterday');
+      } else if (error.message?.includes('Day does not match timetable day')) {
+        message.error('Selected date does not match the timetable day');
+      } else {
+        message.error('Error saving attendance');
+      }
     } finally {
       setLoading(false);
     }
@@ -222,10 +302,11 @@ const Attendance = () => {
               placeholder="Select Class"
               onChange={handleClassChange}
               value={selectedClass}
+              loading={classesLoading}
             >
-              {classes.map(cls => (
+              {classes && classes.map(cls => (
                 <Option key={cls.id} value={cls.id}>
-                  {cls.className} - {cls.section}
+                  {cls.class_name} - {cls.section} ({cls.status === 'active' ? 'Active' : 'Inactive'})
                 </Option>
               ))}
             </Select>
@@ -317,6 +398,7 @@ const Attendance = () => {
             pagination={false}
             scroll={{ x: true }}
             className="custom-table"
+            loading={studentsLoading}
           />
         </Card>
       </Card>

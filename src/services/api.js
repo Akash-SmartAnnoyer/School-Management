@@ -452,7 +452,7 @@ export const attendanceAPI = {
     return handleResponse(response);
   },
   createAttendance: async (attendanceData) => {
-    const response = await fetch(`${BASE_URL}/attendances/`, {
+    const response = await fetch(`${BASE_URL}/attendance/`, {
       method: 'POST',
       headers: await getHeaders(),
       body: JSON.stringify(attendanceData),
