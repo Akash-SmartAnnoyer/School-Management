@@ -381,7 +381,19 @@ const Timetable = () => {
     return timeString.split(':').slice(0, 2).join(':');
   };
 
-  // Add function to render a timetable cell
+  // Add function to handle cell selection
+  const handleCellSelect = (classDetails) => {
+    if (!classDetails) return;
+    
+    const isSelected = selectedRows.some(row => row.id === classDetails.id);
+    if (isSelected) {
+      setSelectedRows(selectedRows.filter(row => row.id !== classDetails.id));
+    } else {
+      setSelectedRows([...selectedRows, classDetails]);
+    }
+  };
+
+  // Update renderTimetableCell to include selection
   const renderTimetableCell = (day, timeSlot) => {
     const classDetails = getClassDetails(day, timeSlot);
     if (!classDetails) return (
@@ -401,21 +413,27 @@ const Timetable = () => {
       </div>
     );
 
+    const isSelected = selectedRows.some(row => row.id === classDetails.id);
+
     return (
       <div 
-        className="timetable-cell"
+        className={`timetable-cell ${isSelected ? 'selected-cell' : ''}`}
         style={{ 
           padding: '4px',
-          backgroundColor: classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed',
+          backgroundColor: isSelected 
+            ? (classDetails.class_type === 'theory' ? '#bae7ff' : '#d9f7be')
+            : (classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed'),
           borderRadius: '4px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          border: '1px solid #1890ff',
-          boxShadow: '0 2px 4px rgba(24, 144, 255, 0.1)',
-          position: 'relative'
+          border: `1px solid ${isSelected ? '#1890ff' : '#1890ff'}`,
+          boxShadow: isSelected ? '0 2px 8px rgba(24, 144, 255, 0.2)' : '0 2px 4px rgba(24, 144, 255, 0.1)',
+          position: 'relative',
+          cursor: 'pointer'
         }}
+        onClick={() => handleCellSelect(classDetails)}
       >
         <div style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '12px' }}>{getSubjectName(classDetails.subject)}</div>
         <div style={{ fontSize: '11px', color: '#666' }}>{getTeacherName(classDetails.teacher)}</div>
@@ -556,8 +574,17 @@ const Timetable = () => {
             onClick={() => setBulkEditModalVisible(true)}
             disabled={!selectedRows.length}
           >
-            Bulk Edit
+            Bulk Edit {selectedRows.length > 0 && `(${selectedRows.length} selected)`}
           </Button>
+          {selectedRows.length > 0 && (
+            <Button
+              type="text"
+              danger
+              onClick={() => setSelectedRows([])}
+            >
+              Clear Selection
+            </Button>
+          )}
         </Space>
       </div>
 
