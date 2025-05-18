@@ -14,17 +14,23 @@ import {
   Typography,
   Tooltip,
   Popconfirm,
+  Input as AntInput,
+  Empty,
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  BookOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import api from '../../services/api';
+import './AcademicsShared.css';
 
 const { Title } = Typography;
 const { Option } = Select;
+const { Search } = AntInput;
 
 const SubManagement = () => {
   const [subjects, setSubjects] = useState([]);
@@ -153,36 +159,87 @@ const SubManagement = () => {
   ];
 
   return (
-    <div>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-        <Col>
-          <Title level={4}>Subject Management</Title>
-        </Col>
-        <Col>
+    <div className="academics-page">
+      <div className="academics-header">
+        <Title level={3} className="page-title">
+          <BookOutlined className="title-icon" />
+          Subject Management
+        </Title>
+        <Space size="small">
+          <Search
+            placeholder="Search subjects..."
+            allowClear
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={handleAdd}
+            onClick={() => {
+              setEditingSubject(null);
+              form.resetFields();
+              setModalVisible(true);
+            }}
+            className="add-button"
           >
             Add Subject
           </Button>
-        </Col>
-      </Row>
+        </Space>
+      </div>
 
-      <Table
-        columns={columns}
-        dataSource={subjects}
-        rowKey="id"
-        loading={loading}
-      />
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
+        <Table
+          columns={columns}
+          dataSource={subjects}
+          rowKey="id"
+          loading={loading}
+          className="academics-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} subjects`
+          }}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No subjects found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ padding: '20px 0' }}
+              />
+            ),
+          }}
+        />
+      </div>
 
       <Modal
-        title={editingSubject ? 'Edit Subject' : 'Add Subject'}
+        title={
+          <Space>
+            <BookOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            <Title level={5} style={{ margin: 0 }}>
+              {editingSubject ? 'Edit Subject' : 'Add Subject'}
+            </Title>
+          </Space>
+        }
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingSubject(null);
+        }}
         onOk={() => form.submit()}
-        confirmLoading={submitLoading}
+        confirmLoading={loading}
         width={600}
+        className="academics-modal"
       >
         <Form
           form={form}

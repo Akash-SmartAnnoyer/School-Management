@@ -22,7 +22,8 @@ import {
   Upload,
   Divider,
   Popconfirm,
-  Radio
+  Radio,
+  Empty
 } from 'antd';
 import {
   PlusOutlined,
@@ -46,9 +47,11 @@ import { MessageContext } from '../../App';
 import moment from 'moment';
 import api from '../../services/api';
 import { Line } from '@ant-design/plots';
+import './AcademicsShared.css';
 
 const { Option } = Select;
 const { Title } = Typography;
+const { Search } = Input;
 
 const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, exam, subjects, isBulk }) => {
   const [form] = Form.useForm();
@@ -309,7 +312,7 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
   );
 };
 
-const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) => {
+const MarksEntry = ({ students, classes, subjects, examTypes }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -591,7 +594,6 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
   const handleClassChange = async (classId) => {
     console.log('Class changed to:', classId);
     setSelectedClass(classId);
-    onClassSelect(classId);
     await loadStudents();
   };
 
@@ -603,93 +605,111 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
   });
 
   return (
-    <div>
-      <Card title="Marks Entry">
-        <Space direction="vertical" style={{ width: '100%' }}>
+    <div className="academics-page">
+      <div className="academics-header">
+        <Title level={3} className="page-title">
+          <BookOutlined className="title-icon" />
+          Marks Entry
+        </Title>
+        <Space size="small">
+          <Search
+            placeholder="Search marks..."
+            allowClear
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setModalVisible(true)}
+            className="add-button"
+          >
+            Add Marks
+          </Button>
+        </Space>
+      </div>
+
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
+        <Card className="filter-card" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
             <Col span={8}>
-              <Select
-                placeholder="Select Class"
-                style={{ width: '100%' }}
-                value={selectedClass}
-                onChange={setSelectedClass}
-                loading={loading}
-              >
-                {localClasses.map(cls => (
-                  <Option key={cls.id} value={cls.id}>
-                    {cls.class_name} - Section {cls.section}
-                  </Option>
-                ))}
-              </Select>
+              <Form.Item label="Class">
+                <Select
+                  placeholder="Select Class"
+                  value={selectedClass}
+                  onChange={handleClassChange}
+                  style={{ width: '100%' }}
+                >
+                  {localClasses.map(cls => (
+                    <Option key={cls.id} value={cls.id}>{cls.class_name} - Section {cls.section}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
             <Col span={8}>
-              <Select
-                placeholder="Select Exam"
-                style={{ width: '100%' }}
-                value={selectedExam}
-                onChange={setSelectedExam}
-                loading={loading}
-              >
-                {localExams.map(exam => (
-                  <Option key={exam.id} value={exam.id}>
-                    {exam.name} - {exam.type}
-                  </Option>
-                ))}
-              </Select>
+              <Form.Item label="Exam">
+                <Select
+                  placeholder="Select Exam"
+                  value={selectedExam}
+                  onChange={setSelectedExam}
+                  style={{ width: '100%' }}
+                >
+                  {localExams.map(exam => (
+                    <Option key={exam.id} value={exam.id}>{exam.name} - {exam.type}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
             <Col span={8}>
-              <Select
-                placeholder="Select Subject"
-                style={{ width: '100%' }}
-                value={selectedSubject}
-                onChange={setSelectedSubject}
-                loading={loading}
-              >
-                {localSubjects.map(subject => (
-                  <Option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </Option>
-                ))}
-              </Select>
+              <Form.Item label="Subject">
+                <Select
+                  placeholder="Select Subject"
+                  value={selectedSubject}
+                  onChange={setSelectedSubject}
+                  style={{ width: '100%' }}
+                >
+                  {localSubjects.map(subject => (
+                    <Option key={subject.id} value={subject.id}>{subject.name}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
             </Col>
           </Row>
+        </Card>
 
-          <Space>
-            <Radio.Group 
-              value={entryType} 
-              onChange={e => setEntryType(e.target.value)}
-              className="academics-radio-group"
-            >
-              <Radio.Button value="single">Single Entry</Radio.Button>
-              <Radio.Button value="bulk">Bulk Entry</Radio.Button>
-            </Radio.Group>
-
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setModalVisible(true)}
-              disabled={!selectedClass || !selectedExam || !selectedSubject}
-            >
-              Add Marks
-            </Button>
-
-            <Input
-              placeholder="Search marks"
-              prefix={<SearchOutlined />}
-              onChange={e => setSearchText(e.target.value)}
-              style={{ width: 200 }}
-            />
-          </Space>
-
-          <Table
-            columns={columns}
-            dataSource={filteredMarks}
-            rowKey="id"
-            loading={loading}
-            pagination={false}
-          />
-        </Space>
-      </Card>
+        <Table
+          columns={columns}
+          dataSource={filteredMarks}
+          rowKey="id"
+          loading={loading}
+          className="academics-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} marks`
+          }}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No marks found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ padding: '20px 0' }}
+              />
+            ),
+          }}
+        />
+      </div>
 
       <MarksEntryForm
         visible={modalVisible}

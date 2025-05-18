@@ -10,26 +10,30 @@ import {
   DatePicker,
   TimePicker,
   message,
-  Card,
-  Row,
-  Col,
   Typography,
   Tag,
   Tooltip,
   Popconfirm,
+  Input as AntInput,
+  Empty,
+  Row,
+  Col,
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   TrophyOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import api from '../../services/api';
 import moment from 'moment';
+import './AcademicsShared.css';
 
 const { Title } = Typography;
 const { Option } = Select;
+const { Search } = AntInput;
 
 const examTypes = [
   { value: 'quiz', label: 'Quiz' },
@@ -254,12 +258,24 @@ const ExamManagement = () => {
   ];
 
   return (
-    <div>
-      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-        <Col>
-          <Title level={4}>Exam Management</Title>
-        </Col>
-        <Col>
+    <div className="academics-page">
+      <div className="academics-header">
+        <Title level={3} className="page-title">
+          <TrophyOutlined className="title-icon" />
+          Exam Management
+        </Title>
+        <Space size="small">
+          <Search
+            placeholder="Search exams..."
+            allowClear
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -268,28 +284,52 @@ const ExamManagement = () => {
               form.resetFields();
               setExamModalVisible(true);
             }}
+            className="add-button"
           >
             Add Exam
           </Button>
-        </Col>
-      </Row>
+        </Space>
+      </div>
 
-      <Table
-        columns={examColumns}
-        dataSource={exams}
-        rowKey="id"
-        loading={loading}
-        pagination={{ 
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `Total ${total} exams`
-        }}
-        scroll={{ x: 1300 }}
-      />
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
+        <Table
+          columns={examColumns}
+          dataSource={exams}
+          rowKey="id"
+          loading={loading}
+          className="academics-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} exams`
+          }}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No exams found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ padding: '20px 0' }}
+              />
+            ),
+          }}
+        />
+      </div>
 
       <Modal
-        title={editingExam ? 'Edit Exam' : 'Add Exam'}
+        title={
+          <Space>
+            <TrophyOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            <Title level={5} style={{ margin: 0 }}>
+              {editingExam ? 'Edit Exam' : 'Add Exam'}
+            </Title>
+          </Space>
+        }
         open={examModalVisible}
         onCancel={() => {
           setExamModalVisible(false);
@@ -298,6 +338,7 @@ const ExamManagement = () => {
         onOk={() => form.submit()}
         confirmLoading={submitLoading}
         width={800}
+        className="academics-modal"
       >
         <Form
           form={form}
