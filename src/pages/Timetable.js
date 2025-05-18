@@ -60,6 +60,7 @@ const Timetable = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [loadingEdit, setLoadingEdit] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(null);
+  const [tableLoading, setTableLoading] = useState(false);
 
   const days = [
     { value: 'mon', label: 'Monday' },
@@ -218,7 +219,7 @@ const Timetable = () => {
 
   const handleEdit = async (timetable) => {
     try {
-      setLoadingEdit(timetable.id);
+      setTableLoading(true);
       await Promise.all([loadSubjects(), loadTeachers()]);
       setEditingTimetable(timetable);
       
@@ -234,7 +235,7 @@ const Timetable = () => {
     } catch (error) {
       message.error('Failed to load timetable data');
     } finally {
-      setLoadingEdit(null);
+      setTableLoading(false);
     }
   };
 
@@ -356,14 +357,14 @@ const Timetable = () => {
 
   const handleDelete = async (timetableId) => {
     try {
-      setLoadingDelete(timetableId);
+      setTableLoading(true);
       await api.timetable.delete(timetableId);
       message.success('Timetable deleted successfully');
       await loadTimetables();
     } catch (error) {
       message.error('Failed to delete timetable');
     } finally {
-      setLoadingDelete(null);
+      setTableLoading(false);
     }
   };
 
@@ -431,7 +432,6 @@ const Timetable = () => {
                 e.stopPropagation();
                 handleEdit(classDetails);
               }}
-              loading={loadingEdit === classDetails.id}
               style={{ padding: '0 4px' }}
             />
             <Popconfirm
@@ -450,7 +450,6 @@ const Timetable = () => {
                 size="small"
                 danger 
                 icon={<DeleteOutlined style={{ fontSize: '12px' }} />} 
-                loading={loadingDelete === classDetails.id}
                 style={{ padding: '0 4px' }}
               />
             </Popconfirm>
@@ -466,57 +465,54 @@ const Timetable = () => {
     
     return (
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-          <thead>
-            <tr>
-              <th style={{ 
-                padding: '8px', 
-                backgroundColor: '#fafafa', 
-                border: '1px solid #f0f0f0',
-                width: '80px'
-              }}>Time</th>
-              {days.map(day => (
-                <th key={day.value} style={{ 
+        <Spin spinning={tableLoading}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <thead>
+              <tr>
+                <th style={{ 
                   padding: '8px', 
                   backgroundColor: '#fafafa', 
                   border: '1px solid #f0f0f0',
-                  fontSize: '12px'
-                }}>
-                  {day.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {timeSlots.map(timeSlot => (
-              <tr key={timeSlot}>
-                <td style={{ 
-                  padding: '4px', 
-                  border: '1px solid #f0f0f0', 
-                  textAlign: 'center', 
-                  backgroundColor: '#fafafa',
-                  fontSize: '12px'
-                }}>
-                  {formatTime(timeSlot)}
-                </td>
+                  width: '80px'
+                }}>Time</th>
                 {days.map(day => (
-                  <td key={`${day.value}-${timeSlot}`} style={{ 
-                    padding: '4px', 
-                    border: '1px solid #f0f0f0', 
-                    height: '60px',
-                    ':hover': {
-                      '& .action-buttons': {
-                        opacity: 1
-                      }
-                    }
+                  <th key={day.value} style={{ 
+                    padding: '8px', 
+                    backgroundColor: '#fafafa', 
+                    border: '1px solid #f0f0f0',
+                    fontSize: '12px'
                   }}>
-                    {renderTimetableCell(day.value, timeSlot)}
-                  </td>
+                    {day.label}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {timeSlots.map(timeSlot => (
+                <tr key={timeSlot}>
+                  <td style={{ 
+                    padding: '4px', 
+                    border: '1px solid #f0f0f0', 
+                    textAlign: 'center', 
+                    backgroundColor: '#fafafa',
+                    fontSize: '12px'
+                  }}>
+                    {formatTime(timeSlot)}
+                  </td>
+                  {days.map(day => (
+                    <td key={`${day.value}-${timeSlot}`} style={{ 
+                      padding: '4px', 
+                      border: '1px solid #f0f0f0', 
+                      height: '60px'
+                    }}>
+                      {renderTimetableCell(day.value, timeSlot)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Spin>
       </div>
     );
   };
