@@ -74,6 +74,8 @@ const Timetable = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [bulkEditModalVisible, setBulkEditModalVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [loadingEdit, setLoadingEdit] = useState(null);
+  const [loadingDelete, setLoadingDelete] = useState(null);
 
   const days = [
     { value: 'mon', label: 'Monday' },
@@ -231,19 +233,25 @@ const Timetable = () => {
   };
 
   const handleEdit = async (timetable) => {
-    await Promise.all([loadSubjects(), loadTeachers()]);
-    setEditingTimetable(timetable);
-    
-    // Convert time strings to moment objects for TimePicker
-    const formData = {
-      ...timetable,
-      start_time: moment(timetable.start_time, 'HH:mm:ss'),
-      end_time: moment(timetable.end_time, 'HH:mm:ss'),
-      // Don't set duration as it's calculated from start and end time
-    };
-    
-    form.setFieldsValue(formData);
-    setModalVisible(true);
+    try {
+      setLoadingEdit(timetable.id);
+      await Promise.all([loadSubjects(), loadTeachers()]);
+      setEditingTimetable(timetable);
+      
+      // Convert time strings to moment objects for TimePicker
+      const formData = {
+        ...timetable,
+        start_time: moment(timetable.start_time, 'HH:mm:ss'),
+        end_time: moment(timetable.end_time, 'HH:mm:ss'),
+      };
+      
+      form.setFieldsValue(formData);
+      setModalVisible(true);
+    } catch (error) {
+      message.error('Failed to load timetable data');
+    } finally {
+      setLoadingEdit(null);
+    }
   };
 
   const handleSubmit = async (values) => {
@@ -364,11 +372,14 @@ const Timetable = () => {
 
   const handleDelete = async (timetableId) => {
     try {
+      setLoadingDelete(timetableId);
       await api.timetable.delete(timetableId);
       message.success('Timetable deleted successfully');
-      loadTimetables();
+      await loadTimetables();
     } catch (error) {
       message.error('Failed to delete timetable');
+    } finally {
+      setLoadingDelete(null);
     }
   };
 
@@ -472,7 +483,7 @@ const Timetable = () => {
       <Card className="timetable-card">
         {loadingTimetable ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
-            <Spin size="large" />
+            <Spin size="medium" />
           </div>
         ) : !selectedClass ? (
           <Empty description="Please select a class to view timetable" />
@@ -539,14 +550,24 @@ const Timetable = () => {
                       icon={<EditOutlined />} 
                       onClick={() => handleEdit(record)}
                       style={{ color: '#1890ff' }}
+                      loading={loadingEdit === record.id}
                     />
-                    <Button 
-                      type="text" 
-                      danger 
-                      icon={<DeleteOutlined />} 
-                      onClick={() => handleDelete(record.id)}
-                      style={{ color: '#ff4d4f' }}
-                    />
+                    <Popconfirm
+                      title="Delete Timetable Entry"
+                      description="Are you sure you want to delete this timetable entry?"
+                      onConfirm={() => handleDelete(record.id)}
+                      okText="Yes"
+                      cancelText="No"
+                      okButtonProps={{ danger: true }}
+                    >
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<DeleteOutlined />} 
+                        loading={loadingDelete === record.id}
+                        style={{ color: '#ff4d4f' }}
+                      />
+                    </Popconfirm>
                   </Space>
                 ),
               },
@@ -636,7 +657,7 @@ const Timetable = () => {
           </Form.Item>
 
           <Form.Item
-            name="type"
+            name="class_type"
             label="Class Type"
             rules={[{ required: true, message: 'Please select class type' }]}
           >
