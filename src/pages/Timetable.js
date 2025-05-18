@@ -510,7 +510,6 @@ const Timetable = () => {
                 title: 'Duration',
                 dataIndex: 'duration',
                 key: 'duration',
-                render: (duration) => formatDuration(duration)
               },
               {
                 title: 'Subject',
