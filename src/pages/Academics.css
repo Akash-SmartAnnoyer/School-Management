@@ -1,5 +1,5 @@
 .academics-container {
-  padding: 24px;
+  padding: 8px 24px 24px;
   background: var(--background-color);
   min-height: 100vh;
 }
@@ -117,11 +117,11 @@
 }
 
 .academics-tabs .ant-tabs-tab-active {
-  color: var(--primary-color);
+  color: #7B83EB;
 }
 
 .academics-tabs .ant-tabs-ink-bar {
-  background: var(--primary-color);
+  background: #7B83EB;
 }
 
 .academics-statistic .ant-statistic-title {
@@ -171,6 +171,30 @@
   background: var(--error-color-lighter);
   color: var(--error-color);
   border: 1px solid var(--error-color);
+}
+
+.academics-radio-group .ant-radio-button-wrapper {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.academics-radio-group .ant-radio-button-wrapper:not(:first-child)::before {
+  background-color: var(--border-color);
+}
+
+.academics-radio-group .ant-radio-button-wrapper-checked {
+  background: #7B83EB;
+  border-color: #7B83EB;
+  color: white;
+}
+
+.academics-radio-group .ant-radio-button-wrapper:hover {
+  color: #7B83EB;
+}
+
+.academics-radio-group .ant-radio-button-wrapper-checked:hover {
+  color: white;
 }
 
 /* Mobile Responsive Styles */

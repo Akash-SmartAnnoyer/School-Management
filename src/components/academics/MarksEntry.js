@@ -658,7 +658,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes, onClassSelect }) =
             <Radio.Group 
               value={entryType} 
               onChange={e => setEntryType(e.target.value)}
-              buttonStyle="solid"
+              className="academics-radio-group"
             >
               <Radio.Button value="single">Single Entry</Radio.Button>
               <Radio.Button value="bulk">Bulk Entry</Radio.Button>
