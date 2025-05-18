@@ -18,6 +18,7 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--login-shadow);
+  margin-bottom: 24px;
 }
 
 .timetable-card .ant-card-head {
@@ -182,4 +183,37 @@
     padding: 16px;
     overflow-y: auto;
   }
+}
+
+.timetable-cell {
+  position: relative;
+}
+
+.timetable-cell-actions {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.timetable-cell:hover .timetable-cell-actions {
+  opacity: 1;
+}
+
+/* Theory and Practical class styles */
+.theory-class {
+  background-color: #e6f7ff;
+}
+
+.theory-class:hover {
+  background-color: #bae7ff;
+}
+
+.practical-class {
+  background-color: #f6ffed;
+}
+
+.practical-class:hover {
+  background-color: #d9f7be;
 } 

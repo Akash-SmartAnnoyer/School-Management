@@ -34,22 +34,6 @@ import { useAuth } from '../contexts/AuthContext';
 import moment from 'moment';
 import './Timetable.css';
 
-// Add CSS styles
-const styles = {
-  theoryRow: {
-    backgroundColor: '#e6f7ff',
-    '&:hover': {
-      backgroundColor: '#bae7ff',
-    },
-  },
-  practicalRow: {
-    backgroundColor: '#f6ffed',
-    '&:hover': {
-      backgroundColor: '#d9f7be',
-    },
-  },
-};
-
 const { Title } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -91,7 +75,7 @@ const Timetable = () => {
     { value: 'practical', label: 'Practical' }
   ];
 
-  // Remove static timeSlots state and add function to get unique time slots
+  // Add function to get unique time slots
   const getUniqueTimeSlots = () => {
     if (!timetables.length) return [];
     
@@ -401,7 +385,7 @@ const Timetable = () => {
     const classDetails = getClassDetails(day, timeSlot);
     if (!classDetails) return (
       <div style={{ 
-        padding: '8px',
+        padding: '4px',
         backgroundColor: '#fafafa',
         borderRadius: '4px',
         height: '100%',
@@ -409,29 +393,130 @@ const Timetable = () => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        color: '#999'
+        color: '#999',
+        fontSize: '12px'
       }}>
         No Class
       </div>
     );
 
     return (
-      <div style={{ 
-        padding: '8px',
-        backgroundColor: classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed',
-        borderRadius: '4px',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        border: '1px solid #1890ff',
-        boxShadow: '0 2px 4px rgba(24, 144, 255, 0.1)'
-      }}>
-        <div style={{ fontWeight: 'bold', color: '#1890ff' }}>{getSubjectName(classDetails.subject)}</div>
-        <div style={{ fontSize: '12px', color: '#666' }}>{getTeacherName(classDetails.teacher)}</div>
-        <div style={{ fontSize: '12px', color: '#666' }}>
+      <div 
+        className="timetable-cell"
+        style={{ 
+          padding: '4px',
+          backgroundColor: classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed',
+          borderRadius: '4px',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          border: '1px solid #1890ff',
+          boxShadow: '0 2px 4px rgba(24, 144, 255, 0.1)',
+          position: 'relative'
+        }}
+      >
+        <div style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '12px' }}>{getSubjectName(classDetails.subject)}</div>
+        <div style={{ fontSize: '11px', color: '#666' }}>{getTeacherName(classDetails.teacher)}</div>
+        <div style={{ fontSize: '11px', color: '#666' }}>
           {formatTime(classDetails.start_time)} - {formatTime(classDetails.end_time)}
         </div>
+        <div className="timetable-cell-actions">
+          <Space size="small">
+            <Button 
+              type="text" 
+              size="small"
+              icon={<EditOutlined style={{ fontSize: '12px' }} />} 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(classDetails);
+              }}
+              loading={loadingEdit === classDetails.id}
+              style={{ padding: '0 4px' }}
+            />
+            <Popconfirm
+              title="Delete Timetable Entry"
+              description="Are you sure you want to delete this timetable entry?"
+              onConfirm={(e) => {
+                e.stopPropagation();
+                handleDelete(classDetails.id);
+              }}
+              okText="Yes"
+              cancelText="No"
+              okButtonProps={{ danger: true }}
+            >
+              <Button 
+                type="text" 
+                size="small"
+                danger 
+                icon={<DeleteOutlined style={{ fontSize: '12px' }} />} 
+                loading={loadingDelete === classDetails.id}
+                style={{ padding: '0 4px' }}
+              />
+            </Popconfirm>
+          </Space>
+        </div>
+      </div>
+    );
+  };
+
+  // Replace the Table component with a custom timetable view
+  const renderTimetableView = () => {
+    const timeSlots = getUniqueTimeSlots();
+    
+    return (
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <thead>
+            <tr>
+              <th style={{ 
+                padding: '8px', 
+                backgroundColor: '#fafafa', 
+                border: '1px solid #f0f0f0',
+                width: '80px'
+              }}>Time</th>
+              {days.map(day => (
+                <th key={day.value} style={{ 
+                  padding: '8px', 
+                  backgroundColor: '#fafafa', 
+                  border: '1px solid #f0f0f0',
+                  fontSize: '12px'
+                }}>
+                  {day.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {timeSlots.map(timeSlot => (
+              <tr key={timeSlot}>
+                <td style={{ 
+                  padding: '4px', 
+                  border: '1px solid #f0f0f0', 
+                  textAlign: 'center', 
+                  backgroundColor: '#fafafa',
+                  fontSize: '12px'
+                }}>
+                  {formatTime(timeSlot)}
+                </td>
+                {days.map(day => (
+                  <td key={`${day.value}-${timeSlot}`} style={{ 
+                    padding: '4px', 
+                    border: '1px solid #f0f0f0', 
+                    height: '60px',
+                    ':hover': {
+                      '& .action-buttons': {
+                        opacity: 1
+                      }
+                    }
+                  }}>
+                    {renderTimetableCell(day.value, timeSlot)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -488,93 +573,7 @@ const Timetable = () => {
         ) : !selectedClass ? (
           <Empty description="Please select a class to view timetable" />
         ) : (
-          <Table
-            className="timetable-table"
-            rowSelection={{
-              type: 'checkbox',
-              selectedRowKeys,
-              onChange: (newSelectedRowKeys, selectedRows) => {
-                setSelectedRowKeys(newSelectedRowKeys);
-                setSelectedRows(selectedRows);
-              }
-            }}
-            rowKey="id"
-            dataSource={timetables}
-            columns={[
-              {
-                title: 'Day',
-                dataIndex: 'day',
-                key: 'day',
-                render: (day) => days.find(d => d.value === day)?.label || day
-              },
-              {
-                title: 'Start Time',
-                dataIndex: 'start_time',
-                key: 'start_time',
-              },
-              {
-                title: 'End Time',
-                dataIndex: 'end_time',
-                key: 'end_time',
-              },
-              {
-                title: 'Duration',
-                dataIndex: 'duration',
-                key: 'duration',
-              },
-              {
-                title: 'Subject',
-                dataIndex: 'subject',
-                key: 'subject',
-                render: (subjectId) => getSubjectName(subjectId)
-              },
-              {
-                title: 'Teacher',
-                dataIndex: 'teacher',
-                key: 'teacher',
-                render: (teacherId) => getTeacherName(teacherId)
-              },
-              {
-                title: 'Type',
-                dataIndex: 'class_type',
-                key: 'class_type',
-                render: (type) => type.charAt(0).toUpperCase() + type.slice(1)
-              },
-              {
-                title: 'Actions',
-                key: 'actions',
-                render: (_, record) => (
-                  <Space>
-                    <Button 
-                      type="text" 
-                      icon={<EditOutlined />} 
-                      onClick={() => handleEdit(record)}
-                      style={{ color: '#1890ff' }}
-                      loading={loadingEdit === record.id}
-                    />
-                    <Popconfirm
-                      title="Delete Timetable Entry"
-                      description="Are you sure you want to delete this timetable entry?"
-                      onConfirm={() => handleDelete(record.id)}
-                      okText="Yes"
-                      cancelText="No"
-                      okButtonProps={{ danger: true }}
-                    >
-                      <Button 
-                        type="text" 
-                        danger 
-                        icon={<DeleteOutlined />} 
-                        loading={loadingDelete === record.id}
-                        style={{ color: '#ff4d4f' }}
-                      />
-                    </Popconfirm>
-                  </Space>
-                ),
-              },
-            ]}
-            pagination={false}
-            scroll={{ x: 'max-content' }}
-          />
+          renderTimetableView()
         )}
       </Card>
 
@@ -589,6 +588,7 @@ const Timetable = () => {
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
+          setEditingTimetable(null);
           form.resetFields();
         }}
         footer={null}
@@ -672,6 +672,7 @@ const Timetable = () => {
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
               <Button onClick={() => {
                 setModalVisible(false);
+                setEditingTimetable(null);
                 form.resetFields();
               }}>
                 Cancel
