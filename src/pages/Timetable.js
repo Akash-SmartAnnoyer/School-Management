@@ -27,7 +27,9 @@ import {
   EyeOutlined,
   CalendarOutlined,
   SearchOutlined,
-  UploadOutlined
+  UploadOutlined,
+  BookOutlined,
+  ExperimentOutlined
 } from '@ant-design/icons';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -421,24 +423,40 @@ const Timetable = () => {
         style={{ 
           padding: '4px',
           backgroundColor: isSelected 
-            ? (classDetails.class_type === 'theory' ? '#bae7ff' : '#d9f7be')
-            : (classDetails.class_type === 'theory' ? '#e6f7ff' : '#f6ffed'),
+            ? 'rgba(123, 131, 235, 0.1)'
+            : '#ffffff',
           borderRadius: '4px',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          border: `1px solid ${isSelected ? '#1890ff' : '#1890ff'}`,
-          boxShadow: isSelected ? '0 2px 8px rgba(24, 144, 255, 0.2)' : '0 2px 4px rgba(24, 144, 255, 0.1)',
+          border: isSelected ? `1px solid #7B83EB` : 'none',
+          boxShadow: isSelected ? '0 2px 8px rgba(123, 131, 235, 0.15)' : 'none',
           position: 'relative',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
         }}
         onClick={() => handleCellSelect(classDetails)}
       >
-        <div style={{ fontWeight: 'bold', color: '#1890ff', fontSize: '12px' }}>{getSubjectName(classDetails.subject)}</div>
+        <div style={{ 
+          fontWeight: 'bold', 
+          color: isSelected ? '#7B83EB' : '#1890ff', 
+          fontSize: '12px' 
+        }}>
+          {getSubjectName(classDetails.subject)}
+        </div>
         <div style={{ fontSize: '11px', color: '#666' }}>{getTeacherName(classDetails.teacher)}</div>
         <div style={{ fontSize: '11px', color: '#666' }}>
           {formatTime(classDetails.start_time)} - {formatTime(classDetails.end_time)}
+        </div>
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '4px', 
+          right: '4px',
+          color: isSelected ? '#7B83EB' : '#1890ff',
+          fontSize: '14px'
+        }}>
+          {classDetails.class_type === 'theory' ? <BookOutlined /> : <ExperimentOutlined />}
         </div>
         <div className="timetable-cell-actions">
           <Space size="small">
@@ -582,7 +600,7 @@ const Timetable = () => {
               danger
               onClick={() => setSelectedRows([])}
             >
-              Clear Selection
+              Clear
             </Button>
           )}
         </Space>
