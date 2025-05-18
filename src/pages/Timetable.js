@@ -555,9 +555,9 @@ const Timetable = () => {
 
   return (
     <div className="timetable-container">
-      <div className="timetable-header">
-        <Title level={4}>Timetable Management</Title>
-        <Space>
+      <div className="timetable-header" style={{ marginBottom: '16px' }}>
+        <Title level={4} style={{ margin: 0 }}>Timetable Management</Title>
+        <Space size="small">
           <Select
             placeholder="Select Class"
             value={selectedClass}
@@ -592,7 +592,7 @@ const Timetable = () => {
             onClick={() => setBulkEditModalVisible(true)}
             disabled={!selectedRows.length}
           >
-            Bulk Edit {selectedRows.length > 0 && `(${selectedRows.length} selected)`}
+            Bulk Edit {selectedRows.length > 0 && `(${selectedRows.length})`}
           </Button>
           {selectedRows.length > 0 && (
             <Button
