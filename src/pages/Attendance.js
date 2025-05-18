@@ -88,12 +88,19 @@ const Attendance = () => {
         // Get timetable for the selected date
         const dayOfWeek = selectedDate.format('dddd').toLowerCase();
         const timetable = response.data.find(t => t.day.toLowerCase() === dayOfWeek);
+        
         if (timetable) {
+          console.log('Found timetable:', timetable);
           setTimetableId(timetable.id);
         } else {
-          message.error('No timetable found for selected date');
+          console.log('No timetable found for day:', dayOfWeek);
+          message.error(`No timetable found for ${dayOfWeek}`);
           setTimetableId(null);
         }
+      } else {
+        console.log('No timetable data available');
+        message.error('No timetable data available');
+        setTimetableId(null);
       }
     } catch (error) {
       console.error('Error loading timetable:', error);
@@ -152,9 +159,16 @@ const Attendance = () => {
       const teacherId = selectedClassData?.teacher?.id;
 
       if (!teacherId) {
-        message.error('Teacher information not found');
+        message.error('Teacher information not found for this class');
         return;
       }
+
+      console.log('Saving attendance with:', {
+        timetableId,
+        teacherId,
+        date: dateStr,
+        classId: selectedClass
+      });
       
       // Create attendance records for all students in the class
       const attendanceRecords = classStudents.map(student => ({
@@ -179,6 +193,14 @@ const Attendance = () => {
         message.error('Attendance can only be marked for today or yesterday');
       } else if (error.message?.includes('Day does not match timetable day')) {
         message.error('Selected date does not match the timetable day');
+      } else if (error.message?.includes('Invalid pk')) {
+        if (error.message?.includes('timetable')) {
+          message.error('Invalid timetable selected. Please try again.');
+        } else if (error.message?.includes('taken_by_teacher')) {
+          message.error('Invalid teacher information. Please contact support.');
+        } else {
+          message.error('Invalid data. Please try again.');
+        }
       } else {
         message.error('Error saving attendance');
       }
