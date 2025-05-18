@@ -17,7 +17,8 @@ import {
   Spin,
   Empty,
   Tooltip,
-  Popconfirm
+  Popconfirm,
+  Checkbox
 } from 'antd';
 import {
   PlusOutlined,
@@ -25,7 +26,8 @@ import {
   DeleteOutlined,
   EyeOutlined,
   CalendarOutlined,
-  SearchOutlined
+  SearchOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -55,6 +57,7 @@ const { Search } = Input;
 
 const Timetable = () => {
   const [form] = Form.useForm();
+  const [bulkForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -62,11 +65,15 @@ const Timetable = () => {
   const [timetables, setTimetables] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [bulkModalVisible, setBulkModalVisible] = useState(false);
   const [editingTimetable, setEditingTimetable] = useState(null);
   const [activeTab, setActiveTab] = useState('1');
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingTimetable, setLoadingTimetable] = useState(false);
   const { currentUser } = useAuth();
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [bulkEditModalVisible, setBulkEditModalVisible] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const days = [
     { value: 'mon', label: 'Monday' },
@@ -232,7 +239,7 @@ const Timetable = () => {
       ...timetable,
       start_time: moment(timetable.start_time, 'HH:mm:ss'),
       end_time: moment(timetable.end_time, 'HH:mm:ss'),
-      duration: timetable.duration // Keep the original duration
+      // Don't set duration as it's calculated from start and end time
     };
     
     form.setFieldsValue(formData);
@@ -247,34 +254,19 @@ const Timetable = () => {
       const startTime = values.start_time;
       const endTime = values.end_time;
       
-      // Debug logs to check the values
-      console.log('Raw start time:', startTime);
-      console.log('Raw end time:', endTime);
-      
       // Calculate duration in seconds
       const durationInSeconds = endTime.diff(startTime, 'seconds');
-      console.log('Duration in seconds:', durationInSeconds);
       
-      // Convert seconds to HH:mm:ss format
-      const hours = Math.floor(durationInSeconds / 3600);
-      const minutes = Math.floor((durationInSeconds % 3600) / 60);
-      const seconds = durationInSeconds % 60;
-      const duration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      
-      console.log('Formatted duration:', duration);
-
       const timetableData = {
         classroom: selectedClass,
         day: values.day,
         start_time: startTime.format('HH:mm:ss'),
         end_time: endTime.format('HH:mm:ss'),
-        duration: duration,
+        duration: durationInSeconds, // Send duration in seconds
         subject: values.subject,
         teacher: values.teacher,
         class_type: values.class_type
       };
-
-      console.log('Submitting timetable data:', timetableData);
 
       if (editingTimetable) {
         await api.timetable.update(editingTimetable.id, timetableData);
@@ -300,6 +292,74 @@ const Timetable = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add function to handle bulk creation
+  const handleBulkCreate = async (entries) => {
+    try {
+      setLoading(true);
+      const response = await api.timetable.bulkCreate(selectedClass, entries);
+      
+      if (response.data.success_count > 0) {
+        message.success(`Successfully created ${response.data.success_count} entries`);
+      }
+      
+      if (response.data.fail_count > 0) {
+        message.warning(`${response.data.fail_count} entries failed to create`);
+        // Show detailed errors if any
+        response.data.errors.forEach(error => {
+          message.error(`Entry ${error.index + 1}: ${Object.values(error.errors).flat().join(', ')}`);
+        });
+      }
+      
+      loadTimetables();
+    } catch (error) {
+      message.error('Failed to create bulk entries');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add function to handle bulk edit
+  const handleBulkEdit = async (entries) => {
+    try {
+      setLoading(true);
+      const response = await api.timetable.bulkUpdate(selectedClass, entries.map(entry => ({
+        id: entry.id,
+        day: entry.day,
+        start_time: entry.start_time.format('HH:mm:ss'),
+        end_time: entry.end_time.format('HH:mm:ss'),
+        duration: entry.end_time.diff(entry.start_time, 'seconds'),
+        subject: entry.subject,
+        teacher: entry.teacher,
+        class_type: entry.class_type
+      })));
+      
+      if (response.data.updated_count > 0) {
+        message.success(`Successfully updated ${response.data.updated_count} entries`);
+      }
+      
+      if (response.data.errors?.length > 0) {
+        message.warning(`${response.data.errors.length} entries failed to update`);
+        response.data.errors.forEach(error => {
+          message.error(`Entry ${error.id}: ${Object.values(error.errors).flat().join(', ')}`);
+        });
+      }
+      
+      loadTimetables();
+    } catch (error) {
+      message.error('Failed to update entries');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add function to format duration for display
+  const formatDuration = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const handleDelete = async (timetableId) => {
@@ -365,67 +425,6 @@ const Timetable = () => {
     );
   };
 
-  const columns = [
-    {
-      title: 'Day',
-      dataIndex: 'day',
-      key: 'day',
-      render: (day) => days.find(d => d.value === day)?.label || day
-    },
-    {
-      title: 'Start Time',
-      dataIndex: 'start_time',
-      key: 'start_time',
-    },
-    {
-      title: 'End Time',
-      dataIndex: 'end_time',
-      key: 'end_time',
-    },
-    {
-      title: 'Duration',
-      dataIndex: 'duration',
-      key: 'duration',
-    },
-    {
-      title: 'Subject',
-      dataIndex: 'subject',
-      key: 'subject',
-    },
-    {
-      title: 'Teacher',
-      dataIndex: 'teacher',
-      key: 'teacher',
-    },
-    {
-      title: 'Type',
-      dataIndex: 'class_type',
-      key: 'class_type',
-      render: (type) => type.charAt(0).toUpperCase() + type.slice(1)
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button 
-            type="text" 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-            style={{ color: '#1890ff' }}
-          />
-          <Button 
-            type="text" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDelete(record.id)}
-            style={{ color: '#ff4d4f' }}
-          />
-        </Space>
-      ),
-    },
-  ];
-
   return (
     <div className="timetable-container">
       <div className="timetable-header">
@@ -438,64 +437,125 @@ const Timetable = () => {
             style={{ width: 200 }}
           >
             {classes.map(cls => (
-              <Option key={cls.id} value={cls.id}>{cls.name}</Option>
+              <Option key={cls.id} value={cls.id}>
+                {`${cls.class_name} - Section ${cls.section}`}
+              </Option>
             ))}
           </Select>
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingTimetable(null);
-              setModalVisible(true);
-            }}
+            onClick={handleAddTimeSlot}
             disabled={!selectedClass}
           >
             Add Time Slot
+          </Button>
+          <Button
+            type="primary"
+            icon={<UploadOutlined />}
+            onClick={() => setBulkModalVisible(true)}
+            disabled={!selectedClass}
+          >
+            Bulk Upload
+          </Button>
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => setBulkEditModalVisible(true)}
+            disabled={!selectedRows.length}
+          >
+            Bulk Edit
           </Button>
         </Space>
       </div>
 
       <Card className="timetable-card">
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane tab="View Timetable" key="1">
-            {loadingTimetable ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <Spin size="large" />
-              </div>
-            ) : !selectedClass ? (
-              <Empty description="Please select a class to view timetable" />
-            ) : (
-              <Table
-                className="timetable-table"
-                dataSource={getUniqueTimeSlots().map(time => ({
-                  key: time,
-                  time: formatTime(time),
-                  ...days.reduce((acc, day) => ({
-                    ...acc,
-                    [day.value]: getClassDetails(day.value, time)
-                  }), {})
-                }))}
-                columns={[
-                  {
-                    title: 'Time',
-                    dataIndex: 'time',
-                    key: 'time',
-                    width: 100,
-                    fixed: 'left'
-                  },
-                  ...days.map(day => ({
-                    title: day.label,
-                    dataIndex: day.value,
-                    key: day.value,
-                    render: (text, record) => renderTimetableCell(day.value, record.time)
-                  }))
-                ]}
-                pagination={false}
-                scroll={{ x: 'max-content' }}
-              />
-            )}
-          </TabPane>
-        </Tabs>
+        {loadingTimetable ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Spin size="large" />
+          </div>
+        ) : !selectedClass ? (
+          <Empty description="Please select a class to view timetable" />
+        ) : (
+          <Table
+            className="timetable-table"
+            rowSelection={{
+              type: 'checkbox',
+              selectedRowKeys,
+              onChange: (newSelectedRowKeys, selectedRows) => {
+                setSelectedRowKeys(newSelectedRowKeys);
+                setSelectedRows(selectedRows);
+              }
+            }}
+            rowKey="id"
+            dataSource={timetables}
+            columns={[
+              {
+                title: 'Day',
+                dataIndex: 'day',
+                key: 'day',
+                render: (day) => days.find(d => d.value === day)?.label || day
+              },
+              {
+                title: 'Start Time',
+                dataIndex: 'start_time',
+                key: 'start_time',
+              },
+              {
+                title: 'End Time',
+                dataIndex: 'end_time',
+                key: 'end_time',
+              },
+              {
+                title: 'Duration',
+                dataIndex: 'duration',
+                key: 'duration',
+                render: (duration) => formatDuration(duration)
+              },
+              {
+                title: 'Subject',
+                dataIndex: 'subject',
+                key: 'subject',
+                render: (subjectId) => getSubjectName(subjectId)
+              },
+              {
+                title: 'Teacher',
+                dataIndex: 'teacher',
+                key: 'teacher',
+                render: (teacherId) => getTeacherName(teacherId)
+              },
+              {
+                title: 'Type',
+                dataIndex: 'class_type',
+                key: 'class_type',
+                render: (type) => type.charAt(0).toUpperCase() + type.slice(1)
+              },
+              {
+                title: 'Actions',
+                key: 'actions',
+                render: (_, record) => (
+                  <Space>
+                    <Button 
+                      type="text" 
+                      icon={<EditOutlined />} 
+                      onClick={() => handleEdit(record)}
+                      style={{ color: '#1890ff' }}
+                    />
+                    <Button 
+                      type="text" 
+                      danger 
+                      icon={<DeleteOutlined />} 
+                      onClick={() => handleDelete(record.id)}
+                      style={{ color: '#ff4d4f' }}
+                    />
+                  </Space>
+                ),
+              },
+            ]}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
       </Card>
 
       <Modal
@@ -555,7 +615,7 @@ const Timetable = () => {
           >
             <Select
               placeholder="Select Subject"
-              onChange={handleSubjectChange}
+              onChange={(value) => handleSubjectChange(value)}
               loading={loadingTeachers}
             >
               {subjects.map(subject => (
@@ -601,6 +661,313 @@ const Timetable = () => {
               </Button>
             </Space>
           </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Add Bulk Upload Modal */}
+      <Modal
+        title="Bulk Upload Timetable"
+        open={bulkModalVisible}
+        onCancel={() => {
+          setBulkModalVisible(false);
+          bulkForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        <Form
+          form={bulkForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            try {
+              const entries = values.entries.map(entry => ({
+                day: entry.day,
+                start_time: entry.start_time.format('HH:mm:ss'),
+                end_time: entry.end_time.format('HH:mm:ss'),
+                duration: entry.end_time.diff(entry.start_time, 'seconds'),
+                subject: entry.subject,
+                teacher: entry.teacher,
+                class_type: entry.class_type
+              }));
+              
+              await handleBulkCreate(entries);
+              setBulkModalVisible(false);
+              bulkForm.resetFields();
+            } catch (error) {
+              message.error('Failed to process bulk upload');
+            }
+          }}
+        >
+          <Form.List name="entries">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Card
+                    key={key}
+                    style={{ marginBottom: 16 }}
+                    extra={
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => remove(name)}
+                      />
+                    }
+                  >
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'day']}
+                          label="Day"
+                          rules={[{ required: true, message: 'Select day' }]}
+                        >
+                          <Select placeholder="Select Day">
+                            {days.map(day => (
+                              <Option key={day.value} value={day.value}>{day.label}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'start_time']}
+                          label="Start Time"
+                          rules={[{ required: true, message: 'Select start time' }]}
+                        >
+                          <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'end_time']}
+                          label="End Time"
+                          rules={[{ required: true, message: 'Select end time' }]}
+                        >
+                          <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'subject']}
+                          label="Subject"
+                          rules={[{ required: true, message: 'Select subject' }]}
+                        >
+                          <Select
+                            placeholder="Select Subject"
+                            onChange={(value) => handleSubjectChange(value)}
+                          >
+                            {subjects.map(subject => (
+                              <Option key={subject.id} value={subject.id}>{subject.name}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'teacher']}
+                          label="Teacher"
+                          rules={[{ required: true, message: 'Select teacher' }]}
+                        >
+                          <Select placeholder="Select Teacher">
+                            {teachers.map(teacher => (
+                              <Option key={teacher.id} value={teacher.id}>{teacher.name}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'class_type']}
+                          label="Class Type"
+                          rules={[{ required: true, message: 'Select class type' }]}
+                        >
+                          <Select placeholder="Select Class Type">
+                            {classTypes.map(type => (
+                              <Option key={type.value} value={type.value}>{type.label}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+                <Form.Item>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    block
+                    icon={<PlusOutlined />}
+                  >
+                    Add Time Slot
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+          <Form.Item>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => {
+                setBulkModalVisible(false);
+                bulkForm.resetFields();
+              }}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Upload
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Add Bulk Edit Modal */}
+      <Modal
+        title="Bulk Edit Timetable"
+        open={bulkEditModalVisible}
+        onCancel={() => {
+          setBulkEditModalVisible(false);
+          bulkForm.resetFields();
+        }}
+        footer={null}
+        width={800}
+      >
+        <Form
+          form={bulkForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            try {
+              const entries = selectedRows.map((row, index) => ({
+                id: row.id,
+                day: values.entries[index]?.day || row.day,
+                start_time: values.entries[index]?.start_time || moment(row.start_time, 'HH:mm:ss'),
+                end_time: values.entries[index]?.end_time || moment(row.end_time, 'HH:mm:ss'),
+                subject: values.entries[index]?.subject || row.subject,
+                teacher: values.entries[index]?.teacher || row.teacher,
+                class_type: values.entries[index]?.class_type || row.class_type
+              }));
+              
+              await handleBulkEdit(entries);
+              setBulkEditModalVisible(false);
+              bulkForm.resetFields();
+              setSelectedRows([]);
+            } catch (error) {
+              message.error('Failed to process bulk edit');
+            }
+          }}
+        >
+          <Form.List name="entries">
+            {(fields, { add, remove }) => (
+              <>
+                {selectedRows.map((row, index) => (
+                  <Card
+                    key={row.id}
+                    style={{ marginBottom: 16 }}
+                    title={`Entry ${index + 1}`}
+                  >
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'day']}
+                          label="Day"
+                          initialValue={row.day}
+                        >
+                          <Select placeholder="Select Day">
+                            {days.map(day => (
+                              <Option key={day.value} value={day.value}>{day.label}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'start_time']}
+                          label="Start Time"
+                          initialValue={moment(row.start_time, 'HH:mm:ss')}
+                        >
+                          <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'end_time']}
+                          label="End Time"
+                          initialValue={moment(row.end_time, 'HH:mm:ss')}
+                        >
+                          <TimePicker format="HH:mm" style={{ width: '100%' }} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'subject']}
+                          label="Subject"
+                          initialValue={row.subject}
+                        >
+                          <Select
+                            placeholder="Select Subject"
+                            onChange={(value) => handleSubjectChange(value)}
+                          >
+                            {subjects.map(subject => (
+                              <Option key={subject.id} value={subject.id}>{subject.name}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'teacher']}
+                          label="Teacher"
+                          initialValue={row.teacher}
+                        >
+                          <Select placeholder="Select Teacher">
+                            {teachers.map(teacher => (
+                              <Option key={teacher.id} value={teacher.id}>{teacher.name}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          name={[index, 'class_type']}
+                          label="Class Type"
+                          initialValue={row.class_type}
+                        >
+                          <Select placeholder="Select Class Type">
+                            {classTypes.map(type => (
+                              <Option key={type.value} value={type.value}>{type.label}</Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+                <Form.Item>
+                  <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Button onClick={() => {
+                      setBulkEditModalVisible(false);
+                      bulkForm.resetFields();
+                      setSelectedRows([]);
+                    }}>
+                      Cancel
+                    </Button>
+                    <Button type="primary" htmlType="submit" loading={loading}>
+                      Update
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
         </Form>
       </Modal>
     </div>
