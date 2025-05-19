@@ -138,8 +138,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
     <Modal
       title={
         <Space>
-          <IdcardOutlined className="modal-icon" />
-          <Typography.Title level={5} className="modal-title">
+          <IdcardOutlined className="modal-icon" style={{ color: '#7B83EB' }} />
+          <Typography.Title level={5} className="modal-title" style={{ color: '#7B83EB' }}>
             {initialValues ? 'Edit Student' : 'Add New Student'}
           </Typography.Title>
         </Space>
@@ -176,8 +176,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <UserOutlined className="card-icon" />
-                  <span>Basic Information</span>
+                  <UserOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Basic Information</span>
                 </Space>
               }
               className="info-card"
@@ -187,7 +187,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 label="First Name"
                 rules={[{ required: true, message: 'Please input first name!' }]}
               >
-                <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
               </Form.Item>
 
               <Form.Item
@@ -195,7 +195,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 label="Last Name"
                 rules={[{ required: true, message: 'Please input last name!' }]}
               >
-                <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
               </Form.Item>
 
               <Form.Item
@@ -206,7 +206,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                   { type: 'email', message: 'Please enter a valid email!' }
                 ]}
               >
-                <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                <Input prefix={<MailOutlined style={{ color: '#7B83EB' }} />} />
               </Form.Item>
 
               <Form.Item
@@ -214,7 +214,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 label="Phone"
                 rules={[{ required: true, message: 'Please input phone number!' }]}
               >
-                <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                <Input prefix={<PhoneOutlined style={{ color: '#7B83EB' }} />} />
               </Form.Item>
 
               <Form.Item
@@ -306,8 +306,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <BookOutlined className="card-icon" />
-                  <span>Academic Information</span>
+                  <BookOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Academic Information</span>
                 </Space>
               }
               className="info-card"
@@ -319,7 +319,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     label="Student ID"
                     rules={[{ required: true, message: 'Please input student ID!' }]}
                   >
-                    <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<IdcardOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -328,7 +328,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     label="Admission Number"
                     rules={[{ required: true, message: 'Please input admission number!' }]}
                   >
-                    <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<IdcardOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -379,8 +379,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <HomeOutlined className="card-icon" />
-                  <span>Parent Information</span>
+                  <HomeOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Parent Information</span>
                 </Space>
               }
               className="info-card"
@@ -392,7 +392,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     label="Father's Name"
                     rules={[{ required: true, message: 'Please input father\'s name!' }]}
                   >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -413,7 +413,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     label="Mother's Name"
                     rules={[{ required: true, message: 'Please input mother\'s name!' }]}
                   >
-                    <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -445,7 +445,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                       { type: 'email', message: 'Please enter a valid email!' }
                     ]}
                   >
-                    <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<MailOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -454,7 +454,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     label="Parent's Phone"
                     rules={[{ required: true, message: 'Please input parent\'s phone number!' }]}
                   >
-                    <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
+                    <Input prefix={<PhoneOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -463,8 +463,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             <Card 
               title={
                 <Space>
-                  <InfoCircleOutlined className="card-icon" />
-                  <span>Additional Information</span>
+                  <InfoCircleOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Additional Information</span>
                 </Space>
               }
               className="info-card"
