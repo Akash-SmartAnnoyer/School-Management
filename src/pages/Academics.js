@@ -627,15 +627,16 @@ const Academics = () => {
           activeKey={activeTab}
           onChange={handleTabChange}
         >
-          <TabPane tab="Marks Entry" key="1">
-            <MarksEntry />
+          <TabPane tab="Subject Management" key="3">
+            <SubManagement />
           </TabPane>
           <TabPane tab="Exam Management" key="2">
             <ExamManagement />
           </TabPane>
-          <TabPane tab="Subject Management" key="3">
-            <SubManagement />
+          <TabPane tab="Marks Entry" key="1">
+            <MarksEntry />
           </TabPane>
+
           <TabPane tab="Analytics" key="4">
             <Analytics />
           </TabPane>
