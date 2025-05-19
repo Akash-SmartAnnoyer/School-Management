@@ -300,9 +300,15 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
         </Space>
       }
       open={visible}
-      onCancel={onCancel}
+      onCancel={() => {
+        if (!loading) {
+          onCancel();
+        }
+      }}
       footer={null}
       width={600}
+      maskClosable={!loading}
+      closable={!loading}
     >
       <Form
         form={form}
@@ -315,7 +321,7 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
           label="Subject Code"
           rules={[{ required: true, message: 'Please enter subject code!' }]}
         >
-          <Input placeholder="Enter subject code" />
+          <Input placeholder="Enter subject code" disabled={loading} />
         </Form.Item>
 
         <Form.Item
@@ -323,19 +329,19 @@ const SubjectForm = ({ visible, onCancel, onSubmit, initialValues }) => {
           label="Subject Name"
           rules={[{ required: true, message: 'Please enter subject name!' }]}
         >
-          <Input placeholder="Enter subject name" />
+          <Input placeholder="Enter subject name" disabled={loading} />
         </Form.Item>
 
         <Form.Item
           name="description"
           label="Description"
         >
-          <Input.TextArea rows={4} placeholder="Enter subject description" />
+          <Input.TextArea rows={4} placeholder="Enter subject description" disabled={loading} />
         </Form.Item>
 
         <Form.Item>
           <Space>
-            <Button onClick={onCancel}>Cancel</Button>
+            <Button onClick={onCancel} disabled={loading}>Cancel</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               {initialValues ? 'Update' : 'Add Subject'}
             </Button>
@@ -627,13 +633,13 @@ const Academics = () => {
           activeKey={activeTab}
           onChange={handleTabChange}
         >
-          <TabPane tab="Subject Management" key="3">
+          <TabPane tab="Subject Management" key="1">
             <SubManagement />
           </TabPane>
           <TabPane tab="Exam Management" key="2">
             <ExamManagement />
           </TabPane>
-          <TabPane tab="Marks Entry" key="1">
+          <TabPane tab="Marks Entry" key="3">
             <MarksEntry />
           </TabPane>
 

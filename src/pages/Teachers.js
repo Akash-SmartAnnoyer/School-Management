@@ -213,7 +213,8 @@ const Teachers = () => {
       
       if (response.status === 204) {
         messageApi.success('Teacher deleted successfully');
-        loadTeachers();
+        // Keep loading state while refreshing the list
+        await loadTeachers();
       } else if (response.status === 403) {
         if (response.data?.detail === 'You do not have permission to perform this action.') {
           messageApi.error('You do not have permission to delete this teacher');
@@ -691,7 +692,10 @@ const Teachers = () => {
       <div style={{ 
         flex: 1, 
         overflow: 'hidden',
-        padding: '0 16px 16px 16px'
+        padding: '0 16px 16px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 180px)'
       }}>
         <Table
           rowSelection={rowSelection}
@@ -701,6 +705,13 @@ const Teachers = () => {
           loading={loading}
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="teachers-table"
+          pagination={{
+            position: ['bottomCenter'],
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} teachers`
+          }}
           locale={{
             emptyText: (
               <Empty
@@ -1142,30 +1153,41 @@ const Teachers = () => {
             border-radius: 8px;
             border: 1px solid #f0f0f0;
             height: 100%;
+            display: flex;
+            flex-direction: column;
           }
 
           .teachers-table .ant-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
-            overflow: visible;
+            overflow: hidden;
           }
 
           .teachers-table .ant-table-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
-            overflow: visible;
+            overflow: hidden;
           }
 
           .teachers-table .ant-table-body {
+            flex: 1;
             overflow-y: auto !important;
             overflow-x: auto !important;
             margin-right: 1px;
           }
 
           .teachers-table .ant-spin-nested-loading {
-            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
 
           .teachers-table .ant-spin-container {
-            height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
           }

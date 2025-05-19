@@ -438,7 +438,10 @@ const Classes = () => {
       <div style={{ 
         flex: 1, 
         overflow: 'hidden',
-        padding: '0 16px 16px 16px'
+        padding: '0 16px 16px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 180px)'
       }}>
         <Table
           rowSelection={rowSelection}
@@ -448,6 +451,13 @@ const Classes = () => {
           loading={loadingClasses}
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="classes-table"
+          pagination={{
+            position: ['bottomCenter'],
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} classes`
+          }}
           locale={{
             emptyText: (
               <Empty
@@ -696,30 +706,41 @@ const Classes = () => {
             border-radius: 8px;
             border: 1px solid #f0f0f0;
             height: 100%;
+            display: flex;
+            flex-direction: column;
           }
 
           .classes-table .ant-table {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
-            overflow: visible;
+            overflow: hidden;
           }
 
           .classes-table .ant-table-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             border-radius: 8px;
-            overflow: visible;
+            overflow: hidden;
           }
 
           .classes-table .ant-table-body {
+            flex: 1;
             overflow-y: auto !important;
             overflow-x: auto !important;
             margin-right: 1px;
           }
 
           .classes-table .ant-spin-nested-loading {
-            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
 
           .classes-table .ant-spin-container {
-            height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
           }
@@ -802,6 +823,7 @@ const Classes = () => {
             height: 32px;
             border-top: 1px solid #f0f0f0;
             background: #ffffff;
+            flex-shrink: 0;
           }
 
           .classes-table .ant-pagination-item {
