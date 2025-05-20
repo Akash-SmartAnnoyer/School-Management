@@ -47,6 +47,7 @@ const ExamManagement = () => {
   const [exams, setExams] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [examModalVisible, setExamModalVisible] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
@@ -62,21 +63,24 @@ const ExamManagement = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [examsResponse, subjectsResponse, teachersResponse] = await Promise.all([
+      const [examsResponse, subjectsResponse, teachersResponse, classesResponse] = await Promise.all([
         api.exam.getExams(),
         api.subject.getSubjects(),
-        api.teacher.getTeachers()
+        api.teacher.getTeachers(),
+        api.class.getClasses()
       ]);
       
       setExams(examsResponse.data || []);
       setSubjects(subjectsResponse.data || []);
       setTeachers(teachersResponse.data || []);
+      setClassrooms(classesResponse.data || []);
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
       setExams([]);
       setSubjects([]);
       setTeachers([]);
+      setClassrooms([]);
     } finally {
       setLoading(false);
     }
@@ -89,7 +93,8 @@ const ExamManagement = () => {
         ...values,
         exam_date: values.date.format('YYYY-MM-DD'),
         start_time: values.startTime.format('HH:mm:ss'),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        classrooms: values.classrooms === 'all' ? classrooms.map(c => c.id) : values.classrooms
       };
 
       if (editingExam) {
@@ -140,7 +145,8 @@ const ExamManagement = () => {
       date: moment(record.exam_date),
       startTime: moment(record.start_time, 'HH:mm:ss'),
       exam_code: record.exam_code,
-      maxMarks: record.maximum_marks
+      maxMarks: record.maximum_marks,
+      classrooms: record.classrooms
     });
     setExamModalVisible(true);
   };
@@ -221,6 +227,24 @@ const ExamManagement = () => {
       dataIndex: 'start_time',
       key: 'start_time',
       width: 120,
+    },
+    {
+      title: 'Classrooms',
+      dataIndex: 'classrooms',
+      key: 'classrooms',
+      width: 200,
+      render: (classroomIds) => (
+        <Space wrap>
+          {classroomIds && classroomIds.map((id) => {
+            const classroom = classrooms.find(c => c.id === id);
+            return classroom ? (
+              <Tag key={id} color="green">
+                {classroom.class_name} {classroom.section}
+              </Tag>
+            ) : null;
+          })}
+        </Space>
+      ),
     },
     {
       title: 'Actions',
@@ -466,6 +490,28 @@ const ExamManagement = () => {
               {subjects.map(subject => (
                 <Option key={subject.id} value={subject.id}>
                   {subject.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="classrooms"
+            label="Classrooms"
+            rules={[{ required: true, message: 'Please select at least one classroom' }]}
+          >
+            <Select
+              mode="multiple"
+              placeholder="Select classrooms"
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              <Option value="all">All Classrooms</Option>
+              {classrooms.map(classroom => (
+                <Option key={classroom.id} value={classroom.id}>
+                  {classroom.class_name} {classroom.section}
                 </Option>
               ))}
             </Select>
