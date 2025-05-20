@@ -67,11 +67,42 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
   const [localClasses, setLocalClasses] = useState([]);
   const messageApi = useContext(MessageContext);
 
+  // Reset all state when modal visibility changes
+  useEffect(() => {
+    if (!visible) {
+      form.resetFields();
+      setSelectedClass(null);
+      setSelectedExam(null);
+      setSelectedSubject(null);
+      setLocalStudents([]);
+    }
+  }, [visible]);
+
+  // Load initial data when modal becomes visible
   useEffect(() => {
     if (visible) {
       loadInitialData();
     }
   }, [visible]);
+
+  // Set form values only when initialValues changes and modal is visible
+  useEffect(() => {
+    if (visible && initialValues) {
+      const formValues = {
+        classroom: initialValues.classroom,
+        exam: initialValues.exam,
+        subject: initialValues.subject,
+        studentId: initialValues.studentId || initialValues.student,
+        marks: initialValues.marks,
+        remarks: initialValues.remarks || ''
+      };
+      form.setFieldsValue(formValues);
+      setSelectedClass(initialValues.classroom);
+      setSelectedExam(initialValues.exam);
+      setSelectedSubject(initialValues.subject);
+      loadStudentsForClass(initialValues.classroom);
+    }
+  }, [initialValues, visible]);
 
   const loadInitialData = async () => {
     try {
@@ -85,25 +116,6 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
       setLocalClasses(classesResponse.data || []);
       setLocalSubjects(subjectsResponse.data || []);
       setLocalExams(examsResponse.data || []);
-
-      if (initialValues) {
-        const formValues = {
-          classroom: initialValues.classroom,
-          exam: initialValues.exam,
-          subject: initialValues.subject,
-          studentId: initialValues.studentId || initialValues.student,
-          marks: initialValues.marks,
-          remarks: initialValues.remarks || ''
-        };
-        
-        form.setFieldsValue(formValues);
-        setSelectedClass(initialValues.classroom);
-        setSelectedExam(initialValues.exam);
-        setSelectedSubject(initialValues.subject);
-        await loadStudentsForClass(initialValues.classroom);
-      } else {
-        form.resetFields();
-      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -531,6 +543,17 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     setModalVisible(true);
   };
 
+  const handleAddMarks = () => {
+    setSelectedMarks(null);
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setSelectedMarks(null);
+    form.resetFields();
+  };
+
   useEffect(() => {
     loadInitialData();
   }, []);
@@ -816,7 +839,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
+            onClick={handleAddMarks}
             className="add-button"
           >
             Add Marks
@@ -858,10 +881,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
 
       <MarksEntryForm
         visible={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setSelectedMarks(null);
-        }}
+        onCancel={handleModalClose}
         onSubmit={handleMarksSubmit}
         initialValues={selectedMarks}
         students={localStudents}
