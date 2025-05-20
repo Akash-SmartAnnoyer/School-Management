@@ -87,7 +87,16 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
       setLocalExams(examsResponse.data || []);
 
       if (initialValues) {
-        form.setFieldsValue(initialValues);
+        const formValues = {
+          classroom: initialValues.classroom,
+          exam: initialValues.exam,
+          subject: initialValues.subject,
+          studentId: initialValues.studentId || initialValues.student,
+          marks: initialValues.marks,
+          remarks: initialValues.remarks || ''
+        };
+        
+        form.setFieldsValue(formValues);
         setSelectedClass(initialValues.classroom);
         setSelectedExam(initialValues.exam);
         setSelectedSubject(initialValues.subject);
@@ -508,6 +517,16 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [localExams, setLocalExams] = useState([]);
   const messageApi = useContext(MessageContext);
 
+  const handleEditMarks = (record) => {
+    const formattedRecord = {
+      ...record,
+      studentId: record.student,
+      marks: parseFloat(record.marks)
+    };
+    setSelectedMarks(formattedRecord);
+    setModalVisible(true);
+  };
+
   useEffect(() => {
     loadInitialData();
   }, []);
@@ -566,27 +585,38 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const handleMarksSubmit = async (values) => {
     try {
       setLoading(true);
-      await api.marks.createMarks(values);
-      messageApi.success('Marks added successfully');
+      if (selectedMarks) {
+        // Update existing marks
+        const updateData = {
+          id: selectedMarks.id,
+          student: values.studentId,
+          roll: 100, // Default roll number
+          marks: values.marks,
+          remarks: values.remarks || '',
+          entry_type: 'single'
+        };
+        await api.marks.updateMarks(selectedMarks.id, updateData);
+        messageApi.success('Marks updated successfully');
+      } else {
+        // Create new marks
+        await api.marks.createMarks(values);
+        messageApi.success('Marks added successfully');
+      }
       setModalVisible(false);
+      setSelectedMarks(null);
       loadInitialData();
     } catch (error) {
-      messageApi.error('Failed to save marks');
-      console.error('Error saving marks:', error);
+      messageApi.error(selectedMarks ? 'Failed to update marks' : 'Failed to save marks');
+      console.error('Error saving/updating marks:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEditMarks = (record) => {
-    setSelectedMarks(record);
-    setModalVisible(true);
-  };
-
   const handleDeleteMarks = async (id) => {
     try {
       setLoading(true);
-      await api.marks.delete(id);
+      await api.marks.deleteMarks(id);
       messageApi.success('Marks deleted successfully');
       loadInitialData();
     } catch (error) {

@@ -614,7 +614,7 @@ const Academics = () => {
 
   return (
     <div className="academics-container">
-      <div className="academics-header">
+      {/* <div className="academics-header">
         <Title level={4}>Academic Management</Title>
         <Space>
           <Button
@@ -625,7 +625,7 @@ const Academics = () => {
             Add Marks
           </Button>
         </Space>
-      </div>
+      </div> */}
 
       <Card className="academics-card">
         <Tabs
