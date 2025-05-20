@@ -41,7 +41,9 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
   StarOutlined,
-  SearchOutlined
+  SearchOutlined,
+  UserOutlined,
+  CommentOutlined
 } from '@ant-design/icons';
 import { MessageContext } from '../../App';
 import moment from 'moment';
@@ -56,23 +58,104 @@ const { Search } = Input;
 const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, exam, subjects, isBulk }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedExam, setSelectedExam] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [localStudents, setLocalStudents] = useState([]);
+  const [localExams, setLocalExams] = useState([]);
+  const [localSubjects, setLocalSubjects] = useState([]);
+  const [localClasses, setLocalClasses] = useState([]);
+  const messageApi = useContext(MessageContext);
 
   useEffect(() => {
-    if (initialValues) {
-      form.setFieldsValue(initialValues);
-    } else {
-      form.resetFields();
+    if (visible) {
+      loadInitialData();
     }
-  }, [initialValues, visible]);
+  }, [visible]);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+        api.class.getClasses(),
+        api.subject.getSubjects(),
+        api.exam.getExams()
+      ]);
+      
+      setLocalClasses(classesResponse.data || []);
+      setLocalSubjects(subjectsResponse.data || []);
+      setLocalExams(examsResponse.data || []);
+
+      if (initialValues) {
+        form.setFieldsValue(initialValues);
+        setSelectedClass(initialValues.classroom);
+        setSelectedExam(initialValues.exam);
+        setSelectedSubject(initialValues.subject);
+        await loadStudentsForClass(initialValues.classroom);
+      } else {
+        form.resetFields();
+      }
+    } catch (error) {
+      messageApi.error('Failed to load initial data');
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudentsForClass = async (classId) => {
+    try {
+      const response = await api.class.getClass(classId);
+      const students = response.data.students.map(student => ({
+        id: student.id,
+        name: `${student.user.first_name} ${student.user.last_name}`,
+        rollNumber: student.section,
+        user: student.user
+      }));
+      setLocalStudents(students);
+    } catch (error) {
+      console.error(`Error loading students for class ${classId}:`, error);
+    }
+  };
+
+  const handleClassChange = async (classId) => {
+    setSelectedClass(classId);
+    await loadStudentsForClass(classId);
+    form.setFieldsValue({ studentId: undefined });
+  };
+
+  const handleExamChange = (examId) => {
+    setSelectedExam(examId);
+  };
+
+  const handleSubjectChange = (subjectId) => {
+    setSelectedSubject(subjectId);
+  };
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      await onSubmit(values);
+      if (!values.classroom || !values.exam || !values.subject || !values.studentId) {
+        messageApi.error('Please fill all required fields');
+        return;
+      }
+
+      const marksData = {
+        exam: values.exam,
+        classroom: values.classroom,
+        subject: values.subject,
+        student: values.studentId,
+        roll: 100, // Default roll number, can be updated if needed
+        marks: values.marks || 0,
+        remarks: values.remarks || '',
+        entry_type: 'single'
+      };
+
+      await onSubmit(marksData);
       form.resetFields();
       onCancel();
     } catch (error) {
-      message.error('Failed to save marks');
+      messageApi.error('Failed to save marks');
     } finally {
       setLoading(false);
     }
@@ -145,7 +228,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
     <Modal
       title={
         <Space>
-          <BookOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+          <BookOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
           <Title level={5} style={{ margin: 0 }}>
             {initialValues ? 'Edit Marks' : 'Enter Marks'}
           </Title>
@@ -165,42 +248,141 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
           ...initialValues
         }}
       >
-        <Form.Item
-          name="studentId"
-          label="Student"
-          rules={[{ required: true, message: 'Please select student!' }]}
-        >
-          <Select placeholder="Select student">
-            {students.map(student => (
-              <Option key={student.id} value={student.id}>
-                {student.name} (Section {student.rollNumber})
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="classroom"
+              label={
+                <Space>
+                  <TeamOutlined style={{ color: '#7B83EB' }} />
+                  <span>Class</span>
+                </Space>
+              }
+              rules={[{ required: true, message: 'Please select class!' }]}
+            >
+              <Select 
+                placeholder="Select class"
+                onChange={handleClassChange}
+              >
+                {localClasses.map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {cls.class_name} - Section {cls.section}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="exam"
+              label={
+                <Space>
+                  <TrophyOutlined style={{ color: '#7B83EB' }} />
+                  <span>Exam</span>
+                </Space>
+              }
+              rules={[{ required: true, message: 'Please select exam!' }]}
+            >
+              <Select 
+                placeholder="Select exam"
+                onChange={handleExamChange}
+              >
+                {localExams.map(exam => (
+                  <Option key={exam.id} value={exam.id}>
+                    {exam.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <Form.Item
-          name="marks"
-          label={`Marks (Max: ${exam?.maxMarks || 100})`}
-          rules={[{ required: true, message: 'Please enter marks!' }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            min={0}
-            max={exam?.maxMarks || 100}
-            placeholder={`Enter marks (0-${exam?.maxMarks || 100})`}
-          />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="subject"
+              label={
+                <Space>
+                  <BookOutlined style={{ color: '#7B83EB' }} />
+                  <span>Subject</span>
+                </Space>
+              }
+              rules={[{ required: true, message: 'Please select subject!' }]}
+            >
+              <Select 
+                placeholder="Select subject"
+                onChange={handleSubjectChange}
+              >
+                {localSubjects.map(subject => (
+                  <Option key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="studentId"
+              label={
+                <Space>
+                  <UserOutlined style={{ color: '#7B83EB' }} />
+                  <span>Student</span>
+                </Space>
+              }
+              rules={[{ required: true, message: 'Please select student!' }]}
+            >
+              <Select 
+                placeholder="Select student"
+                disabled={!selectedClass}
+              >
+                {localStudents.map(student => (
+                  <Option key={student.id} value={student.id}>
+                    {student.name} (Section {student.rollNumber})
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <Form.Item
-          name="remarks"
-          label="Remarks"
-        >
-          <Input.TextArea rows={4} placeholder="Enter remarks" />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="marks"
+              label={
+                <Space>
+                  <BarChartOutlined style={{ color: '#7B83EB' }} />
+                  <span>Marks (Max: {localExams.find(e => e.id === selectedExam)?.maxMarks || 100})</span>
+                </Space>
+              }
+              rules={[{ required: true, message: 'Please enter marks!' }]}
+            >
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                max={localExams.find(e => e.id === selectedExam)?.maxMarks || 100}
+                placeholder={`Enter marks (0-${localExams.find(e => e.id === selectedExam)?.maxMarks || 100})`}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="remarks"
+              label={
+                <Space>
+                  <CommentOutlined style={{ color: '#7B83EB' }} />
+                  <span>Remarks</span>
+                </Space>
+              }
+            >
+              <Input.TextArea rows={4} placeholder="Enter remarks" />
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Form.Item>
-          <Space>
+          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
             <Button onClick={onCancel}>Cancel</Button>
             <Button type="primary" htmlType="submit" loading={loading}>
               {initialValues ? 'Update' : 'Save Marks'}
@@ -312,22 +494,14 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
   );
 };
 
-const MarksEntry = ({ students, classes, subjects, examTypes }) => {
+const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = [] }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMarks, setSelectedMarks] = useState(null);
-  const [selectedClass, setSelectedClass] = useState(null);
-  const [selectedExam, setSelectedExam] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [entryType, setEntryType] = useState('single'); // 'single' or 'bulk'
   const [marks, setMarks] = useState([]);
-  const [allMarks, setAllMarks] = useState([]); // Store all marks
+  const [allMarks, setAllMarks] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [localStudents, setLocalStudents] = useState([]);
-  const [localClasses, setLocalClasses] = useState([]);
-  const [localSubjects, setLocalSubjects] = useState([]);
-  const [localExams, setLocalExams] = useState([]);
   const messageApi = useContext(MessageContext);
 
   useEffect(() => {
@@ -337,23 +511,8 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [classesResponse, subjectsResponse, examsResponse, marksResponse] = await Promise.all([
-        api.class.getClasses(),
-        api.subject.getSubjects(),
-        api.exam.getExams(),
-        api.marks.getAllMarks()
-      ]);
-      
-      setLocalClasses(classesResponse.data || []);
-      setLocalSubjects(subjectsResponse.data || []);
-      setLocalExams(examsResponse.data || []);
+      const marksResponse = await api.marks.getAllMarks();
       setAllMarks(marksResponse.data || []);
-
-      // Load students for all classes that have marks
-      const uniqueClassIds = [...new Set(marksResponse.data.map(mark => mark.classroom))];
-      for (const classId of uniqueClassIds) {
-        await loadStudentsForClass(classId);
-      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -362,155 +521,13 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
     }
   };
 
-  const loadStudentsForClass = async (classId) => {
-    try {
-      const response = await api.class.getClass(classId);
-      const students = response.data.students.map(student => ({
-        id: student.id,
-        name: `${student.user.first_name} ${student.user.last_name}`,
-        rollNumber: student.section,
-        user: student.user
-      }));
-      
-      setLocalStudents(prevStudents => {
-        const newStudents = [...prevStudents];
-        students.forEach(student => {
-          if (!newStudents.find(s => s.id === student.id)) {
-            newStudents.push(student);
-          }
-        });
-        return newStudents;
-      });
-    } catch (error) {
-      console.error(`Error loading students for class ${classId}:`, error);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedClass) {
-      loadStudents();
-    }
-  }, [selectedClass]);
-
-  useEffect(() => {
-    // Filter marks based on selected filters
-    let filtered = [...allMarks];
-    
-    if (selectedClass) {
-      filtered = filtered.filter(mark => mark.classroom === selectedClass);
-    }
-    
-    if (selectedExam) {
-      filtered = filtered.filter(mark => mark.exam === selectedExam);
-    }
-    
-    if (selectedSubject) {
-      filtered = filtered.filter(mark => mark.subject === selectedSubject);
-    }
-    
-    setMarks(filtered);
-  }, [selectedClass, selectedExam, selectedSubject, allMarks]);
-
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      const response = await api.class.getClass(selectedClass);
-      const students = response.data.students.map(student => ({
-        id: student.id,
-        name: `${student.user.first_name} ${student.user.last_name}`,
-        rollNumber: student.section,
-        user: student.user
-      }));
-      
-      setLocalStudents(students);
-    } catch (error) {
-      messageApi.error('Failed to load students');
-      console.error('Error loading students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleMarksSubmit = async (values) => {
     try {
       setLoading(true);
-      if (!selectedClass || !selectedExam || !selectedSubject) {
-        messageApi.error('Please select class, exam, and subject');
-        return;
-      }
-
-      const marksData = {
-        exam: selectedExam,
-        classroom: selectedClass,
-        subject: selectedSubject,
-        student: values.studentId,
-        roll: 100, // Default roll number, can be updated if needed
-        marks: values.marks || 0,
-        remarks: values.remarks || '',
-        entry_type: 'single'
-      };
-
-      if (selectedMarks) {
-        // For update, we only send updatable fields
-        const updateData = {
-          student: values.studentId,
-          roll: 100,
-          marks: values.marks || 0,
-          remarks: values.remarks || '',
-          entry_type: 'single'
-        };
-        await api.marks.updateMarks(selectedMarks.id, updateData);
-        messageApi.success('Marks updated successfully');
-      } else {
-        await api.marks.createMarks(marksData);
-        messageApi.success('Marks added successfully');
-      }
-      // loadMarks();
+      await api.marks.createMarks(values);
+      messageApi.success('Marks added successfully');
       setModalVisible(false);
-      setSelectedMarks(null);
-    } catch (error) {
-      messageApi.error('Failed to save marks');
-      console.error('Error saving marks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBulkMarksSubmit = async (values) => {
-    try {
-      setLoading(true);
-      if (!selectedClass || !selectedExam || !selectedSubject) {
-        messageApi.error('Please select class, exam, and subject');
-        return;
-      }
-
-      const entries = Object.entries(values.marks).map(([studentId, data]) => ({
-        exam: selectedExam,
-        classroom: selectedClass,
-        subject: selectedSubject,
-        student: parseInt(studentId),
-        roll: 100, // Default roll number, can be updated if needed
-        marks: data.marks || 0,
-        remarks: data.remarks || '',
-        entry_type: 'bulk'
-      }));
-
-      const bulkData = {
-        entry_type: 'bulk',
-        entries: entries
-      };
-
-      const response = await api.marks.createBulkMarks(bulkData);
-      
-      if (response.data.success_count > 0) {
-        messageApi.success(`Successfully added marks for ${response.data.success_count} students`);
-      }
-      if (response.data.fail_count > 0) {
-        messageApi.warning(`Failed to add marks for ${response.data.fail_count} students`);
-      }
-      
-      // loadMarks();
-      setModalVisible(false);
+      loadInitialData();
     } catch (error) {
       messageApi.error('Failed to save marks');
       console.error('Error saving marks:', error);
@@ -529,7 +546,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
       setLoading(true);
       await api.marks.delete(id);
       messageApi.success('Marks deleted successfully');
-      // loadMarks();
+      loadInitialData();
     } catch (error) {
       messageApi.error('Failed to delete marks');
       console.error('Error deleting marks:', error);
@@ -539,22 +556,22 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
   };
 
   const getStudentName = (studentId) => {
-    const student = localStudents.find(s => s.id === studentId);
-    return student ? `${student.name} (${student.rollNumber})` : 'Unknown Student';
+    const student = students?.find(s => s.id === studentId);
+    return student ? `${student.user?.first_name} ${student.user?.last_name}` : 'Unknown Student';
   };
 
   const getSubjectName = (subjectId) => {
-    const subject = localSubjects.find(s => s.id === subjectId);
+    const subject = subjects?.find(s => s.id === subjectId);
     return subject ? subject.name : 'Unknown Subject';
   };
 
   const getExamName = (examId) => {
-    const exam = localExams.find(e => e.id === examId);
+    const exam = examTypes?.find(e => e.id === examId);
     return exam ? exam.name : 'Unknown Exam';
   };
 
   const getClassName = (classId) => {
-    const cls = localClasses.find(c => c.id === classId);
+    const cls = classes?.find(c => c.id === classId);
     return cls ? `${cls.class_name} - Section ${cls.section}` : 'Unknown Class';
   };
 
@@ -588,7 +605,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
       dataIndex: 'marks',
       key: 'marks',
       render: (marks, record) => {
-        const exam = localExams.find(e => e.id === record.exam);
+        const exam = examTypes?.find(e => e.id === record.exam);
         return `${marks}/${exam?.maxMarks || 100}`;
       },
     },
@@ -628,22 +645,11 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
     },
   ];
 
-  const handleAddMarks = () => {
-    setSelectedMarks(null);
-    setModalVisible(true);
-  };
-
-  const handleClassChange = async (classId) => {
-    console.log('Class changed to:', classId);
-    setSelectedClass(classId);
-    await loadStudents();
-  };
-
   const handleSearch = (value) => {
     setSearchText(value);
   };
 
-  const filteredMarks = marks.filter(record => {
+  const filteredMarks = allMarks.filter(record => {
     const studentName = getStudentName(record.student).toLowerCase();
     const subjectName = getSubjectName(record.subject).toLowerCase();
     const searchLower = searchText.toLowerCase();
@@ -688,49 +694,6 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
         </Space>
       </div>
 
-      <div className="academics-filters">
-        <Space size="middle">
-          <Select
-            placeholder="Select Class"
-            style={{ width: 200 }}
-            onChange={handleClassChange}
-            value={selectedClass}
-          >
-            {localClasses.map(cls => (
-              <Option key={cls.id} value={cls.id}>
-                {cls.className} - Section {cls.section}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Select Exam"
-            style={{ width: 200 }}
-            onChange={(value) => setSelectedExam(value)}
-            value={selectedExam}
-          >
-            {localExams.map(exam => (
-              <Option key={exam.id} value={exam.id}>
-                {exam.name}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Select Subject"
-            style={{ width: 200 }}
-            onChange={(value) => setSelectedSubject(value)}
-            value={selectedSubject}
-          >
-            {localSubjects.map(subject => (
-              <Option key={subject.id} value={subject.id}>
-                {subject.name}
-              </Option>
-            ))}
-          </Select>
-        </Space>
-      </div>
-
       <Table
         columns={columns}
         dataSource={filteredMarks}
@@ -761,21 +724,12 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
           setModalVisible(false);
           setSelectedMarks(null);
         }}
-        onSubmit={entryType === 'single' ? handleMarksSubmit : handleBulkMarksSubmit}
+        onSubmit={handleMarksSubmit}
         initialValues={selectedMarks}
-        students={localStudents}
-        exam={localExams.find(e => e.id === selectedExam)}
-        subjects={localSubjects}
-        isBulk={entryType === 'bulk'}
-      />
-
-      <BulkMarksEntryForm
-        visible={false}
-        onCancel={() => {}}
-        onSubmit={handleBulkMarksSubmit}
-        students={localStudents}
-        exam={localExams.find(e => e.id === selectedExam)}
-        subjects={localSubjects}
+        students={students}
+        exam={examTypes?.find(e => e.id === selectedMarks?.exam)}
+        subjects={subjects}
+        isBulk={false}
       />
     </div>
   );
