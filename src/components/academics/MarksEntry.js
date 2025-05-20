@@ -322,6 +322,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [entryType, setEntryType] = useState('single'); // 'single' or 'bulk'
   const [marks, setMarks] = useState([]);
+  const [allMarks, setAllMarks] = useState([]); // Store all marks
   const [searchText, setSearchText] = useState('');
   const [localStudents, setLocalStudents] = useState([]);
   const [localClasses, setLocalClasses] = useState([]);
@@ -336,15 +337,23 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+      const [classesResponse, subjectsResponse, examsResponse, marksResponse] = await Promise.all([
         api.class.getClasses(),
         api.subject.getSubjects(),
-        api.exam.getExams()
+        api.exam.getExams(),
+        api.marks.getAllMarks()
       ]);
       
       setLocalClasses(classesResponse.data || []);
       setLocalSubjects(subjectsResponse.data || []);
       setLocalExams(examsResponse.data || []);
+      setAllMarks(marksResponse.data || []);
+
+      // Load students for all classes that have marks
+      const uniqueClassIds = [...new Set(marksResponse.data.map(mark => mark.classroom))];
+      for (const classId of uniqueClassIds) {
+        await loadStudentsForClass(classId);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -353,30 +362,9 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
     }
   };
 
-  useEffect(() => {
-    if (selectedClass) {
-      loadStudents();
-    } else {
-      setLocalStudents([]);
-    }
-  }, [selectedClass]);
-
-  useEffect(() => {
-    if (selectedClass && selectedExam && selectedSubject) {
-      loadMarks();
-    } else {
-      setMarks([]);
-    }
-  }, [selectedClass, selectedExam, selectedSubject]);
-
-  const loadStudents = async () => {
+  const loadStudentsForClass = async (classId) => {
     try {
-      setLoading(true);
-      console.log('Loading students for class:', selectedClass);
-      const response = await api.class.getClass(selectedClass);
-      console.log('Classroom data loaded:', response.data);
-
-      // Transform the students data to match the expected format
+      const response = await api.class.getClass(classId);
       const students = response.data.students.map(student => ({
         id: student.id,
         name: `${student.user.first_name} ${student.user.last_name}`,
@@ -384,25 +372,60 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
         user: student.user
       }));
       
-      console.log('Transformed students:', students);
+      setLocalStudents(prevStudents => {
+        const newStudents = [...prevStudents];
+        students.forEach(student => {
+          if (!newStudents.find(s => s.id === student.id)) {
+            newStudents.push(student);
+          }
+        });
+        return newStudents;
+      });
+    } catch (error) {
+      console.error(`Error loading students for class ${classId}:`, error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedClass) {
+      loadStudents();
+    }
+  }, [selectedClass]);
+
+  useEffect(() => {
+    // Filter marks based on selected filters
+    let filtered = [...allMarks];
+    
+    if (selectedClass) {
+      filtered = filtered.filter(mark => mark.classroom === selectedClass);
+    }
+    
+    if (selectedExam) {
+      filtered = filtered.filter(mark => mark.exam === selectedExam);
+    }
+    
+    if (selectedSubject) {
+      filtered = filtered.filter(mark => mark.subject === selectedSubject);
+    }
+    
+    setMarks(filtered);
+  }, [selectedClass, selectedExam, selectedSubject, allMarks]);
+
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.class.getClass(selectedClass);
+      const students = response.data.students.map(student => ({
+        id: student.id,
+        name: `${student.user.first_name} ${student.user.last_name}`,
+        rollNumber: student.section,
+        user: student.user
+      }));
+      
       setLocalStudents(students);
     } catch (error) {
       messageApi.error('Failed to load students');
       console.error('Error loading students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadMarks = async () => {
-    try {
-      setLoading(true);
-      const response = await api.marks.getByExamClass(selectedExam, selectedClass, selectedSubject);
-      console.log('Marks loaded:', response.data);
-      setMarks(response.data.entries || []);
-    } catch (error) {
-      messageApi.error('Failed to load marks');
-      console.error('Error loading marks:', error);
     } finally {
       setLoading(false);
     }
@@ -442,7 +465,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
         await api.marks.createMarks(marksData);
         messageApi.success('Marks added successfully');
       }
-      loadMarks();
+      // loadMarks();
       setModalVisible(false);
       setSelectedMarks(null);
     } catch (error) {
@@ -477,9 +500,16 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
         entries: entries
       };
 
-      await api.marks.createBulkMarks(bulkData);
-      messageApi.success('Marks added successfully');
-      loadMarks();
+      const response = await api.marks.createBulkMarks(bulkData);
+      
+      if (response.data.success_count > 0) {
+        messageApi.success(`Successfully added marks for ${response.data.success_count} students`);
+      }
+      if (response.data.fail_count > 0) {
+        messageApi.warning(`Failed to add marks for ${response.data.fail_count} students`);
+      }
+      
+      // loadMarks();
       setModalVisible(false);
     } catch (error) {
       messageApi.error('Failed to save marks');
@@ -499,7 +529,7 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
       setLoading(true);
       await api.marks.delete(id);
       messageApi.success('Marks deleted successfully');
-      loadMarks();
+      // loadMarks();
     } catch (error) {
       messageApi.error('Failed to delete marks');
       console.error('Error deleting marks:', error);
@@ -525,28 +555,40 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
 
   const getClassName = (classId) => {
     const cls = localClasses.find(c => c.id === classId);
-    return cls ? `${cls.className} - Section ${cls.section}` : 'Unknown Class';
+    return cls ? `${cls.class_name} - Section ${cls.section}` : 'Unknown Class';
   };
 
   const columns = [
     {
       title: 'Student',
-      dataIndex: 'studentId',
-      key: 'studentId',
+      dataIndex: 'student',
+      key: 'student',
       render: (studentId) => getStudentName(studentId),
     },
     {
+      title: 'Class',
+      dataIndex: 'classroom',
+      key: 'classroom',
+      render: (classId) => getClassName(classId),
+    },
+    {
+      title: 'Exam',
+      dataIndex: 'exam',
+      key: 'exam',
+      render: (examId) => getExamName(examId),
+    },
+    {
       title: 'Subject',
-      dataIndex: 'subjectId',
-      key: 'subjectId',
+      dataIndex: 'subject',
+      key: 'subject',
       render: (subjectId) => getSubjectName(subjectId),
     },
     {
       title: 'Marks',
       dataIndex: 'marks',
       key: 'marks',
-      render: (marks) => {
-        const exam = localExams.find(e => e.id === selectedExam);
+      render: (marks, record) => {
+        const exam = localExams.find(e => e.id === record.exam);
         return `${marks}/${exam?.maxMarks || 100}`;
       },
     },
@@ -597,10 +639,20 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
     await loadStudents();
   };
 
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
+
   const filteredMarks = marks.filter(record => {
+    const studentName = getStudentName(record.student).toLowerCase();
+    const subjectName = getSubjectName(record.subject).toLowerCase();
+    const searchLower = searchText.toLowerCase();
+    
     return (
-      record.studentId.toLowerCase().includes(searchText.toLowerCase()) ||
-      record.subjectId.toLowerCase().includes(searchText.toLowerCase())
+      studentName.includes(searchLower) ||
+      subjectName.includes(searchLower) ||
+      record.marks.toString().includes(searchLower) ||
+      (record.remarks || '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -615,6 +667,8 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
           <Search
             placeholder="Search marks..."
             allowClear
+            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
             style={{ 
               width: 250,
               borderRadius: '6px',
@@ -634,82 +688,72 @@ const MarksEntry = ({ students, classes, subjects, examTypes }) => {
         </Space>
       </div>
 
-      <div style={{ 
-        flex: 1, 
-        overflow: 'hidden',
-        padding: '0 16px 16px 16px'
-      }}>
-        <Card className="filter-card" style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item label="Class">
-                <Select
-                  placeholder="Select Class"
-                  value={selectedClass}
-                  onChange={handleClassChange}
-                  style={{ width: '100%' }}
-                >
-                  {localClasses.map(cls => (
-                    <Option key={cls.id} value={cls.id}>{cls.class_name} - Section {cls.section}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item label="Exam">
-                <Select
-                  placeholder="Select Exam"
-                  value={selectedExam}
-                  onChange={setSelectedExam}
-                  style={{ width: '100%' }}
-                >
-                  {localExams.map(exam => (
-                    <Option key={exam.id} value={exam.id}>{exam.name} - {exam.type}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item label="Subject">
-                <Select
-                  placeholder="Select Subject"
-                  value={selectedSubject}
-                  onChange={setSelectedSubject}
-                  style={{ width: '100%' }}
-                >
-                  {localSubjects.map(subject => (
-                    <Option key={subject.id} value={subject.id}>{subject.name}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-        </Card>
+      <div className="academics-filters">
+        <Space size="middle">
+          <Select
+            placeholder="Select Class"
+            style={{ width: 200 }}
+            onChange={handleClassChange}
+            value={selectedClass}
+          >
+            {localClasses.map(cls => (
+              <Option key={cls.id} value={cls.id}>
+                {cls.className} - Section {cls.section}
+              </Option>
+            ))}
+          </Select>
 
-        <Table
-          columns={columns}
-          dataSource={filteredMarks}
-          rowKey="id"
-          loading={loading}
-          className="academics-table"
-          scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
-          pagination={{ 
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `Total ${total} marks`
-          }}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No marks found"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
-              />
-            ),
-          }}
-        />
+          <Select
+            placeholder="Select Exam"
+            style={{ width: 200 }}
+            onChange={(value) => setSelectedExam(value)}
+            value={selectedExam}
+          >
+            {localExams.map(exam => (
+              <Option key={exam.id} value={exam.id}>
+                {exam.name}
+              </Option>
+            ))}
+          </Select>
+
+          <Select
+            placeholder="Select Subject"
+            style={{ width: 200 }}
+            onChange={(value) => setSelectedSubject(value)}
+            value={selectedSubject}
+          >
+            {localSubjects.map(subject => (
+              <Option key={subject.id} value={subject.id}>
+                {subject.name}
+              </Option>
+            ))}
+          </Select>
+        </Space>
       </div>
+
+      <Table
+        columns={columns}
+        dataSource={filteredMarks}
+        rowKey="id"
+        loading={loading}
+        className="academics-table"
+        scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
+        pagination={{ 
+          pageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total) => `Total ${total} marks`
+        }}
+        locale={{
+          emptyText: (
+            <Empty
+              description="No marks found"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              style={{ padding: '20px 0' }}
+            />
+          ),
+        }}
+      />
 
       <MarksEntryForm
         visible={modalVisible}

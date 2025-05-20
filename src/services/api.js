@@ -802,14 +802,14 @@ export const contactAPI = {
 
 // Marks APIs
 export const marksAPI = {
-  getMarks: async () => {
-    return makeRequest(`${BASE_URL}/marks/`, {
+  getMarksById: async (id) => {
+    return makeRequest(`${BASE_URL}/marksentries/${id}/`, {
       method: 'GET'
     });
   },
 
-  getMarksById: async (id) => {
-    return makeRequest(`${BASE_URL}/marks/${id}/`, {
+  getAllMarks: async () => {
+    return makeRequest(`${BASE_URL}/marksentries/`, {
       method: 'GET'
     });
   },
@@ -822,39 +822,42 @@ export const marksAPI = {
   },
 
   createBulkMarks: async (bulkData) => {
-    return makeRequest(`${BASE_URL}/marks/bulk/`, {
+    return makeRequest(`${BASE_URL}/marksentries/`, {
       method: 'POST',
       body: JSON.stringify(bulkData)
     });
   },
 
   updateMarks: async (id, marksData) => {
-    return makeRequest(`${BASE_URL}/marks/${id}/`, {
-      method: 'PUT',
+    return makeRequest(`${BASE_URL}/marksentries/${id}/`, {
+      method: 'PATCH',
       body: JSON.stringify(marksData)
     });
   },
 
   deleteMarks: async (id) => {
-    return makeRequest(`${BASE_URL}/marks/${id}/`, {
+    return makeRequest(`${BASE_URL}/marksentries/${id}/`, {
       method: 'DELETE'
     });
   },
 
   getByExamClass: async (examId, classId, subjectId) => {
-    return makeRequest(`${BASE_URL}/marks/exam/${examId}/class/${classId}/subject/${subjectId}/`, {
+    const url = subjectId 
+      ? `${BASE_URL}/marksentries/exam_class/?exam=${examId}&classroom=${classId}&subject=${subjectId}`
+      : `${BASE_URL}/marksentries/exam_class/?exam=${examId}&classroom=${classId}`;
+    return makeRequest(url, {
       method: 'GET'
     });
   },
 
   getByExam: async (examId) => {
-    return makeRequest(`${BASE_URL}/marks/exam/${examId}/`, {
+    return makeRequest(`${BASE_URL}/marksentries/exam_class/?exam=${examId}`, {
       method: 'GET'
     });
   },
 
   getByStudent: async (studentId) => {
-    return makeRequest(`${BASE_URL}/marks/student/${studentId}/`, {
+    return makeRequest(`${BASE_URL}/marksentries/student/${studentId}/`, {
       method: 'GET'
     });
   }
