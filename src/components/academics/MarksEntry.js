@@ -194,7 +194,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
               )}
             />
             <Table.Column
-              title={`Marks (Max: ${exam?.maxMarks || 100})`}
+              title={`Marks`}
               key="marks"
               render={(_, record) => (
                 <Form.Item
@@ -362,7 +362,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
               label={
                 <Space>
                   <BarChartOutlined style={{ color: '#7B83EB' }} />
-                  <span>Marks (Max: {localExams.find(e => e.id === selectedExam)?.maxMarks || 100})</span>
+                  <span>Marks</span>
                 </Space>
               }
               rules={[{ required: true, message: 'Please enter marks!' }]}
@@ -449,7 +449,7 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
       key: 'rollNumber',
     },
     {
-      title: `Marks (Max: ${exam?.maxMarks || 100})`,
+      title: `Marks`,
       key: 'marks',
       render: (_, record) => (
         <Form.Item
@@ -507,6 +507,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [bulkModalVisible, setBulkModalVisible] = useState(false);
   const [selectedMarks, setSelectedMarks] = useState(null);
   const [marks, setMarks] = useState([]);
   const [allMarks, setAllMarks] = useState([]);
@@ -515,6 +516,9 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [localClasses, setLocalClasses] = useState([]);
   const [localSubjects, setLocalSubjects] = useState([]);
   const [localExams, setLocalExams] = useState([]);
+  const [selectedClassForBulk, setSelectedClassForBulk] = useState(null);
+  const [selectedExamForBulk, setSelectedExamForBulk] = useState(null);
+  const [selectedSubjectForBulk, setSelectedSubjectForBulk] = useState(null);
   const messageApi = useContext(MessageContext);
 
   const handleEditMarks = (record) => {
@@ -564,19 +568,11 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       const response = await api.class.getClass(classId);
       const students = response.data.students.map(student => ({
         id: student.id,
-        user: student.user,
-        rollNumber: student.section
+        name: `${student.user.first_name} ${student.user.last_name}`,
+        rollNumber: student.section,
+        user: student.user
       }));
-      
-      setLocalStudents(prevStudents => {
-        const newStudents = [...prevStudents];
-        students.forEach(student => {
-          if (!newStudents.find(s => s.id === student.id)) {
-            newStudents.push(student);
-          }
-        });
-        return newStudents;
-      });
+      setLocalStudents(students);
     } catch (error) {
       console.error(`Error loading students for class ${classId}:`, error);
     }
@@ -734,6 +730,55 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     );
   });
 
+  const handleBulkMarksSubmit = async (values) => {
+    try {
+      setLoading(true);
+      if (!selectedClassForBulk || !selectedExamForBulk || !selectedSubjectForBulk) {
+        messageApi.error('Please select class, exam and subject');
+        return;
+      }
+
+      const entries = Object.entries(values.marks).map(([studentId, data]) => ({
+        exam: selectedExamForBulk,
+        classroom: selectedClassForBulk,
+        subject: selectedSubjectForBulk,
+        student: parseInt(studentId),
+        roll: 100,
+        marks: data.marks,
+        remarks: data.remarks || '',
+        entry_type: 'bulk'
+      }));
+
+      const bulkData = {
+        entry_type: 'bulk',
+        entries
+      };
+
+      await api.marks.createBulkMarks(bulkData);
+      messageApi.success('Bulk marks added successfully');
+      setBulkModalVisible(false);
+      loadInitialData();
+    } catch (error) {
+      messageApi.error('Failed to save bulk marks');
+      console.error('Error saving bulk marks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClassChangeForBulk = async (classId) => {
+    setSelectedClassForBulk(classId);
+    await loadStudentsForClass(classId);
+  };
+
+  const handleExamChangeForBulk = (examId) => {
+    setSelectedExamForBulk(examId);
+  };
+
+  const handleSubjectChangeForBulk = (subjectId) => {
+    setSelectedSubjectForBulk(subjectId);
+  };
+
   return (
     <div className="academics-page">
       <div className="academics-header">
@@ -762,6 +807,14 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
             className="add-button"
           >
             Add Marks
+          </Button>
+          <Button
+            type="primary"
+            icon={<TeamOutlined />}
+            onClick={() => setBulkModalVisible(true)}
+            className="add-button"
+          >
+            Bulk Entry
           </Button>
         </Space>
       </div>
@@ -803,6 +856,162 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         subjects={localSubjects}
         isBulk={false}
       />
+
+      <Modal
+        title={
+          <Space>
+            <TeamOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            <Title level={5} style={{ margin: 0 }}>
+              Bulk Marks Entry
+            </Title>
+          </Space>
+        }
+        open={bulkModalVisible}
+        onCancel={() => {
+          setBulkModalVisible(false);
+          setSelectedClassForBulk(null);
+          setSelectedExamForBulk(null);
+          setSelectedSubjectForBulk(null);
+        }}
+        footer={null}
+        width={1000}
+      >
+        <Form form={form} layout="vertical" onFinish={handleBulkMarksSubmit}>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="classroom"
+                label={
+                  <Space>
+                    <TeamOutlined style={{ color: '#7B83EB' }} />
+                    <span>Class</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select class!' }]}
+              >
+                <Select 
+                  placeholder="Select class"
+                  onChange={handleClassChangeForBulk}
+                >
+                  {localClasses.map(cls => (
+                    <Option key={cls.id} value={cls.id}>
+                      {cls.class_name} - Section {cls.section}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="exam"
+                label={
+                  <Space>
+                    <TrophyOutlined style={{ color: '#7B83EB' }} />
+                    <span>Exam</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select exam!' }]}
+              >
+                <Select 
+                  placeholder="Select exam"
+                  onChange={handleExamChangeForBulk}
+                >
+                  {localExams.map(exam => (
+                    <Option key={exam.id} value={exam.id}>
+                      {exam.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="subject"
+                label={
+                  <Space>
+                    <BookOutlined style={{ color: '#7B83EB' }} />
+                    <span>Subject</span>
+                  </Space>
+                }
+                rules={[{ required: true, message: 'Please select subject!' }]}
+              >
+                <Select 
+                  placeholder="Select subject"
+                  onChange={handleSubjectChangeForBulk}
+                >
+                  {localSubjects.map(subject => (
+                    <Option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {selectedClassForBulk && selectedExamForBulk && selectedSubjectForBulk && (
+            <>
+              <Divider />
+              <Table
+                dataSource={localStudents}
+                rowKey="id"
+                pagination={false}
+                scroll={{ y: 400 }}
+              >
+                <Table.Column
+                  title="Student"
+                  dataIndex="name"
+                  key="name"
+                  render={(_, record) => (
+                    <span>{record.name} (Section {record.rollNumber})</span>
+                  )}
+                />
+                <Table.Column
+                  title={`Marks`}
+                  key="marks"
+                  render={(_, record) => (
+                    <Form.Item
+                      name={['marks', record.id, 'marks']}
+                      rules={[{ required: true, message: 'Required' }]}
+                    >
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        max={localExams.find(e => e.id === selectedExamForBulk)?.maxMarks || 100}
+                      />
+                    </Form.Item>
+                  )}
+                />
+                <Table.Column
+                  title="Remarks"
+                  key="remarks"
+                  render={(_, record) => (
+                    <Form.Item name={['marks', record.id, 'remarks']}>
+                      <Input />
+                    </Form.Item>
+                  )}
+                />
+              </Table>
+
+              <Form.Item style={{ marginTop: 16 }}>
+                <Space>
+                  <Button onClick={() => {
+                    setBulkModalVisible(false);
+                    setSelectedClassForBulk(null);
+                    setSelectedExamForBulk(null);
+                    setSelectedSubjectForBulk(null);
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button type="primary" htmlType="submit" loading={loading}>
+                    Save Marks
+                  </Button>
+                </Space>
+              </Form.Item>
+            </>
+          )}
+        </Form>
+      </Modal>
     </div>
   );
 };
