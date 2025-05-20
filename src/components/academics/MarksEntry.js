@@ -502,6 +502,10 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [marks, setMarks] = useState([]);
   const [allMarks, setAllMarks] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [localStudents, setLocalStudents] = useState([]);
+  const [localClasses, setLocalClasses] = useState([]);
+  const [localSubjects, setLocalSubjects] = useState([]);
+  const [localExams, setLocalExams] = useState([]);
   const messageApi = useContext(MessageContext);
 
   useEffect(() => {
@@ -511,13 +515,51 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const marksResponse = await api.marks.getAllMarks();
+      const [marksResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+        api.marks.getAllMarks(),
+        api.class.getClasses(),
+        api.subject.getSubjects(),
+        api.exam.getExams()
+      ]);
+      
       setAllMarks(marksResponse.data || []);
+      setLocalClasses(classesResponse.data || []);
+      setLocalSubjects(subjectsResponse.data || []);
+      setLocalExams(examsResponse.data || []);
+
+      // Load students for all classes that have marks
+      const uniqueClassIds = [...new Set(marksResponse.data.map(mark => mark.classroom))];
+      for (const classId of uniqueClassIds) {
+        await loadStudentsForClass(classId);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStudentsForClass = async (classId) => {
+    try {
+      const response = await api.class.getClass(classId);
+      const students = response.data.students.map(student => ({
+        id: student.id,
+        user: student.user,
+        rollNumber: student.section
+      }));
+      
+      setLocalStudents(prevStudents => {
+        const newStudents = [...prevStudents];
+        students.forEach(student => {
+          if (!newStudents.find(s => s.id === student.id)) {
+            newStudents.push(student);
+          }
+        });
+        return newStudents;
+      });
+    } catch (error) {
+      console.error(`Error loading students for class ${classId}:`, error);
     }
   };
 
@@ -556,22 +598,22 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   };
 
   const getStudentName = (studentId) => {
-    const student = students?.find(s => s.id === studentId);
+    const student = localStudents?.find(s => s.id === studentId);
     return student ? `${student.user?.first_name} ${student.user?.last_name}` : 'Unknown Student';
   };
 
   const getSubjectName = (subjectId) => {
-    const subject = subjects?.find(s => s.id === subjectId);
+    const subject = localSubjects?.find(s => s.id === subjectId);
     return subject ? subject.name : 'Unknown Subject';
   };
 
   const getExamName = (examId) => {
-    const exam = examTypes?.find(e => e.id === examId);
+    const exam = localExams?.find(e => e.id === examId);
     return exam ? exam.name : 'Unknown Exam';
   };
 
   const getClassName = (classId) => {
-    const cls = classes?.find(c => c.id === classId);
+    const cls = localClasses?.find(c => c.id === classId);
     return cls ? `${cls.class_name} - Section ${cls.section}` : 'Unknown Class';
   };
 
@@ -726,9 +768,9 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         }}
         onSubmit={handleMarksSubmit}
         initialValues={selectedMarks}
-        students={students}
-        exam={examTypes?.find(e => e.id === selectedMarks?.exam)}
-        subjects={subjects}
+        students={localStudents}
+        exam={localExams?.find(e => e.id === selectedMarks?.exam)}
+        subjects={localSubjects}
         isBulk={false}
       />
     </div>
