@@ -211,8 +211,8 @@ const ExamManagement = () => {
       key: 'teacher',
       width: 150,
       render: (teacherId) => {
-        const teacher = teachers.find(t => t.id === teacherId);
-        return teacher ? teacher.name : teacherId;
+        const teacher = teachers.find(t => t.user_id === teacherId);
+        return teacher ? `${teacher.name} (${teacher.subject})` : 'Unknown Teacher';
       }
     },
     {
@@ -233,18 +233,35 @@ const ExamManagement = () => {
       dataIndex: 'classrooms',
       key: 'classrooms',
       width: 200,
-      render: (classroomIds) => (
-        <Space wrap>
-          {classroomIds && classroomIds.map((id) => {
-            const classroom = classrooms.find(c => c.id === id);
-            return classroom ? (
-              <Tag key={id} color="green">
-                {classroom.class_name} {classroom.section}
-              </Tag>
-            ) : null;
-          })}
-        </Space>
-      ),
+      render: (classrooms) => {
+        if (!classrooms || classrooms.length === 0) {
+          return <Tag color="default">No classrooms assigned</Tag>;
+        }
+        
+        // Handle both array of IDs and array of objects
+        return (
+          <Space wrap>
+            {classrooms.map((classroom) => {
+              // If classroom is an object with classroom_name and classroom_section
+              if (classroom.classroom_name) {
+                return (
+                  <Tag key={classroom.id} color="green">
+                    {classroom.classroom_name} {classroom.classroom_section}
+                  </Tag>
+                );
+              }
+              
+              // If classroom is just an ID
+              const classroomObj = classrooms.find(c => c.id === classroom);
+              return classroomObj ? (
+                <Tag key={classroom} color="green">
+                  {classroomObj.class_name} {classroomObj.section}
+                </Tag>
+              ) : null;
+            })}
+          </Space>
+        );
+      },
     },
     {
       title: 'Actions',
