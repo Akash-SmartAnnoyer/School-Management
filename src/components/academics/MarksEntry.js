@@ -738,16 +738,28 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         return;
       }
 
-      const entries = Object.entries(values.marks).map(([studentId, data]) => ({
-        exam: selectedExamForBulk,
-        classroom: selectedClassForBulk,
-        subject: selectedSubjectForBulk,
-        student: parseInt(studentId),
-        roll: 100,
-        marks: data.marks,
-        remarks: data.remarks || '',
-        entry_type: 'bulk'
-      }));
+      if (!values.studentMarks) {
+        messageApi.error('Please enter marks for at least one student');
+        return;
+      }
+
+      const entries = Object.entries(values.studentMarks)
+        .filter(([_, data]) => data && data.marks !== undefined && data.marks !== null)
+        .map(([studentId, data]) => ({
+          exam: selectedExamForBulk,
+          classroom: selectedClassForBulk,
+          subject: selectedSubjectForBulk,
+          student: parseInt(studentId),
+          roll: 100,
+          marks: parseFloat(data.marks) || 0,
+          remarks: data.remarks || '',
+          entry_type: 'bulk'
+        }));
+
+      if (entries.length === 0) {
+        messageApi.error('Please enter marks for at least one student');
+        return;
+      }
 
       const bulkData = {
         entry_type: 'bulk',
@@ -757,6 +769,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       await api.marks.createBulkMarks(bulkData);
       messageApi.success('Bulk marks added successfully');
       setBulkModalVisible(false);
+      form.resetFields();
       loadInitialData();
     } catch (error) {
       messageApi.error('Failed to save bulk marks');
@@ -971,13 +984,13 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
                   key="marks"
                   render={(_, record) => (
                     <Form.Item
-                      name={['marks', record.id, 'marks']}
+                      name={['studentMarks', record.id, 'marks']}
                       rules={[{ required: true, message: 'Required' }]}
                     >
                       <InputNumber
                         style={{ width: '100%' }}
                         min={0}
-                        max={localExams.find(e => e.id === selectedExamForBulk)?.maxMarks || 100}
+                        max={100}
                       />
                     </Form.Item>
                   )}
@@ -986,24 +999,31 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
                   title="Remarks"
                   key="remarks"
                   render={(_, record) => (
-                    <Form.Item name={['marks', record.id, 'remarks']}>
+                    <Form.Item name={['studentMarks', record.id, 'remarks']}>
                       <Input />
                     </Form.Item>
                   )}
                 />
               </Table>
 
-              <Form.Item style={{ marginTop: 16 }}>
+              <Form.Item style={{ marginTop: 16, textAlign: 'right' }}>
                 <Space>
                   <Button onClick={() => {
                     setBulkModalVisible(false);
                     setSelectedClassForBulk(null);
                     setSelectedExamForBulk(null);
                     setSelectedSubjectForBulk(null);
+                    form.resetFields();
                   }}>
                     Cancel
                   </Button>
-                  <Button type="primary" htmlType="submit" loading={loading}>
+                  <Button type="primary" onClick={() => {
+                    form.validateFields().then(values => {
+                      handleBulkMarksSubmit(values);
+                    }).catch(error => {
+                      console.error('Form validation failed:', error);
+                    });
+                  }} loading={loading}>
                     Save Marks
                   </Button>
                 </Space>
