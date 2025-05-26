@@ -180,9 +180,9 @@ export const schoolAPI = {
 
 // Student APIs
 export const studentAPI = {
-  getStudents: async () => {
+  getStudents: async (queryParams = '') => {
     try {
-      const response = await fetch(`${BASE_URL}/users/students/`, {
+      const response = await fetch(`${BASE_URL}/users/students/${queryParams}`, {
         method: 'GET',
         headers: await getHeaders(),
         credentials: 'include'

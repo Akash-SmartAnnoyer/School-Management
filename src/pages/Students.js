@@ -521,7 +521,6 @@ const Students = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [totalStudents, setTotalStudents] = useState(0);
   const messageApi = useContext(MessageContext);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -530,20 +529,22 @@ const Students = () => {
 
   useEffect(() => {
     loadStudents();
-  }, [currentPage, pageSize]);
+  }, [currentPage, searchText]);
 
   const loadStudents = async () => {
     try {
       setLoading(true);
-      const response = await api.student.getStudents();
+      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
+      const queryParams = `?page=${currentPage}${searchParam}`;
+      const response = await api.student.getStudents(queryParams);
       if (response.success) {
         // Transform the data to ensure class information is properly set
-        const transformedStudents = response.data.map(student => ({
+        const transformedStudents = response.data.results.map(student => ({
           ...student,
           class: student.class || 'Not Assigned'
         }));
         setStudents(transformedStudents);
-        setTotalStudents(transformedStudents.length);
+        setTotalStudents(response.data.count);
       } else {
         messageApi.error('Failed to load students');
       }
@@ -1178,6 +1179,11 @@ const Students = () => {
     },
   ];
 
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchText.toLowerCase()) ||
     student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -1213,7 +1219,7 @@ const Students = () => {
           <Input.Search
             placeholder="Search students..."
             allowClear
-            onSearch={setSearchText}
+            onSearch={handleSearch}
             style={{ 
               width: 250,
               borderRadius: '6px',
@@ -1246,6 +1252,14 @@ const Students = () => {
           loading={loading}
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="students-table"
+          pagination={{
+            current: currentPage,
+            total: totalStudents,
+            pageSize: 10,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
+            showTotal: (total) => `Total ${total} students`
+          }}
           locale={{
             emptyText: (
               <Empty
