@@ -585,13 +585,20 @@ export const feeAPI = {
     });
   },
   createFeeDue: async (feeDueData) => {
-    return makeRequest(`${BASE_URL}/fees/`, {
-      method: 'POST',
-      body: JSON.stringify(feeDueData)
-    });
+    try {
+      return await makeRequest(`${BASE_URL}/fees/`, {
+        method: 'POST',
+        body: JSON.stringify(feeDueData)
+      });
+    } catch (error) {
+      if (error.message.includes('unique set')) {
+        throw new Error('A fee due already exists for this student, period, and fee type combination.');
+      }
+      throw error;
+    }
   },
   updateFeeDue: async (id, feeDueData) => {
-    return makeRequest(`${BASE_URL}/fee-due/${id}/update/`, {
+    return makeRequest(`${BASE_URL}/fees/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(feeDueData)
     });

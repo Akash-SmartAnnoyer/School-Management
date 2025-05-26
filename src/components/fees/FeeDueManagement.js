@@ -16,7 +16,7 @@ import {
   Popconfirm,
 } from 'antd';
 import { PlusOutlined, SearchOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { feeAPI, studentAPI } from '../../services/api';
+import { feeAPI, studentAPI, classAPI } from '../../services/api';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -31,15 +31,39 @@ const FeeDueManagement = () => {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
+  const [classrooms, setClassrooms] = useState([]);
 
   useEffect(() => {
     fetchFeeDues();
     fetchStudents();
-  }, []);
+    fetchClassrooms();
+  }, [selectedClass, selectedMonth, statusFilter]);
+
+  const fetchClassrooms = async () => {
+    try {
+      const response = await classAPI.getClasses();
+      setClassrooms(response.data.results || []);
+    } catch (error) {
+      message.error('Failed to fetch classrooms');
+      console.error('Error fetching classrooms:', error);
+    }
+  };
 
   const fetchFeeDues = async () => {
     try {
-      const response = await feeAPI.getFeeDues();
+      let queryParams = '';
+      if (selectedClass) {
+        queryParams += `classroom_id=${selectedClass}`;
+      }
+      if (selectedMonth) {
+        queryParams += queryParams ? '&' : '';
+        queryParams += `period=${selectedMonth.format('YYYY-MM')}`;
+      }
+      if (statusFilter !== null) {
+        queryParams += queryParams ? '&' : '';
+        queryParams += `is_paid=${statusFilter}`;
+      }
+      const response = await feeAPI.getFeeDues(queryParams ? `?${queryParams}` : '');
       setFeeDues(response.data.results || []);
     } catch (error) {
       message.error('Failed to fetch fee dues');
@@ -174,9 +198,30 @@ const FeeDueManagement = () => {
           </Col>
           <Col>
             <Select
+              placeholder="Filter by classroom"
+              style={{ width: 200 }}
+              onChange={setSelectedClass}
+              allowClear
+            >
+              {classrooms.map(classroom => (
+                <Option key={classroom.id} value={classroom.id}>
+                  {classroom.class_name} - {classroom.section}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col>
+            <DatePicker.MonthPicker
+              placeholder="Filter by month"
+              onChange={setSelectedMonth}
+              style={{ width: 200 }}
+            />
+          </Col>
+          <Col>
+            <Select
               placeholder="Filter by status"
               style={{ width: 200 }}
-              onChange={(value) => setStatusFilter(value)}
+              onChange={setStatusFilter}
               allowClear
             >
               <Option value={true}>Paid</Option>

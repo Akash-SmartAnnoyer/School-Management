@@ -33,16 +33,22 @@ const PaymentHistory = () => {
   const [dateRange, setDateRange] = useState(null);
   const [selectedFeeType, setSelectedFeeType] = useState(null);
   const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     fetchPayments();
     fetchStudents();
-  }, []);
+  }, [selectedStudent, dateRange]);
 
   const fetchPayments = async () => {
     try {
-      const response = await feeAPI.getPayments();
-      setPayments(response.data.results || []);
+      if (selectedStudent) {
+        const response = await feeAPI.getPaymentHistoryByStudent(selectedStudent);
+        setPayments(response.data.results || []);
+      } else {
+        const response = await feeAPI.getPayments();
+        setPayments(response.data.results || []);
+      }
     } catch (error) {
       message.error('Failed to fetch payment history');
       console.error('Error fetching payment history:', error);
@@ -143,6 +149,20 @@ const PaymentHistory = () => {
           </Col>
           <Col>
             <Select
+              placeholder="Filter by student"
+              style={{ width: 200 }}
+              onChange={setSelectedStudent}
+              allowClear
+            >
+              {students.map(student => (
+                <Option key={student.id} value={student.id}>
+                  {student.name} - {student.class}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col>
+            <Select
               placeholder="Filter by payment mode"
               style={{ width: 200 }}
               onChange={setSelectedPaymentMode}
@@ -170,6 +190,7 @@ const PaymentHistory = () => {
           </Col>
           <Col>
             <RangePicker
+              value={dateRange}
               onChange={setDateRange}
               style={{ width: 300 }}
             />

@@ -19,6 +19,7 @@ import {
 import { PlusOutlined, SearchOutlined, DeleteOutlined } from '@ant-design/icons';
 import { feeAPI } from '../../services/api';
 import moment from 'moment';
+import { classAPI } from '../../services/api';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -33,12 +34,16 @@ const PaymentManagement = () => {
   const [dateRange, setDateRange] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [students, setStudents] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
 
   useEffect(() => {
     fetchPayments();
     fetchUnpaidFeeDues();
     fetchStudents();
-  }, []);
+    fetchClassrooms();
+  }, [selectedClass, selectedMonth]);
 
   const fetchPayments = async () => {
     try {
@@ -50,10 +55,30 @@ const PaymentManagement = () => {
     }
   };
 
+  const fetchClassrooms = async () => {
+    try {
+      const response = await classAPI.getClasses();
+      setClassrooms(response.data.results || []);
+    } catch (error) {
+      message.error('Failed to fetch classrooms');
+      console.error('Error fetching classrooms:', error);
+    }
+  };
+
   const fetchUnpaidFeeDues = async () => {
     try {
-      const response = await feeAPI.getFeeDues();
-      setUnpaidFeeDues((response.data.results || []).filter(due => !due.is_paid));
+      let queryParams = '';
+      if (selectedClass) {
+        queryParams += `classroom_id=${selectedClass}`;
+      }
+      if (selectedMonth) {
+        queryParams += queryParams ? '&' : '';
+        queryParams += `period=${selectedMonth.format('YYYY-MM')}`;
+      }
+      queryParams += queryParams ? '&' : '';
+      queryParams += 'is_paid=false';
+      const response = await feeAPI.getFeeDues(queryParams ? `?${queryParams}` : '');
+      setUnpaidFeeDues(response.data.results || []);
     } catch (error) {
       message.error('Failed to fetch unpaid fee dues');
       console.error('Error fetching unpaid fee dues:', error);
@@ -182,6 +207,27 @@ const PaymentManagement = () => {
               placeholder="Search by student name or fee type"
               value={searchText}
               onChange={e => setSearchText(e.target.value)}
+              style={{ width: 200 }}
+            />
+          </Col>
+          <Col>
+            <Select
+              placeholder="Filter by classroom"
+              style={{ width: 200 }}
+              onChange={setSelectedClass}
+              allowClear
+            >
+              {classrooms.map(classroom => (
+                <Option key={classroom.id} value={classroom.id}>
+                  {classroom.class_name} - {classroom.section}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col>
+            <DatePicker.MonthPicker
+              placeholder="Filter by month"
+              onChange={setSelectedMonth}
               style={{ width: 200 }}
             />
           </Col>
