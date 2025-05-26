@@ -56,6 +56,7 @@ import AttendanceReport from './pages/AttendanceReport';
 import Register from './pages/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SchoolLogo from './components/SchoolLogo';
+import FeeManagement from './pages/FeeManagement';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -129,7 +130,8 @@ function MainLayout() {
     { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
     { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
     { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
-    { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' }
+    { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' },
+    { key: '11', label: 'Fee Management', icon: <WalletOutlined />, path: '/fee-management' }
   ];
 
   const userMenuItems = [
@@ -512,6 +514,11 @@ function MainLayout() {
             <Route path="/attendance-reports" element={
               <ProtectedRoute>
                 <AttendanceReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/fee-management" element={
+              <ProtectedRoute>
+                <FeeManagement />
               </ProtectedRoute>
             } />
             <Route path="/timetable/*" element={

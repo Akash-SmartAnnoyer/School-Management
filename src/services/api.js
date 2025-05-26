@@ -573,47 +573,82 @@ export const resultAPI = {
 
 // Fee APIs
 export const feeAPI = {
-  getFees: async () => {
-    const response = await fetch(`${BASE_URL}/fees/`, {
-      method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+  // Fee Due APIs
+  getFeeDues: async (queryParams = '') => {
+    return makeRequest(`${BASE_URL}/fees/${queryParams}`, {
+      method: 'GET'
     });
-    return handleResponse(response);
   },
-  getFee: async (id) => {
-    const response = await fetch(`${BASE_URL}/fees/${id}/`, {
-      method: 'GET',
-      headers: await getHeaders(),
-      credentials: 'include'
+  getFeeDueById: async (id) => {
+    return makeRequest(`${BASE_URL}/fees/${id}/`, {
+      method: 'GET'
     });
-    return handleResponse(response);
   },
-  createFee: async (feeData) => {
-    const response = await fetch(`${BASE_URL}/fees/`, {
+  createFeeDue: async (feeDueData) => {
+    return makeRequest(`${BASE_URL}/fees/`, {
       method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify(feeData),
-      credentials: 'include'
+      body: JSON.stringify(feeDueData)
     });
-    return handleResponse(response);
   },
-  updateFee: async (id, feeData) => {
-    const response = await fetch(`${BASE_URL}/fees/${id}/`, {
+  updateFeeDue: async (id, feeDueData) => {
+    return makeRequest(`${BASE_URL}/fee-due/${id}/update/`, {
       method: 'PUT',
-      headers: await getHeaders(),
-      body: JSON.stringify(feeData),
-      credentials: 'include'
+      body: JSON.stringify(feeDueData)
     });
-    return handleResponse(response);
   },
-  deleteFee: async (id) => {
-    const response = await fetch(`${BASE_URL}/fees/${id}/`, {
-      method: 'DELETE',
-      headers: await getHeaders(),
-      credentials: 'include'
+  deleteFeeDue: async (id) => {
+    return makeRequest(`${BASE_URL}/fees/${id}/`, {
+      method: 'DELETE'
     });
-    return handleResponse(response);
+  },
+  getFeeDuesByStudent: async (studentId) => {
+    return makeRequest(`${BASE_URL}/fees/by_student/?student_id=${studentId}`, {
+      method: 'GET'
+    });
+  },
+  getFeeDuesByClassroomMonth: async (classroomId, period, isPaid = null) => {
+    let url = `${BASE_URL}/fee-due/?classroom_id=${classroomId}&period=${period}`;
+    if (isPaid !== null) {
+      url += `&is_paid=${isPaid}`;
+    }
+    return makeRequest(url, {
+      method: 'GET'
+    });
+  },
+
+  // Payment APIs
+  getPayments: async (queryParams = '') => {
+    return makeRequest(`${BASE_URL}/payments/${queryParams}`, {
+      method: 'GET'
+    });
+  },
+  getPaymentById: async (id) => {
+    return makeRequest(`${BASE_URL}/payments/${id}/`, {
+      method: 'GET'
+    });
+  },
+  createPayment: async (paymentData) => {
+    return makeRequest(`${BASE_URL}/payments/`, {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  },
+  deletePayment: async (id) => {
+    return makeRequest(`${BASE_URL}/payments/${id}/`, {
+      method: 'DELETE'
+    });
+  },
+  getPaymentHistoryByStudent: async (studentId, year = null, month = null) => {
+    let url = `${BASE_URL}/students/${studentId}/payment-history/`;
+    if (year) {
+      url += `?year=${year}`;
+      if (month) {
+        url += `&month=${month}`;
+      }
+    }
+    return makeRequest(url, {
+      method: 'GET'
+    });
   }
 };
 
