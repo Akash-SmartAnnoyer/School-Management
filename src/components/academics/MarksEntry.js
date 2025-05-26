@@ -628,8 +628,11 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         // Update existing marks
         const updateData = {
           id: selectedMarks.id,
+          exam: values.exam,
+          classroom: values.classroom,
+          subject: values.subject,
           student: values.studentId,
-          roll: 100, // Default roll number
+          roll: 100,
           marks: values.marks,
           remarks: values.remarks || '',
           entry_type: 'single'
@@ -638,12 +641,22 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         messageApi.success('Marks updated successfully');
       } else {
         // Create new marks
-        await api.marks.createMarks(values);
+        const createData = {
+          exam: values.exam,
+          classroom: values.classroom,
+          subject: values.subject,
+          student: values.studentId,
+          roll: 100,
+          marks: values.marks,
+          remarks: values.remarks || '',
+          entry_type: 'single'
+        };
+        await api.marks.createMarks(createData);
         messageApi.success('Marks added successfully');
       }
       setModalVisible(false);
       setSelectedMarks(null);
-      loadInitialData();
+      loadInitialData(); // Reload the data after successful submission
     } catch (error) {
       messageApi.error(selectedMarks ? 'Failed to update marks' : 'Failed to save marks');
       console.error('Error saving/updating marks:', error);
@@ -716,7 +729,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       dataIndex: 'marks',
       key: 'marks',
       render: (marks, record) => {
-        const exam = examTypes?.find(e => e.id === record.exam);
+        const exam = localExams.find(e => e.id === record.exam);
         return `${marks}/${exam?.maxMarks || 100}`;
       },
     },
