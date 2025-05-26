@@ -107,18 +107,32 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+      const [studentsResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+        api.student.getStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
         api.exam.getExams()
       ]);
       
-      setLocalClasses(classesResponse.data || []);
-      setLocalSubjects(subjectsResponse.data || []);
-      setLocalExams(examsResponse.data || []);
+      if (studentsResponse.success) {
+        setLocalStudents(studentsResponse.data.results || []);
+      }
+      if (classesResponse.success) {
+        setLocalClasses(classesResponse.data.results || []);
+      }
+      if (subjectsResponse.success) {
+        setLocalSubjects(subjectsResponse.data.results || []);
+      }
+      if (examsResponse.success) {
+        setLocalExams(examsResponse.data.results || []);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
+      setLocalStudents([]);
+      setLocalClasses([]);
+      setLocalSubjects([]);
+      setLocalExams([]);
     } finally {
       setLoading(false);
     }
@@ -126,16 +140,16 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
 
   const loadStudentsForClass = async (classId) => {
     try {
-      const response = await api.class.getClass(classId);
-      const students = response.data.students.map(student => ({
-        id: student.id,
-        name: `${student.user.first_name} ${student.user.last_name}`,
-        rollNumber: student.section,
-        user: student.user
-      }));
-      setLocalStudents(students);
+      const response = await api.student.getStudentsByClass(classId);
+      if (response.success) {
+        setLocalStudents(prevStudents => {
+          const newStudents = response.data.results || [];
+          return [...prevStudents, ...newStudents];
+        });
+      }
     } catch (error) {
-      console.error(`Error loading students for class ${classId}:`, error);
+      messageApi.error('Failed to load students for class');
+      console.error('Error loading students:', error);
     }
   };
 
@@ -561,26 +575,32 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [marksResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
-        api.marks.getAllMarks(),
+      const [studentsResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+        api.student.getStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
         api.exam.getExams()
       ]);
       
-      setAllMarks(marksResponse.data || []);
-      setLocalClasses(classesResponse.data || []);
-      setLocalSubjects(subjectsResponse.data || []);
-      setLocalExams(examsResponse.data || []);
-
-      // Load students for all classes that have marks
-      const uniqueClassIds = [...new Set(marksResponse.data.map(mark => mark.classroom))];
-      for (const classId of uniqueClassIds) {
-        await loadStudentsForClass(classId);
+      if (studentsResponse.success) {
+        setLocalStudents(studentsResponse.data.results || []);
+      }
+      if (classesResponse.success) {
+        setLocalClasses(classesResponse.data.results || []);
+      }
+      if (subjectsResponse.success) {
+        setLocalSubjects(subjectsResponse.data.results || []);
+      }
+      if (examsResponse.success) {
+        setLocalExams(examsResponse.data.results || []);
       }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
+      setLocalStudents([]);
+      setLocalClasses([]);
+      setLocalSubjects([]);
+      setLocalExams([]);
     } finally {
       setLoading(false);
     }
@@ -588,16 +608,16 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
 
   const loadStudentsForClass = async (classId) => {
     try {
-      const response = await api.class.getClass(classId);
-      const students = response.data.students.map(student => ({
-        id: student.id,
-        name: `${student.user.first_name} ${student.user.last_name}`,
-        rollNumber: student.section,
-        user: student.user
-      }));
-      setLocalStudents(students);
+      const response = await api.student.getStudentsByClass(classId);
+      if (response.success) {
+        setLocalStudents(prevStudents => {
+          const newStudents = response.data.results || [];
+          return [...prevStudents, ...newStudents];
+        });
+      }
     } catch (error) {
-      console.error(`Error loading students for class ${classId}:`, error);
+      messageApi.error('Failed to load students for class');
+      console.error('Error loading students:', error);
     }
   };
 
@@ -740,7 +760,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     setSearchText(value);
   };
 
-  const filteredMarks = allMarks.filter(record => {
+  const filteredMarks = Array.isArray(allMarks) ? allMarks.filter(record => {
     const studentName = getStudentName(record.student).toLowerCase();
     const subjectName = getSubjectName(record.subject).toLowerCase();
     const searchLower = searchText.toLowerCase();
@@ -751,7 +771,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       record.marks.toString().includes(searchLower) ||
       (record.remarks || '').toLowerCase().includes(searchLower)
     );
-  });
+  }) : [];
 
   const handleBulkMarksSubmit = async (values) => {
     try {

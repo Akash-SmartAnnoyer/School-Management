@@ -32,50 +32,29 @@ const { Title } = Typography;
 const { Option } = Select;
 const { Search } = AntInput;
 
-const SubManagement = () => {
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
+const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageChange }) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
-  const [editLoading, setEditLoading] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
   const messageApi = useContext(MessageContext);
-
-  useEffect(() => {
-    loadSubjects();
-  }, []);
-
-  const loadSubjects = async () => {
-    try {
-      setLoading(true);
-      const response = await api.subject.getSubjects();
-      setSubjects(response.data || []);
-    } catch (error) {
-      messageApi.error('Failed to load subjects');
-      console.error('Error loading subjects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAdd = () => {
     setEditingSubject(null);
     form.resetFields();
-    setModalVisible(true);
+    setIsModalVisible(true);
   };
 
-  const handleEdit = (subject) => {
-    setEditingSubject(subject);
-    form.setFieldsValue(subject);
-    setModalVisible(true);
+  const handleEdit = (record) => {
+    setEditingSubject(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (id) => {
     try {
       await api.subject.deleteSubject(id);
       messageApi.success('Subject deleted successfully');
-      loadSubjects();
+      onPageChange(currentPage);
     } catch (error) {
       messageApi.error('Failed to delete subject');
       console.error('Error deleting subject:', error);
@@ -84,28 +63,18 @@ const SubManagement = () => {
 
   const handleSubmit = async (values) => {
     try {
-      setSubmitLoading(true);
-      const subjectData = {
-        ...values,
-        updatedAt: new Date().toISOString()
-      };
-
       if (editingSubject) {
-        await api.subject.updateSubject(editingSubject.id, subjectData);
+        await api.subject.updateSubject(editingSubject.id, values);
         messageApi.success('Subject updated successfully');
       } else {
-        subjectData.createdAt = new Date().toISOString();
-        await api.subject.createSubject(subjectData);
+        await api.subject.createSubject(values);
         messageApi.success('Subject added successfully');
       }
-      setModalVisible(false);
-      setEditingSubject(null);
-      await loadSubjects();
+      setIsModalVisible(false);
+      onPageChange(currentPage);
     } catch (error) {
-      messageApi.error('Failed to save subject');
+      messageApi.error(editingSubject ? 'Failed to update subject' : 'Failed to add subject');
       console.error('Error saving subject:', error);
-    } finally {
-      setSubmitLoading(false);
     }
   };
 
@@ -135,7 +104,6 @@ const SubManagement = () => {
               type="link"
               icon={<EditOutlined />}
               onClick={() => handleEdit(record)}
-              loading={editLoading}
             />
           </Tooltip>
           <Tooltip title="Delete Subject">
@@ -180,11 +148,7 @@ const SubManagement = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingSubject(null);
-              form.resetFields();
-              setModalVisible(true);
-            }}
+            onClick={handleAdd}
             className="add-button"
           >
             Add Subject
@@ -204,10 +168,12 @@ const SubManagement = () => {
           loading={loading}
           className="academics-table"
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-          pagination={{ 
+          pagination={{
+            current: currentPage,
+            total: totalSubjects,
             pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
+            onChange: onPageChange,
+            showSizeChanger: false,
             showTotal: (total) => `Total ${total} subjects`
           }}
           locale={{
@@ -231,13 +197,9 @@ const SubManagement = () => {
             </Title>
           </Space>
         }
-        open={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setEditingSubject(null);
-        }}
-        onOk={() => form.submit()}
-        confirmLoading={loading}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
         width={600}
         className="academics-modal"
       >
@@ -267,6 +229,17 @@ const SubManagement = () => {
             label="Description"
           >
             <Input.TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button onClick={() => setIsModalVisible(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit">
+                {editingSubject ? 'Update' : 'Add'}
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

@@ -547,59 +547,51 @@ const Academics = () => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(false);
   const [marksEntryVisible, setMarksEntryVisible] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalSubjects, setTotalSubjects] = useState(0);
 
-  // useEffect(() => {
-  //   loadInitialData();
-  // }, []);
+  useEffect(() => {
+    loadSubjects();
+  }, [currentPage]);
 
-  const loadInitialData = async () => {
+  const loadMarks = async (examId) => {
     try {
       setLoading(true);
-      const [classesResponse, teachersResponse] = await Promise.all([
-        api.class.getAll(),
-        api.teacher.getAll()
-      ]);
-      setClasses(classesResponse.data.data);
-      setTeachers(teachersResponse.data.data);
+      const response = await api.marks.getMarks(examId);
+      if (response.success) {
+        setMarks(response.data);
+      } else {
+        messageApi.error('Failed to load marks');
+      }
     } catch (error) {
-      messageApi.error('Failed to load initial data');
+      messageApi.error('Failed to load marks');
+      console.error('Error loading marks:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadStudents = async (classId) => {
+  const loadSubjects = async () => {
     try {
-      const response = await api.student.getByClass(classId);
-      setStudents(response.data.data);
+      setLoading(true);
+      const response = await api.subject.getSubjects(`?page=${currentPage}`);
+      if (response.success) {
+        setSubjects(response.data.results);
+        setTotalSubjects(response.data.count);
+      } else {
+        messageApi.error('Failed to load subjects');
+      }
     } catch (error) {
-      messageApi.error('Failed to load students');
-    }
-  };
-
-  const loadMarks = async (examId) => {
-    try {
-      const response = await api.marks.getByExam(examId);
-      setMarks(response.data.data);
-    } catch (error) {
-      messageApi.error('Failed to load marks');
-    }
-  };
-
-  const loadExams = async () => {
-    try {
-      const response = await api.examAPI.getExams();
-      setExams(response.data.data);
-    } catch (error) {
-      messageApi.error('Failed to load exams');
+      messageApi.error('Failed to load subjects');
+      console.error('Error loading subjects:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleTabChange = (key) => {
     setActiveTab(key);
-    // if (key === '1') {
-    //   loadExams();
-    // }
   };
 
   const handleMarksSubmit = async (values) => {
@@ -614,19 +606,6 @@ const Academics = () => {
 
   return (
     <div className="academics-container">
-      {/* <div className="academics-header">
-        <Title level={4}>Academic Management</Title>
-        <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setMarksEntryVisible(true)}
-          >
-            Add Marks
-          </Button>
-        </Space>
-      </div> */}
-
       <Card className="academics-card">
         <Tabs
           className="academics-tabs"
@@ -634,7 +613,13 @@ const Academics = () => {
           onChange={handleTabChange}
         >
           <TabPane tab="Subject Management" key="1">
-            <SubManagement />
+            <SubManagement 
+              subjects={subjects}
+              loading={loading}
+              currentPage={currentPage}
+              totalSubjects={totalSubjects}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
           </TabPane>
           <TabPane tab="Exam Management" key="2">
             <ExamManagement />
@@ -642,7 +627,6 @@ const Academics = () => {
           <TabPane tab="Marks Entry" key="3">
             <MarksEntry />
           </TabPane>
-
           <TabPane tab="Analytics" key="4">
             <Analytics />
           </TabPane>

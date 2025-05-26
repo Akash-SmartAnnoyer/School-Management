@@ -70,10 +70,18 @@ const ExamManagement = () => {
         api.class.getClasses()
       ]);
       
-      setExams(examsResponse.data || []);
-      setSubjects(subjectsResponse.data || []);
-      setTeachers(teachersResponse.data || []);
-      setClassrooms(classesResponse.data || []);
+      if (examsResponse.success) {
+        setExams(examsResponse.data.results || []);
+      }
+      if (subjectsResponse.success) {
+        setSubjects(subjectsResponse.data.results || []);
+      }
+      if (teachersResponse.success) {
+        setTeachers(teachersResponse.data.results || []);
+      }
+      if (classesResponse.success) {
+        setClassrooms(classesResponse.data.results || []);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
