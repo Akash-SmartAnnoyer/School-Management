@@ -27,7 +27,7 @@ const AcademicCalendar = () => {
     try {
       setLoading(true);
       const response = await eventAPI.getEvents();
-      setEvents(response.data || []);
+      setEvents(response.data.results || []);
     } catch (error) {
       message.error('Failed to fetch events: ' + error.message);
     } finally {
