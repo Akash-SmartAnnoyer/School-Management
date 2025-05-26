@@ -74,12 +74,14 @@ const Teachers = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTeachers, setTotalTeachers] = useState(0);
 
   useEffect(() => {
     loadTeachers();
     loadClasses();
     loadSubjects();
-  }, []);
+  }, [currentPage, searchText]);
 
   useEffect(() => {
     if (isModalVisible) {
@@ -101,9 +103,12 @@ const Teachers = () => {
   const loadTeachers = async () => {
     try {
       setLoading(true);
-      const response = await api.teacher.getTeachers();
+      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
+      const queryParams = `?page=${currentPage}${searchParam}`;
+      const response = await api.teacher.getTeachers(queryParams);
       if (response.success) {
-        setTeachers(response.data);
+        setTeachers(response.data.results);
+        setTotalTeachers(response.data.count);
       } else {
         messageApi.error('Failed to load teachers');
       }
@@ -135,8 +140,8 @@ const Teachers = () => {
     try {
       setLoadingSubjects(true);
       const response = await api.subject.getSubjects();
-      if (response.data) {
-        setSubjects(response.data);
+      if (response.success) {
+        setSubjects(response.data.results);
       }
     } catch (error) {
       console.error('Error loading subjects:', error);
@@ -634,6 +639,11 @@ const Teachers = () => {
     },
   ];
 
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
   const filteredTeachers = teachers.filter(teacher =>
     (teacher.name?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
     (teacher.subject?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
@@ -669,7 +679,7 @@ const Teachers = () => {
           <Input.Search
             placeholder="Search teachers..."
             allowClear
-            onSearch={setSearchText}
+            onSearch={handleSearch}
             style={{ 
               width: 250,
               borderRadius: '6px',
@@ -706,10 +716,11 @@ const Teachers = () => {
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="teachers-table"
           pagination={{
-            position: ['bottomCenter'],
+            current: currentPage,
+            total: totalTeachers,
             pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
             showTotal: (total) => `Total ${total} teachers`
           }}
           locale={{

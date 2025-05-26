@@ -29,18 +29,25 @@ const Classes = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalClasses, setTotalClasses] = useState(0);
 
   useEffect(() => {
     loadClasses();
     loadTeachers();
-  }, []);
+  }, [currentPage, searchText]);
 
   const loadClasses = async () => {
     try {
       setLoadingClasses(true);
-      const response = await api.class.getClasses();
-      if (response) {
-        setClasses(response.data);
+      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
+      const queryParams = `?page=${currentPage}${searchParam}`;
+      const response = await api.class.getClasses(queryParams);
+      if (response.success) {
+        setClasses(response.data.results);
+        setTotalClasses(response.data.count);
+      } else {
+        messageApi.error('Failed to load classes');
       }
     } catch (error) {
       messageApi.error('Failed to load classes');
@@ -54,8 +61,10 @@ const Classes = () => {
     try {
       setLoadingTeachers(true);
       const response = await api.teacher.getTeachers();
-      if (response) {
-        setTeachers(response.data);
+      if (response.success) {
+        setTeachers(response.data.results);
+      } else {
+        messageApi.error('Failed to load teachers');
       }
     } catch (error) {
       messageApi.error('Failed to load teachers');
@@ -380,6 +389,11 @@ const Classes = () => {
     },
   ];
 
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
   const filteredClasses = classes.filter(cls =>
     cls.class_name.toLowerCase().includes(searchText.toLowerCase()) ||
     cls.section.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -415,7 +429,7 @@ const Classes = () => {
           <Input.Search
             placeholder="Search classes..."
             allowClear
-            onSearch={setSearchText}
+            onSearch={handleSearch}
             style={{ 
               width: 250,
               borderRadius: '6px',
@@ -452,10 +466,11 @@ const Classes = () => {
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="classes-table"
           pagination={{
-            position: ['bottomCenter'],
+            current: currentPage,
+            total: totalClasses,
             pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
             showTotal: (total) => `Total ${total} classes`
           }}
           locale={{

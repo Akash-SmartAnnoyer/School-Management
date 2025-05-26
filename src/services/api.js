@@ -277,8 +277,8 @@ export const studentAPI = {
 
 // Teacher APIs
 export const teacherAPI = {
-  getTeachers: async () => {
-    const response = await fetch(`${BASE_URL}/users/teachers/`, {
+  getTeachers: async (queryParams = '') => {
+    const response = await fetch(`${BASE_URL}/users/teachers/${queryParams}`, {
       method: 'GET',
       headers: await getHeaders(),
       credentials: 'include'
@@ -323,8 +323,8 @@ export const teacherAPI = {
 
 // Class APIs
 export const classAPI = {
-  getClasses: async () => {
-    const response = await fetch(`${BASE_URL}/classrooms/`, {
+  getClasses: async (queryParams = '') => {
+    const response = await fetch(`${BASE_URL}/classrooms/${queryParams}`, {
       method: 'GET',
       headers: await getHeaders(),
       credentials: 'include'
@@ -390,10 +390,11 @@ export const classAPI = {
 
 // Subject APIs
 export const subjectAPI = {
-  getSubjects: async () => {
-    const response = await fetch(`${BASE_URL}/subjects/`, {
+  getSubjects: async (queryParams = '') => {
+    const response = await fetch(`${BASE_URL}/subjects/${queryParams}`, {
       method: 'GET',
-      headers: await getHeaders()
+      headers: await getHeaders(),
+      credentials: 'include'
     });
     return handleResponse(response);
   },
