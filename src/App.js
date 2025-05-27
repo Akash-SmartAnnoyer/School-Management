@@ -230,90 +230,77 @@ function MainLayout() {
     }
   };
 
+  const handleMenuClick = ({ key }) => {
+    const selectedItem = menuItems.find(item => item.key === key);
+    if (selectedItem) {
+      navigate(selectedItem.path);
+      if (window.innerWidth < 992) {
+        setCollapsed(true);
+      }
+    }
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider
-        trigger={null}
-        collapsible
+      <Sider 
+        trigger={null} 
+        collapsible 
         collapsed={collapsed}
-        breakpoint="lg"
-        onBreakpoint={(broken) => {
-          if (broken) {
-            setCollapsed(true);
-          }
-        }}
         style={{
-          overflow: 'auto',
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          boxShadow: '2px 0 8px 0 rgba(29, 35, 41, 0.05)',
           background: '#ffffff',
+          boxShadow: '2px 0 8px 0 rgba(29, 35, 41, 0.05)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div
-          className="logo"
-          style={{
-            height: 64,
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#7B83EB',
+        <div 
+          className="logo" 
+          style={{ 
+            height: 64, 
+            padding: 16, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            flexDirection: collapsed ? 'column' : 'row', 
+            gap: 8,
             margin: '16px',
             borderRadius: '12px',
-            overflow: 'hidden',
-            transition: 'all 0.3s'
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          <BookOutlined style={{
-            fontSize: collapsed ? '32px' : '24px',
-            color: '#ffffff',
-            marginRight: collapsed ? '0' : '12px',
-            transition: 'all 0.3s'
-          }} />
-          <Title
-            level={4}
-            style={{
-              color: '#ffffff',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              opacity: collapsed ? 0 : 1,
-              transition: 'opacity 0.3s',
-              fontSize: collapsed ? '0' : '18px',
-              textAlign: 'center',
-              borderRadius: '16px'
-            }}
-          >
-            Smart School
-          </Title>
+          <div className="school-icon">
+            <img
+              src="/logo-transparent-png.png"
+              alt="App Logo"
+              style={{
+                width: collapsed ? '32px' : '40px',
+                height: collapsed ? '32px' : '40px',
+                objectFit: 'contain',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          </div>
+          {!collapsed && (
+            <Title level={5} style={{ color: '#7B83EB', margin: 0, fontWeight: 500, fontSize: '12px' }}>
+              360 Schooling
+            </Title>
+          )}
         </div>
         <Menu
           theme="light"
           mode="inline"
-          selectedKeys={[location.pathname === '/' ? '1' : menuItems.find(item => item.path === location.pathname)?.key]}
+          selectedKeys={[location.pathname]}
           items={menuItems}
-          onClick={({ key }) => {
-            const selectedItem = menuItems.find(item => item.key === key);
-            if (selectedItem) {
-              navigate(selectedItem.path);
-              if (window.innerWidth < 992) {
-                setCollapsed(true);
-              }
-            }
-          }}
+          onClick={handleMenuClick}
           style={{
-            borderRight: 'none',
-            padding: '0 4px',
-            background: '#ffffff',
-            color: '#595959'
+            background: 'transparent',
+            border: 'none',
           }}
           className="custom-menu"
         />
       </Sider>
-      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
+      
+      <Layout>
         <Header style={{
           padding: '0 24px',
           background: '#fff',
@@ -353,18 +340,6 @@ function MainLayout() {
               gap: '12px',
               minWidth: '200px'
             }}>
-              {/* <img 
-                src="" 
-                alt="School Logo" 
-                style={{ 
-                  width: 40, 
-                  height: 40, 
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
-              /> */}
-              <SchoolLogo />
-
               <Title level={5} style={{ margin: 0, color: '#7B83EB' }}>
                 Usha Vidyalayam
               </Title>

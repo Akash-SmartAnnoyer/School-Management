@@ -8,7 +8,7 @@
 }
 
 /* Logo Section */
-.side-menu-logo {
+.logo {
   height: 64px;
   padding: 16px;
   display: flex;
@@ -24,7 +24,18 @@
   box-shadow: 0 4px 16px rgba(159, 179, 223, 0.2) !important;
 }
 
-.side-menu-logo h5 {
+.logo .school-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.logo .school-icon img {
+  transition: all 0.3s ease;
+}
+
+.logo h5 {
   color: #ffffff !important;
   margin: 0;
   font-weight: 600;
@@ -32,23 +43,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.side-menu-logo .school-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
+  transition: all 0.3s ease;
 }
 
 /* Menu Items Styling */
-.side-menu {
+.custom-menu {
   padding: 8px;
   background: transparent !important;
   border: none !important;
 }
 
-.side-menu .ant-menu-item {
+.custom-menu .ant-menu-item {
   margin: 4px 8px;
   border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -58,43 +63,45 @@
   opacity: 0.8;
 }
 
-.side-menu .ant-menu-item:hover {
-  background: rgba(123, 131, 235, 0.05) !important;
+.custom-menu .ant-menu-item:hover {
   color: #7B83EB !important;
   opacity: 1;
   transform: translateX(5px);
 }
 
-.side-menu .ant-menu-item-selected {
-  background: rgba(123, 131, 235, 0.1) !important;
-  border-radius: 8px;
+.custom-menu .ant-menu-item-selected {
   color: #7B83EB !important;
   opacity: 1;
 }
 
-.side-menu .ant-menu-item::after {
+.custom-menu .ant-menu-item::after {
   display: none;
 }
 
-.side-menu .ant-menu-item .anticon {
+.custom-menu .ant-menu-item .anticon {
   font-size: 18px;
   color: #7B83EB;
   opacity: 0.8;
   transition: all 0.3s ease;
 }
 
-.side-menu .ant-menu-item:hover .anticon,
-.side-menu .ant-menu-item-selected .anticon {
+.custom-menu .ant-menu-item:hover .anticon,
+.custom-menu .ant-menu-item-selected .anticon {
   opacity: 1;
 }
 
 /* Collapsed State */
-.ant-layout-sider-collapsed .side-menu-logo {
+.ant-layout-sider-collapsed .logo {
   padding: 16px 8px;
 }
 
-.ant-layout-sider-collapsed .side-menu-logo h5 {
+.ant-layout-sider-collapsed .logo h5 {
   display: none;
+}
+
+.ant-layout-sider-collapsed .logo .school-icon img {
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .ant-layout-sider-collapsed .side-menu .ant-menu-item {
@@ -109,7 +116,7 @@
     height: 100vh;
   }
 
-  .side-menu-logo {
+  .logo {
     margin: 8px;
     padding: 12px;
   }

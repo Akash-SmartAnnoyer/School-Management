@@ -185,11 +185,20 @@ const MainLayout = ({ children }) => {
           }}
         >
           <div className="school-icon">
-            <SchoolLogo size={collapsed ? 32 : 40} />
+            <img
+              src="/logo-transparent-png.png"
+              alt="App Logo"
+              style={{
+                width: collapsed ? '32px' : '40px',
+                height: collapsed ? '32px' : '40px',
+                objectFit: 'contain',
+                transition: 'all 0.3s ease'
+              }}
+            />
           </div>
-          {!collapsed && currentUser?.schoolName && (
+          {!collapsed && (
             <Title level={5} style={{ color: '#fff', margin: 0, fontWeight: 500 }}>
-              {currentUser.schoolName}
+              360 Schooling
             </Title>
           )}
         </div>
@@ -237,26 +246,10 @@ const MainLayout = ({ children }) => {
                 color: 'var(--text-primary)',
               }}
             />
-            {!collapsed && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <img
-                    src="/logo-transparent-png.png"
-                    alt="App Logo"
-                    style={{
-                      width: 32,
-                      height: 32,
-                      objectFit: 'contain'
-                    }}
-                  />
-                  <SchoolLogo size="medium" />
-                </div>
-                {currentUser?.schoolName && (
-                  <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
-                    {currentUser.schoolName}
-                  </Title>
-                )}
-              </div>
+            {currentUser?.schoolName && (
+              <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
+                {currentUser.schoolName}
+              </Title>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
