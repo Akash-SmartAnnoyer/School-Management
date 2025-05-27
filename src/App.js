@@ -263,19 +263,18 @@ function MainLayout() {
         <div 
           className="logo" 
           style={{ 
-            height: 64, 
-            padding: 16, 
+            height: 'auto', 
+            padding: '8px', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center', 
             flexDirection: collapsed ? 'column' : 'row', 
             gap: 8,
-            margin: '16px',
-            borderRadius: '12px',
+            margin: '16px 16px 4px 16px',
+            borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: '#e8e8e8',
-            padding: '12px',
-            marginBottom: '8px'
+            backgroundColor: '#e0e0e0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
           }}
         >
           <div className="school-icon">
@@ -283,8 +282,8 @@ function MainLayout() {
               src="/logo-transparent-png.png"
               alt="App Logo"
               style={{
-                width: collapsed ? '48px' : '32px',
-                height: collapsed ? '48px' : '32px',
+                width: collapsed ? '32px' : '24px',
+                height: collapsed ? '32px' : '24px',
                 objectFit: 'contain',
                 transition: 'all 0.3s ease'
               }}
@@ -295,12 +294,19 @@ function MainLayout() {
               color: '#7B83EB', 
               margin: 0, 
               fontWeight: 500, 
-              fontSize: '12px'
+              fontSize: '11px',
+              lineHeight: '1.2'
             }}>
-              360 schooling
+              360 Schooling
             </Title>
           )}
         </div>
+        <div style={{
+          height: '1px',
+          backgroundColor: '#e0e0e0',
+          margin: '0 16px 4px 16px',
+          width: 'calc(100% - 32px)'
+        }} />
         <Menu
           theme="light"
           mode="inline"
