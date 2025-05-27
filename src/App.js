@@ -240,6 +240,13 @@ function MainLayout() {
     }
   };
 
+  // Add this function to get the current selected key
+  const getSelectedKey = () => {
+    const currentPath = location.pathname;
+    const selectedItem = menuItems.find(item => item.path === currentPath);
+    return selectedItem ? [selectedItem.key] : [];
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider 
@@ -266,6 +273,9 @@ function MainLayout() {
             margin: '16px',
             borderRadius: '12px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            backgroundColor: '#e8e8e8',
+            padding: '12px',
+            marginBottom: '8px'
           }}
         >
           <div className="school-icon">
@@ -281,15 +291,20 @@ function MainLayout() {
             />
           </div>
           {!collapsed && (
-            <Title level={5} style={{ color: '#7B83EB', margin: 0, fontWeight: 500, fontSize: '12px' }}>
-              360 Schooling
+            <Title level={5} style={{ 
+              color: '#7B83EB', 
+              margin: 0, 
+              fontWeight: 500, 
+              fontSize: '12px'
+            }}>
+              360 schooling
             </Title>
           )}
         </div>
         <Menu
           theme="light"
           mode="inline"
-          selectedKeys={[location.pathname]}
+          selectedKeys={getSelectedKey()}
           items={menuItems}
           onClick={handleMenuClick}
           style={{
