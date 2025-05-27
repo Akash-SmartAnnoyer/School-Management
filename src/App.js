@@ -273,8 +273,8 @@ function MainLayout() {
               src="/logo-transparent-png.png"
               alt="App Logo"
               style={{
-                width: collapsed ? '32px' : '40px',
-                height: collapsed ? '32px' : '40px',
+                width: collapsed ? '48px' : '32px',
+                height: collapsed ? '48px' : '32px',
                 objectFit: 'contain',
                 transition: 'all 0.3s ease'
               }}
