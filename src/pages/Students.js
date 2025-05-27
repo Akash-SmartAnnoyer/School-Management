@@ -518,7 +518,10 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
               }
               className="info-card"
             >
-              <Form.List name="fee_details">
+              <Form.List 
+                name="fee_details"
+                initialValue={initialValues?.fee_details || [{}]}
+              >
                 {(fields, { add, remove }) => (
                   <>
                     {fields.map(({ key, name, ...restField }) => (
@@ -526,12 +529,14 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                         key={key} 
                         style={{ marginBottom: 16, border: '1px solid #f0f0f0' }}
                         extra={
-                          <Button 
-                            type="text" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            onClick={() => remove(name)}
-                          />
+                          fields.length > 1 && (
+                            <Button 
+                              type="text" 
+                              danger 
+                              icon={<DeleteOutlined />} 
+                              onClick={() => remove(name)}
+                            />
+                          )
                         }
                       >
                         <Row gutter={16}>
@@ -742,7 +747,27 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     <Form.Item>
                       <Button 
                         type="dashed" 
-                        onClick={() => add()} 
+                        onClick={() => {
+                          try {
+                            const currentValues = form.getFieldValue('fee_details');
+                            const newValues = Array.isArray(currentValues) ? [...currentValues] : [];
+                            newValues.push({
+                              fee_type: '',
+                              amount: '',
+                              period: '',
+                              terms: '',
+                              amount_per_term: '',
+                              status: '',
+                              due_amount: '',
+                              remarks: ''
+                            });
+                            form.setFieldsValue({ fee_details: newValues });
+                            add();
+                          } catch (error) {
+                            console.error('Error adding fee:', error);
+                            add();
+                          }
+                        }} 
                         block 
                         icon={<PlusOutlined />}
                       >
