@@ -27,7 +27,8 @@ import {
   PlusOutlined,
   FileAddOutlined,
   NotificationOutlined,
-  FormatPainterOutlined
+  FormatPainterOutlined,
+  LockOutlined
 } from '@ant-design/icons';
 import './App.css';
 import GlobalSearch from './components/GlobalSearch';
@@ -256,8 +257,14 @@ function MainLayout() {
         style={{
           background: '#ffffff',
           boxShadow: '2px 0 8px 0 rgba(29, 35, 41, 0.05)',
-          position: 'relative',
+          position: 'fixed',
+          height: '100vh',
+          left: 0,
+          top: 0,
+          bottom: 0,
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
         <div 
@@ -304,25 +311,122 @@ function MainLayout() {
         <div style={{
           height: '1px',
           backgroundColor: '#e0e0e0',
-          margin: '0 16px 4px 16px',
-          width: 'calc(100% - 32px)'
+          margin: '0 8px 8px 8px',
+          width: 'calc(100% - 16px)'
         }} />
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={getSelectedKey()}
-          items={menuItems}
-          onClick={handleMenuClick}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            padding: '0 8px',
-          }}
-          className="custom-menu"
-        />
+        <div style={{
+          flex: 1,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <Menu
+            theme="light"
+            mode="inline"
+            selectedKeys={getSelectedKey()}
+            items={menuItems}
+            onClick={handleMenuClick}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: '0 8px',
+              flex: 1,
+              overflow: 'auto'
+            }}
+            className="custom-menu"
+          />
+        </div>
+        <div style={{
+          height: '1px',
+          backgroundColor: '#e0e0e0',
+          margin: '0 8px 8px 8px',
+          width: 'calc(100% - 16px)'
+        }} />
+        <div style={{
+          padding: '8px',
+          marginBottom: '8px'
+        }}>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'profile',
+                  icon: <UserOutlined />,
+                  label: 'Edit Profile',
+                },
+                {
+                  key: 'password',
+                  icon: <LockOutlined />,
+                  label: 'Change Password',
+                },
+                {
+                  key: 'theme',
+                  icon: <FormatPainterOutlined />,
+                  label: 'Theme Settings',
+                },
+                {
+                  key: 'academy',
+                  icon: <BookOutlined />,
+                  label: '360 Academy',
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: 'signout',
+                  icon: <LogoutOutlined />,
+                  label: 'Sign Out',
+                  danger: true,
+                },
+              ],
+            }}
+            placement="topRight"
+            trigger={['hover']}
+          >
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                padding: '8px',
+                borderRadius: '8px',
+                backgroundColor: '#e0e0e0',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                ':hover': {
+                  backgroundColor: '#d0d0d0',
+                }
+              }}
+            >
+              <Avatar
+                icon={<UserOutlined />}
+                style={{
+                  backgroundColor: '#7B83EB',
+                  width: collapsed ? '32px' : '24px',
+                  height: collapsed ? '32px' : '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+              {!collapsed && (
+                <span style={{
+                  color: '#7B83EB',
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}>
+                  Usha Vidyalayam
+                </span>
+              )}
+            </div>
+          </Dropdown>
+        </div>
       </Sider>
       
-      <Layout>
+      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
           background: '#fff',
