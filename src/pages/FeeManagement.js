@@ -152,8 +152,11 @@ const FeeManagement = () => {
     try {
       setLoading(true);
       const response = await feeService.createPayment({
-        ...values,
-        payment_date: values.payment_date.format('YYYY-MM-DD')
+        fee_due: values.fee_due,
+        amount: parseFloat(values.amount),
+        payment_mode: values.payment_mode.toLowerCase(),
+        payment_date: values.payment_date.format('YYYY-MM-DD'),
+        remarks: values.remarks
       });
       
       if (response.success) {
@@ -165,7 +168,11 @@ const FeeManagement = () => {
       }
     } catch (error) {
       console.error('Error recording payment:', error);
-      messageApi.error('Failed to record payment');
+      if (error.response?.data?.non_field_errors) {
+        messageApi.error(error.response.data.non_field_errors[0]);
+      } else {
+        messageApi.error('Failed to record payment');
+      }
     } finally {
       setLoading(false);
     }
@@ -490,8 +497,8 @@ const FeeManagement = () => {
               {selectedStudent.payment_history?.map((payment, index) => (
                 <Timeline.Item
                   key={index}
-                  color={payment.status === 'Paid' ? 'green' : 'red'}
-                  dot={payment.status === 'Paid' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+                  color="green"
+                  dot={<CheckCircleOutlined />}
                 >
                   <Card size="small" className="payment-history-card">
                     <Row justify="space-between" align="middle">
@@ -499,19 +506,32 @@ const FeeManagement = () => {
                         <Text strong>{payment.fee_type}</Text>
                         <br />
                         <Text type="secondary">
-                          {moment(payment.date).format('DD MMM YYYY')}
+                          Period: {payment.period}
+                        </Text>
+                        <br />
+                        <Text type="secondary">
+                          {moment(payment.payment_date).format('DD MMM YYYY')}
                         </Text>
                       </Col>
                       <Col>
-                        <Text strong style={{ color: payment.status === 'Paid' ? '#52c41a' : '#ff4d4f' }}>
-                          ₹{payment.amount.toLocaleString()}
+                        <Text strong style={{ color: '#52c41a' }}>
+                          ₹{parseFloat(payment.amount).toLocaleString()}
                         </Text>
                         <br />
-                        <Tag color={payment.status === 'Paid' ? 'success' : 'error'}>
-                          {payment.status}
+                        <Tag color="green" icon={payment.payment_mode === 'upi' ? <CreditCardOutlined /> : <MoneyCollectOutlined />}>
+                          {payment.payment_mode.toUpperCase()}
                         </Tag>
                       </Col>
                     </Row>
+                    {payment.remarks && (
+                      <Row style={{ marginTop: 8 }}>
+                        <Col>
+                          <Text type="secondary">
+                            Remarks: {payment.remarks}
+                          </Text>
+                        </Col>
+                      </Row>
+                    )}
                   </Card>
                 </Timeline.Item>
               ))}
@@ -540,44 +560,36 @@ const FeeManagement = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="Student"
-                name="student"
-                rules={[{ required: true, message: 'Please select student' }]}
+                label="Fee Due"
+                name="fee_due"
+                rules={[{ required: true, message: 'Please select fee due' }]}
               >
                 <Select
                   showSearch
-                  placeholder="Search student"
+                  placeholder="Select fee due"
                   optionFilterProp="children"
                 >
-                  {/* Add student options */}
+                  {students
+                    .filter(student => student.status === 'Unpaid')
+                    .map(student => (
+                      <Option key={student.id} value={student.id}>
+                        {student.name} - ₹{student.total_due} ({student.due_months} months)
+                      </Option>
+                    ))}
                 </Select>
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Fee Type"
-                name="fee_type"
-                rules={[{ required: true, message: 'Please select fee type' }]}
-              >
-                <Select>
-                  <Option value="Tuition">Tuition Fee</Option>
-                  <Option value="Transport">Transport Fee</Option>
-                  <Option value="Exam">Exam Fee</Option>
-                  <Option value="Fine">Fine</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Amount"
                 name="amount"
                 rules={[{ required: true, message: 'Please enter amount' }]}
               >
-                <Input prefix="₹" type="number" />
+                <Input prefix="₹" type="number" step="0.01" />
               </Form.Item>
             </Col>
+          </Row>
+          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Payment Mode"
@@ -585,15 +597,14 @@ const FeeManagement = () => {
                 rules={[{ required: true, message: 'Please select payment mode' }]}
               >
                 <Select>
-                  <Option value="Cash">Cash</Option>
-                  <Option value="UPI">UPI</Option>
-                  <Option value="Card">Card</Option>
-                  <Option value="Bank Transfer">Bank Transfer</Option>
+                  <Option value="upi">UPI</Option>
+                  <Option value="netbanking">Net Banking</Option>
+                  <Option value="cheque">Cheque</Option>
+                  <Option value="creditcard">Credit Card</Option>
+                  <Option value="cash">Cash</Option>
                 </Select>
               </Form.Item>
             </Col>
-          </Row>
-          <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Payment Date"
@@ -601,18 +612,6 @@ const FeeManagement = () => {
                 rules={[{ required: true, message: 'Please select payment date' }]}
               >
                 <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Payment Period"
-                name="payment_period"
-                rules={[{ required: true, message: 'Please select payment period' }]}
-              >
-                <Select>
-                  <Option value="monthly">Monthly</Option>
-                  <Option value="quarterly">Quarterly</Option>
-                </Select>
               </Form.Item>
             </Col>
           </Row>
