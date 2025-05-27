@@ -241,6 +241,28 @@ function MainLayout() {
     }
   };
 
+  const handleDropdownClick = ({ key }) => {
+    switch (key) {
+      case 'profile':
+        navigate('/profile');
+        break;
+      case 'password':
+        navigate('/change-password');
+        break;
+      case 'theme':
+        setThemeVisible(true);
+        break;
+      case 'academy':
+        navigate('/360academy');
+        break;
+      case 'signout':
+        navigate('/login');
+        break;
+      default:
+        break;
+    }
+  };
+
   // Add this function to get the current selected key
   const getSelectedKey = () => {
     const currentPath = location.pathname;
@@ -380,6 +402,7 @@ function MainLayout() {
                   danger: true,
                 },
               ],
+              onClick: handleDropdownClick
             }}
             placement="topRight"
             trigger={['hover']}
@@ -632,6 +655,16 @@ function MainLayout() {
             <Route path="/fee-management" element={
               <ProtectedRoute>
                 <FeeManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/change-password" element={
+              <ProtectedRoute>
+                <Profile showPasswordSection={true} />
+              </ProtectedRoute>
+            } />
+            <Route path="/360academy" element={
+              <ProtectedRoute>
+                <div>360 Academy Page</div>
               </ProtectedRoute>
             } />
           </Routes>
