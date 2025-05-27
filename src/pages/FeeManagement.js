@@ -267,7 +267,24 @@ const FeeManagement = () => {
       dataIndex: 'class',
       key: 'class',
       render: (text) => (
-        <Tag color="blue" icon={<TeamOutlined />}>
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
+        >
           {text}
         </Tag>
       ),
@@ -277,7 +294,24 @@ const FeeManagement = () => {
       dataIndex: 'section',
       key: 'section',
       render: (text) => (
-        <Tag color="cyan" icon={<FileTextOutlined />}>
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
+        >
           {text}
         </Tag>
       ),
@@ -287,7 +321,24 @@ const FeeManagement = () => {
       dataIndex: 'due_months',
       key: 'due_months',
       render: (text) => (
-        <Tag color="orange" icon={<ClockCircleOutlined />}>
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
+        >
           {text} months
         </Tag>
       ),
@@ -298,9 +349,28 @@ const FeeManagement = () => {
       key: 'status',
       render: (status) => (
         <Tag 
-          color={status === 'Paid' ? 'success' : 'error'}
-          icon={status === 'Paid' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: status === 'Paid' ? '#f6ffed' : '#fff2f0',
+            color: status === 'Paid' ? '#52c41a' : '#ff4d4f',
+            border: `1px solid ${status === 'Paid' ? '#b7eb8f' : '#ffccc7'}`,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
         >
+          {status === 'Paid' ? (
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#52c41a' }} />
+          ) : (
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ff4d4f' }} />
+          )} 
           {status}
         </Tag>
       ),
@@ -356,8 +426,46 @@ const FeeManagement = () => {
       key: 'class_section',
       render: (_, record) => (
         <Space>
-          <Tag color="blue">{record.class}</Tag>
-          <Tag color="cyan">{record.section}</Tag>
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: '#f5f5f5',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            {record.class}
+          </Tag>
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            {record.section}
+          </Tag>
         </Space>
       ),
     },
@@ -366,7 +474,25 @@ const FeeManagement = () => {
       dataIndex: 'fee_type',
       key: 'fee_type',
       render: (type) => (
-        <Tag color="purple" icon={<MoneyCollectOutlined />}>
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
+        >
+          <MoneyCollectOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />
           {type}
         </Tag>
       ),
@@ -387,13 +513,31 @@ const FeeManagement = () => {
       key: 'payment_mode',
       render: (mode) => {
         const icons = {
-          'Cash': <MoneyCollectOutlined />,
-          'UPI': <CreditCardOutlined />,
-          'Card': <BankOutlined />,
-          'Bank Transfer': <WalletOutlined />
+          'Cash': <MoneyCollectOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+          'UPI': <CreditCardOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+          'Card': <BankOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+          'Bank Transfer': <WalletOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />
         };
         return (
-          <Tag color="green" icon={icons[mode]}>
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: '#f5f5f5',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            {icons[mode]}
             {mode}
           </Tag>
         );
@@ -618,7 +762,25 @@ const FeeManagement = () => {
                   dataIndex: 'fee_type',
                   key: 'fee_type',
                   render: (type) => (
-                    <Tag color="purple" icon={<MoneyCollectOutlined />}>
+                    <Tag 
+                      style={{ 
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        background: '#f5f5f5',
+                        color: '#595959',
+                        border: '1px solid #f0f0f0',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '24px',
+                        lineHeight: '1',
+                        margin: 0
+                      }}
+                    >
+                      <MoneyCollectOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />
                       {type}
                     </Tag>
                   ),
@@ -639,13 +801,31 @@ const FeeManagement = () => {
                   key: 'payment_mode',
                   render: (mode) => {
                     const icons = {
-                      'Cash': <MoneyCollectOutlined />,
-                      'UPI': <CreditCardOutlined />,
-                      'Card': <BankOutlined />,
-                      'Bank Transfer': <WalletOutlined />
+                      'Cash': <MoneyCollectOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+                      'UPI': <CreditCardOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+                      'Card': <BankOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />,
+                      'Bank Transfer': <WalletOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />
                     };
                     return (
-                      <Tag color="green" icon={icons[mode]}>
+                      <Tag 
+                        style={{ 
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          background: '#f5f5f5',
+                          color: '#595959',
+                          border: '1px solid #f0f0f0',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '24px',
+                          lineHeight: '1',
+                          margin: 0
+                        }}
+                      >
+                        {icons[mode]}
                         {mode}
                       </Tag>
                     );

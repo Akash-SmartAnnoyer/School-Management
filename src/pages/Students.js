@@ -1347,7 +1347,13 @@ const Students = () => {
             background: '#f5f5f5',
             color: '#595959',
             border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
           }}
         >
           {text}
@@ -1369,7 +1375,13 @@ const Students = () => {
               background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
               color: '#595959',
               border: '1px solid #f0f0f0',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
             }}
           >
             {classInfo}
@@ -1813,10 +1825,14 @@ const Students = () => {
 
           .students-table .ant-table-cell .ant-tag {
             margin: 0;
-            padding: 0 4px;
-            font-size: 12px;
-            height: 18px;
-            line-height: 16px;
+            padding: 4px 8px;
+            font-size: 13px;
+            height: 24px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
           }
 
           .students-table .ant-table-cell .ant-btn {
