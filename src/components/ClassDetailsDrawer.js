@@ -5,6 +5,7 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
 import api from '../services/api';
+import { useStudents } from '../contexts/StudentsContext';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
@@ -18,17 +19,15 @@ const cld = new Cloudinary({
 
 const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
   const [loadingClassDetails, setLoadingClassDetails] = useState(false);
-  const [loadingStudents, setLoadingStudents] = useState(false);
   const [classDetails, setClassDetails] = useState(null);
-  const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [addStudentsModalVisible, setAddStudentsModalVisible] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const { students, loading: loadingStudents, refreshStudents } = useStudents();
 
   useEffect(() => {
     if (visible && classData?.id) {
       loadClassDetails();
-      loadAllStudents();
     }
   }, [visible, classData?.id]);
 
@@ -50,24 +49,6 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
     }
   };
 
-  const loadAllStudents = async () => {
-    try {
-      setLoadingStudents(true);
-      const response = await api.student.getAllStudents();
-      if (response.success) {
-        setStudents(response.data);
-      } else {
-        messageApi.error('Failed to load students');
-        console.error('Failed to load students:', response.message);
-      }
-    } catch (error) {
-      messageApi.error('Failed to load students');
-      console.error('Error loading students:', error);
-    } finally {
-      setLoadingStudents(false);
-    }
-  };
-
   const handleAddStudents = async () => {
     try {
       setLoadingClassDetails(true);
@@ -76,7 +57,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
       if (response.status === 200 || response.status === 201) {
         messageApi.success('Students added successfully');
         loadClassDetails(); // Refresh class details
-        loadAllStudents(); // Refresh available students
+        refreshStudents(); // Refresh students list from context
         setAddStudentsModalVisible(false);
         setSelectedStudents([]);
       } else if (response.status === 400) {

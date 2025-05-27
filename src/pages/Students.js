@@ -67,6 +67,7 @@ import { MessageContext } from '../App';
 import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import api from '../services/api';
+import { useStudents } from '../contexts/StudentsContext';
 
 import './Students.css';
 
@@ -786,48 +787,37 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 };
 
 const Students = () => {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { 
+    students, 
+    loading, 
+    currentPage, 
+    totalStudents, 
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    loadStudents,
+    refreshStudents 
+  } = useStudents();
+  const [form] = Form.useForm();
+  const [bulkStatusForm] = Form.useForm();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [detailsVisible, setDetailsVisible] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalStudents, setTotalStudents] = useState(0);
-  const messageApi = useContext(MessageContext);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
-  const [bulkStatusForm] = Form.useForm();
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [searchColumn, setSearchColumn] = useState('');
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
+  const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
 
   useEffect(() => {
-    loadStudents();
-  }, [currentPage, searchText]);
-
-  const loadStudents = async () => {
-    try {
-      setLoading(true);
-      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
-      const queryParams = `?page=${currentPage}${searchParam}`;
-      const response = await api.student.getStudents(queryParams);
-      if (response.success) {
-        // Transform the data to ensure class information is properly set
-        const transformedStudents = response.data.results.map(student => ({
-          ...student,
-          class: student.class || 'Not Assigned'
-        }));
-        setStudents(transformedStudents);
-        setTotalStudents(response.data.count);
-      } else {
-        messageApi.error('Failed to load students');
-      }
-    } catch (error) {
-      messageApi.error(error.message || 'Failed to load students');
-      console.error('Error loading students:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const filtered = students.filter(student =>
+      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredStudents(filtered);
+  }, [students, searchText]);
 
   const handleAdd = () => {
     setEditingStudent(null);
@@ -835,432 +825,123 @@ const Students = () => {
   };
 
   const handleEdit = async (student) => {
-    try {
-      setLoading(true);
-      const response = await api.student.getStudent(student.user_id);
-      if (response.data) {
-        const studentData = response.data;
-        const formValues = {
-          first_name: studentData.first_name,
-          last_name: studentData.last_name,
-          email: studentData.email,
-          phone: studentData.phone,
-          gender: studentData.gender,
-          dob: studentData.dob ? moment(studentData.dob) : null,
-          address: studentData.profile?.address,
-          blood_group: studentData.profile.blood_group,
-          profile: {
-            nationality: studentData.profile?.nationality,
-            classroom_id: studentData.student_profile?.classroom,
-            class_name: studentData.profile?.class_name
-          },
-          student_id: studentData.student_profile?.student_id,
-          admission_number: studentData.student_profile?.admission_number,
-          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
-          last_grade_attended: studentData.student_profile?.last_grade_attended,
-          roll_no: studentData.student_profile?.roll_no,
-          section: studentData.student_profile?.section,
-          father_name: studentData.student_profile?.father_name,
-          father_occupation: studentData.student_profile?.father_occupation,
-          mother_name: studentData.student_profile?.mother_name,
-          mother_occupation: studentData.student_profile?.mother_occupation,
-          parent_address: studentData.student_profile?.parent_address,
-          parent_email: studentData.student_profile?.parent_email,
-          parent_phone: studentData.student_profile?.parent_phone,
-          allergies: studentData.student_profile?.allergies,
-          remarks: studentData.student_profile?.remarks,
-          fee_details: {
-            fee_type: studentData.student_profile?.fee_details?.fee_type,
-            amount: studentData.student_profile?.fee_details?.amount,
-            period: studentData.student_profile?.fee_details?.period,
-            due_date: studentData.student_profile?.fee_details?.due_date ? moment(studentData.student_profile.fee_details.due_date) : null,
-            payment_mode: studentData.student_profile?.fee_details?.payment_mode,
-            status: studentData.student_profile?.fee_details?.status,
-            remarks: studentData.student_profile?.fee_details?.remarks
-          }
-        };
-        
-        setEditingStudent({
-          ...formValues,
-          id: student.user_id,
-          originalData: studentData
-        });
-        setModalVisible(true);
-      }
-    } catch (error) {
-      console.error('Error loading student:', error);
-      messageApi.error('Failed to load student data');
-    } finally {
-      setLoading(false);
-    }
+    setEditingStudent(student);
+    setModalVisible(true);
   };
 
   const handleDelete = async (studentId) => {
-    if (!studentId) {
-      messageApi.error('Invalid student ID');
-      return;
-    }
-
     try {
-      setLoading(true);
       const response = await api.student.deleteStudent(studentId);
-      
-      if (response.status === 204) {
-        messageApi.success('Student deleted successfully');
-        // Update the students list immediately by filtering out the deleted student
-        setStudents(prevStudents => prevStudents.filter(student => student.user_id !== studentId));
-        setTotalStudents(prevTotal => prevTotal - 1);
-      } else if (response.status === 403) {
-        if (response.data?.detail === 'You do not have permission to perform this action.') {
-          messageApi.error('You do not have permission to delete this student');
-        } else if (response.data?.detail === 'Authentication credentials were not provided.') {
-          messageApi.error('Please login again to perform this action');
-        } else if (response.data?.code === 'token_not_valid') {
-          messageApi.error('Your session has expired. Please login again');
-        }
-      } else if (response.status === 404) {
-        messageApi.error('Student not found');
+      if (response.success) {
+        message.success('Student deleted successfully');
+        refreshStudents();
       } else {
-        messageApi.error(response.data?.message || 'Failed to delete student');
+        message.error('Failed to delete student');
       }
     } catch (error) {
       console.error('Error deleting student:', error);
-      messageApi.error(error.message || 'Failed to delete student');
-    } finally {
-      setLoading(false);
+      message.error('Failed to delete student');
     }
   };
 
   const handleSubmit = async (values, originalValues) => {
     try {
-      setLoading(true);
       let response;
-      
-      if (editingStudent) {
-        // Initialize update data with only changed fields
-        const updateData = {};
-        
-        // Compare and add changed basic fields
-        if (values.first_name !== editingStudent.first_name) {
-          updateData.first_name = values.first_name;
-        }
-        if (values.last_name !== editingStudent.last_name) {
-          updateData.last_name = values.last_name;
-        }
-        if (values.email !== editingStudent.email) {
-          updateData.email = values.email;
-        }
-        if (values.phone !== editingStudent.phone) {
-          updateData.phone = values.phone;
-        }
-        if (values.gender !== editingStudent.gender) {
-          updateData.gender = values.gender;
-        }
-        if (values.dob?.format('YYYY-MM-DD') !== editingStudent.dob?.format('YYYY-MM-DD')) {
-          updateData.dob = values.dob?.format('YYYY-MM-DD');
-        }
-        
-        // Compare and add changed profile fields
-        const profileChanges = {};
-        if (values.profile?.address !== editingStudent.profile?.address) {
-          profileChanges.address = values.profile?.address;
-        }
-        if (values.profile?.blood_group !== editingStudent.profile?.blood_group) {
-          profileChanges.blood_group = values.profile?.blood_group;
-        }
-        if (values.profile?.classroom_id !== editingStudent.profile?.classroom_id) {
-          profileChanges.classroom_id = values.profile?.classroom_id;
-        }
-        if (values.profile?.nationality !== editingStudent.profile?.nationality) {
-          profileChanges.nationality = values.profile?.nationality;
-        }
-        if (Object.keys(profileChanges).length > 0) {
-          updateData.profile = profileChanges;
-        }
-        
-        // Compare and add changed student profile fields
-        const studentProfileChanges = {};
-        if (values.student_id !== editingStudent.student_id) {
-          studentProfileChanges.student_id = values.student_id;
-        }
-        if (values.admission_number !== editingStudent.admission_number) {
-          studentProfileChanges.admission_number = values.admission_number;
-        }
-        if (values.admission_date?.format('YYYY-MM-DD') !== editingStudent.admission_date?.format('YYYY-MM-DD')) {
-          studentProfileChanges.admission_date = values.admission_date?.format('YYYY-MM-DD');
-        }
-        if (values.last_grade_attended !== editingStudent.last_grade_attended) {
-          studentProfileChanges.last_grade_attended = values.last_grade_attended;
-        }
-        if (values.roll_no !== editingStudent.roll_no) {
-          studentProfileChanges.roll_no = values.roll_no;
-        }
-        if (values.section !== editingStudent.section) {
-          studentProfileChanges.section = values.section;
-        }
-        if (values.father_name !== editingStudent.father_name) {
-          studentProfileChanges.father_name = values.father_name;
-        }
-        if (values.father_occupation !== editingStudent.father_occupation) {
-          studentProfileChanges.father_occupation = values.father_occupation;
-        }
-        if (values.mother_name !== editingStudent.mother_name) {
-          studentProfileChanges.mother_name = values.mother_name;
-        }
-        if (values.mother_occupation !== editingStudent.mother_occupation) {
-          studentProfileChanges.mother_occupation = values.mother_occupation;
-        }
-        if (values.parent_address !== editingStudent.parent_address) {
-          studentProfileChanges.parent_address = values.parent_address;
-        }
-        if (values.parent_email !== editingStudent.parent_email) {
-          studentProfileChanges.parent_email = values.parent_email;
-        }
-        if (values.parent_phone !== editingStudent.parent_phone) {
-          studentProfileChanges.parent_phone = values.parent_phone;
-        }
-        if (values.allergies !== editingStudent.allergies) {
-          studentProfileChanges.allergies = values.allergies;
-        }
-        if (values.remarks !== editingStudent.remarks) {
-          studentProfileChanges.remarks = values.remarks;
-        }
 
-        // Compare and add changed fee details
-        if (values.fee_details) {
-          const feeDetailsChanges = values.fee_details.map((fee, index) => {
-            const originalFee = editingStudent.fee_details?.[index];
-            const changes = {};
-            
-            if (fee.fee_type !== originalFee?.fee_type) {
-              changes.fee_type = fee.fee_type;
-            }
-            if (fee.amount !== originalFee?.amount) {
-              changes.amount = fee.amount;
-            }
-            if (fee.period !== originalFee?.period) {
-              changes.period = fee.period;
-            }
-            if (fee.terms !== originalFee?.terms) {
-              changes.terms = fee.terms;
-            }
-            if (fee.amount_per_term !== originalFee?.amount_per_term) {
-              changes.amount_per_term = fee.amount_per_term;
-            }
-            if (fee.status !== originalFee?.status) {
-              changes.status = fee.status;
-            }
-            if (fee.due_amount !== originalFee?.due_amount) {
-              changes.due_amount = fee.due_amount;
-            }
-            if (fee.remarks !== originalFee?.remarks) {
-              changes.remarks = fee.remarks;
-            }
-            
-            return Object.keys(changes).length > 0 ? changes : null;
-          }).filter(Boolean);
-
-          if (feeDetailsChanges.length > 0) {
-            studentProfileChanges.fee_details = feeDetailsChanges;
-          }
-        }
-
-        if (Object.keys(studentProfileChanges).length > 0) {
-          updateData.student_profile = studentProfileChanges;
-        }
-
-        // Only send update request if there are changes
-        if (Object.keys(updateData).length > 0) {
-          response = await api.student.updateStudent(editingStudent.id, updateData);
-        } else {
-          messageApi.info('No changes detected');
-          setModalVisible(false);
-          return;
-        }
+      if (originalValues) {
+        response = await api.student.updateStudent(originalValues.id, values);
       } else {
-        // Format the data for create
-        const createData = {
-          first_name: values.first_name,
-          last_name: values.last_name,
-          email: values.email,
-          phone: values.phone,
-          gender: values.gender,
-          dob: values.dob.format('YYYY-MM-DD'),
-          role: 'student',
-          password: values.password,
-          confirm_password: values.confirm_password,
-          classroom_id: values.profile?.classroom_id,
-          profile: {
-            address: values.address,
-            blood_group: values.blood_group,
-            class_name: values.profile?.class_name,
-            nationality: values.profile?.nationality
-          },
-          student_profile: {
-            student_id: values.student_id,
-            admission_number: values.admission_number,
-            admission_date: values.admission_date.format('YYYY-MM-DD'),
-            last_grade_attended: values.last_grade_attended,
-            roll_no: values.roll_no,
-            section: values.section,
-            father_name: values.father_name,
-            father_occupation: values.father_occupation,
-            mother_name: values.mother_name,
-            mother_occupation: values.mother_occupation,
-            parent_address: values.parent_address,
-            parent_email: values.parent_email,
-            parent_phone: values.parent_phone,
-            allergies: values.allergies,
-            remarks: values.remarks,
-            fee_details: values.fee_details?.map(fee => ({
-              fee_type: fee.fee_type,
-              amount: parseFloat(fee.amount),
-              period: fee.period,
-              terms: parseInt(fee.terms),
-              amount_per_term: parseFloat(fee.amount_per_term),
-              status: fee.status,
-              due_amount: fee.status === 'Partial' ? parseFloat(fee.due_amount) : null,
-              remarks: fee.remarks
-            })) || []
-          }
-        };
-
-        response = await api.student.createStudent(createData);
+        response = await api.student.createStudent(values);
       }
 
-      if (response.status === 200 || response.status === 201) {
-        messageApi.success(editingStudent ? 'Student updated successfully' : 'Student added successfully');
+      if (response.success) {
+        message.success(`Student ${originalValues ? 'updated' : 'created'} successfully`);
         setModalVisible(false);
-        setLoading(true);
-        await loadStudents();
+        refreshStudents();
+      } else {
+        message.error(`Failed to ${originalValues ? 'update' : 'create'} student`);
       }
     } catch (error) {
-      console.error('Error saving student:', error);
-      
-      if (error.response?.status === 400) {
-        const errors = error.response.data;
-        
-        // Function to recursively handle nested errors
-        const handleNestedErrors = (errorObj, prefix = '') => {
-          Object.entries(errorObj).forEach(([field, value]) => {
-            if (Array.isArray(value)) {
-              // Handle array of error messages
-              value.forEach(message => {
-                const errorField = prefix ? `${prefix}.${field}` : field;
-                messageApi.error(`${errorField}: ${message}`);
-              });
-            } else if (typeof value === 'object' && value !== null) {
-              // Handle nested objects (like student_profile)
-              handleNestedErrors(value, field);
-            }
-          });
-        };
-
-        // Handle all errors including nested ones
-        handleNestedErrors(errors);
-
-      } else if (error.response?.status === 401) {
-        messageApi.error('Unauthorized. Please login again.');
-      } else if (error.response?.status === 403) {
-        messageApi.error('You do not have permission to perform this action.');
-      } else if (error.response?.status === 404) {
-        messageApi.error('Resource not found.');
-      } else if (error.response?.status === 409) {
-        messageApi.error('Conflict detected. Please check the data and try again.');
-      } else if (error.response?.status >= 500) {
-        messageApi.error('Server error. Please try again later.');
-      } else if (!error.response && error.request) {
-        // The request was made but no response was received
-        messageApi.error('No response from server. Please check your connection.');
-      } else {
-        // Something happened in setting up the request
-        messageApi.error(error.message || 'An error occurred while saving the student.');
-      }
-    } finally {
-      setLoading(false);
+      console.error('Error submitting student:', error);
+      message.error(`Failed to ${originalValues ? 'update' : 'create'} student`);
     }
   };
 
-  const handleViewDetails = (student) => {
-    setSelectedStudent(student);
-    setDetailsVisible(true);
+  const handleTableChange = (pagination, filters, sorter) => {
+    loadStudents(pagination.current, pagination.pageSize);
   };
 
   const handleImageUpload = async (file, studentId) => {
     try {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
-        messageApi.error('You can only upload image files!');
+        message.error('You can only upload image files!');
         return false;
       }
 
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isLt2M) {
-        messageApi.error('Image must be smaller than 2MB!');
+        message.error('Image must be smaller than 2MB!');
         return false;
       }
 
       const result = await uploadImage(file);
       
       // Update student with new profile picture
-      const response = await api.student.update(studentId, {
+      const response = await api.student.updateStudent(studentId, {
         photoURL: result.url,
         updatedAt: new Date().toISOString()
       });
 
-      if (response.data.success) {
-        messageApi.success('Profile picture updated successfully');
-        loadStudents();
+      if (response.success) {
+        message.success('Profile picture updated successfully');
+        refreshStudents();
       }
       return false; // Prevent default upload behavior
     } catch (error) {
       console.error('Profile picture upload error:', error);
-      messageApi.error('Failed to upload profile picture');
+      message.error('Failed to upload profile picture');
       return false;
     }
   };
 
-  const handleModalClose = () => {
-    setModalVisible(false);
-    setEditingStudent(null);
+  const handleViewDetails = (student) => {
+    setSelectedStudentDetails(student);
+    setDetailsDrawerVisible(true);
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const deletePromises = selectedRowKeys.map(id => api.student.deleteStudent(id));
+      await Promise.all(deletePromises);
+      message.success('Selected students deleted successfully');
+      setSelectedRowKeys([]);
+      refreshStudents();
+    } catch (error) {
+      console.error('Error deleting students:', error);
+      message.error('Failed to delete selected students');
+    }
   };
 
   const handleBulkStatusChange = async () => {
     try {
       const values = await bulkStatusForm.validateFields();
-      console.log('Bulk status change for students:', {
-        ids: selectedRowKeys,
-        status: values.status
-      });
-      // TODO: Implement bulk status change API
-      messageApi.success('Status update simulated for selected students');
+      const updatePromises = selectedRowKeys.map(id => 
+        api.student.updateStudent(id, { status: values.status })
+      );
+      await Promise.all(updatePromises);
+      message.success('Status updated successfully for selected students');
       setBulkStatusModalVisible(false);
       setSelectedRowKeys([]);
+      refreshStudents();
     } catch (error) {
-      messageApi.error('Failed to update status');
       console.error('Error updating status:', error);
+      message.error('Failed to update status');
     }
   };
 
-  const handleBulkDelete = async () => {
-    try {
-      console.log('Bulk delete for students:', {
-        ids: selectedRowKeys
-      });
-      // TODO: Implement bulk delete API
-      messageApi.success('Delete simulated for selected students');
-      setSelectedRowKeys([]);
-    } catch (error) {
-      messageApi.error('Failed to delete students');
-      console.error('Error deleting students:', error);
-    }
-  };
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: (newSelectedRowKeys) => {
-      setSelectedRowKeys(newSelectedRowKeys);
-    },
+  const handleSearch = (value) => {
+    setSearchText(value);
   };
 
   const columns = [
@@ -1487,7 +1168,7 @@ const Students = () => {
           </Tooltip>
           <Popconfirm
             title="Are you sure you want to delete this student?"
-            onConfirm={() => handleDelete(record.user_id)}
+            onConfirm={() => handleDelete(record.id)}
             okText="Yes"
             cancelText="No"
           >
@@ -1522,17 +1203,6 @@ const Students = () => {
       ),
     },
   ];
-
-  const handleSearch = (value) => {
-    setSearchText(value);
-    setCurrentPage(1); // Reset to first page when searching
-  };
-
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchText.toLowerCase())
-  );
 
   return (
     <div className="students-page" style={{ 
@@ -1589,30 +1259,32 @@ const Students = () => {
         padding: '0 16px 16px 16px'
       }}>
         <Table
-          rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredStudents}
           rowKey="id"
           loading={loading}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-          className="students-table"
           pagination={{
             current: currentPage,
+            pageSize: pageSize,
             total: totalStudents,
-            pageSize: 10,
-            onChange: (page) => setCurrentPage(page),
-            showSizeChanger: false,
-            showTotal: (total) => `Total ${total} students`
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} students`,
+            onChange: (page, pageSize) => {
+              setCurrentPage(page);
+              setPageSize(pageSize);
+              loadStudents(page, pageSize);
+            }
           }}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No students found"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
-              />
-            ),
+          onChange={handleTableChange}
+          rowSelection={{
+            type: 'checkbox',
+            selectedRowKeys,
+            onChange: (newSelectedRowKeys) => {
+              setSelectedRowKeys(newSelectedRowKeys);
+            },
           }}
+          className="students-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
         />
       </div>
 
@@ -1656,19 +1328,22 @@ const Students = () => {
 
       <StudentForm
         visible={modalVisible}
-        onCancel={handleModalClose}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingStudent(null);
+        }}
         onSubmit={handleSubmit}
         initialValues={editingStudent}
         loading={loading}
       />
 
       <StudentDetailsDrawer
-        visible={detailsVisible}
+        visible={detailsDrawerVisible}
         onClose={() => {
-          setDetailsVisible(false);
-          setSelectedStudent(null);
+          setDetailsDrawerVisible(false);
+          setSelectedStudentDetails(null);
         }}
-        student={selectedStudent}
+        student={selectedStudentDetails}
       />
 
       <Modal
