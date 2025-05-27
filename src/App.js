@@ -280,8 +280,9 @@ function MainLayout() {
             margin: '16px 16px 4px 16px',
             borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            backgroundColor: '#e0e0e0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            border: '1px solid #e0e0e0',
+            backgroundColor: 'transparent',
+            boxShadow: 'none'
           }}
         >
           <div className="school-icon">
@@ -390,11 +391,12 @@ function MainLayout() {
                 gap: '8px',
                 padding: '8px',
                 borderRadius: '8px',
-                backgroundColor: '#e0e0e0',
+                border: '1px solid #e0e0e0',
+                backgroundColor: 'transparent',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 ':hover': {
-                  backgroundColor: '#d0d0d0',
+                  borderColor: '#7B83EB',
                 }
               }}
             >
