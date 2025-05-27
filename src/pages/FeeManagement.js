@@ -52,6 +52,7 @@ import {
 import { MessageContext } from '../App';
 import moment from 'moment';
 import feeService from '../services/feeService';
+import { mockStudents } from '../services/mockData';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -72,6 +73,9 @@ const FeeManagement = () => {
     status: undefined
   });
   const messageApi = useContext(MessageContext);
+
+  // Get unique classes from students
+  const uniqueClasses = [...new Set(mockStudents.map(student => student.class))];
 
   useEffect(() => {
     loadData();
@@ -378,9 +382,11 @@ const FeeManagement = () => {
               onChange={(value) => handleFilterChange('class', value)}
               suffixIcon={<FilterOutlined />}
             >
-              <Option value="1">Class 1</Option>
-              <Option value="2">Class 2</Option>
-              {/* Add more classes */}
+              {uniqueClasses.map(className => (
+                <Option key={className} value={className}>
+                  {className}
+                </Option>
+              ))}
             </Select>
             {activeTab === '1' && (
               <Select
@@ -518,8 +524,8 @@ const FeeManagement = () => {
                           ₹{parseFloat(payment.amount).toLocaleString()}
                         </Text>
                         <br />
-                        <Tag color="green" icon={payment.payment_mode === 'upi' ? <CreditCardOutlined /> : <MoneyCollectOutlined />}>
-                          {payment.payment_mode.toUpperCase()}
+                        <Tag color="green" icon={payment.payment_mode === 'UPI' ? <CreditCardOutlined /> : <MoneyCollectOutlined />}>
+                          {payment.payment_mode}
                         </Tag>
                       </Col>
                     </Row>
@@ -597,11 +603,10 @@ const FeeManagement = () => {
                 rules={[{ required: true, message: 'Please select payment mode' }]}
               >
                 <Select>
-                  <Option value="upi">UPI</Option>
-                  <Option value="netbanking">Net Banking</Option>
-                  <Option value="cheque">Cheque</Option>
-                  <Option value="creditcard">Credit Card</Option>
-                  <Option value="cash">Cash</Option>
+                  <Option value="UPI">UPI</Option>
+                  <Option value="Cash">Cash</Option>
+                  <Option value="Bank Transfer">Bank Transfer</Option>
+                  <Option value="Card">Card</Option>
                 </Select>
               </Form.Item>
             </Col>
