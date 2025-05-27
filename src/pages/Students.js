@@ -54,7 +54,8 @@ import {
   CloseCircleOutlined,
   LoadingOutlined,
   SwapOutlined,
-  DeleteFilled
+  DeleteFilled,
+  MoneyCollectOutlined
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -108,7 +109,9 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       setLoadingClasses(true);
       const response = await api.class.getClasses();
       if (response.success) {
-        setClasses(response.data);
+        // Handle the response format with results array
+        const classesData = response.data.results || response.data;
+        setClasses(classesData);
       } else {
         message.error('Failed to load classes');
       }
@@ -505,6 +508,251 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 <Input.TextArea rows={3} />
               </Form.Item>
             </Card>
+
+            <Card 
+              title={
+                <Space>
+                  <MoneyCollectOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Fee Details</span>
+                </Space>
+              }
+              className="info-card"
+            >
+              <Form.List name="fee_details">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <Card 
+                        key={key} 
+                        style={{ marginBottom: 16, border: '1px solid #f0f0f0' }}
+                        extra={
+                          <Button 
+                            type="text" 
+                            danger 
+                            icon={<DeleteOutlined />} 
+                            onClick={() => remove(name)}
+                          />
+                        }
+                      >
+                        <Row gutter={16}>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'fee_type']}
+                              label="Fee Type"
+                              rules={[{ required: true, message: 'Please select or enter fee type!' }]}
+                            >
+                              <Select
+                                showSearch
+                                allowClear
+                                placeholder="Select or enter fee type"
+                                dropdownRender={menu => (
+                                  <>
+                                    {menu}
+                                    <Divider style={{ margin: '8px 0' }} />
+                                    <Form.Item
+                                      style={{ margin: '0 8px 4px' }}
+                                    >
+                                      <Input
+                                        placeholder="Add new fee type"
+                                        onPressEnter={e => {
+                                          e.preventDefault();
+                                          const value = e.target.value;
+                                          if (value) {
+                                            const newOption = { value, label: value };
+                                            // Add to options if not exists
+                                            const options = form.getFieldValue(['fee_details', name, 'fee_type_options']) || [];
+                                            if (!options.find(opt => opt.value === value)) {
+                                              form.setFieldsValue({
+                                                fee_details: {
+                                                  [name]: {
+                                                    fee_type_options: [...options, newOption]
+                                                  }
+                                                }
+                                              });
+                                            }
+                                            form.setFieldsValue({
+                                              fee_details: {
+                                                [name]: {
+                                                  fee_type: value
+                                                }
+                                              }
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </Form.Item>
+                                  </>
+                                )}
+                              >
+                                <Option value="Tuition Fee">Tuition Fee</Option>
+                                <Option value="Transport Fee">Transport Fee</Option>
+                                <Option value="Library Fee">Library Fee</Option>
+                                <Option value="Sports Fee">Sports Fee</Option>
+                                <Option value="Books Fee">Books Fee</Option>
+                                <Option value="Joining Fee">Joining Fee</Option>
+                                <Option value="Anniversary Fee">Anniversary Fee</Option>
+                                <Option value="Special Fee">Special Fee</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'amount']}
+                              label="Total Amount"
+                              rules={[{ required: true, message: 'Please enter amount!' }]}
+                            >
+                              <Input prefix="₹" type="number" step="0.01" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'period']}
+                              label="Fee Period"
+                              rules={[{ required: true, message: 'Please select period!' }]}
+                            >
+                              <Select onChange={(value) => {
+                                const amount = form.getFieldValue(['fee_details', name, 'amount']);
+                                if (amount) {
+                                  let terms = 1;
+                                  switch(value) {
+                                    case 'Monthly':
+                                      terms = 12;
+                                      break;
+                                    case 'Quarterly':
+                                      terms = 4;
+                                      break;
+                                    case 'Half Yearly':
+                                      terms = 2;
+                                      break;
+                                    case 'Yearly':
+                                      terms = 1;
+                                      break;
+                                  }
+                                  const amountPerTerm = (amount / terms).toFixed(2);
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        terms,
+                                        amount_per_term: amountPerTerm
+                                      }
+                                    }
+                                  });
+                                }
+                              }}>
+                                <Option value="Monthly">Monthly</Option>
+                                <Option value="Quarterly">Quarterly</Option>
+                                <Option value="Half Yearly">Half Yearly</Option>
+                                <Option value="Yearly">Yearly</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Row gutter={16}>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'terms']}
+                              label="Number of Terms"
+                            >
+                              <Input type="number" disabled />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'amount_per_term']}
+                              label="Amount per Term"
+                            >
+                              <Input prefix="₹" type="number" step="0.01" disabled />
+                            </Form.Item>
+                          </Col>
+                          <Col span={8}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'status']}
+                              label="Fee Status"
+                              rules={[{ required: true, message: 'Please select status!' }]}
+                            >
+                              <Select onChange={(value) => {
+                                if (value === 'Partial') {
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        show_due_amount: true
+                                      }
+                                    }
+                                  });
+                                } else {
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        show_due_amount: false,
+                                        due_amount: null
+                                      }
+                                    }
+                                  });
+                                }
+                              }}>
+                                <Option value="Paid">Paid</Option>
+                                <Option value="Unpaid">Unpaid</Option>
+                                <Option value="Partial">Partial</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Form.Item
+                          noStyle
+                          shouldUpdate={(prevValues, currentValues) => {
+                            return prevValues?.fee_details?.[name]?.status !== currentValues?.fee_details?.[name]?.status;
+                          }}
+                        >
+                          {({ getFieldValue }) => {
+                            const showDueAmount = getFieldValue(['fee_details', name, 'show_due_amount']);
+                            return showDueAmount ? (
+                              <Row gutter={16}>
+                                <Col span={8}>
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, 'due_amount']}
+                                    label="Due Amount"
+                                    rules={[{ required: true, message: 'Please enter due amount!' }]}
+                                  >
+                                    <Input prefix="₹" type="number" step="0.01" />
+                                  </Form.Item>
+                                </Col>
+                              </Row>
+                            ) : null;
+                          }}
+                        </Form.Item>
+
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'remarks']}
+                          label="Remarks"
+                        >
+                          <Input.TextArea rows={2} />
+                        </Form.Item>
+                      </Card>
+                    ))}
+                    <Form.Item>
+                      <Button 
+                        type="dashed" 
+                        onClick={() => add()} 
+                        block 
+                        icon={<PlusOutlined />}
+                      >
+                        Add Fee
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </Card>
           </Col>
         </Row>
       </Form>
@@ -595,7 +843,16 @@ const Students = () => {
           parent_email: studentData.student_profile?.parent_email,
           parent_phone: studentData.student_profile?.parent_phone,
           allergies: studentData.student_profile?.allergies,
-          remarks: studentData.student_profile?.remarks
+          remarks: studentData.student_profile?.remarks,
+          fee_details: {
+            fee_type: studentData.student_profile?.fee_details?.fee_type,
+            amount: studentData.student_profile?.fee_details?.amount,
+            period: studentData.student_profile?.fee_details?.period,
+            due_date: studentData.student_profile?.fee_details?.due_date ? moment(studentData.student_profile.fee_details.due_date) : null,
+            payment_mode: studentData.student_profile?.fee_details?.payment_mode,
+            status: studentData.student_profile?.fee_details?.status,
+            remarks: studentData.student_profile?.fee_details?.remarks
+          }
         };
         
         setEditingStudent({
@@ -743,6 +1000,46 @@ const Students = () => {
         if (values.remarks !== editingStudent.remarks) {
           studentProfileChanges.remarks = values.remarks;
         }
+
+        // Compare and add changed fee details
+        if (values.fee_details) {
+          const feeDetailsChanges = values.fee_details.map((fee, index) => {
+            const originalFee = editingStudent.fee_details?.[index];
+            const changes = {};
+            
+            if (fee.fee_type !== originalFee?.fee_type) {
+              changes.fee_type = fee.fee_type;
+            }
+            if (fee.amount !== originalFee?.amount) {
+              changes.amount = fee.amount;
+            }
+            if (fee.period !== originalFee?.period) {
+              changes.period = fee.period;
+            }
+            if (fee.terms !== originalFee?.terms) {
+              changes.terms = fee.terms;
+            }
+            if (fee.amount_per_term !== originalFee?.amount_per_term) {
+              changes.amount_per_term = fee.amount_per_term;
+            }
+            if (fee.status !== originalFee?.status) {
+              changes.status = fee.status;
+            }
+            if (fee.due_amount !== originalFee?.due_amount) {
+              changes.due_amount = fee.due_amount;
+            }
+            if (fee.remarks !== originalFee?.remarks) {
+              changes.remarks = fee.remarks;
+            }
+            
+            return Object.keys(changes).length > 0 ? changes : null;
+          }).filter(Boolean);
+
+          if (feeDetailsChanges.length > 0) {
+            studentProfileChanges.fee_details = feeDetailsChanges;
+          }
+        }
+
         if (Object.keys(studentProfileChanges).length > 0) {
           updateData.student_profile = studentProfileChanges;
         }
@@ -789,7 +1086,17 @@ const Students = () => {
             parent_email: values.parent_email,
             parent_phone: values.parent_phone,
             allergies: values.allergies,
-            remarks: values.remarks
+            remarks: values.remarks,
+            fee_details: values.fee_details?.map(fee => ({
+              fee_type: fee.fee_type,
+              amount: parseFloat(fee.amount),
+              period: fee.period,
+              terms: parseInt(fee.terms),
+              amount_per_term: parseFloat(fee.amount_per_term),
+              status: fee.status,
+              due_amount: fee.status === 'Partial' ? parseFloat(fee.due_amount) : null,
+              remarks: fee.remarks
+            })) || []
           }
         };
 
