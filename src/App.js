@@ -325,7 +325,7 @@ function MainLayout() {
               margin: 0, 
               fontWeight: 500, 
               fontSize: '11px',
-              lineHeight: '1.2'
+              // lineHeight: '1.2'
             }}>
               360 Schooling
             </Title>
@@ -372,6 +372,40 @@ function MainLayout() {
           <Dropdown
             menu={{
               items: [
+                {
+                  key: 'title',
+                  label: (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px',
+                      padding: '8px 0',
+                      marginBottom: '2px'
+                    }}>
+                      <img
+                        src="/logo-transparent-png.png"
+                        alt="App Logo"
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          objectFit: 'contain'
+                        }}
+                      />
+                      <span style={{ 
+                        color: '#7B83EB', 
+                        fontWeight: 500, 
+                        fontSize: '11px',
+                        // lineHeight: '1.2'
+                      }}>
+                        360 Schooling
+                      </span>
+                    </div>
+                  ),
+                  disabled: true
+                },
+                {
+                  type: 'divider'
+                },
                 {
                   key: 'profile',
                   icon: <UserOutlined />,
