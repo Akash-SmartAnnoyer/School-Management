@@ -108,7 +108,7 @@ const Timetable = () => {
   const loadClasses = async () => {
     try {
       const response = await api.class.getClasses();
-      setClasses(response.data);
+      setClasses(response.data.results);
     } catch (error) {
       message.error('Failed to load classes');
     }
@@ -117,7 +117,7 @@ const Timetable = () => {
   const loadSubjects = async () => {
     try {
       const response = await api.subject.getSubjects();
-      setSubjects(response.data);
+      setSubjects(response.data.results);
     } catch (error) {
       message.error('Failed to load subjects');
     }
@@ -126,7 +126,7 @@ const Timetable = () => {
   const loadTeachers = async () => {
     try {
       const response = await api.teacher.getTeachers();
-      setTeachers(response.data);
+      setTeachers(response.data.results);
     } catch (error) {
       message.error('Failed to load teachers');
     }
@@ -137,7 +137,7 @@ const Timetable = () => {
       setLoadingTimetable(true);
       const response = await api.timetable.getByClass(selectedClass);
       // Filter timetables to only show entries for the selected class
-      const filteredTimetables = response.data.filter(timetable => 
+      const filteredTimetables = response.data.results.filter(timetable => 
         timetable.classroom === selectedClass
       );
       setTimetables(filteredTimetables);
