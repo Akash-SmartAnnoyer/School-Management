@@ -202,6 +202,55 @@ const feeService = {
     } catch (error) {
       return { success: false, error: 'Failed to delete payment' };
     }
+  },
+
+  // Update payment
+  updatePayment: async (paymentId, paymentData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Find the payment to update
+      const paymentIndex = mockPayments.findIndex(p => p.id === paymentId);
+      if (paymentIndex === -1) {
+        throw new Error('Payment not found');
+      }
+      
+      // Find the student
+      const student = mockStudents.find(s => s.student_id === mockPayments[paymentIndex].student_id);
+      if (!student) {
+        throw new Error('Student not found');
+      }
+      
+      // Calculate the difference in amount
+      const oldAmount = mockPayments[paymentIndex].amount;
+      const newAmount = paymentData.amount;
+      const amountDifference = newAmount - oldAmount;
+      
+      // Update the payment record
+      mockPayments[paymentIndex] = {
+        ...mockPayments[paymentIndex],
+        ...paymentData,
+        amount: newAmount
+      };
+      
+      // Update student's total due
+      student.total_due += amountDifference;
+      student.due_months = Math.ceil(student.total_due / 12500); // Assuming monthly fee is 12500
+      
+      // Update student status
+      if (student.total_due <= 0) {
+        student.status = 'Paid';
+        student.total_due = 0;
+        student.due_months = 0;
+      } else {
+        student.status = 'Unpaid';
+      }
+      
+      return { success: true, data: mockPayments[paymentIndex] };
+    } catch (error) {
+      return { success: false, error: error.message || 'Failed to update payment' };
+    }
   }
 };
 

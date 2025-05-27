@@ -171,6 +171,95 @@ export const mockPaymentHistory = {
       payment_date: "2024-02-15",
       remarks: "February Fee"
     }
+  ],
+  "STU002": [
+    {
+      id: 3,
+      fee_type: "Tuition Fee",
+      period: "January 2024",
+      amount: 12500,
+      payment_mode: "UPI",
+      payment_date: "2024-01-10",
+      remarks: "January Fee"
+    },
+    {
+      id: 4,
+      fee_type: "Tuition Fee",
+      period: "February 2024",
+      amount: 12500,
+      payment_mode: "Bank Transfer",
+      payment_date: "2024-02-10",
+      remarks: "February Fee"
+    },
+    {
+      id: 5,
+      fee_type: "Tuition Fee",
+      period: "March 2024",
+      amount: 12500,
+      payment_mode: "UPI",
+      payment_date: "2024-03-15",
+      remarks: "March Fee"
+    }
+  ],
+  "STU003": [
+    {
+      id: 6,
+      fee_type: "Tuition Fee",
+      period: "January 2024",
+      amount: 12500,
+      payment_mode: "Cash",
+      payment_date: "2024-01-05",
+      remarks: "January Fee"
+    }
+  ],
+  "STU004": [
+    {
+      id: 7,
+      fee_type: "Tuition Fee",
+      period: "January 2024",
+      amount: 12500,
+      payment_mode: "UPI",
+      payment_date: "2024-01-20",
+      remarks: "January Fee"
+    },
+    {
+      id: 8,
+      fee_type: "Tuition Fee",
+      period: "February 2024",
+      amount: 12500,
+      payment_mode: "Card",
+      payment_date: "2024-02-20",
+      remarks: "February Fee"
+    }
+  ],
+  "STU005": [
+    {
+      id: 9,
+      fee_type: "Tuition Fee",
+      period: "January 2024",
+      amount: 12500,
+      payment_mode: "Bank Transfer",
+      payment_date: "2024-01-12",
+      remarks: "January Fee"
+    },
+    {
+      id: 10,
+      fee_type: "Tuition Fee",
+      period: "February 2024",
+      amount: 12500,
+      payment_mode: "UPI",
+      payment_date: "2024-02-12",
+      remarks: "February Fee"
+    },
+    {
+      id: 11,
+      fee_type: "Tuition Fee",
+      period: "March 2024",
+      amount: 12500,
+      payment_mode: "Cash",
+      payment_date: "2024-03-10",
+      remarks: "March Fee"
+    }
   ]
 };
 

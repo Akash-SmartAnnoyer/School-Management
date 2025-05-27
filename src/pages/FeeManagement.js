@@ -58,6 +58,7 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
 const { Search } = Input;
+const { confirm } = Modal;
 
 const FeeManagement = () => {
   const [activeTab, setActiveTab] = useState('1');
@@ -73,6 +74,9 @@ const FeeManagement = () => {
     status: undefined
   });
   const messageApi = useContext(MessageContext);
+  const [editPaymentModalVisible, setEditPaymentModalVisible] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [form] = Form.useForm();
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(mockStudents.map(student => student.class))];
@@ -177,6 +181,66 @@ const FeeManagement = () => {
       } else {
         messageApi.error('Failed to record payment');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditPayment = (payment) => {
+    setEditingPayment(payment);
+    form.setFieldsValue({
+      ...payment,
+      payment_date: moment(payment.payment_date)
+    });
+    setEditPaymentModalVisible(true);
+  };
+
+  const handleDeletePayment = (payment) => {
+    confirm({
+      title: 'Are you sure you want to delete this payment?',
+      icon: <ExclamationCircleOutlined />,
+      content: `This will delete the payment record of ₹${payment.amount} made on ${moment(payment.payment_date).format('DD MMM YYYY')}.`,
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const response = await feeService.deletePayment(payment.id);
+          if (response.success) {
+            messageApi.success('Payment deleted successfully');
+            loadData();
+          } else {
+            messageApi.error(response.error || 'Failed to delete payment');
+          }
+        } catch (error) {
+          console.error('Error deleting payment:', error);
+          messageApi.error('Failed to delete payment');
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+  };
+
+  const handleEditSubmit = async (values) => {
+    try {
+      setLoading(true);
+      const response = await feeService.updatePayment(editingPayment.id, {
+        ...values,
+        payment_date: values.payment_date.format('YYYY-MM-DD')
+      });
+      
+      if (response.success) {
+        messageApi.success('Payment updated successfully');
+        setEditPaymentModalVisible(false);
+        loadData();
+      } else {
+        messageApi.error(response.error || 'Failed to update payment');
+      }
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      messageApi.error('Failed to update payment');
     } finally {
       setLoading(false);
     }
@@ -358,6 +422,35 @@ const FeeManagement = () => {
         </Tooltip>
       ),
     },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="Edit Payment">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => handleEditPayment(record)}
+              size="small"
+            >
+              Edit
+            </Button>
+          </Tooltip>
+          <Tooltip title="Delete Payment">
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeletePayment(record)}
+              size="small"
+            >
+              Delete
+            </Button>
+          </Tooltip>
+        </Space>
+      ),
+    },
   ];
 
   return (
@@ -472,7 +565,7 @@ const FeeManagement = () => {
           </Space>
         }
         placement="right"
-        width={600}
+        width={800}
         onClose={() => setHistoryDrawerVisible(false)}
         visible={historyDrawerVisible}
       >
@@ -480,7 +573,7 @@ const FeeManagement = () => {
           <>
             <Card className="student-summary-card">
               <Row gutter={16}>
-                <Col span={12}>
+                <Col span={8}>
                   <Statistic
                     title="Total Due"
                     value={selectedStudent.total_due}
@@ -488,7 +581,7 @@ const FeeManagement = () => {
                     valueStyle={{ color: '#ff4d4f' }}
                   />
                 </Col>
-                <Col span={12}>
+                <Col span={8}>
                   <Statistic
                     title="Due Months"
                     value={selectedStudent.due_months}
@@ -496,52 +589,99 @@ const FeeManagement = () => {
                     valueStyle={{ color: '#faad14' }}
                   />
                 </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Class/Section"
+                    value={`${selectedStudent.class} - ${selectedStudent.section}`}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
               </Row>
             </Card>
             <Divider />
-            <Timeline>
-              {selectedStudent.payment_history?.map((payment, index) => (
-                <Timeline.Item
-                  key={index}
-                  color="green"
-                  dot={<CheckCircleOutlined />}
-                >
-                  <Card size="small" className="payment-history-card">
-                    <Row justify="space-between" align="middle">
-                      <Col>
-                        <Text strong>{payment.fee_type}</Text>
-                        <br />
-                        <Text type="secondary">
-                          Period: {payment.period}
-                        </Text>
-                        <br />
-                        <Text type="secondary">
-                          {moment(payment.payment_date).format('DD MMM YYYY')}
-                        </Text>
-                      </Col>
-                      <Col>
-                        <Text strong style={{ color: '#52c41a' }}>
-                          ₹{parseFloat(payment.amount).toLocaleString()}
-                        </Text>
-                        <br />
-                        <Tag color="green" icon={payment.payment_mode === 'UPI' ? <CreditCardOutlined /> : <MoneyCollectOutlined />}>
-                          {payment.payment_mode}
-                        </Tag>
-                      </Col>
-                    </Row>
-                    {payment.remarks && (
-                      <Row style={{ marginTop: 8 }}>
-                        <Col>
-                          <Text type="secondary">
-                            Remarks: {payment.remarks}
-                          </Text>
-                        </Col>
-                      </Row>
-                    )}
-                  </Card>
-                </Timeline.Item>
-              ))}
-            </Timeline>
+            <Title level={5}>Payment Transactions</Title>
+            <Table
+              columns={[
+                {
+                  title: 'Date',
+                  dataIndex: 'payment_date',
+                  key: 'payment_date',
+                  render: (date) => (
+                    <Space>
+                      <CalendarOutlined />
+                      {moment(date).format('DD MMM YYYY')}
+                    </Space>
+                  ),
+                },
+                {
+                  title: 'Fee Type',
+                  dataIndex: 'fee_type',
+                  key: 'fee_type',
+                  render: (type) => (
+                    <Tag color="purple" icon={<MoneyCollectOutlined />}>
+                      {type}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: 'Amount',
+                  dataIndex: 'amount',
+                  key: 'amount',
+                  render: (amount) => (
+                    <Text strong style={{ color: '#52c41a' }}>
+                      ₹{amount.toLocaleString()}
+                    </Text>
+                  ),
+                },
+                {
+                  title: 'Payment Mode',
+                  dataIndex: 'payment_mode',
+                  key: 'payment_mode',
+                  render: (mode) => {
+                    const icons = {
+                      'Cash': <MoneyCollectOutlined />,
+                      'UPI': <CreditCardOutlined />,
+                      'Card': <BankOutlined />,
+                      'Bank Transfer': <WalletOutlined />
+                    };
+                    return (
+                      <Tag color="green" icon={icons[mode]}>
+                        {mode}
+                      </Tag>
+                    );
+                  },
+                },
+                {
+                  title: 'Period',
+                  dataIndex: 'period',
+                  key: 'period',
+                  render: (text) => (
+                    <Tag color="blue">
+                      {text}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: 'Remarks',
+                  dataIndex: 'remarks',
+                  key: 'remarks',
+                  render: (text) => (
+                    <Tooltip title={text}>
+                      <Text ellipsis style={{ maxWidth: 150 }}>
+                        {text}
+                      </Text>
+                    </Tooltip>
+                  ),
+                }
+              ]}
+              dataSource={selectedStudent.payment_history || []}
+              rowKey="id"
+              pagination={{
+                pageSize: 5,
+                showSizeChanger: true,
+                showTotal: (total) => `Total ${total} payments`
+              }}
+            />
           </>
         )}
       </Drawer>
@@ -630,6 +770,98 @@ const FeeManagement = () => {
             <Button type="primary" htmlType="submit" block loading={loading}>
               Submit Payment
             </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit Payment Modal */}
+      <Modal
+        title={
+          <Space>
+            <EditOutlined />
+            Edit Payment
+          </Space>
+        }
+        visible={editPaymentModalVisible}
+        onCancel={() => {
+          setEditPaymentModalVisible(false);
+          setEditingPayment(null);
+          form.resetFields();
+        }}
+        width={800}
+        footer={null}
+      >
+        <Form 
+          form={form}
+          layout="vertical"
+          onFinish={handleEditSubmit}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Amount"
+                name="amount"
+                rules={[{ required: true, message: 'Please enter amount' }]}
+              >
+                <Input prefix="₹" type="number" step="0.01" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Payment Mode"
+                name="payment_mode"
+                rules={[{ required: true, message: 'Please select payment mode' }]}
+              >
+                <Select>
+                  <Option value="UPI">UPI</Option>
+                  <Option value="Cash">Cash</Option>
+                  <Option value="Bank Transfer">Bank Transfer</Option>
+                  <Option value="Card">Card</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Payment Date"
+                name="payment_date"
+                rules={[{ required: true, message: 'Please select payment date' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Period"
+                name="period"
+                rules={[{ required: true, message: 'Please enter period' }]}
+              >
+                <Input placeholder="e.g., January 2024" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            label="Remarks"
+            name="remarks"
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Update Payment
+              </Button>
+              <Button 
+                onClick={() => {
+                  setEditPaymentModalVisible(false);
+                  setEditingPayment(null);
+                  form.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>
