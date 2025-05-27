@@ -511,7 +511,7 @@ function MainLayout() {
               onClick={() => setCollapsed(!collapsed)}
               style={{
                 fontSize: '16px',
-                width: 48,
+                width: 0,
                 height: 48,
                 display: 'flex',
                 alignItems: 'center',
