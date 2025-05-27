@@ -475,32 +475,32 @@ const Profile = () => {
                         beforeUpload={handleSchoolPicUpload}
                         accept="image/*"
                       >
-                        <Button 
-                          icon={<UploadOutlined />}
-                          style={{
-                            height: '32px',
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                            background: '#7B83EB',
-                            border: 'none',
-                            // color: '#ffffff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            transition: 'all 0.3s ease',
-                            padding: '0 12px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                            e.currentTarget.style.background = '#8ba1d1';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                            e.currentTarget.style.background = '#7B83EB';
-                          }}
-                        >
+                    <Button 
+                      icon={<UploadOutlined />}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                      }}
+                    >
                           Change School Logo
                         </Button>
                       </Upload>
