@@ -310,6 +310,7 @@ function MainLayout() {
           style={{
             background: 'transparent',
             border: 'none',
+            padding: '0 16px'
           }}
           className="custom-menu"
         />

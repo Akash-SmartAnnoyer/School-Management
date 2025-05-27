@@ -97,14 +97,15 @@
 
 /* Custom Menu Styles */
 .custom-menu .ant-menu-item {
-  border-radius: 8px;
-  margin: 4px 8px;
-  transition: all 0.3s ease;
+  margin: 4px 0 !important;
+  border-radius: 8px !important;
+  width: calc(100% - 32px) !important;
+  margin-left: 16px !important;
+  margin-right: 16px !important;
 }
 
 .custom-menu .ant-menu-item:hover {
-  background-color: rgba(123, 131, 235, 0.1) !important;
-  color: #7B83EB !important;
+  background-color: #f0f0f0 !important;
 }
 
 .custom-menu .ant-menu-item-selected {
