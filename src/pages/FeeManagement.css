@@ -1,0 +1,241 @@
+.fee-management-page {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.fee-management-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.page-header .ant-typography {
+  margin: 0 !important;
+  color: #7B83EB;
+}
+
+.student-summary-card {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+}
+
+.payment-history-card {
+  margin-bottom: 8px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.payment-history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ant-timeline-item-content {
+  margin-left: 28px;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa !important;
+  font-weight: 600;
+  color: #7B83EB !important;
+}
+
+.ant-tag {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.ant-drawer-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ant-tabs-tab {
+  padding: 12px 24px !important;
+  transition: all 0.3s ease;
+}
+
+.ant-tabs-tab:hover {
+  color: #7B83EB !important;
+}
+
+.ant-tabs-tab-active {
+  background: #f0f2f5;
+  border-radius: 4px;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #7B83EB !important;
+  font-weight: 600;
+}
+
+.ant-table-row {
+  transition: all 0.3s ease;
+}
+
+.ant-table-row:hover {
+  background: #f5f7fa !important;
+}
+
+.ant-btn-primary {
+  background: #7B83EB;
+  border-color: #7B83EB;
+}
+
+.ant-btn-primary:hover {
+  background: #8ba1d1;
+  border-color: #8ba1d1;
+}
+
+.ant-statistic-title {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.ant-drawer-body {
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+.ant-modal-body {
+  padding: 24px;
+}
+
+.ant-form-item-label > label {
+  color: #595959;
+  font-weight: 500;
+}
+
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper-focused {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+}
+
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:hover {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+}
+
+.ant-picker:hover,
+.ant-picker-focused {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+}
+
+.ant-table-pagination {
+  margin: 16px 0 !important;
+  padding: 8px 16px;
+  background: #ffffff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ant-pagination-item-active {
+  background: #7B83EB !important;
+  border-color: #7B83EB !important;
+}
+
+.ant-pagination-item-active a {
+  color: #ffffff !important;
+}
+
+.ant-pagination-item:hover {
+  border-color: #7B83EB !important;
+}
+
+.ant-pagination-prev:hover .ant-pagination-item-link,
+.ant-pagination-next:hover .ant-pagination-item-link {
+  border-color: #7B83EB !important;
+  color: #7B83EB !important;
+}
+
+/* Loading states */
+.ant-spin-nested-loading {
+  min-height: 200px;
+}
+
+.ant-spin-container {
+  min-height: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-header .ant-space {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ant-table {
+    overflow-x: auto;
+  }
+}
+
+/* Animation for payment history cards */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.payment-history-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #7B83EB;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8ba1d1;
+} 

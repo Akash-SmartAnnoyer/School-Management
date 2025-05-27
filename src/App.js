@@ -516,11 +516,6 @@ function MainLayout() {
                 <AttendanceReport />
               </ProtectedRoute>
             } />
-            <Route path="/fee-management" element={
-              <ProtectedRoute>
-                <FeeManagement />
-              </ProtectedRoute>
-            } />
             <Route path="/timetable/*" element={
               <ProtectedRoute>
                 <Timetable />
@@ -529,6 +524,11 @@ function MainLayout() {
             <Route path="/settings" element={
               <ProtectedRoute>
                 <AccountSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/fee-management" element={
+              <ProtectedRoute>
+                <FeeManagement />
               </ProtectedRoute>
             } />
           </Routes>
