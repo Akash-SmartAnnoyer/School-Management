@@ -257,10 +257,10 @@ const Profile = () => {
             <Card
               style={{
                 borderRadius: '12px',
-                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                border: '1px solid rgba(159, 179, 223, 0.3)',
-                background: 'linear-gradient(135deg, #7B83EB 0%, #8ba1d1 100%)',
-                color: 'white'
+                boxShadow: '0 4px 16px rgba(159, 179, 223, 0.1)',
+                border: '1px solid rgba(159, 179, 223, 0.2)',
+                background: '#ffffff',
+                color: '#333333'
               }}
             >
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -271,7 +271,7 @@ const Profile = () => {
                     icon={<UserOutlined />}
                     style={{ 
                       border: '4px solid rgba(255, 255, 255, 0.2)',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     }}
                   />
                   <Upload
@@ -308,7 +308,7 @@ const Profile = () => {
                       Change Profile Picture
                     </Button>
                   </Upload>
-                  <Title level={4} style={{ margin: 0, color: 'white' }}>
+                  <Title level={4} style={{ margin: 0, color: '#333333' }}>
                     {currentUser?.name}
                   </Title>
                   <Tag 
@@ -483,7 +483,7 @@ const Profile = () => {
                             boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
                             background: '#7B83EB',
                             border: 'none',
-                            color: '#ffffff',
+                            // color: '#ffffff',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
