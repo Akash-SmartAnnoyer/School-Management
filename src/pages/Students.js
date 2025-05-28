@@ -750,9 +750,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                         type="dashed" 
                         onClick={() => {
                           try {
-                            const currentValues = form.getFieldValue('fee_details');
-                            const newValues = Array.isArray(currentValues) ? [...currentValues] : [];
-                            newValues.push({
+                            add({
                               fee_type: '',
                               amount: '',
                               period: '',
@@ -762,11 +760,9 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                               due_amount: '',
                               remarks: ''
                             });
-                            form.setFieldsValue({ fee_details: newValues });
-                            add();
                           } catch (error) {
                             console.error('Error adding fee:', error);
-                            add();
+                            message.error('Failed to add fee');
                           }
                         }} 
                         block 
