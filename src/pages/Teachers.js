@@ -496,7 +496,10 @@ const Teachers = () => {
           <Avatar
             size={40}
             src={photoURL ? getCloudinaryImage(photoURL) : null}
-            icon={!photoURL && <UserOutlined />}
+            icon={!photoURL && (record.gender === 'M' ? 
+              <img src="/teacher-boy.png" alt="Male Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+              <img src="/teacher-girl.png" alt="Female Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
           />
         </Upload>
       ),

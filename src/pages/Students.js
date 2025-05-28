@@ -960,7 +960,10 @@ const Students = () => {
           <Avatar
             size={45}
             src={photoURL ? getCloudinaryImage(photoURL) : null}
-            icon={!photoURL && <UserOutlined style={{ fontSize: '20px', color: '#8c8c8c' }} />}
+            icon={!photoURL && (record.gender === 'M' ? 
+              <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+              <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            )}
             style={{ 
               border: '2px solid #f0f0f0',
               boxShadow: '0 2px 6px rgba(0,0,0,0.08)',

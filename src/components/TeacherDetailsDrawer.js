@@ -136,7 +136,10 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
               <Avatar
                 size={100}
                 src={teacher.photoURL ? getCloudinaryImage(teacher.photoURL) : null}
-                icon={!teacher.photoURL && <UserOutlined />}
+                icon={!teacher.photoURL && (teacher.gender === 'M' ? 
+                  <img src="/teacher-boy.png" alt="Male Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                  <img src="/teacher-girl.png" alt="Female Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
               />
             </Upload>
             <Title level={4} style={{ marginTop: 16 }}>{teacher.name}</Title>
