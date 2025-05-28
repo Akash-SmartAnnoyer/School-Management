@@ -809,6 +809,8 @@ const Students = () => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
   const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [formSubmitting, setFormSubmitting] = useState(false);
 
   useEffect(() => {
     const filtered = students.filter(student =>
@@ -826,6 +828,7 @@ const Students = () => {
 
   const handleEdit = async (student) => {
     try {
+      setTableLoading(true);
       // Fetch the latest student data
       const response = await api.student.getStudent(student.user_id);
       if (response.data) {
@@ -876,6 +879,8 @@ const Students = () => {
     } catch (error) {
       console.error('Error loading student:', error);
       message.error(error.message || 'Failed to load student data');
+    } finally {
+      setTableLoading(false);
     }
   };
 
@@ -896,6 +901,7 @@ const Students = () => {
 
   const handleSubmit = async (values, originalValues) => {
     try {
+      setFormSubmitting(true);
       let response;
       
       if (editingStudent) {
@@ -1136,6 +1142,8 @@ const Students = () => {
         // Something happened in setting up the request
         message.error(error.message || 'An error occurred while saving the student.');
       }
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
@@ -1538,7 +1546,7 @@ const Students = () => {
           columns={columns}
           dataSource={filteredStudents}
           rowKey="id"
-          loading={loading}
+          loading={loading || tableLoading}
           pagination={{
             current: currentPage,
             pageSize: pageSize,
@@ -1610,7 +1618,7 @@ const Students = () => {
         }}
         onSubmit={handleSubmit}
         initialValues={editingStudent}
-        loading={loading}
+        loading={formSubmitting}
       />
 
       <StudentDetailsDrawer
