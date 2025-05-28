@@ -825,8 +825,58 @@ const Students = () => {
   };
 
   const handleEdit = async (student) => {
-    setEditingStudent(student);
-    setModalVisible(true);
+    try {
+      // Fetch the latest student data
+      const response = await api.student.getStudent(student.user_id);
+      if (response.data) {
+        const studentData = response.data;
+        // Format the student data for the form
+        const formValues = {
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          email: studentData.email,
+          phone: studentData.phone,
+          gender: studentData.gender,
+          dob: studentData.dob ? moment(studentData.dob) : null,
+          // Profile data
+          profile: {
+            nationality: studentData.profile?.nationality,
+            classroom_id: studentData.student_profile?.classroom,
+            class_name: studentData.profile?.class_name
+          },
+          // Student profile data
+          student_id: studentData.student_profile?.student_id,
+          admission_number: studentData.student_profile?.admission_number,
+          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
+          last_grade_attended: studentData.student_profile?.last_grade_attended,
+          roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
+          father_name: studentData.student_profile?.father_name,
+          father_occupation: studentData.student_profile?.father_occupation,
+          mother_name: studentData.student_profile?.mother_name,
+          mother_occupation: studentData.student_profile?.mother_occupation,
+          parent_address: studentData.student_profile?.parent_address,
+          parent_email: studentData.student_profile?.parent_email,
+          parent_phone: studentData.student_profile?.parent_phone,
+          allergies: studentData.student_profile?.allergies,
+          remarks: studentData.student_profile?.remarks,
+          blood_group: studentData.profile?.blood_group,
+          fee_details: studentData.student_profile?.fee_details || []
+        };
+        
+        // Set the editing student and show the modal
+        setEditingStudent({
+          ...formValues,
+          id: student.user_id // Make sure we have the user_id for the update
+        });
+        setModalVisible(true);
+      } else {
+        message.error('Failed to load student data');
+      }
+    } catch (error) {
+      console.error('Error loading student:', error);
+      message.error(error.message || 'Failed to load student data');
+    }
   };
 
   const handleDelete = async (studentId) => {
@@ -847,23 +897,245 @@ const Students = () => {
   const handleSubmit = async (values, originalValues) => {
     try {
       let response;
+      
+      if (editingStudent) {
+        // Initialize update data with only changed fields
+        const updateData = {};
+        
+        // Compare and add changed basic fields
+        if (values.first_name !== editingStudent.first_name) {
+          updateData.first_name = values.first_name;
+        }
+        if (values.last_name !== editingStudent.last_name) {
+          updateData.last_name = values.last_name;
+        }
+        if (values.email !== editingStudent.email) {
+          updateData.email = values.email;
+        }
+        if (values.phone !== editingStudent.phone) {
+          updateData.phone = values.phone;
+        }
+        if (values.gender !== editingStudent.gender) {
+          updateData.gender = values.gender;
+        }
+        if (values.dob?.format('YYYY-MM-DD') !== editingStudent.dob?.format('YYYY-MM-DD')) {
+          updateData.dob = values.dob?.format('YYYY-MM-DD');
+        }
+        
+        // Compare and add changed profile fields
+        const profileChanges = {};
+        if (values.profile?.nationality !== editingStudent.profile?.nationality) {
+          profileChanges.nationality = values.profile?.nationality;
+        }
+        if (values.profile?.classroom_id !== editingStudent.profile?.classroom_id) {
+          profileChanges.classroom_id = values.profile?.classroom_id;
+        }
+        if (values.profile?.class_name !== editingStudent.profile?.class_name) {
+          profileChanges.class_name = values.profile?.class_name;
+        }
+        if (values.blood_group !== editingStudent.blood_group) {
+          profileChanges.blood_group = values.blood_group;
+        }
+        if (Object.keys(profileChanges).length > 0) {
+          updateData.profile = profileChanges;
+        }
+        
+        // Compare and add changed student profile fields
+        const studentProfileChanges = {};
+        if (values.student_id !== editingStudent.student_id) {
+          studentProfileChanges.student_id = values.student_id;
+        }
+        if (values.admission_number !== editingStudent.admission_number) {
+          studentProfileChanges.admission_number = values.admission_number;
+        }
+        if (values.admission_date?.format('YYYY-MM-DD') !== editingStudent.admission_date?.format('YYYY-MM-DD')) {
+          studentProfileChanges.admission_date = values.admission_date?.format('YYYY-MM-DD');
+        }
+        if (values.last_grade_attended !== editingStudent.last_grade_attended) {
+          studentProfileChanges.last_grade_attended = values.last_grade_attended;
+        }
+        if (values.roll_no !== editingStudent.roll_no) {
+          studentProfileChanges.roll_no = values.roll_no;
+        }
+        if (values.section !== editingStudent.section) {
+          studentProfileChanges.section = values.section;
+        }
+        if (values.father_name !== editingStudent.father_name) {
+          studentProfileChanges.father_name = values.father_name;
+        }
+        if (values.father_occupation !== editingStudent.father_occupation) {
+          studentProfileChanges.father_occupation = values.father_occupation;
+        }
+        if (values.mother_name !== editingStudent.mother_name) {
+          studentProfileChanges.mother_name = values.mother_name;
+        }
+        if (values.mother_occupation !== editingStudent.mother_occupation) {
+          studentProfileChanges.mother_occupation = values.mother_occupation;
+        }
+        if (values.parent_address !== editingStudent.parent_address) {
+          studentProfileChanges.parent_address = values.parent_address;
+        }
+        if (values.parent_email !== editingStudent.parent_email) {
+          studentProfileChanges.parent_email = values.parent_email;
+        }
+        if (values.parent_phone !== editingStudent.parent_phone) {
+          studentProfileChanges.parent_phone = values.parent_phone;
+        }
+        if (values.allergies !== editingStudent.allergies) {
+          studentProfileChanges.allergies = values.allergies;
+        }
+        if (values.remarks !== editingStudent.remarks) {
+          studentProfileChanges.remarks = values.remarks;
+        }
 
-      if (originalValues) {
-        response = await api.student.updateStudent(originalValues.id, values);
+        // Compare and add changed fee details
+        if (values.fee_details) {
+          const feeDetailsChanges = values.fee_details.map((fee, index) => {
+            const originalFee = editingStudent.fee_details?.[index];
+            const changes = {};
+            
+            if (fee.fee_type !== originalFee?.fee_type) {
+              changes.fee_type = fee.fee_type;
+            }
+            if (fee.amount !== originalFee?.amount) {
+              changes.amount = fee.amount;
+            }
+            if (fee.period !== originalFee?.period) {
+              changes.period = fee.period;
+            }
+            if (fee.terms !== originalFee?.terms) {
+              changes.terms = fee.terms;
+            }
+            if (fee.amount_per_term !== originalFee?.amount_per_term) {
+              changes.amount_per_term = fee.amount_per_term;
+            }
+            if (fee.status !== originalFee?.status) {
+              changes.status = fee.status;
+            }
+            if (fee.due_amount !== originalFee?.due_amount) {
+              changes.due_amount = fee.due_amount;
+            }
+            if (fee.remarks !== originalFee?.remarks) {
+              changes.remarks = fee.remarks;
+            }
+            
+            return Object.keys(changes).length > 0 ? changes : null;
+          }).filter(Boolean);
+
+          if (feeDetailsChanges.length > 0) {
+            studentProfileChanges.fee_details = feeDetailsChanges;
+          }
+        }
+
+        if (Object.keys(studentProfileChanges).length > 0) {
+          updateData.student_profile = studentProfileChanges;
+        }
+
+        // Only send update request if there are changes
+        if (Object.keys(updateData).length > 0) {
+          response = await api.student.updateStudent(editingStudent.id, updateData);
+        } else {
+          message.info('No changes detected');
+          setModalVisible(false);
+          return;
+        }
       } else {
-        response = await api.student.createStudent(values);
+        // Format the data for create
+        const createData = {
+          first_name: values.first_name,
+          last_name: values.last_name,
+          email: values.email,
+          phone: values.phone,
+          gender: values.gender,
+          dob: values.dob.format('YYYY-MM-DD'),
+          role: 'student',
+          password: values.password,
+          confirm_password: values.confirm_password,
+          profile: {
+            nationality: values.profile?.nationality,
+            classroom_id: values.profile?.classroom_id,
+            class_name: values.profile?.class_name,
+            blood_group: values.blood_group
+          },
+          student_profile: {
+            student_id: values.student_id,
+            admission_number: values.admission_number,
+            admission_date: values.admission_date.format('YYYY-MM-DD'),
+            last_grade_attended: values.last_grade_attended,
+            roll_no: values.roll_no,
+            section: values.section,
+            father_name: values.father_name,
+            father_occupation: values.father_occupation,
+            mother_name: values.mother_name,
+            mother_occupation: values.mother_occupation,
+            parent_address: values.parent_address,
+            parent_email: values.parent_email,
+            parent_phone: values.parent_phone,
+            allergies: values.allergies,
+            remarks: values.remarks,
+            fee_details: values.fee_details?.map(fee => ({
+              fee_type: fee.fee_type,
+              amount: parseFloat(fee.amount),
+              period: fee.period,
+              terms: parseInt(fee.terms),
+              amount_per_term: parseFloat(fee.amount_per_term),
+              status: fee.status,
+              due_amount: fee.status === 'Partial' ? parseFloat(fee.due_amount) : null,
+              remarks: fee.remarks
+            })) || []
+          }
+        };
+
+        response = await api.student.createStudent(createData);
       }
 
-      if (response.success) {
-        message.success(`Student ${originalValues ? 'updated' : 'created'} successfully`);
+      if (response.status === 200 || response.status === 201) {
+        message.success(editingStudent ? 'Student updated successfully' : 'Student added successfully');
         setModalVisible(false);
         refreshStudents();
-      } else {
-        message.error(`Failed to ${originalValues ? 'update' : 'create'} student`);
       }
     } catch (error) {
-      console.error('Error submitting student:', error);
-      message.error(`Failed to ${originalValues ? 'update' : 'create'} student`);
+      console.error('Error saving student:', error);
+      
+      if (error.response?.status === 400) {
+        const errors = error.response.data;
+        
+        // Function to recursively handle nested errors
+        const handleNestedErrors = (errorObj, prefix = '') => {
+          Object.entries(errorObj).forEach(([field, value]) => {
+            if (Array.isArray(value)) {
+              // Handle array of error messages
+              value.forEach(message => {
+                const errorField = prefix ? `${prefix}.${field}` : field;
+                message.error(`${errorField}: ${message}`);
+              });
+            } else if (typeof value === 'object' && value !== null) {
+              // Handle nested objects (like student_profile)
+              handleNestedErrors(value, field);
+            }
+          });
+        };
+
+        // Handle all errors including nested ones
+        handleNestedErrors(errors);
+
+      } else if (error.response?.status === 401) {
+        message.error('Unauthorized. Please login again.');
+      } else if (error.response?.status === 403) {
+        message.error('You do not have permission to perform this action.');
+      } else if (error.response?.status === 404) {
+        message.error('Resource not found.');
+      } else if (error.response?.status === 409) {
+        message.error('Conflict detected. Please check the data and try again.');
+      } else if (error.response?.status >= 500) {
+        message.error('Server error. Please try again later.');
+      } else if (!error.response && error.request) {
+        // The request was made but no response was received
+        message.error('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request
+        message.error(error.message || 'An error occurred while saving the student.');
+      }
     }
   };
 
