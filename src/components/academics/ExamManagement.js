@@ -310,7 +310,8 @@ const ExamManagement = () => {
     <div className="academics-page">
       <div className="academics-header">
         <Title level={3} className="page-title">
-          <TrophyOutlined className="title-icon" />
+          {/* <TrophyOutlined className="title-icon" /> */}
+          <img src="/exam.png" alt="Exam Management" style={{ width: '40px', height: '40px' }} />
           Exam Management
         </Title>
         <Space size="small">

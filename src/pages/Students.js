@@ -1229,7 +1229,8 @@ const Students = () => {
         background: '#ffffff'
       }}>
         <Title level={3} className="page-title">
-          <TeamOutlined className="title-icon" />
+          {/* <TeamOutlined className="title-icon" /> */}
+          <img src="/students.png" alt="Students" style={{ width: '40px', height: '40px' }} />
           Students
         </Title>
         <Space size="small">

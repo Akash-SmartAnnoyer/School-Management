@@ -164,7 +164,8 @@ const AcademicCalendar = () => {
       <Card 
         title={
           <Space>
-            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+            {/* <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} /> */}
+            <img src="/study-time.png" alt="Calendar" style={{ width: '40px', height: '40px' }} />
             <Title level={4} style={{ margin: 0 }}>Academic Calendar</Title>
           </Space>
         }

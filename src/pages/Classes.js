@@ -422,7 +422,7 @@ const Classes = () => {
         background: '#ffffff'
       }}>
         <Title level={3} className="page-title">
-          <BookOutlined className="title-icon" />
+          <img src="/seminar.png" alt="Classes" style={{ width: '40px', height: '40px' }} />
           Classes
         </Title>
         <Space size="small">

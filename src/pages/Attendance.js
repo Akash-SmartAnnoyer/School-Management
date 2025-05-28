@@ -276,7 +276,8 @@ const Attendance = () => {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} />
+            {/* <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} /> */}
+            <img src="/attendance.png" alt="Attendance" style={{ width: '40px', height: '40px' }} />
             Attendance Management
           </Title>
         </Col>

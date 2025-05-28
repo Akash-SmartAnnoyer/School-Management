@@ -601,8 +601,9 @@ const FeeManagement = () => {
     <div className="fee-management-page">
       <Card className="fee-management-card">
         <div className="page-header">
-          <Title level={3}>
-            <DollarOutlined /> Fee Management
+          <Title level={3} className="page-title">
+            <img src="/charge.png" alt="Fee Management" style={{ width: '40px', height: '40px' }} />
+             Fee Management
           </Title>
           <Space>
             <Search

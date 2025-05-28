@@ -852,7 +852,8 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     <div className="academics-page">
       <div className="academics-header">
         <Title level={3} className="page-title">
-          <BookOutlined className="title-icon" />
+          {/* <BookOutlined className="title-icon" /> */}
+          <img src="/test.png" alt="Marks" style={{ width: '40px', height: '40px' }} />
           Marks Entry
         </Title>
         <Space size="small">

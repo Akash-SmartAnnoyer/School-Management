@@ -130,7 +130,8 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
     <div className="academics-page">
       <div className="academics-header">
         <Title level={3} className="page-title">
-          <BookOutlined className="title-icon" />
+          {/* <BookOutlined className="title-icon" /> */}
+          <img src="/text-books.png" alt="Subjects" style={{ width: '40px', height: '40px' }} />
           Subject Management
         </Title>
         <Space size="small">

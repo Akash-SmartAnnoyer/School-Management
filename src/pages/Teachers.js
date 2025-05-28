@@ -675,7 +675,8 @@ const Teachers = () => {
         background: '#ffffff'
       }}>
         <Title level={3} className="page-title">
-          <TeamOutlined className="title-icon" />
+          <img src="/training.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
+          {/* <TeamOutlined className="title-icon" /> */}
           Teachers
         </Title>
         <Space size="small">
