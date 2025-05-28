@@ -35,8 +35,8 @@ const Attendance = () => {
     try {
       const response = await api.class.getClasses();
       console.log('Classes API Response:', response);
-      if (response && response.data) {
-        setClasses(response.data || []);
+      if (response && response.data && response.data.results) {
+        setClasses(response.data.results || []);
       } else {
         console.error('Unexpected API response structure:', response);
         setClasses([]);
