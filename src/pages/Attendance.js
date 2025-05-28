@@ -13,22 +13,30 @@ const Attendance = () => {
   const [attendance, setAttendance] = useState([]);
   const [selectedDate, setSelectedDate] = useState(moment());
   const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [teachers, setTeachers] = useState([]);
+  const [availablePeriods, setAvailablePeriods] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [classesLoading, setClassesLoading] = useState(false);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  const [teachersLoading, setTeachersLoading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [timetableId, setTimetableId] = useState(null);
 
   useEffect(() => {
     loadClasses();
+    loadTeachers();
+    loadSubjects();
   }, []);
 
   useEffect(() => {
-    if (selectedClass && selectedDate) {
+    if (selectedClass && selectedDate && selectedTeacher) {
       loadStudents();
       loadTimetable();
     }
-  }, [selectedClass, selectedDate]);
+  }, [selectedClass, selectedDate, selectedTeacher]);
 
   const loadClasses = async () => {
     setClassesLoading(true);
@@ -48,6 +56,42 @@ const Attendance = () => {
     } finally {
       setClassesLoading(false);
     }
+  };
+
+  const loadTeachers = async () => {
+    setTeachersLoading(true);
+    try {
+      const response = await api.teacher.getTeachers();
+      if (response && response.data && response.data.results) {
+        setTeachers(response.data.results || []);
+      } else {
+        console.error('Unexpected API response structure:', response);
+        setTeachers([]);
+      }
+    } catch (error) {
+      console.error('Error loading teachers:', error);
+      message.error('Failed to load teachers');
+      setTeachers([]);
+    } finally {
+      setTeachersLoading(false);
+    }
+  };
+
+  const loadSubjects = async () => {
+    try {
+      const response = await api.subject.getSubjects();
+      if (response && response.data && response.data.results) {
+        setSubjects(response.data.results);
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      message.error('Failed to load subjects');
+    }
+  };
+
+  const getSubjectName = (subjectId) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    return subject ? subject.name : `Subject (${subjectId})`;
   };
 
   const loadStudents = async () => {
@@ -85,27 +129,35 @@ const Attendance = () => {
     try {
       const response = await api.timetable.getByClass(selectedClass);
       if (response && response.data) {
-        // Get timetable for the selected date
-        const dayOfWeek = selectedDate.format('dddd').toLowerCase();
-        const timetable = response.data.find(t => t.day.toLowerCase() === dayOfWeek);
+        // Get all periods for the selected class and teacher
+        const periods = response.data.results.filter(t => 
+          t.classroom === selectedClass && 
+          t.teacher === selectedTeacher
+        );
         
-        if (timetable) {
-          console.log('Found timetable:', timetable);
-          setTimetableId(timetable.id);
+        console.log('Available periods:', periods);
+        
+        if (periods.length > 0) {
+          setAvailablePeriods(periods);
+          // Reset selected period when periods change
+          setSelectedPeriod(null);
         } else {
-          console.log('No timetable found for day:', dayOfWeek);
-          message.error(`No timetable found for ${dayOfWeek}`);
-          setTimetableId(null);
+          console.log('No periods found for class:', selectedClass, 'and teacher:', selectedTeacher);
+          message.error('No periods found for selected class and teacher');
+          setAvailablePeriods([]);
+          setSelectedPeriod(null);
         }
       } else {
         console.log('No timetable data available');
         message.error('No timetable data available');
-        setTimetableId(null);
+        setAvailablePeriods([]);
+        setSelectedPeriod(null);
       }
     } catch (error) {
       console.error('Error loading timetable:', error);
       message.error('Failed to load timetable');
-      setTimetableId(null);
+      setAvailablePeriods([]);
+      setSelectedPeriod(null);
     }
   };
 
@@ -127,8 +179,25 @@ const Attendance = () => {
     }
   };
 
+  const handlePeriodChange = (periodId) => {
+    setSelectedPeriod(periodId);
+    const period = availablePeriods.find(p => p.id === periodId);
+    if (period) {
+      setTimetableId(period.id);
+    }
+  };
+
   const handleClassChange = (classId) => {
     setSelectedClass(classId);
+    setSelectedTeacher(null);
+    setSelectedPeriod(null);
+    setAvailablePeriods([]);
+  };
+
+  const handleTeacherChange = (teacherId) => {
+    setSelectedTeacher(teacherId);
+    setSelectedPeriod(null);
+    setAvailablePeriods([]);
   };
 
   const handleAttendanceChange = (studentId, status) => {
@@ -138,14 +207,46 @@ const Attendance = () => {
     }));
   };
 
+  const getDayShortForm = (day) => {
+    const dayMap = {
+      'monday': 'mon',
+      'tuesday': 'tue',
+      'wednesday': 'wed',
+      'thursday': 'thu',
+      'friday': 'fri',
+      'saturday': 'sat',
+      'sunday': 'sun'
+    };
+    return dayMap[day.toLowerCase()] || day.toLowerCase();
+  };
+
   const handleSaveAttendance = async () => {
     if (!selectedClass) {
       message.error('Please select a class');
       return;
     }
 
-    if (!timetableId) {
-      message.error('No timetable found for selected date');
+    if (!selectedTeacher) {
+      message.error('Please select a teacher');
+      return;
+    }
+
+    if (!selectedPeriod) {
+      message.error('Please select a period');
+      return;
+    }
+
+    // Get the selected period details
+    const selectedPeriodDetails = availablePeriods.find(p => p.id === selectedPeriod);
+    if (!selectedPeriodDetails) {
+      message.error('Invalid period selected');
+      return;
+    }
+
+    // Check if selected date matches the period's day
+    const selectedDay = getDayShortForm(selectedDate.format('dddd'));
+    if (selectedDay !== selectedPeriodDetails.day.toLowerCase()) {
+      message.error(`Selected date (${selectedDay}) does not match the period's day (${selectedPeriodDetails.day})`);
       return;
     }
 
@@ -154,30 +255,22 @@ const Attendance = () => {
       const dateStr = selectedDate.format('YYYY-MM-DD');
       const classStudents = students.filter(s => s.classId === selectedClass);
       
-      // Get teacher ID from the selected class
-      const selectedClassData = classes.find(c => c.id === selectedClass);
-      const teacherId = selectedClassData?.teacher?.id;
-
-      if (!teacherId) {
-        message.error('Teacher information not found for this class');
-        return;
-      }
-
       console.log('Saving attendance with:', {
-        timetableId,
-        teacherId,
+        timetableId: selectedPeriod,
+        teacherId: selectedTeacher,
         date: dateStr,
-        classId: selectedClass
+        classId: selectedClass,
+        day: selectedDay
       });
       
       // Create attendance records for all students in the class
       const attendanceRecords = classStudents.map(student => ({
         student: student.id,
-        timetable: timetableId,
+        timetable: selectedPeriod,
         classroom: selectedClass,
         status: attendanceStatus[student.id]?.toLowerCase() || 'absent',
         date: dateStr,
-        taken_by_teacher: teacherId
+        taken_by_teacher: selectedTeacher
       }));
 
       // Save all attendance records
@@ -314,7 +407,7 @@ const Attendance = () => {
         bodyStyle={{ padding: 0, height: '100%' }}
       >
         <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={6}>
             <Select
               style={{ 
                 width: '100%',
@@ -334,12 +427,53 @@ const Attendance = () => {
               ))}
             </Select>
           </Col>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={6}>
+            <Select
+              style={{ 
+                width: '100%',
+                borderRadius: '6px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                border: '1px solid rgba(159, 179, 223, 0.3)'
+              }}
+              placeholder="Select Teacher"
+              onChange={handleTeacherChange}
+              value={selectedTeacher}
+              loading={teachersLoading}
+              disabled={!selectedClass}
+            >
+              {teachers && teachers.map(teacher => (
+                <Option key={teacher.id} value={teacher.id}>
+                  {teacher.name} - {teacher.subject} ({teacher.class})
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Select
+              style={{ 
+                width: '100%',
+                borderRadius: '6px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                border: '1px solid rgba(159, 179, 223, 0.3)'
+              }}
+              placeholder="Select Period"
+              onChange={handlePeriodChange}
+              value={selectedPeriod}
+              disabled={!selectedTeacher || availablePeriods.length === 0}
+            >
+              {availablePeriods.map(period => (
+                <Option key={period.id} value={period.id}>
+                  {getSubjectName(period.subject)} ({period.start_time} - {period.end_time}) - {period.day.toUpperCase()}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
             <Button
               type="primary"
               onClick={handleSaveAttendance}
               loading={loading}
-              disabled={!selectedClass}
+              disabled={!selectedClass || !selectedTeacher || !selectedPeriod}
               style={{ 
                 width: '100%',
                 height: '40px',
