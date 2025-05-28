@@ -556,8 +556,10 @@ const Timetable = () => {
   return (
     <div className="timetable-container">
       <div className="timetable-header" style={{ marginBottom: '16px' }}>
-        <img src="/study-time.png" alt="Timetable" style={{ width: '40px', height: '40px' }} />
-        <Title level={4} className="page-title" >Timetable Management</Title>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/study-time.png" alt="Timetable" />
+          <Title level={4} className="page-title">Timetable Management</Title>
+        </div>
         <Space size="small">
           <Select
             placeholder="Select Class"

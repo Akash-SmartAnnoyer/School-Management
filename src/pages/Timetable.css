@@ -13,6 +13,19 @@
   flex-wrap: wrap;
 }
 
+.timetable-header .page-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timetable-header img {
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+}
+
 .timetable-card {
   background: var(--surface-color);
   border: 1px solid var(--border-color);
