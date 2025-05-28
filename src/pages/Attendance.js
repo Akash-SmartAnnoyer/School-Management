@@ -273,8 +273,15 @@ const Attendance = () => {
         taken_by_teacher: selectedTeacher
       }));
 
-      // Save all attendance records
-      await Promise.all(attendanceRecords.map(record => api.attendance.createAttendance(record)));
+      // Save attendance records one by one
+      for (const record of attendanceRecords) {
+        try {
+          await api.attendance.createAttendance(record);
+        } catch (error) {
+          console.error('Error saving attendance for student:', record.student, error);
+          // Continue with other records even if one fails
+        }
+      }
       
       message.success('Attendance saved successfully');
       loadAttendance();
