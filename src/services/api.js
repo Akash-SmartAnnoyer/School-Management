@@ -477,6 +477,41 @@ export const attendanceAPI = {
       credentials: 'include'
     });
     return handleResponse(response);
+  },
+  // Add teacher attendance endpoints
+  getTeacherAttendance: async (date) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/?date=${date}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  createTeacherAttendance: async (attendanceData) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(attendanceData),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  updateTeacherAttendance: async (id, attendanceData) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/${id}/`, {
+      method: 'PUT',
+      headers: await getHeaders(),
+      body: JSON.stringify(attendanceData),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  deleteTeacherAttendance: async (id) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
   }
 };
 
@@ -993,6 +1028,76 @@ export const timetableAPI = {
   }
 };
 
+// Teacher Attendance APIs
+export const teacherAttendanceAPI = {
+  getAll: async () => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getById: async (id) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/${id}/`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  create: async (data) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(data),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  update: async (id, data) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/${id}/`, {
+      method: 'PUT',
+      headers: await getHeaders(),
+      body: JSON.stringify(data),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  delete: async (id) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/${id}/`, {
+      method: 'DELETE',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByTeacher: async (teacherId) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/?teacher=${teacherId}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByDateRange: async (startDate, endDate) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/?start_date=${startDate}&end_date=${endDate}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByYearMonth: async (year, month) => {
+    const response = await fetch(`${BASE_URL}/teacher-attendance/?year=${year}&month=${month}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  }
+};
+
 // Export all APIs as a default export
 export default {
   auth: authAPI,
@@ -1010,5 +1115,6 @@ export default {
   event: eventAPI,
   gallery: galleryAPI,
   contact: contactAPI,
-  timetable: timetableAPI
+  timetable: timetableAPI,
+  teacherAttendance: teacherAttendanceAPI
 }; 
