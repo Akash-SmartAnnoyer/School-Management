@@ -44,38 +44,32 @@ const { Option } = Select;
 const Profile = () => {
   const { currentUser, updateProfile } = useAuth();
   const [form] = Form.useForm();
-  const [schoolForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [school, setSchool] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
-      form.setFieldsValue({
-        name: currentUser.name,
-        email: currentUser.email,
-        phone: currentUser.phone,
-        address: currentUser.address,
-        profilePic: currentUser.profilePic
-      });
-      loadSchoolData();
+      loadUserProfile();
     }
   }, [currentUser]);
 
-  const loadSchoolData = async () => {
+  const loadUserProfile = async () => {
     try {
-      const schoolData = await getSchoolById(currentUser.schoolId);
-      setSchool(schoolData);
-      if (currentUser.role === ROLES.PRINCIPAL && schoolData) {
-        schoolForm.setFieldsValue({
-          name: schoolData.name,
-          email: schoolData.email,
-          phone: schoolData.phone,
-          address: schoolData.address,
-          logo: schoolData.logo
+      const response = await api.user.getUserById(currentUser.id);
+      if (response.data) {
+        const userData = response.data;
+        // Format the data for the form
+        form.setFieldsValue({
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          email: userData.email,
+          phone: userData.phone,
+          profilePic: userData.profile?.photo
         });
       }
     } catch (error) {
-      message.error('Failed to load school data');
+      console.error('Error loading user profile:', error);
+      message.error('Failed to load profile data');
     }
   };
 
@@ -83,68 +77,29 @@ const Profile = () => {
     try {
       setLoading(true);
       
-      // Remove any undefined values
-      const cleanValues = Object.keys(values).reduce((acc, key) => {
-        if (values[key] !== undefined) {
-          acc[key] = values[key];
-        }
-        return acc;
-      }, {});
-
-      if (currentUser.role === ROLES.PRINCIPAL) {
-        // For principal, update both personal profile and principal data
-        await Promise.all([
-          updateProfile(cleanValues),
-          updatePrincipal(currentUser.schoolId, {
-            name: cleanValues.name,
-            email: cleanValues.email,
-            phone: cleanValues.phone,
-            address: cleanValues.address
-          })
-        ]);
-      } else {
-        // For teachers, just update personal profile
-        await updateProfile(cleanValues);
-      }
+      // Create FormData object
+      const formData = new FormData();
       
-      message.success('Profile updated successfully');
+      // Add basic user fields
+      formData.append('first_name', values.first_name);
+      formData.append('last_name', values.last_name);
+      formData.append('email', values.email);
+      formData.append('phone', values.phone);
+      formData.append('role', 'principal');
+
+      // Make API call
+      const response = await api.user.updateUser(currentUser.id, formData);
+
+      if (response.status === 200) {
+        message.success('Profile updated successfully');
+        // Refresh user data
+        await loadUserProfile();
+      } else {
+        throw new Error('Failed to update profile');
+      }
     } catch (error) {
       console.error('Profile update error:', error);
-      message.error('Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSchoolSubmit = async (values) => {
-    try {
-      setLoading(true);
-      await updateSchool(currentUser.schoolId, values);
-      message.success('School profile updated successfully');
-      loadSchoolData();
-    } catch (error) {
-      message.error('Failed to update school profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordChange = async (values) => {
-    try {
-      setLoading(true);
-      if (currentUser.role === ROLES.PRINCIPAL) {
-        await updatePrincipal(currentUser.schoolId, {
-          password: values.newPassword
-        });
-      } else {
-        await updateTeacher(currentUser.schoolId, currentUser.username, {
-          password: values.newPassword
-        });
-      }
-      message.success('Password updated successfully');
-      form.resetFields(['oldPassword', 'newPassword', 'confirmPassword']);
-    } catch (error) {
-      message.error('Failed to update password');
+      message.error(error.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
@@ -169,15 +124,12 @@ const Profile = () => {
       formData.append('photo', file);
 
       // Make API call
-      const response = await api.student.updateStudentPhoto(currentUser.id, formData);
+      const response = await api.user.uploadUserPhoto(currentUser.id, formData);
 
       if (response.status === 200) {
         message.success('Profile picture updated successfully');
-        // Refresh user data to get updated profile picture
-        const updatedUser = await api.auth.getProfile();
-        if (updatedUser.data) {
-          updateProfile(updatedUser.data);
-        }
+        // Refresh user data
+        await loadUserProfile();
       } else {
         throw new Error('Failed to upload profile picture');
       }
@@ -186,36 +138,6 @@ const Profile = () => {
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       message.error(error.message || 'Failed to upload profile picture');
-      return false;
-    }
-  };
-
-  const handleSchoolPicUpload = async (file) => {
-    try {
-      const isImage = file.type.startsWith('image/');
-      if (!isImage) {
-        message.error('You can only upload image files!');
-        return false;
-      }
-
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) {
-        message.error('Image must be smaller than 2MB!');
-        return false;
-      }
-
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64Image = reader.result;
-        await updateSchool(currentUser.schoolId, { logo: base64Image });
-        message.success('School logo updated successfully');
-        loadSchoolData();
-      };
-      return false; // Prevent default upload behavior
-    } catch (error) {
-      message.error('Failed to upload school logo');
       return false;
     }
   };
@@ -359,9 +281,9 @@ const Profile = () => {
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item
-                        name="name"
-                        label="Full Name"
-                        rules={[{ required: true, message: 'Please enter your name' }]}
+                        name="first_name"
+                        label="First Name"
+                        rules={[{ required: true, message: 'Please enter your first name' }]}
                       >
                         <Input 
                           prefix={<UserOutlined />}
@@ -372,6 +294,24 @@ const Profile = () => {
                         />
                       </Form.Item>
                     </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="last_name"
+                        label="Last Name"
+                        rules={[{ required: true, message: 'Please enter your last name' }]}
+                      >
+                        <Input 
+                          prefix={<UserOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item
                         name="email"
@@ -390,9 +330,6 @@ const Profile = () => {
                         />
                       </Form.Item>
                     </Col>
-                  </Row>
-
-                  <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item
                         name="phone"
@@ -401,21 +338,6 @@ const Profile = () => {
                       >
                         <Input 
                           prefix={<PhoneOutlined />}
-                          style={{
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                          }}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="address"
-                        label="Address"
-                        rules={[{ required: true, message: 'Please enter your address' }]}
-                      >
-                        <Input 
-                          prefix={<HomeOutlined />}
                           style={{
                             borderRadius: '6px',
                             boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
@@ -460,315 +382,6 @@ const Profile = () => {
                   </Form.Item>
                 </Form>
               </Card>
-
-              {/* School Profile Section - Only visible for Principal */}
-              {currentUser?.role === ROLES.PRINCIPAL && (
-                <Card 
-                  title="School Profile"
-                  style={{
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)'
-                  }}
-                >
-                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    <Space direction="vertical" size="large">
-                      <Avatar
-                        size={120}
-                        src={school?.logo}
-                        icon={<BankOutlined />}
-                        style={{ 
-                          border: '4px solid rgba(159, 179, 223, 0.2)',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                      <Upload
-                        showUploadList={false}
-                        beforeUpload={handleSchoolPicUpload}
-                        accept="image/*"
-                      >
-                    <Button 
-                      icon={<UploadOutlined />}
-                      style={{
-                        height: '32px',
-                        borderRadius: '6px',
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'all 0.3s ease',
-                        padding: '0 12px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                      }}
-                    >
-                          Change School Logo
-                        </Button>
-                      </Upload>
-                    </Space>
-                  </div>
-
-                  <Form
-                    form={schoolForm}
-                    layout="vertical"
-                    onFinish={handleSchoolSubmit}
-                  >
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          name="name"
-                          label="School Name"
-                          rules={[{ required: true, message: 'Please enter school name' }]}
-                        >
-                          <Input 
-                            prefix={<BankOutlined />}
-                            style={{
-                              borderRadius: '6px',
-                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                            }}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          name="email"
-                          label="School Email"
-                          rules={[
-                            { required: true, message: 'Please enter school email' },
-                            { type: 'email', message: 'Please enter a valid email' }
-                          ]}
-                        >
-                          <Input 
-                            prefix={<MailOutlined />}
-                            style={{
-                              borderRadius: '6px',
-                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                            }}
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          name="phone"
-                          label="School Phone"
-                          rules={[{ required: true, message: 'Please enter school phone number' }]}
-                        >
-                          <Input 
-                            prefix={<PhoneOutlined />}
-                            style={{
-                              borderRadius: '6px',
-                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                            }}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          name="address"
-                          label="School Address"
-                          rules={[{ required: true, message: 'Please enter school address' }]}
-                        >
-                          <Input 
-                            prefix={<HomeOutlined />}
-                            style={{
-                              borderRadius: '6px',
-                              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                            }}
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        icon={<SaveOutlined />}
-                        loading={loading}
-                        style={{
-                          height: '32px',
-                          borderRadius: '6px',
-                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                          background: '#7B83EB',
-                          border: 'none',
-                          color: '#ffffff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          transition: 'all 0.3s ease',
-                          padding: '0 12px'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                          e.currentTarget.style.background = '#8ba1d1';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                          e.currentTarget.style.background = '#7B83EB';
-                        }}
-                      >
-                        Save School Profile
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </Card>
-              )}
-
-              {/* Teacher Profile Section - Only visible for Teachers */}
-              {currentUser?.role === ROLES.TEACHER && school && (
-                <Card 
-                  title="School Information"
-                  style={{
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)'
-                  }}
-                >
-                  <Descriptions 
-                    bordered
-                    style={{
-                      borderRadius: '8px',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <Descriptions.Item label="School Name">
-                      {school.name}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="School Email">
-                      {school.email}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="School Phone">
-                      {school.phone}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="School Address">
-                      {school.address}
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              )}
-
-              {/* Change Password Section */}
-              {/* <Card 
-                title="Change Password"
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-                  border: '1px solid rgba(159, 179, 223, 0.3)'
-                }}
-              >
-                <Form
-                  layout="vertical"
-                  onFinish={handlePasswordChange}
-                >
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="oldPassword"
-                        label="Current Password"
-                        rules={[{ required: true, message: 'Please enter your current password' }]}
-                      >
-                        <Input.Password 
-                          prefix={<LockOutlined />}
-                          style={{
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                          }}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="newPassword"
-                        label="New Password"
-                        rules={[{ required: true, message: 'Please enter your new password' }]}
-                      >
-                        <Input.Password 
-                          prefix={<LockOutlined />}
-                          style={{
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                          }}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item
-                    name="confirmPassword"
-                    label="Confirm New Password"
-                    dependencies={['newPassword']}
-                    rules={[
-                      { required: true, message: 'Please confirm your new password' },
-                      ({ getFieldValue }) => ({
-                        validator(_, value) {
-                          if (!value || getFieldValue('newPassword') === value) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject(new Error('The two passwords do not match'));
-                        },
-                      }),
-                    ]}
-                  >
-                    <Input.Password 
-                      prefix={<LockOutlined />}
-                      style={{
-                        borderRadius: '6px',
-                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
-                      }}
-                    />
-                  </Form.Item>
-
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      icon={<LockOutlined />}
-                      loading={loading}
-                      style={{
-                        height: '32px',
-                        borderRadius: '6px',
-                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                        background: '#7B83EB',
-                        border: 'none',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'all 0.3s ease',
-                        padding: '0 12px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                        e.currentTarget.style.background = '#8ba1d1';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                        e.currentTarget.style.background = '#7B83EB';
-                      }}
-                    >
-                      Change Password
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Card> */}
             </Space>
           </Col>
         </Row>

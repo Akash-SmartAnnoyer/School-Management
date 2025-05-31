@@ -1124,6 +1124,38 @@ export const teacherAttendanceAPI = {
   }
 };
 
+// User APIs
+export const userAPI = {
+  getUserById: async (id) => {
+    return makeRequest(`${BASE_URL}/users/get/${id}/`, {
+      method: 'GET'
+    });
+  },
+  updateUser: async (id, userData) => {
+    const headers = await getHeaders();
+    // If userData is FormData, remove Content-Type header
+    if (userData instanceof FormData) {
+      delete headers['Content-Type'];
+    }
+    return makeRequest(`${BASE_URL}/users/update/${id}/`, {
+      method: 'PUT',
+      headers: headers,
+      body: userData instanceof FormData ? userData : JSON.stringify(userData)
+    });
+  },
+  uploadUserPhoto: async (id, formData) => {
+    const headers = await getHeaders();
+    // Remove Content-Type header to let browser set it automatically for FormData
+    delete headers['Content-Type'];
+
+    return makeRequest(`${BASE_URL}/users/${id}/upload-photo/`, {
+      method: 'PATCH',
+      headers: headers,
+      body: formData
+    });
+  }
+};
+
 // Export all APIs as a default export
 export default {
   auth: authAPI,
@@ -1142,5 +1174,6 @@ export default {
   gallery: galleryAPI,
   contact: contactAPI,
   timetable: timetableAPI,
-  teacherAttendance: teacherAttendanceAPI
+  teacherAttendance: teacherAttendanceAPI,
+  user: userAPI
 }; 
