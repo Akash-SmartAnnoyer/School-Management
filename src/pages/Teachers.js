@@ -141,6 +141,7 @@ import api from '../services/api';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 import moment from 'moment';
+import ImagePreviewModal from '../components/ImagePreviewModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -184,6 +185,11 @@ const Teachers = () => {
   const [sortField, setSortField] = useState('name');
   const [sortOrder, setSortOrder] = useState('ascend');
   const [classes, setClasses] = useState([]);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     loadSubjects();
@@ -378,9 +384,26 @@ const Teachers = () => {
           updateData.teacher_profile = teacherProfileChanges;
         }
 
+        // Create FormData object for update
+        const formData = new FormData();
+        
+        // Add all changed fields to FormData
+        Object.entries(updateData).forEach(([key, value]) => {
+          if (key === 'profile' || key === 'teacher_profile') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
+        });
+
+        // Add photo if it was changed
+        if (selectedFile) {
+          formData.append('photo', selectedFile);
+        }
+
         // Only send update request if there are changes
-        if (Object.keys(updateData).length > 0) {
-          const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
+        if (Object.keys(updateData).length > 0 || selectedFile) {
+          const response = await api.teacher.updateTeacher(editingTeacher.id, formData);
           if (response.status === 200) {
             messageApi.success('Teacher updated successfully');
             setModalVisible(false);
@@ -419,7 +442,32 @@ const Teachers = () => {
           }
         };
 
-        const response = await api.teacher.createTeacher(createData);
+        // Create FormData object
+        const formData = new FormData();
+        
+        // Add basic user fields
+        formData.append('first_name', createData.first_name);
+        formData.append('last_name', createData.last_name);
+        formData.append('email', createData.email);
+        formData.append('phone', createData.phone);
+        formData.append('gender', createData.gender);
+        formData.append('dob', createData.dob);
+        formData.append('role', createData.role);
+        formData.append('password', createData.password);
+        formData.append('confirm_password', createData.confirm_password);
+
+        // Add profile data
+        formData.append('profile', JSON.stringify(createData.profile));
+
+        // Add teacher profile data
+        formData.append('teacher_profile', JSON.stringify(createData.teacher_profile));
+
+        // Add photo if exists
+        if (selectedFile) {
+          formData.append('photo', selectedFile);
+        }
+
+        const response = await api.teacher.createTeacher(formData);
         if (response.status === 201) {
           messageApi.success('Teacher added successfully');
           setModalVisible(false);
@@ -473,9 +521,8 @@ const Teachers = () => {
     }
   };
 
-  const handleImageUpload = async (file, teacherId) => {
+  const handleImageUpload = async (file, record) => {
     try {
-      setActionLoading(true);
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
         messageApi.error('You can only upload image files!');
@@ -488,24 +535,53 @@ const Teachers = () => {
         return false;
       }
 
-      const result = await uploadImage(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSelectedFile(file);
+      setSelectedStudentId(record.user_id);
+      setPreviewVisible(true);
       
-      const response = await api.teacher.updateTeacher(teacherId, {
-        photoURL: result.url,
-        updatedAt: new Date().toISOString()
-      });
-
-      if (response.data.success) {
-        messageApi.success('Profile picture updated successfully');
-        await refreshTeachers();
-      }
-      return false;
+      return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Profile picture upload error:', error);
-      messageApi.error('Failed to upload profile picture');
+      console.error('Error handling image:', error);
+      messageApi.error('Failed to process image');
       return false;
+    }
+  };
+
+  const handlePreviewCancel = () => {
+    setPreviewVisible(false);
+    setPreviewImage('');
+    setSelectedFile(null);
+    setSelectedStudentId(null);
+  };
+
+  const handlePreviewUpload = async () => {
+    if (!selectedFile || !selectedStudentId) return;
+
+    try {
+      setUploadingImage(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('photo', selectedFile);
+
+      // Make API call with user_id
+      const response = await api.teacher.updateTeacher(selectedStudentId, formData);
+
+      if (response.status === 200) {
+        messageApi.success('Profile picture updated successfully');
+        refreshTeachers();
+        handlePreviewCancel();
+      } else {
+        throw new Error('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      messageApi.error(error.message || 'Failed to upload profile picture');
     } finally {
-      setActionLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -550,23 +626,40 @@ const Teachers = () => {
   const columns = [
     {
       title: 'Photo',
-      dataIndex: 'photoURL',
+      dataIndex: 'photo',
       key: 'photo',
       width: 80,
       render: (photoURL, record) => (
         <Upload
           name="photo"
           showUploadList={false}
-          beforeUpload={(file) => handleImageUpload(file, record.user_id)}
+          beforeUpload={(file) => handleImageUpload(file, record)}
           accept="image/*"
         >
           <Avatar
             size={40}
-            src={photoURL ? getCloudinaryImage(photoURL) : null}
-            icon={!photoURL && (record.gender === 'M' ? 
+            src={record.photo || null}
+            icon={!record.photo && (record.gender === 'M' ? 
               <img src="/teacher-boy.png" alt="Male Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
               <img src="/teacher-girl.png" alt="Female Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
+            style={{ 
+              border: '2px solid #f0f0f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              background: '#fafafa'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+              e.currentTarget.style.border = '2px solid #d9d9d9';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+              e.currentTarget.style.border = '2px solid #f0f0f0';
+            }}
           />
         </Upload>
       ),
@@ -1176,6 +1269,14 @@ const Teachers = () => {
         visible={detailsDrawerVisible}
         onClose={() => setDetailsDrawerVisible(false)}
         teacher={selectedTeacher}
+      />
+
+      <ImagePreviewModal
+        visible={previewVisible}
+        imageUrl={previewImage}
+        onCancel={handlePreviewCancel}
+        onUpload={handlePreviewUpload}
+        loading={uploadingImage}
       />
 
       <style>

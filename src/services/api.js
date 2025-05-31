@@ -320,19 +320,29 @@ export const teacherAPI = {
     return handleResponse(response);
   },
   createTeacher: async (teacherData) => {
+    const headers = await getHeaders();
+    // Remove Content-Type header if FormData is being sent
+    if (teacherData instanceof FormData) {
+      delete headers['Content-Type'];
+    }
     const response = await fetch(`${BASE_URL}/users/register/`, {
       method: 'POST',
-      headers: await getHeaders(),
-      body: JSON.stringify(teacherData),
+      headers,
+      body: teacherData instanceof FormData ? teacherData : JSON.stringify(teacherData),
       credentials: 'include'
     });
     return handleResponse(response);
   },
   updateTeacher: async (id, teacherData) => {
+    const headers = await getHeaders();
+    // Remove Content-Type header if FormData is being sent
+    if (teacherData instanceof FormData) {
+      delete headers['Content-Type'];
+    }
     const response = await fetch(`${BASE_URL}/users/update/${id}/`, {
       method: 'PUT',
-      headers: await getHeaders(),
-      body: JSON.stringify(teacherData),
+      headers,
+      body: teacherData instanceof FormData ? teacherData : JSON.stringify(teacherData),
       credentials: 'include'
     });
     return handleResponse(response);
