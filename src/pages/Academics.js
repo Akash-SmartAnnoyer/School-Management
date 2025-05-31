@@ -44,7 +44,7 @@ import {
 } from '@ant-design/icons';
 import { Line, Column, Pie } from '@ant-design/plots';
 import api from '../services/api';
-import { MessageContext } from '../App';
+import { useMessage } from '../contexts/MessageContext';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
@@ -538,7 +538,7 @@ function TabPanel(props) {
 }
 
 const Academics = () => {
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
   const [activeTab, setActiveTab] = useState('1');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);

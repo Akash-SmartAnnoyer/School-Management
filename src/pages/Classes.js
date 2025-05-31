@@ -5,6 +5,8 @@ import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
 import { useAuth } from '../contexts/AuthContext';
+import { useClasses } from '../contexts/ClassesContext';
+import { useMessage } from '../contexts/MessageContext';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -13,49 +15,35 @@ const { Search } = Input;
 const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const Classes = () => {
-  const messageApi = useContext(MessageContext);
-  const [classes, setClasses] = useState([]);
+  const messageApi = useMessage();
+  const { 
+    classes, 
+    loading: classesLoading, 
+    currentPage, 
+    totalClasses, 
+    loadClasses, 
+    refreshClasses,
+    createClass,
+    updateClass,
+    deleteClass
+  } = useClasses();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingClass, setEditingClass] = useState(null);
   const [teachers, setTeachers] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
-  const [loadingEdit, setLoadingEdit] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalClasses, setTotalClasses] = useState(0);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    loadClasses();
     loadTeachers();
-  }, [currentPage, searchText]);
-
-  const loadClasses = async () => {
-    try {
-      setLoadingClasses(true);
-      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
-      const queryParams = `?page=${currentPage}${searchParam}`;
-      const response = await api.class.getClasses(queryParams);
-      if (response.success) {
-        setClasses(response.data.results);
-        setTotalClasses(response.data.count);
-      } else {
-        messageApi.error('Failed to load classes');
-      }
-    } catch (error) {
-      messageApi.error('Failed to load classes');
-      console.error('Error loading classes:', error);
-    } finally {
-      setLoadingClasses(false);
-    }
-  };
+  }, []);
 
   const loadTeachers = async () => {
     try {
@@ -94,15 +82,16 @@ const Classes = () => {
 
   const handleDelete = async (classId) => {
     try {
-      setLoadingClasses(true);
-      await api.class.deleteClass(classId);
-      messageApi.success('Class deleted successfully');
-      loadClasses();
+      setActionLoading(true);
+      const success = await deleteClass(classId);
+      if (success) {
+        messageApi.success('Class deleted successfully');
+      }
     } catch (error) {
       messageApi.error('Failed to delete class');
       console.error('Error deleting class:', error);
     } finally {
-      setLoadingClasses(false);
+      setActionLoading(false);
     }
   };
 
@@ -118,15 +107,16 @@ const Classes = () => {
         status: values.status
       };
 
+      let success;
       if (editingClass) {
-        await api.class.updateClass(editingClass.id, classData);
-        messageApi.success('Class updated successfully');
+        success = await updateClass(editingClass.id, classData);
       } else {
-        await api.class.createClass(classData);
-        messageApi.success('Class added successfully');
+        success = await createClass(classData);
       }
-      setIsModalVisible(false);
-      loadClasses();
+
+      if (success) {
+        setIsModalVisible(false);
+      }
     } catch (error) {
       messageApi.error(editingClass ? 'Failed to update class' : 'Failed to add class');
       console.error('Error saving class:', error);
@@ -391,14 +381,8 @@ const Classes = () => {
 
   const handleSearch = (value) => {
     setSearchText(value);
-    setCurrentPage(1); // Reset to first page when searching
+    loadClasses(1, 10, value);
   };
-
-  const filteredClasses = classes.filter(cls =>
-    cls.class_name.toLowerCase().includes(searchText.toLowerCase()) ||
-    cls.section.toLowerCase().includes(searchText.toLowerCase()) ||
-    (cls.teacher?.name?.toLowerCase() || '').includes(searchText.toLowerCase())
-  );
 
   return (
     <div className="classes-page" style={{ 
@@ -460,16 +444,16 @@ const Classes = () => {
         <Table
           rowSelection={rowSelection}
           columns={columns}
-          dataSource={filteredClasses}
+          dataSource={classes}
           rowKey="id"
-          loading={loadingClasses}
+          loading={classesLoading || actionLoading}
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="classes-table"
           pagination={{
             current: currentPage,
             total: totalClasses,
             pageSize: 10,
-            onChange: (page) => setCurrentPage(page),
+            onChange: (page) => loadClasses(page),
             showSizeChanger: false,
             showTotal: (total) => `Total ${total} classes`
           }}
@@ -647,7 +631,7 @@ const Classes = () => {
         open={bulkStatusModalVisible}
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
-        confirmLoading={loadingClasses}
+        confirmLoading={loadingTeachers}
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item

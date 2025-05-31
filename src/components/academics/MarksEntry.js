@@ -45,7 +45,7 @@ import {
   UserOutlined,
   CommentOutlined
 } from '@ant-design/icons';
-import { MessageContext } from '../../App';
+import { useMessage } from '../../contexts/MessageContext';
 import moment from 'moment';
 import api from '../../services/api';
 import { Line } from '@ant-design/plots';
@@ -65,7 +65,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
   const [localExams, setLocalExams] = useState([]);
   const [localSubjects, setLocalSubjects] = useState([]);
   const [localClasses, setLocalClasses] = useState([]);
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
 
   // Reset all state when modal visibility changes
   useEffect(() => {
@@ -431,7 +431,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
 
 const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subjects }) => {
   const [form] = Form.useForm();
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
 
   useEffect(() => {
     if (visible) {
@@ -545,7 +545,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [selectedClassForBulk, setSelectedClassForBulk] = useState(null);
   const [selectedExamForBulk, setSelectedExamForBulk] = useState(null);
   const [selectedSubjectForBulk, setSelectedSubjectForBulk] = useState(null);
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
 
   const handleEditMarks = (record) => {
     const formattedRecord = {

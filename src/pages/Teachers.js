@@ -48,7 +48,7 @@ import {
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
-import { MessageContext } from '../App';
+import { useMessage } from '../contexts/MessageContext';
 import moment from 'moment';
 import api from '../services/api';
 import { useTeachers } from '../contexts/TeachersContext';
@@ -58,7 +58,7 @@ const { Search } = AntInput;
 const { Title } = Typography;
 
 const Teachers = () => {
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
   const { 
     teachers, 
     loading: teachersLoading, 

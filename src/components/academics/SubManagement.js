@@ -24,7 +24,7 @@ import {
   BookOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { MessageContext } from '../../App';
+import { useMessage } from '../../contexts/MessageContext';
 import api from '../../services/api';
 import './AcademicsShared.css';
 
@@ -36,7 +36,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingSubject, setEditingSubject] = useState(null);
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
 
   const handleAdd = () => {
     setEditingSubject(null);

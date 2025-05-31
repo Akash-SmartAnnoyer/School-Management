@@ -56,10 +56,12 @@ import Timetable from './pages/Timetable';
 import AttendanceReport from './pages/AttendanceReport';
 import Register from './pages/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { MessageProvider } from './contexts/MessageContext';
 import SchoolLogo from './components/SchoolLogo';
 import FeeManagement from './pages/FeeManagement';
 import { StudentsProvider } from './contexts/StudentsContext';
 import { TeachersProvider } from './contexts/TeachersContext';
+import { ClassesProvider } from './contexts/ClassesContext';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -715,45 +717,41 @@ function MainLayout() {
   );
 }
 
-// Create and export MessageContext
-export const MessageContext = React.createContext(null);
-
 function App() {
-  const [messageApi, contextHolder] = message.useMessage();
-
   return (
     <AuthProvider>
-      <LoadingProvider>
+      <MessageProvider>
         <StudentsProvider>
           <TeachersProvider>
-            <Router>
-              <ConfigProvider
-                theme={{
-                  token: {
-                    colorPrimary: '#7B83EB',
-                  },
-                }}
-              >
-                <MessageContext.Provider value={messageApi}>
-                  {contextHolder}
-                  <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route
-                      path="/*"
-                      element={
-                        <ProtectedRoute>
-                          <MainLayout />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </MessageContext.Provider>
-              </ConfigProvider>
-            </Router>
+            <ClassesProvider>
+              <LoadingProvider>
+                <Router>
+                  <ConfigProvider
+                    theme={{
+                      token: {
+                        colorPrimary: '#7B83EB',
+                      },
+                    }}
+                  >
+                    <Routes>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route
+                        path="/*"
+                        element={
+                          <ProtectedRoute>
+                            <MainLayout />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+                  </ConfigProvider>
+                </Router>
+              </LoadingProvider>
+            </ClassesProvider>
           </TeachersProvider>
         </StudentsProvider>
-      </LoadingProvider>
+      </MessageProvider>
     </AuthProvider>
   );
 }

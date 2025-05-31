@@ -49,7 +49,7 @@ import {
   DeleteOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-import { MessageContext } from '../App';
+import { useMessage } from '../contexts/MessageContext';
 import moment from 'moment';
 import feeService from '../services/feeService';
 import { mockStudents } from '../services/mockData';
@@ -73,7 +73,7 @@ const FeeManagement = () => {
     class: undefined,
     status: undefined
   });
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
   const [editPaymentModalVisible, setEditPaymentModalVisible] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [form] = Form.useForm();

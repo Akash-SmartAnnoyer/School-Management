@@ -26,7 +26,7 @@ import {
   TrophyOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
-import { MessageContext } from '../../App';
+import { useMessage } from '../../contexts/MessageContext';
 import api from '../../services/api';
 import moment from 'moment';
 import './AcademicsShared.css';
@@ -54,7 +54,7 @@ const ExamManagement = () => {
   const [form] = Form.useForm();
   const [editLoading, setEditLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
-  const messageApi = useContext(MessageContext);
+  const messageApi = useMessage();
 
   useEffect(() => {
     loadInitialData();
