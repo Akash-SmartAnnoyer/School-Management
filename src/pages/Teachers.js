@@ -51,6 +51,7 @@ import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 import { MessageContext } from '../App';
 import moment from 'moment';
 import api from '../services/api';
+import { useTeachers } from '../contexts/TeachersContext';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -58,7 +59,14 @@ const { Title } = Typography;
 
 const Teachers = () => {
   const messageApi = useContext(MessageContext);
-  const [teachers, setTeachers] = useState([]);
+  const { 
+    teachers, 
+    loading: teachersLoading, 
+    currentPage, 
+    totalTeachers, 
+    loadTeachers, 
+    refreshTeachers 
+  } = useTeachers();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingTeacher, setEditingTeacher] = useState(null);
@@ -67,21 +75,18 @@ const Teachers = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [tempImage, setTempImage] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalTeachers, setTotalTeachers] = useState(0);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    loadTeachers();
     loadClasses();
     loadSubjects();
-  }, [currentPage, searchText]);
+  }, []);
 
   useEffect(() => {
     if (isModalVisible) {
@@ -99,26 +104,6 @@ const Teachers = () => {
       }
     }
   }, [isModalVisible, editingTeacher]);
-
-  const loadTeachers = async () => {
-    try {
-      setLoading(true);
-      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
-      const queryParams = `?page=${currentPage}${searchParam}`;
-      const response = await api.teacher.getTeachers(queryParams);
-      if (response.success) {
-        setTeachers(response.data.results);
-        setTotalTeachers(response.data.count);
-      } else {
-        messageApi.error('Failed to load teachers');
-      }
-    } catch (error) {
-      messageApi.error(error.message || 'Failed to load teachers');
-      console.error('Error loading teachers:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadClasses = async () => {
     try {
@@ -159,7 +144,7 @@ const Teachers = () => {
 
   const handleEdit = async (teacher) => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       // Fetch the latest teacher data
       const response = await api.teacher.getTeacher(teacher.user_id);
       if (response.data) {
@@ -186,13 +171,11 @@ const Teachers = () => {
           years_of_experience: teacherData.teacher_profile?.years_of_experience
         };
         
-        // Set the editing teacher and show the modal
         setEditingTeacher({
           ...formValues,
-          id: teacher.user_id // Make sure we have the user_id for the update
+          id: teacher.user_id
         });
         
-        // Set form values directly
         form.setFieldsValue(formValues);
         setIsModalVisible(true);
       } else {
@@ -202,7 +185,7 @@ const Teachers = () => {
       messageApi.error(error.message || 'Failed to load teacher data');
       console.error('Error loading teacher:', error);
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -213,13 +196,12 @@ const Teachers = () => {
     }
 
     try {
-      setLoading(true);
+      setActionLoading(true);
       const response = await api.teacher.deleteTeacher(teacherId);
       
       if (response.status === 204) {
         messageApi.success('Teacher deleted successfully');
-        // Keep loading state while refreshing the list
-        await loadTeachers();
+        await refreshTeachers();
       } else if (response.status === 403) {
         if (response.data?.detail === 'You do not have permission to perform this action.') {
           messageApi.error('You do not have permission to delete this teacher');
@@ -237,13 +219,13 @@ const Teachers = () => {
       console.error('Error deleting teacher:', error);
       messageApi.error(error.message || 'Failed to delete teacher');
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleSubmit = async () => {
     try {
-      setLoading(true);
+      setActionLoading(true);
       const values = await form.validateFields();
       
       if (editingTeacher) {
@@ -314,13 +296,11 @@ const Teachers = () => {
 
         // Only send update request if there are changes
         if (Object.keys(updateData).length > 0) {
-          console.log('Update payload:', updateData); // Debug log to see what's being sent
           const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
           if (response.status === 200) {
             messageApi.success('Teacher updated successfully');
             setIsModalVisible(false);
-            setLoading(true); // Keep loading state while refreshing the list
-            await loadTeachers(); // Wait for the list to refresh
+            await refreshTeachers();
           }
         } else {
           messageApi.info('No changes detected');
@@ -359,7 +339,7 @@ const Teachers = () => {
         if (response.status === 201) {
           messageApi.success('Teacher added successfully');
           setIsModalVisible(false);
-          loadTeachers();
+          await refreshTeachers();
         }
       }
     } catch (error) {
@@ -405,12 +385,13 @@ const Teachers = () => {
         messageApi.error(error.message || 'An error occurred while saving the teacher.');
       }
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleImageUpload = async (file, teacherId) => {
     try {
+      setActionLoading(true);
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
         messageApi.error('You can only upload image files!');
@@ -432,13 +413,15 @@ const Teachers = () => {
 
       if (response.data.success) {
         messageApi.success('Profile picture updated successfully');
-        loadTeachers();
+        await refreshTeachers();
       }
       return false;
     } catch (error) {
       console.error('Profile picture upload error:', error);
       messageApi.error('Failed to upload profile picture');
       return false;
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -644,14 +627,8 @@ const Teachers = () => {
 
   const handleSearch = (value) => {
     setSearchText(value);
-    setCurrentPage(1); // Reset to first page when searching
+    loadTeachers(1, 10, value);
   };
-
-  const filteredTeachers = teachers.filter(teacher =>
-    (teacher.name?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
-    (teacher.subject?.toLowerCase() || '').includes(searchText.toLowerCase()) ||
-    (teacher.email?.toLowerCase() || '').includes(searchText.toLowerCase())
-  );
 
   return (
     <div className="teachers-page" style={{ 
@@ -714,16 +691,16 @@ const Teachers = () => {
         <Table
           rowSelection={rowSelection}
           columns={columns}
-          dataSource={filteredTeachers}
+          dataSource={teachers}
           rowKey="id"
-          loading={loading}
+          loading={teachersLoading || actionLoading}
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
           className="teachers-table"
           pagination={{
             current: currentPage,
             total: totalTeachers,
             pageSize: 10,
-            onChange: (page) => setCurrentPage(page),
+            onChange: (page) => loadTeachers(page),
             showSizeChanger: false,
             showTotal: (total) => `Total ${total} teachers`
           }}
@@ -794,7 +771,7 @@ const Teachers = () => {
           setTempImage(null);
         }}
         width={900}
-        confirmLoading={loading}
+        confirmLoading={actionLoading}
         className="teacher-form-modal"
       >
         <Form form={form} layout="vertical">
@@ -1095,7 +1072,7 @@ const Teachers = () => {
         open={bulkStatusModalVisible}
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
-        confirmLoading={loading}
+        confirmLoading={actionLoading}
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item

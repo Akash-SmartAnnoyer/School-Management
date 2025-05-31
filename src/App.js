@@ -59,6 +59,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SchoolLogo from './components/SchoolLogo';
 import FeeManagement from './pages/FeeManagement';
 import { StudentsProvider } from './contexts/StudentsContext';
+import { TeachersProvider } from './contexts/TeachersContext';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -724,31 +725,33 @@ function App() {
     <AuthProvider>
       <LoadingProvider>
         <StudentsProvider>
-          <Router>
-            <ConfigProvider
-              theme={{
-                token: {
-                  colorPrimary: '#7B83EB',
-                },
-              }}
-            >
-              <MessageContext.Provider value={messageApi}>
-                {contextHolder}
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route
-                    path="/*"
-                    element={
-                      <ProtectedRoute>
-                        <MainLayout />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </MessageContext.Provider>
-            </ConfigProvider>
-          </Router>
+          <TeachersProvider>
+            <Router>
+              <ConfigProvider
+                theme={{
+                  token: {
+                    colorPrimary: '#7B83EB',
+                  },
+                }}
+              >
+                <MessageContext.Provider value={messageApi}>
+                  {contextHolder}
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </MessageContext.Provider>
+              </ConfigProvider>
+            </Router>
+          </TeachersProvider>
         </StudentsProvider>
       </LoadingProvider>
     </AuthProvider>
