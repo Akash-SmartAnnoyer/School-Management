@@ -33,6 +33,7 @@ import {
 } from '@ant-design/icons';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useClasses } from '../contexts/ClassesContext';
 import moment from 'moment';
 import './Timetable.css';
 
@@ -45,7 +46,7 @@ const Timetable = () => {
   const [form] = Form.useForm();
   const [bulkForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [classes, setClasses] = useState([]);
+  const { classes, loading: classesLoading } = useClasses();
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [timetables, setTimetables] = useState([]);
@@ -87,11 +88,6 @@ const Timetable = () => {
     return timeSlots;
   };
 
-  // Load classes only when the component mounts
-  useEffect(() => {
-    loadClasses();
-  }, []);
-
   // Load subjects and teachers when component mounts
   useEffect(() => {
     loadSubjects();
@@ -104,15 +100,6 @@ const Timetable = () => {
       loadTimetables();
     }
   }, [selectedClass]);
-
-  const loadClasses = async () => {
-    try {
-      const response = await api.class.getClasses();
-      setClasses(response.data.results);
-    } catch (error) {
-      message.error('Failed to load classes');
-    }
-  };
 
   const loadSubjects = async () => {
     try {
@@ -566,6 +553,7 @@ const Timetable = () => {
             value={selectedClass}
             onChange={setSelectedClass}
             style={{ width: 200 }}
+            loading={classesLoading}
           >
             {classes.map(cls => (
               <Option key={cls.id} value={cls.id}>
