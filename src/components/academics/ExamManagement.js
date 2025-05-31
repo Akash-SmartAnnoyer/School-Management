@@ -54,6 +54,7 @@ const ExamManagement = () => {
   const [form] = Form.useForm();
   const [editLoading, setEditLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const messageApi = useMessage();
 
   useEffect(() => {
@@ -136,6 +137,28 @@ const ExamManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      setLoading(true);
+      await Promise.all(selectedRowKeys.map(id => api.exam.deleteExam(id)));
+      messageApi.success('Selected exams deleted successfully');
+      setSelectedRowKeys([]);
+      await loadInitialData();
+    } catch (error) {
+      messageApi.error('Failed to delete selected exams');
+      console.error('Error deleting exams:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+    },
   };
 
   const getSubjectNames = (subjectIds) => {
@@ -338,6 +361,23 @@ const ExamManagement = () => {
           >
             Add Exam
           </Button>
+          {selectedRowKeys.length > 0 && (
+            <Popconfirm
+              title="Are you sure you want to delete selected exams?"
+              description="This action cannot be undone."
+              onConfirm={handleBulkDelete}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Delete Selected ({selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       </div>
 
@@ -347,6 +387,7 @@ const ExamManagement = () => {
         padding: '0 16px 16px 16px'
       }}>
         <Table
+          rowSelection={rowSelection}
           columns={examColumns}
           dataSource={exams}
           rowKey="id"

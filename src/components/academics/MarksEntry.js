@@ -545,6 +545,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [selectedClassForBulk, setSelectedClassForBulk] = useState(null);
   const [selectedExamForBulk, setSelectedExamForBulk] = useState(null);
   const [selectedSubjectForBulk, setSelectedSubjectForBulk] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const messageApi = useMessage();
 
   const handleEditMarks = (record) => {
@@ -677,6 +678,28 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      setLoading(true);
+      await Promise.all(selectedRowKeys.map(id => api.marks.deleteMarks(id)));
+      messageApi.success('Selected marks deleted successfully');
+      setSelectedRowKeys([]);
+      loadInitialData();
+    } catch (error) {
+      messageApi.error('Failed to delete selected marks');
+      console.error('Error deleting marks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+    },
   };
 
   const getStudentName = (studentId) => {
@@ -852,7 +875,6 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     <div className="academics-page">
       <div className="academics-header">
         <Title level={3} className="page-title">
-          {/* <BookOutlined className="title-icon" /> */}
           <img src="/test.png" alt="Marks" style={{ width: '40px', height: '40px' }} />
           Marks Entry
         </Title>
@@ -886,10 +908,28 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           >
             Bulk Entry
           </Button>
+          {selectedRowKeys.length > 0 && (
+            <Popconfirm
+              title="Are you sure you want to delete selected marks?"
+              description="This action cannot be undone."
+              onConfirm={handleBulkDelete}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Delete Selected ({selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       </div>
 
       <Table
+        rowSelection={rowSelection}
         columns={columns}
         dataSource={filteredMarks}
         rowKey="id"

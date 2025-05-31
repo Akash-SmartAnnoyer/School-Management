@@ -36,6 +36,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingSubject, setEditingSubject] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const messageApi = useMessage();
 
   const handleAdd = () => {
@@ -61,6 +62,18 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
     }
   };
 
+  const handleBulkDelete = async () => {
+    try {
+      await Promise.all(selectedRowKeys.map(id => api.subject.deleteSubject(id)));
+      messageApi.success('Selected subjects deleted successfully');
+      setSelectedRowKeys([]);
+      onPageChange(currentPage);
+    } catch (error) {
+      messageApi.error('Failed to delete selected subjects');
+      console.error('Error deleting subjects:', error);
+    }
+  };
+
   const handleSubmit = async (values) => {
     try {
       if (editingSubject) {
@@ -76,6 +89,13 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
       messageApi.error(editingSubject ? 'Failed to update subject' : 'Failed to add subject');
       console.error('Error saving subject:', error);
     }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+    },
   };
 
   const columns = [
@@ -154,6 +174,23 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
           >
             Add Subject
           </Button>
+          {selectedRowKeys.length > 0 && (
+            <Popconfirm
+              title="Are you sure you want to delete selected subjects?"
+              description="This action cannot be undone."
+              onConfirm={handleBulkDelete}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Delete Selected ({selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       </div>
 
@@ -163,6 +200,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
         padding: '0 16px 16px 16px'
       }}>
         <Table
+          rowSelection={rowSelection}
           columns={columns}
           dataSource={subjects}
           rowKey="id"
