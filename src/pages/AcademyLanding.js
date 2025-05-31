@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Row, Col, Card, Button, Space, Divider, List, Collapse, Layout, Tabs, Image } from 'antd';
+import { Typography, Row, Col, Card, Button, Space, Divider, List, Collapse, Layout, Tabs, Image, Statistic } from 'antd';
 import { 
   BookOutlined, 
   TeamOutlined, 
@@ -16,14 +16,41 @@ import {
   BarChartOutlined,
   SettingOutlined,
   BellOutlined,
-  LockOutlined
+  LockOutlined,
+  StarOutlined,
+  TrophyOutlined,
+  GlobalOutlined,
+  RocketOutlined
 } from '@ant-design/icons';
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 const { Title, Paragraph, Text } = Typography;
 const { Panel } = Collapse;
 const { Header, Footer } = Layout;
 const { TabPane } = Tabs;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const float = keyframes`
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+`;
 
 const StyledLayout = styled(Layout)`
   min-height: 100vh;
@@ -31,7 +58,8 @@ const StyledLayout = styled(Layout)`
 `;
 
 const StyledHeader = styled(Header)`
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   padding: 0 50px;
   display: flex;
   align-items: center;
@@ -40,6 +68,11 @@ const StyledHeader = styled(Header)`
   position: fixed;
   width: 100%;
   z-index: 1000;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+  }
 `;
 
 const StyledFooter = styled(Footer)`
@@ -54,17 +87,51 @@ const StyledSection = styled.section`
   background: ${props => props.background || '#f7f9fc'};
 `;
 
+const HeroSection = styled(StyledSection)`
+  position: relative;
+  overflow: hidden;
+  padding: 120px 0;
+  background: linear-gradient(135deg, #7B83EB 0%, #5B63D9 100%);
+  color: white;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/pattern.svg');
+    opacity: 0.1;
+  }
+`;
+
+const HeroImage = styled.img`
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: block;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  animation: ${float} 3s ease-in-out infinite;
+`;
+
 const FeatureCard = styled(Card)`
   height: 100%;
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(123, 131, 235, 0.1);
   transition: all 0.3s ease;
   border: 1px solid #e8e8e8;
+  animation: ${fadeIn} 0.5s ease-out;
   
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 30px rgba(123, 131, 235, 0.15);
     border-color: #7B83EB;
+    
+    .feature-icon {
+      animation: ${float} 2s ease-in-out infinite;
+    }
   }
 `;
 
@@ -111,6 +178,34 @@ const ScreenshotContainer = styled.div`
   
   &:hover img {
     transform: scale(1.02);
+  }
+`;
+
+const StatsSection = styled(StyledSection)`
+  background: white;
+  text-align: center;
+`;
+
+const StatisticCard = styled(Card)`
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(123, 131, 235, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(123, 131, 235, 0.15);
+  }
+`;
+
+const TestimonialCard = styled(Card)`
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(123, 131, 235, 0.1);
+  margin: 16px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(123, 131, 235, 0.15);
   }
 `;
 
@@ -246,6 +341,50 @@ const AcademyLanding = () => {
     }
   ];
 
+  const stats = [
+    {
+      title: 'Active Schools',
+      value: '500+',
+      icon: <GlobalOutlined style={{ fontSize: 32, color: '#7B83EB' }} />
+    },
+    {
+      title: 'Happy Users',
+      value: '50K+',
+      icon: <UserOutlined style={{ fontSize: 32, color: '#7B83EB' }} />
+    },
+    {
+      title: 'Success Rate',
+      value: '98%',
+      icon: <TrophyOutlined style={{ fontSize: 32, color: '#7B83EB' }} />
+    },
+    {
+      title: 'Features',
+      value: '100+',
+      icon: <RocketOutlined style={{ fontSize: 32, color: '#7B83EB' }} />
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: 'Dr. Sarah Johnson',
+      role: 'Principal, St. Mary\'s Academy',
+      content: '360Schooling has transformed how we manage our school. The platform is intuitive, feature-rich, and has significantly improved our administrative efficiency.',
+      rating: 5
+    },
+    {
+      name: 'Michael Chen',
+      role: 'IT Director, Global Education Network',
+      content: 'The comprehensive features and excellent support make 360Schooling the perfect solution for our multi-campus institution.',
+      rating: 5
+    },
+    {
+      name: 'Emma Rodriguez',
+      role: 'Administrator, Bright Future School',
+      content: 'Implementing 360Schooling was the best decision we made. It has streamlined our operations and improved communication across all levels.',
+      rating: 5
+    }
+  ];
+
   return (
     <StyledLayout>
       <StyledHeader>
@@ -270,64 +409,123 @@ const AcademyLanding = () => {
       </StyledHeader>
 
       <Layout.Content style={{ paddingTop: '64px' }}>
-        {/* Hero Section */}
-        <StyledSection background="white">
+        <HeroSection>
           <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
             <Row align="middle" gutter={[48, 48]}>
               <Col xs={24} md={12}>
                 <Space direction="vertical" size="large">
-                  <Title level={1} style={{ color: '#1f1f1f', margin: 0 }}>
+                  <Title level={1} style={{ color: 'white', margin: 0, fontSize: '3.5rem' }}>
                     Transform Your School Management
                   </Title>
-                  <Paragraph style={{ color: '#666666', fontSize: 18 }}>
+                  <Paragraph style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: 20 }}>
                     Experience the future of education management with our comprehensive, user-friendly platform. Streamline operations, enhance learning, and improve communication.
                   </Paragraph>
                   <Space>
-                    <Button type="primary" size="large" style={{ background: '#7B83EB', borderColor: '#7B83EB' }}>
+                    <Button type="primary" size="large" style={{ 
+                      background: 'white', 
+                      borderColor: 'white',
+                      color: '#7B83EB',
+                      height: '48px',
+                      padding: '0 32px',
+                      fontSize: '16px'
+                    }}>
                       Schedule Demo
                     </Button>
-                    <Button size="large" style={{ color: '#7B83EB', borderColor: '#7B83EB' }}>
+                    <Button size="large" style={{ 
+                      color: 'white', 
+                      borderColor: 'white',
+                      height: '48px',
+                      padding: '0 32px',
+                      fontSize: '16px'
+                    }}>
                       Learn More
                     </Button>
                   </Space>
                 </Space>
               </Col>
               <Col xs={24} md={12}>
-                <img 
+                <HeroImage 
                   src="/screenshots/dashboard-preview.png" 
                   alt="360Schooling Dashboard" 
-                  style={{ 
-                    width: '100%', 
-                    maxWidth: 600, 
-                    margin: '0 auto', 
-                    display: 'block',
-                    boxShadow: '0 4px 20px rgba(123, 131, 235, 0.15)',
-                    borderRadius: '16px'
-                  }} 
                 />
               </Col>
             </Row>
           </div>
-        </StyledSection>
+        </HeroSection>
 
-        {/* Key Features Section */}
+        {/* Stats Section */}
+        <StatsSection>
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Row gutter={[24, 24]}>
+              {stats.map((stat, index) => (
+                <Col xs={24} sm={12} md={6} key={index}>
+                  <StatisticCard>
+                    <Space direction="vertical" align="center" style={{ width: '100%' }}>
+                      {stat.icon}
+                      <Statistic 
+                        title={stat.title} 
+                        value={stat.value} 
+                        valueStyle={{ color: '#7B83EB', fontSize: '2rem' }}
+                      />
+                    </Space>
+                  </StatisticCard>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        </StatsSection>
+
+        {/* Enhanced Features Section */}
         <StyledSection>
           <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
             <Title level={2} style={{ textAlign: 'center', marginBottom: 48, color: '#1f1f1f' }}>
-              Key Features
+              Powerful Features for Modern Education
             </Title>
             <Row gutter={[24, 24]}>
               {features.map((feature, index) => (
                 <Col xs={24} sm={12} md={8} key={index}>
                   <FeatureCard>
                     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                      {React.cloneElement(feature.icon, { style: { fontSize: 32, color: '#7B83EB' } })}
+                      <div className="feature-icon">
+                        {React.cloneElement(feature.icon, { style: { fontSize: 32, color: '#7B83EB' } })}
+                      </div>
                       <Title level={4} style={{ margin: 0, color: '#1f1f1f' }}>{feature.title}</Title>
                       <Paragraph style={{ color: '#666666' }}>
                         {feature.description}
                       </Paragraph>
                     </Space>
                   </FeatureCard>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        </StyledSection>
+
+        {/* Testimonials Section */}
+        <StyledSection background="white">
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Title level={2} style={{ textAlign: 'center', marginBottom: 48, color: '#1f1f1f' }}>
+              What Our Clients Say
+            </Title>
+            <Row gutter={[24, 24]}>
+              {testimonials.map((testimonial, index) => (
+                <Col xs={24} md={8} key={index}>
+                  <TestimonialCard>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                      <div style={{ color: '#7B83EB' }}>
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <StarOutlined key={i} />
+                        ))}
+                      </div>
+                      <Paragraph style={{ fontSize: 16, color: '#666666', fontStyle: 'italic' }}>
+                        "{testimonial.content}"
+                      </Paragraph>
+                      <Space direction="vertical" size="small">
+                        <Text strong style={{ color: '#1f1f1f' }}>{testimonial.name}</Text>
+                        <Text type="secondary">{testimonial.role}</Text>
+                      </Space>
+                    </Space>
+                  </TestimonialCard>
                 </Col>
               ))}
             </Row>
