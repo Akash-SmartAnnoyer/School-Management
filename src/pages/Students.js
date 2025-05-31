@@ -105,6 +105,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         setOriginalValues(null);
         form.resetFields();
         setPreviewImage(null);
+        setSelectedFile(null);
       }
     }
   }, [visible, initialValues]);
@@ -158,15 +159,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
-      // If there's a new photo selected, upload it first
-      if (selectedFile && initialValues?.user_id) {
-        const formData = new FormData();
-        formData.append('photo', selectedFile);
-        await api.student.updateStudentPhoto(initialValues.user_id, formData);
-      }
-      
-      onSubmit(values, originalValues);
+      onSubmit(values, originalValues, selectedFile);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -184,7 +177,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       }
       open={visible}
       onOk={handleSubmit}
-      onCancel={onCancel}
+      onCancel={() => {
+        setSelectedFile(null);
+        setPreviewImage(null);
+        onCancel();
+      }}
       confirmLoading={loading}
       width={900}
       className="student-form-modal"
@@ -589,7 +586,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                               {...restField}
                               name={[name, 'fee_type']}
                               label="Fee Type"
-                              rules={[{ required: true, message: 'Please select or enter fee type!' }]}
+                              rules={[{ required: false, message: 'Please select or enter fee type!' }]}
                             >
                               <Select
                                 showSearch
@@ -650,7 +647,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                               {...restField}
                               name={[name, 'amount']}
                               label="Total Amount"
-                              rules={[{ required: true, message: 'Please enter amount!' }]}
+                              rules={[{ required: false, message: 'Please enter amount!' }]}
                             >
                               <Input prefix="₹" type="number" step="0.01" />
                             </Form.Item>
@@ -660,7 +657,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                               {...restField}
                               name={[name, 'period']}
                               label="Fee Period"
-                              rules={[{ required: true, message: 'Please select period!' }]}
+                              rules={[{ required: false, message: 'Please select period!' }]}
                             >
                               <Select onChange={(value) => {
                                 const amount = form.getFieldValue(['fee_details', name, 'amount']);
@@ -724,7 +721,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                               {...restField}
                               name={[name, 'status']}
                               label="Fee Status"
-                              rules={[{ required: true, message: 'Please select status!' }]}
+                              rules={[{ required: false, message: 'Please select status!' }]}
                             >
                               <Select onChange={(value) => {
                                 if (value === 'Partial') {
@@ -769,7 +766,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                                     {...restField}
                                     name={[name, 'due_amount']}
                                     label="Due Amount"
-                                    rules={[{ required: true, message: 'Please enter due amount!' }]}
+                                    rules={[{ required: false, message: 'Please enter due amount!' }]}
                                   >
                                     <Input prefix="₹" type="number" step="0.01" />
                                   </Form.Item>
@@ -979,7 +976,7 @@ const Students = () => {
     }
   };
 
-  const handleSubmit = async (values, originalValues) => {
+  const handleSubmit = async (values, originalValues, selectedFile) => {
     try {
       setFormSubmitting(true);
       let response;
@@ -1117,9 +1114,26 @@ const Students = () => {
           updateData.student_profile = studentProfileChanges;
         }
 
+        // Create FormData object for update
+        const formData = new FormData();
+        
+        // Add all changed fields to FormData
+        Object.entries(updateData).forEach(([key, value]) => {
+          if (key === 'profile' || key === 'student_profile') {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value);
+          }
+        });
+
+        // Add photo if it was changed
+        if (selectedFile) {
+          formData.append('photo', selectedFile);
+        }
+
         // Only send update request if there are changes
-        if (Object.keys(updateData).length > 0) {
-          response = await api.student.updateStudent(editingStudent.id, updateData);
+        if (Object.keys(updateData).length > 0 || selectedFile) {
+          response = await api.student.updateStudent(editingStudent.id, formData);
         } else {
           message.info('No changes detected');
           setModalVisible(false);
@@ -1172,7 +1186,32 @@ const Students = () => {
           }
         };
 
-        response = await api.student.createStudent(createData);
+        // Create FormData object
+        const formData = new FormData();
+        
+        // Add basic user fields
+        formData.append('first_name', createData.first_name);
+        formData.append('last_name', createData.last_name);
+        formData.append('email', createData.email);
+        formData.append('phone', createData.phone);
+        formData.append('gender', createData.gender);
+        formData.append('dob', createData.dob);
+        formData.append('role', createData.role);
+        formData.append('password', createData.password);
+        formData.append('confirm_password', createData.confirm_password);
+
+        // Add profile data
+        formData.append('profile', JSON.stringify(createData.profile));
+
+        // Add student profile data
+        formData.append('student_profile', JSON.stringify(createData.student_profile));
+
+        // Add photo if exists
+        if (selectedFile) {
+          formData.append('photo', selectedFile);
+        }
+
+        response = await api.student.createStudent(formData);
       }
 
       if (response.status === 200 || response.status === 201) {

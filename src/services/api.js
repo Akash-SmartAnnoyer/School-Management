@@ -206,12 +206,16 @@ export const studentAPI = {
       throw new Error('Failed to fetch student details. Please try again.');
     }
   },
-  createStudent: async (studentData) => {
+  createStudent: async (formData) => {
     try {
+      const { getAccessToken } = await import('../utils/tokenManager');
+
       const response = await fetch(`${BASE_URL}/users/register/`, {
         method: 'POST',
-        headers: await getHeaders(),
-        body: JSON.stringify(studentData),
+        headers: {
+          'Authorization': `Bearer ${getAccessToken()}`
+        },
+        body: formData,
         credentials: 'include'
       });
       return handleResponse(response);
@@ -220,12 +224,16 @@ export const studentAPI = {
       throw new Error('Failed to create student. Please check the data and try again.');
     }
   },
-  updateStudent: async (id, studentData) => {
+  updateStudent: async (id, formData) => {
     try {
+      const { getAccessToken } = await import('../utils/tokenManager');
+
       const response = await fetch(`${BASE_URL}/users/update/${id}/`, {
         method: 'PUT',
-        headers: await getHeaders(),
-        body: JSON.stringify(studentData),
+        headers: {
+          'Authorization': `Bearer ${getAccessToken()}`
+        },
+        body: formData,
         credentials: 'include'
       });
       return handleResponse(response);
