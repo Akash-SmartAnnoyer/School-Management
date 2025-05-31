@@ -86,6 +86,8 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [originalValues, setOriginalValues] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (visible) {
@@ -98,9 +100,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         };
         setOriginalValues(formattedValues);
         form.setFieldsValue(formattedValues);
+        setPreviewImage(initialValues.photo || null);
       } else {
         setOriginalValues(null);
         form.resetFields();
+        setPreviewImage(null);
       }
     }
   }, [visible, initialValues]);
@@ -124,18 +128,48 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
     }
   };
 
+  const handlePhotoUpload = async (file) => {
+    try {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSelectedFile(file);
+      
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      console.error('Error handling image:', error);
+      message.error('Failed to process image');
+      return false;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      
+      // If there's a new photo selected, upload it first
+      if (selectedFile && initialValues?.user_id) {
+        const formData = new FormData();
+        formData.append('photo', selectedFile);
+        await api.student.updateStudentPhoto(initialValues.user_id, formData);
+      }
+      
       onSubmit(values, originalValues);
     } catch (error) {
       console.error('Validation failed:', error);
     }
-  };
-
-  const handleCancel = () => {
-    form.resetFields();
-    onCancel();
   };
 
   return (
@@ -150,7 +184,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       }
       open={visible}
       onOk={handleSubmit}
-      onCancel={handleCancel}
+      onCancel={onCancel}
       confirmLoading={loading}
       width={900}
       className="student-form-modal"
@@ -168,12 +202,21 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                 name="photo"
                 listType="picture-card"
                 showUploadList={false}
-                beforeUpload={() => false}
+                beforeUpload={handlePhotoUpload}
+                accept="image/*"
               >
-                <div className="upload-placeholder">
-                  <PlusOutlined />
-                  <div>Upload Photo</div>
-                </div>
+                {previewImage ? (
+                  <img 
+                    src={previewImage} 
+                    alt="Preview" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <div className="upload-placeholder">
+                    <PlusOutlined />
+                    <div>Upload Photo</div>
+                  </div>
+                )}
               </Upload>
             </Card>
 
@@ -1188,7 +1231,7 @@ const Students = () => {
     loadStudents(pagination.current, pagination.pageSize);
   };
 
-  const handleImageUpload = async (file, studentId) => {
+  const handleImageUpload = async (file, record) => {
     try {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
@@ -1206,7 +1249,7 @@ const Students = () => {
       const previewUrl = URL.createObjectURL(file);
       setPreviewImage(previewUrl);
       setSelectedFile(file);
-      setSelectedStudentId(studentId);
+      setSelectedStudentId(record.user_id);
       setPreviewVisible(true);
       
       return false; // Prevent default upload behavior
@@ -1234,7 +1277,7 @@ const Students = () => {
       const formData = new FormData();
       formData.append('photo', selectedFile);
 
-      // Make API call
+      // Make API call with user_id
       const response = await api.student.updateStudentPhoto(selectedStudentId, formData);
 
       if (response.status === 200) {
@@ -1294,20 +1337,20 @@ const Students = () => {
   const columns = [
     {
       title: 'Photo',
-      dataIndex: 'photoURL',
+      dataIndex: 'photo',
       key: 'photo',
       width: 80,
-      render: (photoURL, record) => (
+      render: (photo, record) => (
         <Upload
           name="photo"
           showUploadList={false}
-          beforeUpload={(file) => handleImageUpload(file, record.id)}
+          beforeUpload={(file) => handleImageUpload(file, record)}
           accept="image/*"
         >
           <Avatar
             size={45}
-            src={photoURL ? getCloudinaryImage(photoURL) : null}
-            icon={!photoURL && (record.gender === 'M' ? 
+            src={photo || null}
+            icon={!photo && (record.gender === 'M' ? 
               <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
               <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             )}
