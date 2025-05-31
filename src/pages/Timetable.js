@@ -34,6 +34,7 @@ import {
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useClasses } from '../contexts/ClassesContext';
+import { useTeachers } from '../contexts/TeachersContext';
 import moment from 'moment';
 import './Timetable.css';
 
@@ -47,8 +48,8 @@ const Timetable = () => {
   const [bulkForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const { classes, loading: classesLoading } = useClasses();
+  const { teachers, loading: teachersLoading, refreshTeachers } = useTeachers();
   const [subjects, setSubjects] = useState([]);
-  const [teachers, setTeachers] = useState([]);
   const [timetables, setTimetables] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -88,10 +89,9 @@ const Timetable = () => {
     return timeSlots;
   };
 
-  // Load subjects and teachers when component mounts
+  // Load subjects when component mounts
   useEffect(() => {
     loadSubjects();
-    loadTeachers();
   }, []);
 
   // Load timetables only when a class is selected
@@ -107,15 +107,6 @@ const Timetable = () => {
       setSubjects(response.data.results);
     } catch (error) {
       message.error('Failed to load subjects');
-    }
-  };
-
-  const loadTeachers = async () => {
-    try {
-      const response = await api.teacher.getTeachers();
-      setTeachers(response.data.results);
-    } catch (error) {
-      message.error('Failed to load teachers');
     }
   };
 
@@ -147,14 +138,10 @@ const Timetable = () => {
     return teacher ? teacher.name : `Teacher (${teacherId})`;
   };
 
-  // Add function to get teachers for a subject
+  // Update getTeachersForSubject to use context
   const getTeachersForSubject = async (subjectId) => {
     try {
       setLoadingTeachers(true);
-      // Get all teachers
-      const response = await api.teacher.getTeachers();
-      const allTeachers = response.data;
-      
       // Get the subject name for the given subjectId
       const subject = subjects.find(s => s.id === subjectId);
       if (!subject) {
@@ -163,7 +150,7 @@ const Timetable = () => {
       }
 
       // Filter teachers who teach this subject
-      const subjectTeachers = allTeachers.filter(teacher => 
+      const subjectTeachers = teachers.filter(teacher => 
         teacher.subject === subject.name
       );
       
@@ -177,7 +164,7 @@ const Timetable = () => {
     }
   };
 
-  // Update handleSubjectChange to be async
+  // Update handleSubjectChange to use context
   const handleSubjectChange = async (subjectId) => {
     setLoadingTeachers(true);
     try {
@@ -200,7 +187,6 @@ const Timetable = () => {
 
   const handleAddTimeSlot = () => {
     loadSubjects();
-    loadTeachers();
     setEditingTimetable(null);
     form.resetFields();
     setModalVisible(true);
@@ -209,7 +195,7 @@ const Timetable = () => {
   const handleEdit = async (timetable) => {
     try {
       setTableLoading(true);
-      await Promise.all([loadSubjects(), loadTeachers()]);
+      await loadSubjects();
       setEditingTimetable(timetable);
       
       // Convert time strings to moment objects for TimePicker
@@ -681,7 +667,10 @@ const Timetable = () => {
             label="Teacher"
             rules={[{ required: true, message: 'Please select a teacher' }]}
           >
-            <Select placeholder="Select Teacher" loading={loadingTeachers}>
+            <Select 
+              placeholder="Select Teacher" 
+              loading={loadingTeachers || teachersLoading}
+            >
               {teachers.map(teacher => (
                 <Option key={teacher.id} value={teacher.id}>{teacher.name}</Option>
               ))}
