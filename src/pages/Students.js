@@ -100,7 +100,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         };
         setOriginalValues(formattedValues);
         form.setFieldsValue(formattedValues);
-        setPreviewImage(initialValues.photo || null);
+        if (initialValues.photo) {
+          setPreviewImage(initialValues.photo);
+        } else {
+          setPreviewImage(null);
+        }
       } else {
         setOriginalValues(null);
         form.resetFields();
@@ -922,7 +926,8 @@ const Students = () => {
           profile: {
             nationality: studentData.profile?.nationality,
             classroom_id: studentData.student_profile?.classroom,
-            class_name: studentData.profile?.class_name
+            class_name: studentData.profile?.class_name,
+            blood_group: studentData.profile?.blood_group
           },
           // Student profile data
           student_id: studentData.student_profile?.student_id,
@@ -940,8 +945,9 @@ const Students = () => {
           parent_phone: studentData.student_profile?.parent_phone,
           allergies: studentData.student_profile?.allergies,
           remarks: studentData.student_profile?.remarks,
-          blood_group: studentData.profile?.blood_group,
-          fee_details: studentData.student_profile?.fee_details || []
+          fee_details: studentData.student_profile?.fee_details || [],
+          // Add photo URL
+          photo: studentData.profile?.photo
         };
         
         // Set the editing student and show the modal
