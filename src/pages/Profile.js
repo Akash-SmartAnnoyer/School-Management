@@ -236,7 +236,9 @@ const Profile = () => {
                     <Avatar
                       size={120}
                       src={currentUser?.profilePic}
-                      icon={<UserOutlined />}
+                      icon={!currentUser?.profilePic && 
+                        <img src="/boss.png" alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      }
                       style={{ 
                         border: '4px solid rgba(255, 255, 255, 0.2)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
@@ -429,6 +431,113 @@ const Profile = () => {
           />
         </div>
       </Modal>
+
+        {/* Change Password Section */}
+              {/* <Card 
+                title="Change Password"
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+              >
+                <Form
+                  layout="vertical"
+                  // onFinish={handlePasswordChange}
+                >
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="oldPassword"
+                        label="Current Password"
+                        rules={[{ required: true, message: 'Please enter your current password' }]}
+                      >
+                        <Input.Password 
+                          prefix={<LockOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="newPassword"
+                        label="New Password"
+                        rules={[{ required: true, message: 'Please enter your new password' }]}
+                      >
+                        <Input.Password 
+                          prefix={<LockOutlined />}
+                          style={{
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                          }}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item
+                    name="confirmPassword"
+                    label="Confirm New Password"
+                    dependencies={['newPassword']}
+                    rules={[
+                      { required: true, message: 'Please confirm your new password' },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue('newPassword') === value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(new Error('The two passwords do not match'));
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input.Password 
+                      prefix={<LockOutlined />}
+                      style={{
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.1)'
+                      }}
+                    />
+                  </Form.Item>
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      icon={<LockOutlined />}
+                      loading={loading}
+                      style={{
+                        height: '32px',
+                        borderRadius: '6px',
+                        boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                        background: '#7B83EB',
+                        border: 'none',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        padding: '0 12px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                        e.currentTarget.style.background = '#8ba1d1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                        e.currentTarget.style.background = '#7B83EB';
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Card> */}
 
       <style>
         {`
