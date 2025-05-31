@@ -16,6 +16,7 @@ import {
   Popconfirm,
   Input as AntInput,
   Empty,
+  Tag,
 } from 'antd';
 import {
   PlusOutlined,
@@ -103,6 +104,26 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
       title: 'Subject Code',
       dataIndex: 'code',
       key: 'code',
+      render: (text) => (
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
+          }}
+        >
+          {text}
+        </Tag>
+      ),
     },
     {
       title: 'Subject Name',

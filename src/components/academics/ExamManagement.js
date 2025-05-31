@@ -201,7 +201,24 @@ const ExamManagement = () => {
       key: 'exam_code',
       width: 120,
       render: (text) => (
-        <Tag color="blue">{text}</Tag>
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
+          }}
+        >
+          {text}
+        </Tag>
       ),
     },
     {
@@ -212,12 +229,28 @@ const ExamManagement = () => {
       render: (type) => {
         const examType = examTypes.find(t => t.value === type);
         return (
-          <Tag color={
-            type === 'final' ? 'red' :
-            type === 'mid_term' ? 'orange' :
-            type === 'unit_test' ? 'blue' :
-            type === 'quiz' ? 'green' : 'purple'
-          }>
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: type === 'final' ? '#fff1f0' : 
+                         type === 'mid_term' ? '#fff7e6' :
+                         type === 'unit_test' ? '#e6f7ff' :
+                         type === 'quiz' ? '#f6ffed' : '#f9f0ff',
+              color: type === 'final' ? '#cf1322' :
+                     type === 'mid_term' ? '#d46b08' :
+                     type === 'unit_test' ? '#096dd9' :
+                     type === 'quiz' ? '#389e0d' : '#531dab',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              lineHeight: '1'
+            }}
+          >
             {examType ? examType.label : type}
           </Tag>
         );
@@ -229,9 +262,28 @@ const ExamManagement = () => {
       key: 'subjects',
       width: 200,
       render: (subjectIds) => (
-        <Space wrap>
+        <Space wrap size={[4, 4]}>
           {getSubjectNames(subjectIds).map((name, index) => (
-            <Tag key={index} color="blue">{name}</Tag>
+            <Tag 
+              key={index}
+              style={{ 
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: '#e6f7ff',
+                color: '#096dd9',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: '24px',
+                lineHeight: '1',
+                margin: 0
+              }}
+            >
+              {name}
+            </Tag>
           ))}
         </Space>
       ),
@@ -266,26 +318,76 @@ const ExamManagement = () => {
       width: 200,
       render: (classrooms) => {
         if (!classrooms || classrooms.length === 0) {
-          return <Tag color="default">No classrooms assigned</Tag>;
+          return (
+            <Tag 
+              style={{ 
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: '#f5f5f5',
+                color: '#595959',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: '24px',
+                lineHeight: '1'
+              }}
+            >
+              No classrooms assigned
+            </Tag>
+          );
         }
         
-        // Handle both array of IDs and array of objects
         return (
-          <Space wrap>
+          <Space wrap size={[4, 4]}>
             {classrooms.map((classroom) => {
-              // If classroom is an object with classroom_name and classroom_section
               if (classroom.classroom_name) {
                 return (
-                  <Tag key={classroom.id} color="green">
+                  <Tag 
+                    key={classroom.id}
+                    style={{ 
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      background: '#f6ffed',
+                      color: '#389e0d',
+                      border: '1px solid #f0f0f0',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      height: '24px',
+                      lineHeight: '1',
+                      margin: 0
+                    }}
+                  >
                     {classroom.classroom_name} {classroom.classroom_section}
                   </Tag>
                 );
               }
               
-              // If classroom is just an ID
               const classroomObj = classrooms.find(c => c.id === classroom);
               return classroomObj ? (
-                <Tag key={classroom} color="green">
+                <Tag 
+                  key={classroom}
+                  style={{ 
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    background: '#f6ffed',
+                    color: '#389e0d',
+                    border: '1px solid #f0f0f0',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    height: '24px',
+                    lineHeight: '1',
+                    margin: 0
+                  }}
+                >
                   {classroomObj.class_name} {classroomObj.section}
                 </Tag>
               ) : null;

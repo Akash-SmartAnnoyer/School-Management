@@ -753,7 +753,33 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       key: 'marks',
       render: (marks, record) => {
         const exam = localExams.find(e => e.id === record.exam);
-        return `${marks}/${exam?.maxMarks || 100}`;
+        const percentage = (marks / (exam?.maxMarks || 100)) * 100;
+        return (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: percentage >= 90 ? '#f6ffed' :
+                         percentage >= 80 ? '#e6f7ff' :
+                         percentage >= 70 ? '#fff7e6' :
+                         percentage >= 60 ? '#fff1f0' : '#fff1f0',
+              color: percentage >= 90 ? '#389e0d' :
+                     percentage >= 80 ? '#096dd9' :
+                     percentage >= 70 ? '#d46b08' :
+                     percentage >= 60 ? '#cf1322' : '#cf1322',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              lineHeight: '1'
+            }}
+          >
+            {`${marks}/${exam?.maxMarks || 100}`}
+          </Tag>
+        );
       },
     },
     {
