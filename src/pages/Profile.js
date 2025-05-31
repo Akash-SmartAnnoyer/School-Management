@@ -16,7 +16,8 @@ import {
   Select,
   Alert,
   Tag,
-  Descriptions
+  Descriptions,
+  Modal
 } from 'antd';
 import {
   UserOutlined,
@@ -45,7 +46,10 @@ const Profile = () => {
   const { currentUser, updateProfile } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [school, setSchool] = useState(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -105,7 +109,7 @@ const Profile = () => {
     }
   };
 
-  const handleProfilePicUpload = async (file) => {
+  const handleImageUpload = async (file) => {
     try {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
@@ -119,26 +123,51 @@ const Profile = () => {
         return false;
       }
 
-      // Create FormData
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSelectedFile(file);
+      setPreviewVisible(true);
+      
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      console.error('Error handling image:', error);
+      message.error('Failed to process image');
+      return false;
+    }
+  };
+
+  const handlePreviewCancel = () => {
+    setPreviewVisible(false);
+    setPreviewImage('');
+    setSelectedFile(null);
+  };
+
+  const handlePreviewUpload = async () => {
+    if (!selectedFile) return;
+
+    try {
+      setUploadingImage(true);
+      
+      // Create form data
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append('photo', selectedFile);
 
       // Make API call
       const response = await api.user.uploadUserPhoto(currentUser.id, formData);
 
       if (response.status === 200) {
         message.success('Profile picture updated successfully');
-        // Refresh user data
         await loadUserProfile();
+        handlePreviewCancel();
       } else {
-        throw new Error('Failed to upload profile picture');
+        throw new Error('Failed to upload image');
       }
-
-      return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('Error uploading image:', error);
       message.error(error.message || 'Failed to upload profile picture');
-      return false;
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -199,51 +228,33 @@ const Profile = () => {
             >
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                  <Avatar
-                    size={120}
-                    src={currentUser?.profilePic}
-                    icon={<UserOutlined />}
-                    style={{ 
-                      border: '4px solid rgba(255, 255, 255, 0.2)',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
                   <Upload
                     showUploadList={false}
-                    beforeUpload={handleProfilePicUpload}
+                    beforeUpload={handleImageUpload}
                     accept="image/*"
                   >
-                    <Button 
-                      icon={<UploadOutlined />}
-                      style={{
-                        height: '32px',
-                        borderRadius: '6px',
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'all 0.3s ease',
-                        padding: '0 12px'
+                    <Avatar
+                      size={120}
+                      src={currentUser?.profilePic}
+                      icon={<UserOutlined />}
+                      style={{ 
+                        border: '4px solid rgba(255, 255, 255, 0.2)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.25)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.15)';
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                       }}
-                    >
-                      Change Profile Picture
-                    </Button>
+                    />
                   </Upload>
                   <Title level={4} style={{ margin: 0, color: '#333333' }}>
-                    {currentUser?.name}
+                    {`${form.getFieldValue('first_name') || ''} ${form.getFieldValue('last_name') || ''}`}
                   </Title>
                   <Tag 
                     color={currentUser?.role === ROLES.PRINCIPAL ? '#7B83EB' : '#52c41a'}
@@ -386,6 +397,38 @@ const Profile = () => {
           </Col>
         </Row>
       </Card>
+
+      <Modal
+        title="Preview Profile Picture"
+        open={previewVisible}
+        onCancel={handlePreviewCancel}
+        footer={[
+          <Button key="cancel" onClick={handlePreviewCancel}>
+            Cancel
+          </Button>,
+          <Button 
+            key="upload" 
+            type="primary" 
+            onClick={handlePreviewUpload}
+            loading={uploadingImage}
+          >
+            Upload
+          </Button>
+        ]}
+      >
+        <div style={{ textAlign: 'center' }}>
+          <img 
+            src={previewImage} 
+            alt="Preview" 
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '300px',
+              objectFit: 'contain',
+              borderRadius: '8px'
+            }} 
+          />
+        </div>
+      </Modal>
 
       <style>
         {`
