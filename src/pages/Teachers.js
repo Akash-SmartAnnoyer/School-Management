@@ -266,6 +266,13 @@ const Teachers = () => {
           id: teacher.user_id
         });
         
+        // Set the image preview if photo exists
+        if (teacherData.profile?.photo) {
+          setImageUrl(teacherData.profile.photo);
+        } else {
+          setImageUrl(null);
+        }
+        
         form.setFieldsValue(formValues);
         setModalVisible(true);
       } else {
@@ -972,6 +979,7 @@ const Teachers = () => {
                     reader.readAsDataURL(file);
                     reader.onload = () => {
                       setImageUrl(reader.result);
+                      setSelectedFile(file);
                     };
                     return false;
                   }}
@@ -979,8 +987,23 @@ const Teachers = () => {
                   maxCount={1}
                 >
                   <div className="upload-placeholder">
-                    <PlusOutlined />
-                    <div>Upload Photo</div>
+                    {imageUrl ? (
+                      <img 
+                        src={imageUrl} 
+                        alt="Preview" 
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'cover',
+                          borderRadius: '8px'
+                        }} 
+                      />
+                    ) : (
+                      <>
+                        <PlusOutlined />
+                        <div>Upload Photo</div>
+                      </>
+                    )}
                   </div>
                 </Upload>
               </Card>
