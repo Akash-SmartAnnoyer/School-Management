@@ -156,7 +156,10 @@ function MainLayout() {
       key: 'academy',
       icon: <BookOutlined />,
       label: '360 Academy',
-      onClick: () => window.open('/360academy', '_blank'),
+      onClick: () => {
+        const academyUrl = window.location.origin + '/360academy';
+        window.open(academyUrl, '_blank', 'noopener,noreferrer');
+      },
     },
     {
       type: 'divider',
@@ -707,7 +710,6 @@ function MainLayout() {
                 <Profile showPasswordSection={true} />
               </ProtectedRoute>
             } />
-            <Route path="/360academy" element={<AcademyLanding />} />
           </Routes>
         </Content>
       </Layout>
@@ -739,6 +741,7 @@ function App() {
                     <Routes>
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
+                      <Route path="/360academy" element={<AcademyLanding />} />
                       <Route
                         path="/*"
                         element={

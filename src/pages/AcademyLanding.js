@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Row, Col, Card, Button, Space, Divider, List, Collapse } from 'antd';
+import { Typography, Row, Col, Card, Button, Space, Divider, List, Collapse, Layout } from 'antd';
 import { 
   BookOutlined, 
   TeamOutlined, 
@@ -15,6 +15,30 @@ import styled from 'styled-components';
 
 const { Title, Paragraph, Text } = Typography;
 const { Panel } = Collapse;
+const { Header, Footer } = Layout;
+
+const StyledLayout = styled(Layout)`
+  min-height: 100vh;
+  background: var(--background-color);
+`;
+
+const StyledHeader = styled(Header)`
+  background: white;
+  padding: 0 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+`;
+
+const StyledFooter = styled(Footer)`
+  text-align: center;
+  background: white;
+  padding: 24px 50px;
+`;
 
 const StyledSection = styled.section`
   padding: 80px 0;
@@ -100,178 +124,219 @@ const AcademyLanding = () => {
   ];
 
   return (
-    <div style={{ background: 'var(--background-color)' }}>
-      {/* Hero Section */}
-      <StyledSection background="linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)">
-        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          <Row align="middle" gutter={[48, 48]}>
-            <Col xs={24} md={12}>
-              <Space direction="vertical" size="large">
-                <Title level={1} style={{ color: 'white', margin: 0 }}>
-                  Welcome to 360Schooling
-                </Title>
-                <Paragraph style={{ color: 'white', fontSize: 18 }}>
-                  Transform your educational institution with our comprehensive school management solution. Streamline operations, enhance learning, and improve communication.
-                </Paragraph>
-                <Button type="primary" size="large" style={{ background: 'white', color: 'var(--primary-color)' }}>
-                  Get Started
-                </Button>
-              </Space>
-            </Col>
-            <Col xs={24} md={12}>
-              <img 
-                src="/logo-transparent-png.png" 
-                alt="360Schooling Logo" 
-                style={{ 
-                  width: '100%', 
-                  maxWidth: 400, 
-                  margin: '0 auto', 
-                  display: 'block',
-                  filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.2))'
-                }} 
-              />
-            </Col>
-          </Row>
-        </div>
-      </StyledSection>
-
-      {/* Features Section */}
-      <StyledSection>
-        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          <Title level={2} style={{ textAlign: 'center', marginBottom: 48 }}>
-            Comprehensive Features
+    <StyledLayout>
+      <StyledHeader>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <img 
+            src="/logo-transparent-png.png" 
+            alt="360Schooling Logo" 
+            style={{ height: '40px' }} 
+          />
+          <Title level={4} style={{ margin: 0, color: 'var(--primary-color)' }}>
+            360 Academy
           </Title>
-          <Row gutter={[24, 24]}>
-            {features.map((feature, index) => (
-              <Col xs={24} sm={12} md={8} key={index}>
-                <FeatureCard>
-                  <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                    {feature.icon}
-                    <Title level={4} style={{ margin: 0 }}>{feature.title}</Title>
-                    <Paragraph style={{ color: 'var(--text-secondary)' }}>
-                      {feature.description}
-                    </Paragraph>
-                  </Space>
-                </FeatureCard>
-              </Col>
-            ))}
-          </Row>
         </div>
-      </StyledSection>
+        <Space>
+          <Button type="primary" onClick={() => window.location.href = '/login'}>
+            Login
+          </Button>
+          <Button onClick={() => window.location.href = '/register'}>
+            Register
+          </Button>
+        </Space>
+      </StyledHeader>
 
-      {/* Video Section */}
-      <StyledSection background="var(--surface-color)">
-        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          <Row gutter={[48, 48]} align="middle">
-            <Col xs={24} md={12}>
-              <Title level={2}>See 360Schooling in Action</Title>
-              <Paragraph style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
-                Watch our demo video to see how 360Schooling can transform your educational institution. Learn about our key features and how they can benefit your school.
-              </Paragraph>
-            </Col>
-            <Col xs={24} md={12}>
-              <VideoFrame>
-                <iframe
-                  src="https://www.youtube.com/embed/your-video-id"
-                  title="360Schooling Demo"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </VideoFrame>
-            </Col>
-          </Row>
-        </div>
-      </StyledSection>
-
-      {/* FAQs Section */}
-      <StyledSection>
-        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          <Title level={2} style={{ textAlign: 'center', marginBottom: 48 }}>
-            Frequently Asked Questions
-          </Title>
-          <Collapse 
-            bordered={false}
-            style={{ 
-              background: 'var(--surface-color)',
-              borderRadius: 16,
-              boxShadow: '0 4px 20px rgba(123, 131, 235, 0.1)'
-            }}
-          >
-            {faqs.map((faq, index) => (
-              <Panel 
-                header={faq.question} 
-                key={index}
-                style={{ 
-                  borderBottom: index !== faqs.length - 1 ? '1px solid var(--border-color)' : 'none'
-                }}
-              >
-                <Paragraph>{faq.answer}</Paragraph>
-              </Panel>
-            ))}
-          </Collapse>
-        </div>
-      </StyledSection>
-
-      {/* Contact Section */}
-      <StyledSection background="var(--surface-color)">
-        <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          <Row gutter={[48, 48]} align="middle">
-            <Col xs={24} md={12}>
-              <Title level={2}>Get in Touch</Title>
-              <Paragraph style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
-                Ready to transform your educational institution? Contact us today to schedule a demo or learn more about how 360Schooling can benefit your school.
-              </Paragraph>
-              <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Button 
-                  type="primary" 
-                  icon={<MailOutlined />} 
-                  size="large"
-                  style={{ width: '100%' }}
-                >
-                  Contact Us
-                </Button>
-                <Button 
-                  icon={<PlayCircleOutlined />} 
-                  size="large"
-                  style={{ width: '100%' }}
-                >
-                  Schedule Demo
-                </Button>
-              </Space>
-            </Col>
-            <Col xs={24} md={12}>
-              <Card 
-                style={{ 
-                  borderRadius: 16,
-                  boxShadow: '0 4px 20px rgba(123, 131, 235, 0.1)'
-                }}
-              >
-                <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                  <Title level={4}>Why Choose 360Schooling?</Title>
-                  <List
-                    dataSource={[
-                      'User-friendly interface',
-                      'Comprehensive features',
-                      'Regular updates and support',
-                      'Secure and reliable',
-                      'Customizable to your needs'
-                    ]}
-                    renderItem={item => (
-                      <List.Item>
-                        <Space>
-                          <CheckCircleOutlined style={{ color: 'var(--success-color)' }} />
-                          <Text>{item}</Text>
-                        </Space>
-                      </List.Item>
-                    )}
-                  />
+      <Layout.Content style={{ paddingTop: '64px' }}>
+        {/* Hero Section */}
+        <StyledSection background="linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)">
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Row align="middle" gutter={[48, 48]}>
+              <Col xs={24} md={12}>
+                <Space direction="vertical" size="large">
+                  <Title level={1} style={{ color: 'white', margin: 0 }}>
+                    Welcome to 360Schooling
+                  </Title>
+                  <Paragraph style={{ color: 'white', fontSize: 18 }}>
+                    Transform your educational institution with our comprehensive school management solution. Streamline operations, enhance learning, and improve communication.
+                  </Paragraph>
+                  <Button type="primary" size="large" style={{ background: 'white', color: 'var(--primary-color)' }}>
+                    Get Started
+                  </Button>
                 </Space>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-      </StyledSection>
-    </div>
+              </Col>
+              <Col xs={24} md={12}>
+                <img 
+                  src="/logo-transparent-png.png" 
+                  alt="360Schooling Logo" 
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: 400, 
+                    margin: '0 auto', 
+                    display: 'block',
+                    filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.2))'
+                  }} 
+                />
+              </Col>
+            </Row>
+          </div>
+        </StyledSection>
+
+        {/* Features Section */}
+        <StyledSection>
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Title level={2} style={{ textAlign: 'center', marginBottom: 48 }}>
+              Comprehensive Features
+            </Title>
+            <Row gutter={[24, 24]}>
+              {features.map((feature, index) => (
+                <Col xs={24} sm={12} md={8} key={index}>
+                  <FeatureCard>
+                    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                      {feature.icon}
+                      <Title level={4} style={{ margin: 0 }}>{feature.title}</Title>
+                      <Paragraph style={{ color: 'var(--text-secondary)' }}>
+                        {feature.description}
+                      </Paragraph>
+                    </Space>
+                  </FeatureCard>
+                </Col>
+              ))}
+            </Row>
+          </div>
+        </StyledSection>
+
+        {/* Video Section */}
+        <StyledSection background="var(--surface-color)">
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Row gutter={[48, 48]} align="middle">
+              <Col xs={24} md={12}>
+                <Title level={2}>See 360Schooling in Action</Title>
+                <Paragraph style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
+                  Watch our demo video to see how 360Schooling can transform your educational institution. Learn about our key features and how they can benefit your school.
+                </Paragraph>
+              </Col>
+              <Col xs={24} md={12}>
+                <VideoFrame>
+                  <iframe
+                    src="https://www.youtube.com/embed/your-video-id"
+                    title="360Schooling Demo"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </VideoFrame>
+              </Col>
+            </Row>
+          </div>
+        </StyledSection>
+
+        {/* FAQs Section */}
+        <StyledSection>
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Title level={2} style={{ textAlign: 'center', marginBottom: 48 }}>
+              Frequently Asked Questions
+            </Title>
+            <Collapse 
+              bordered={false}
+              style={{ 
+                background: 'var(--surface-color)',
+                borderRadius: 16,
+                boxShadow: '0 4px 20px rgba(123, 131, 235, 0.1)'
+              }}
+            >
+              {faqs.map((faq, index) => (
+                <Panel 
+                  header={faq.question} 
+                  key={index}
+                  style={{ 
+                    borderBottom: index !== faqs.length - 1 ? '1px solid var(--border-color)' : 'none'
+                  }}
+                >
+                  <Paragraph>{faq.answer}</Paragraph>
+                </Panel>
+              ))}
+            </Collapse>
+          </div>
+        </StyledSection>
+
+        {/* Contact Section */}
+        <StyledSection background="var(--surface-color)">
+          <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            <Row gutter={[48, 48]} align="middle">
+              <Col xs={24} md={12}>
+                <Title level={2}>Get in Touch</Title>
+                <Paragraph style={{ fontSize: 16, color: 'var(--text-secondary)' }}>
+                  Ready to transform your educational institution? Contact us today to schedule a demo or learn more about how 360Schooling can benefit your school.
+                </Paragraph>
+                <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                  <Button 
+                    type="primary" 
+                    icon={<MailOutlined />} 
+                    size="large"
+                    style={{ width: '100%' }}
+                  >
+                    Contact Us
+                  </Button>
+                  <Button 
+                    icon={<PlayCircleOutlined />} 
+                    size="large"
+                    style={{ width: '100%' }}
+                  >
+                    Schedule Demo
+                  </Button>
+                </Space>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card 
+                  style={{ 
+                    borderRadius: 16,
+                    boxShadow: '0 4px 20px rgba(123, 131, 235, 0.1)'
+                  }}
+                >
+                  <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                    <Title level={4}>Why Choose 360Schooling?</Title>
+                    <List
+                      dataSource={[
+                        'User-friendly interface',
+                        'Comprehensive features',
+                        'Regular updates and support',
+                        'Secure and reliable',
+                        'Customizable to your needs'
+                      ]}
+                      renderItem={item => (
+                        <List.Item>
+                          <Space>
+                            <CheckCircleOutlined style={{ color: 'var(--success-color)' }} />
+                            <Text>{item}</Text>
+                          </Space>
+                        </List.Item>
+                      )}
+                    />
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        </StyledSection>
+      </Layout.Content>
+
+      <StyledFooter>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div>
+            <img 
+              src="/logo-transparent-png.png" 
+              alt="360Schooling Logo" 
+              style={{ height: '40px', marginBottom: '16px' }} 
+            />
+            <Title level={4} style={{ margin: 0, color: 'var(--primary-color)' }}>
+              360Schooling
+            </Title>
+          </div>
+          <Text type="secondary">
+            © {new Date().getFullYear()} 360Schooling. All rights reserved.
+          </Text>
+        </Space>
+      </StyledFooter>
+    </StyledLayout>
   );
 };
 
