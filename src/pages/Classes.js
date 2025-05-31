@@ -7,6 +7,7 @@ import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
 import { useAuth } from '../contexts/AuthContext';
 import { useClasses } from '../contexts/ClassesContext';
 import { useMessage } from '../contexts/MessageContext';
+import { useTeachers } from '../contexts/TeachersContext';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -27,40 +28,22 @@ const Classes = () => {
     updateClass,
     deleteClass
   } = useClasses();
+  const {
+    teachers,
+    loading: teachersLoading,
+    loadTeachers
+  } = useTeachers();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingClass, setEditingClass] = useState(null);
-  const [teachers, setTeachers] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [loadingModal, setLoadingModal] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
   const [actionLoading, setActionLoading] = useState(false);
-
-  useEffect(() => {
-    loadTeachers();
-  }, []);
-
-  const loadTeachers = async () => {
-    try {
-      setLoadingTeachers(true);
-      const response = await api.teacher.getTeachers();
-      if (response.success) {
-        setTeachers(response.data.results);
-      } else {
-        messageApi.error('Failed to load teachers');
-      }
-    } catch (error) {
-      messageApi.error('Failed to load teachers');
-      console.error('Error loading teachers:', error);
-    } finally {
-      setLoadingTeachers(false);
-    }
-  };
 
   const handleAdd = () => {
     setEditingClass(null);
@@ -631,7 +614,7 @@ const Classes = () => {
         open={bulkStatusModalVisible}
         onOk={handleBulkStatusChange}
         onCancel={() => setBulkStatusModalVisible(false)}
-        confirmLoading={loadingTeachers}
+        confirmLoading={teachersLoading}
       >
         <Form form={bulkStatusForm} layout="vertical">
           <Form.Item
