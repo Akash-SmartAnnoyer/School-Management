@@ -782,6 +782,42 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   );
 };
 
+const ImagePreviewModal = ({ visible, imageUrl, onCancel, onUpload, loading }) => {
+  return (
+    <Modal
+      title="Preview Profile Picture"
+      open={visible}
+      onCancel={onCancel}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button 
+          key="upload" 
+          type="primary" 
+          onClick={onUpload}
+          loading={loading}
+        >
+          Upload
+        </Button>
+      ]}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <img 
+          src={imageUrl} 
+          alt="Preview" 
+          style={{ 
+            maxWidth: '100%', 
+            maxHeight: '300px',
+            objectFit: 'contain',
+            borderRadius: '8px'
+          }} 
+        />
+      </div>
+    </Modal>
+  );
+};
+
 const Students = () => {
   const { 
     students, 
@@ -807,6 +843,11 @@ const Students = () => {
   const [selectedStudentDetails, setSelectedStudentDetails] = useState(null);
   const [tableLoading, setTableLoading] = useState(false);
   const [formSubmitting, setFormSubmitting] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     const filtered = students.filter(student =>
@@ -1161,23 +1202,53 @@ const Students = () => {
         return false;
       }
 
-      const result = await uploadImage(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSelectedFile(file);
+      setSelectedStudentId(studentId);
+      setPreviewVisible(true);
       
-      // Update student with new profile picture
-      const response = await api.student.updateStudent(studentId, {
-        photoURL: result.url,
-        updatedAt: new Date().toISOString()
-      });
-
-      if (response.success) {
-        message.success('Profile picture updated successfully');
-        refreshStudents();
-      }
       return false; // Prevent default upload behavior
     } catch (error) {
-      console.error('Profile picture upload error:', error);
-      message.error('Failed to upload profile picture');
+      console.error('Error handling image:', error);
+      message.error('Failed to process image');
       return false;
+    }
+  };
+
+  const handlePreviewCancel = () => {
+    setPreviewVisible(false);
+    setPreviewImage('');
+    setSelectedFile(null);
+    setSelectedStudentId(null);
+  };
+
+  const handlePreviewUpload = async () => {
+    if (!selectedFile || !selectedStudentId) return;
+
+    try {
+      setUploadingImage(true);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('photo', selectedFile);
+
+      // Make API call
+      const response = await api.student.updateStudentPhoto(selectedStudentId, formData);
+
+      if (response.status === 200) {
+        message.success('Profile picture updated successfully');
+        refreshStudents();
+        handlePreviewCancel();
+      } else {
+        throw new Error('Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      message.error(error.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -1647,6 +1718,14 @@ const Students = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <ImagePreviewModal
+        visible={previewVisible}
+        imageUrl={previewImage}
+        onCancel={handlePreviewCancel}
+        onUpload={handlePreviewUpload}
+        loading={uploadingImage}
+      />
 
       <style>
         {`

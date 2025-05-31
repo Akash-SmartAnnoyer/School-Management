@@ -272,6 +272,24 @@ export const studentAPI = {
       console.error('Error fetching all students:', error);
       throw new Error('Failed to fetch students. Please try again.');
     }
+  },
+  updateStudentPhoto: async (id, formData) => {
+    try {
+      const headers = await getHeaders();
+      // Remove Content-Type header to let browser set it automatically for FormData
+      delete headers['Content-Type'];
+
+      const response = await fetch(`${BASE_URL}/users/${id}/upload-photo/`, {
+        method: 'PATCH',
+        headers: headers,
+        body: formData,
+        credentials: 'include'
+      });
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Error updating student photo:', error);
+      throw new Error('Failed to update student photo. Please try again.');
+    }
   }
 };
 
