@@ -1,61 +1,155 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
-  Modal, 
-  Form, 
-  Input, 
-  Select, 
-  Upload,
-  Avatar,
+import React, { useState, useEffect } from 'react';
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Form,
+  Input,
+  Select,
   message,
+  Typography,
+  Tag,
+  Tooltip,
+  Popconfirm,
   Input as AntInput,
-  Divider,
-  DatePicker,
+  Empty,
   Row,
   Col,
+  Upload,
+  Avatar,
+  Drawer,
   Card,
-  Typography,
-  Tooltip,
-  Empty,
-  Popconfirm,
-  Checkbox
+  Statistic,
+  Divider,
+  Badge,
+  Tabs,
+  List,
+  Timeline,
+  Calendar,
+  Progress,
+  Rate,
+  Comment,
+  Alert,
+  Steps,
+  Descriptions,
+  Image,
+  Carousel,
+  Collapse,
+  Tree,
+  Transfer,
+  Cascader,
+  DatePicker,
+  TimePicker,
+  Switch,
+  Slider,
+  Radio,
+  Checkbox,
+  InputNumber,
+  AutoComplete,
+  Mentions,
+  TreeSelect,
+  Upload as AntUpload,
+  Form as AntForm,
+  Modal as AntModal,
+  Drawer as AntDrawer,
+  Card as AntCard,
+  Statistic as AntStatistic,
+  Divider as AntDivider,
+  Badge as AntBadge,
+  Tabs as AntTabs,
+  List as AntList,
+  Timeline as AntTimeline,
+  Calendar as AntCalendar,
+  Progress as AntProgress,
+  Rate as AntRate,
+  Comment as AntComment,
+  Alert as AntAlert,
+  Steps as AntSteps,
+  Descriptions as AntDescriptions,
+  Image as AntImage,
+  Carousel as AntCarousel,
+  Collapse as AntCollapse,
+  Tree as AntTree,
+  Transfer as AntTransfer,
+  Cascader as AntCascader,
+  DatePicker as AntDatePicker,
+  TimePicker as AntTimePicker,
+  Switch as AntSwitch,
+  Slider as AntSlider,
+  Radio as AntRadio,
+  Checkbox as AntCheckbox,
+  InputNumber as AntInputNumber,
+  AutoComplete as AntAutoComplete,
+  Mentions as AntMentions,
+  TreeSelect as AntTreeSelect,
 } from 'antd';
-import { 
-  PlusOutlined, 
-  EditOutlined, 
-  DeleteOutlined, 
-  UploadOutlined, 
-  UserOutlined, 
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
   SearchOutlined,
-  CameraOutlined,
-  IdcardOutlined,
-  PhoneOutlined,
-  MailOutlined,
-  HomeOutlined,
-  BookOutlined,
+  UploadOutlined,
   TeamOutlined,
-  SafetyCertificateOutlined,
-  HeartOutlined,
-  InfoCircleOutlined,
-  LoadingOutlined,
+  BookOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  TagOutlined,
+  StarOutlined,
+  TrophyOutlined,
+  FileTextOutlined,
+  PictureOutlined,
+  VideoCameraOutlined,
+  AudioOutlined,
+  FileOutlined,
+  FolderOutlined,
+  FolderOpenOutlined,
+  FolderAddOutlined,
+  FolderViewOutlined,
+  FileAddOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  FileWordOutlined,
+  FileImageOutlined,
+  FileZipOutlined,
+  FileUnknownOutlined,
+  FileMarkdownOutlined,
+  FileTextOutlined as FileTextOutlined2,
+  FileExcelOutlined as FileExcelOutlined2,
+  FilePdfOutlined as FilePdfOutlined2,
+  FileWordOutlined as FileWordOutlined2,
+  FileImageOutlined as FileImageOutlined2,
+  FileZipOutlined as FileZipOutlined2,
+  FileUnknownOutlined as FileUnknownOutlined2,
+  FileMarkdownOutlined as FileMarkdownOutlined2,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
   SwapOutlined,
   DeleteFilled,
-  CheckCircleOutlined,
-  CloseCircleOutlined
+  IdcardOutlined,
+  SafetyCertificateOutlined,
+  HomeOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
+import { useTeachers } from '../contexts/TeachersContext';
+import { useMessage } from '../contexts/MessageContext';
+import api from '../services/api';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
-import { useMessage } from '../contexts/MessageContext';
 import moment from 'moment';
-import api from '../services/api';
-import { useTeachers } from '../contexts/TeachersContext';
 
+const { Title } = Typography;
 const { Option } = Select;
 const { Search } = AntInput;
-const { Title } = Typography;
+const { TabPane } = Tabs;
+const { Panel } = Collapse;
+const { Step } = Steps;
+const { TextArea } = Input;
+const { Dragger } = Upload;
 
 const Teachers = () => {
   const messageApi = useMessage();
@@ -64,33 +158,39 @@ const Teachers = () => {
     loading: teachersLoading, 
     currentPage, 
     totalTeachers, 
-    loadTeachers, 
-    refreshTeachers 
+    pageSize,
+    loadTeachers,
+    refreshTeachers,
+    createTeacher,
+    updateTeacher,
+    deleteTeacher
   } = useTeachers();
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
+  const [bulkStatusForm] = Form.useForm();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
-  const [classes, setClasses] = useState([]);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [tempImage, setTempImage] = useState(null);
-  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [actionLoading, setActionLoading] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
-  const [bulkStatusForm] = Form.useForm();
-  const [actionLoading, setActionLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [sortField, setSortField] = useState('name');
+  const [sortOrder, setSortOrder] = useState('ascend');
+  const [classes, setClasses] = useState([]);
 
   useEffect(() => {
-    loadClasses();
     loadSubjects();
   }, []);
 
   useEffect(() => {
-    if (isModalVisible) {
-      loadClasses();
+    if (modalVisible) {
       if (editingTeacher) {
         // Format the initial values for the form
         const formattedValues = {
@@ -103,34 +203,18 @@ const Teachers = () => {
         form.resetFields();
       }
     }
-  }, [isModalVisible, editingTeacher]);
-
-  const loadClasses = async () => {
-    try {
-      setLoadingClasses(true);
-      const response = await api.class.getClasses();
-      if (response.data.success) {
-        console.log('Loaded classes:', response.data.data);
-        setClasses(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error loading classes:', error);
-      message.error('Failed to load classes');
-    } finally {
-      setLoadingClasses(false);
-    }
-  };
+  }, [modalVisible, editingTeacher]);
 
   const loadSubjects = async () => {
     try {
       setLoadingSubjects(true);
       const response = await api.subject.getSubjects();
       if (response.success) {
-        setSubjects(response.data.results);
+        setSubjects(response.data.results || []);
       }
     } catch (error) {
+      messageApi.error('Failed to load subjects');
       console.error('Error loading subjects:', error);
-      message.error('Failed to load subjects');
     } finally {
       setLoadingSubjects(false);
     }
@@ -139,7 +223,7 @@ const Teachers = () => {
   const handleAdd = () => {
     setEditingTeacher(null);
     form.resetFields();
-    setIsModalVisible(true);
+    setModalVisible(true);
   };
 
   const handleEdit = async (teacher) => {
@@ -177,7 +261,7 @@ const Teachers = () => {
         });
         
         form.setFieldsValue(formValues);
-        setIsModalVisible(true);
+        setModalVisible(true);
       } else {
         messageApi.error('Failed to load teacher data');
       }
@@ -299,12 +383,12 @@ const Teachers = () => {
           const response = await api.teacher.updateTeacher(editingTeacher.id, updateData);
           if (response.status === 200) {
             messageApi.success('Teacher updated successfully');
-            setIsModalVisible(false);
+            setModalVisible(false);
             await refreshTeachers();
           }
         } else {
           messageApi.info('No changes detected');
-          setIsModalVisible(false);
+          setModalVisible(false);
           return;
         }
       } else {
@@ -338,7 +422,7 @@ const Teachers = () => {
         const response = await api.teacher.createTeacher(createData);
         if (response.status === 201) {
           messageApi.success('Teacher added successfully');
-          setIsModalVisible(false);
+          setModalVisible(false);
           await refreshTeachers();
         }
       }
@@ -494,7 +578,7 @@ const Teachers = () => {
       render: (text, record) => (
         <Button type="link" onClick={() => {
           setSelectedTeacher(record);
-          setDrawerVisible(true);
+          setDetailsDrawerVisible(true);
         }}>
           {text}
         </Button>
@@ -763,12 +847,12 @@ const Teachers = () => {
             </Typography.Title>
           </Space>
         }
-        open={isModalVisible}
+        open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => {
-          setIsModalVisible(false);
+          setModalVisible(false);
           form.resetFields();
-          setTempImage(null);
+          setImageUrl(null);
         }}
         width={900}
         confirmLoading={actionLoading}
@@ -794,7 +878,7 @@ const Teachers = () => {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = () => {
-                      setTempImage(reader.result);
+                      setImageUrl(reader.result);
                     };
                     return false;
                   }}
@@ -1089,8 +1173,8 @@ const Teachers = () => {
       </Modal>
 
       <TeacherDetailsDrawer
-        visible={drawerVisible}
-        onClose={() => setDrawerVisible(false)}
+        visible={detailsDrawerVisible}
+        onClose={() => setDetailsDrawerVisible(false)}
         teacher={selectedTeacher}
       />
 
