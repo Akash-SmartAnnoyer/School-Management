@@ -664,7 +664,7 @@ const Profile = () => {
               )}
 
               {/* Change Password Section */}
-              <Card 
+              {/* <Card 
                 title="Change Password"
                 style={{
                   borderRadius: '12px',
@@ -768,7 +768,7 @@ const Profile = () => {
                     </Button>
                   </Form.Item>
                 </Form>
-              </Card>
+              </Card> */}
             </Space>
           </Col>
         </Row>
