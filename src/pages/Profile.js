@@ -36,6 +36,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { getSchoolById, updatePrincipal, updateTeacher, updateSchool } from '../firebase/organizationService';
 import { ROLES } from '../contexts/AuthContext';
+import api from '../services/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -163,17 +164,28 @@ const Profile = () => {
         return false;
       }
 
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64Image = reader.result;
-        await updateProfile({ profilePic: base64Image });
+      // Create FormData
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      // Make API call
+      const response = await api.student.updateStudentPhoto(currentUser.id, formData);
+
+      if (response.status === 200) {
         message.success('Profile picture updated successfully');
-      };
+        // Refresh user data to get updated profile picture
+        const updatedUser = await api.auth.getProfile();
+        if (updatedUser.data) {
+          updateProfile(updatedUser.data);
+        }
+      } else {
+        throw new Error('Failed to upload profile picture');
+      }
+
       return false; // Prevent default upload behavior
     } catch (error) {
-      message.error('Failed to upload profile picture');
+      console.error('Error uploading profile picture:', error);
+      message.error(error.message || 'Failed to upload profile picture');
       return false;
     }
   };
