@@ -62,6 +62,7 @@ import FeeManagement from './pages/FeeManagement';
 import { StudentsProvider } from './contexts/StudentsContext';
 import { TeachersProvider } from './contexts/TeachersContext';
 import { ClassesProvider } from './contexts/ClassesContext';
+import AcademyLanding from './pages/AcademyLanding';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -150,6 +151,12 @@ function MainLayout() {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+    },
+    {
+      key: 'academy',
+      icon: <BookOutlined />,
+      label: '360 Academy',
+      onClick: () => window.open('/360academy', '_blank'),
     },
     {
       type: 'divider',
@@ -700,11 +707,7 @@ function MainLayout() {
                 <Profile showPasswordSection={true} />
               </ProtectedRoute>
             } />
-            <Route path="/360academy" element={
-              <ProtectedRoute>
-                <div>360 Academy Page</div>
-              </ProtectedRoute>
-            } />
+            <Route path="/360academy" element={<AcademyLanding />} />
           </Routes>
         </Content>
       </Layout>
