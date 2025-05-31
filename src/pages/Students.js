@@ -922,12 +922,12 @@ const Students = () => {
           phone: studentData.phone,
           gender: studentData.gender,
           dob: studentData.dob ? moment(studentData.dob) : null,
+          blood_group: studentData.profile?.blood_group, // Set blood_group at root level
           // Profile data
           profile: {
             nationality: studentData.profile?.nationality,
             classroom_id: studentData.student_profile?.classroom,
-            class_name: studentData.profile?.class_name,
-            blood_group: studentData.profile?.blood_group
+            class_name: studentData.profile?.class_name
           },
           // Student profile data
           student_id: studentData.student_profile?.student_id,
