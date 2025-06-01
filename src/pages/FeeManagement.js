@@ -1050,14 +1050,54 @@ const FeeManagement = () => {
       <style>
         {`
           .fee-management-page {
-            padding: 24px;
-            background: #f0f2f5;
+            padding: 32px;
+            background: #ffffff;
             min-height: 100vh;
+            position: relative;
+            margin: 24px 0 0 32px;
+          }
+
+          .fee-management-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(123, 131, 235, 0.1) 0%, rgba(123, 131, 235, 0.05) 100%);
+            z-index: 0;
           }
 
           .fee-management-card {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            background: #ffffff;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+          }
+
+          .fee-management-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #7B83EB, rgba(123, 131, 235, 0.5));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .fee-management-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+          }
+
+          .fee-management-card:hover::before {
+            opacity: 1;
           }
 
           .page-header {
@@ -1065,22 +1105,28 @@ const FeeManagement = () => {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
           }
 
           .page-header .ant-typography {
             margin: 0 !important;
+            color: #1a1a1a;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
           }
 
           .student-summary-card {
             margin-bottom: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
           }
 
           .payment-history-card {
             margin-bottom: 8px;
-            border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
           }
 
           .ant-timeline-item-content {
@@ -1090,6 +1136,23 @@ const FeeManagement = () => {
           .ant-table-thead > tr > th {
             background: #fafafa;
             font-weight: 600;
+            padding: 16px 24px;
+            color: #1a1a1a;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .ant-table-tbody > tr > td {
+            padding: 16px 24px;
+            color: #333333;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+          }
+
+          .ant-table-tbody > tr:hover > td {
+            background: rgba(123, 131, 235, 0.04);
           }
 
           .ant-tag {
@@ -1097,11 +1160,145 @@ const FeeManagement = () => {
           }
 
           .ant-drawer-header {
-            background: #fafafa;
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 20px 24px;
           }
 
           .ant-modal-header {
-            background: #fafafa;
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 24px 32px;
+          }
+
+          .ant-modal-title {
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+          }
+
+          .ant-modal-body {
+            padding: 32px;
+          }
+
+          .ant-modal-footer {
+            background: #ffffff;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 24px 32px;
+          }
+
+          /* Tab Styling */
+          .ant-tabs-nav {
+            background: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            margin-bottom: 16px;
+            padding: 0 4px;
+            position: relative;
+          }
+
+          .ant-tabs-tab {
+            color: #666666;
+            font-weight: 500;
+            padding: 12px 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            position: relative;
+            margin: 0 2px;
+            border-radius: 8px 8px 0 0;
+          }
+
+          .ant-tabs-tab::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #7B83EB;
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 3px 3px 0 0;
+          }
+
+          .ant-tabs-tab:hover {
+            color: #7B83EB;
+            background: rgba(123, 131, 235, 0.04);
+          }
+
+          .ant-tabs-tab:hover::before {
+            transform: scaleX(0.5);
+          }
+
+          .ant-tabs-tab-active {
+            color: #7B83EB;
+            font-weight: 600;
+            background: rgba(123, 131, 235, 0.08);
+          }
+
+          .ant-tabs-tab-active::before {
+            transform: scaleX(1);
+          }
+
+          .ant-tabs-ink-bar {
+            display: none;
+          }
+
+          .ant-tabs-tab-active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: 0 -4px 12px rgba(123, 131, 235, 0.1);
+            border-radius: 8px 8px 0 0;
+            pointer-events: none;
+          }
+
+          .ant-tabs-nav-wrap::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(90deg, 
+              rgba(123, 131, 235, 0.03) 0%, 
+              rgba(123, 131, 235, 0) 50%, 
+              rgba(123, 131, 235, 0.03) 100%
+            );
+            pointer-events: none;
+          }
+
+          @media (max-width: 768px) {
+            .fee-management-page {
+              padding: 20px;
+              margin: 16px 0 0 16px;
+            }
+
+            .fee-management-page::before {
+              height: 150px;
+            }
+
+            .ant-tabs-tab {
+              padding: 10px 16px;
+              font-size: 14px;
+            }
+            
+            .ant-tabs-nav {
+              margin-bottom: 16px;
+            }
+
+            .page-header {
+              flex-direction: column;
+              align-items: stretch;
+              gap: 16px;
+            }
+
+            .ant-modal-body {
+              padding: 20px;
+            }
           }
         `}
       </style>
