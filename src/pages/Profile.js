@@ -153,11 +153,12 @@ const Profile = () => {
       const formData = new FormData();
       formData.append('photo', selectedFile);
 
-      // Make API call
+      // Make API call to upload photo
       const response = await api.user.uploadUserPhoto(currentUser.id, formData);
 
       if (response.status === 200) {
         message.success('Profile picture updated successfully');
+        // Refresh user data to get updated profile photo
         await loadUserProfile();
         handlePreviewCancel();
       } else {
