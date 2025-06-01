@@ -248,6 +248,190 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
         />
       </div>
 
+      <style>
+        {`
+          .academics-table {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            height: 100%;
+          }
+
+          .academics-table .ant-table {
+            border-radius: 8px;
+            overflow: visible;
+          }
+
+          .academics-table .ant-table-container {
+            border-radius: 8px;
+            overflow: visible;
+          }
+
+          .academics-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            margin-right: 1px;
+          }
+
+          .academics-table .ant-spin-nested-loading {
+            height: 100%;
+          }
+
+          .academics-table .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .academics-table .ant-table-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .academics-table .ant-spin {
+            max-height: none;
+          }
+
+          .academics-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+          }
+
+          .academics-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
+          }
+
+          .academics-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .academics-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .academics-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .academics-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .academics-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 4px 8px;
+            font-size: 13px;
+            height: 24px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+          }
+
+          .academics-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .academics-table .ant-table-pagination {
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
+          .academics-table .ant-pagination-item {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+            margin: 0 4px;
+          }
+
+          .academics-table .ant-pagination-prev .ant-pagination-item-link,
+          .academics-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .academics-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .academics-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .academics-table .ant-select-selector {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
+          }
+
+          .academics-table .ant-select-selection-item {
+            line-height: 22px !important;
+            font-size: 12px;
+          }
+
+          .academics-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .academics-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .academics-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .academics-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .academics-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .academics-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .academics-table .ant-checkbox:hover .ant-checkbox-inner,
+          .academics-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB !important;
+          }
+
+          .academics-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .academics-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB !important;
+          }
+        `}
+      </style>
+
       <Modal
         title={
           <Space>
