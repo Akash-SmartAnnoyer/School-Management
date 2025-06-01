@@ -1188,6 +1188,93 @@ const FeeManagement = () => {
             padding: 24px 32px;
           }
 
+          /* Table Styles */
+          .ant-table {
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            min-height: 400px;
+          }
+
+          .ant-table-container {
+            min-height: 400px;
+          }
+
+          .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            margin-right: 1px;
+          }
+
+          .ant-spin-nested-loading {
+            height: 100%;
+          }
+
+          .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .ant-table-placeholder {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border: none;
+          }
+
+          .ant-empty {
+            padding: 40px 0;
+          }
+
+          .ant-empty-image {
+            height: 100px;
+            margin-bottom: 16px;
+          }
+
+          .ant-empty-description {
+            color: #666666;
+            font-size: 16px;
+            margin-top: 8px;
+          }
+
+          .ant-table-thead > tr > th {
+            background: #fafafa;
+            color: #1a1a1a;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            font-weight: 600;
+            padding: 16px 24px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .ant-table-tbody > tr > td {
+            color: #333333;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            padding: 16px 24px;
+            transition: all 0.2s ease;
+          }
+
+          .ant-table-tbody > tr:hover > td {
+            background: rgba(123, 131, 235, 0.04);
+          }
+
+          .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .ant-table-pagination {
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
           /* Tab Styling */
           .ant-tabs-nav {
             background: #ffffff;
@@ -1298,6 +1385,28 @@ const FeeManagement = () => {
 
             .ant-modal-body {
               padding: 20px;
+            }
+
+            .ant-table {
+              min-height: 300px;
+            }
+
+            .ant-table-container {
+              min-height: 300px;
+            }
+
+            .ant-table-placeholder {
+              height: 300px;
+            }
+
+            .ant-table-thead > tr > th {
+              position: sticky;
+              top: 0;
+              z-index: 1;
+            }
+
+            .ant-table-tbody > tr > td {
+              min-width: 120px;
             }
           }
         `}

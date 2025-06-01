@@ -37,11 +37,11 @@
 }
 
 .academics-table {
-  flex: 1;
   background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  min-height: 400px; /* Minimum height for empty state */
 }
 
 .academics-table .ant-table {
@@ -50,8 +50,7 @@
 }
 
 .academics-table .ant-table-container {
-  border-radius: 8px;
-  overflow: visible;
+  min-height: 400px; /* Minimum height for empty state */
 }
 
 .academics-table .ant-table-body {
@@ -71,10 +70,12 @@
 }
 
 .academics-table .ant-table-placeholder {
-  flex: 1;
+  height: 400px; /* Fixed height for empty state */
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #ffffff;
+  border: none;
 }
 
 .academics-table .ant-spin {
@@ -93,24 +94,25 @@
 }
 
 .academics-table .ant-table-thead > tr > th {
-  background: rgba(123, 131, 235, 0.1) !important;
-  color: #7B83EB !important;
+  background: #fafafa;
+  color: #1a1a1a;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   font-weight: 600;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 4px 12px !important;
-  white-space: nowrap;
-  height: 32px;
-  line-height: 1.2;
-  font-size: 13px;
+  padding: 16px 24px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .academics-table .ant-table-tbody > tr > td {
-  padding: 4px 12px !important;
-  white-space: nowrap;
-  border-bottom: 1px solid #f0f0f0;
-  height: 32px;
-  line-height: 1.2;
-  font-size: 13px;
+  color: #333333;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px;
+  transition: all 0.2s ease;
+}
+
+.academics-table .ant-table-tbody > tr:hover > td {
+  background: rgba(123, 131, 235, 0.04);
 }
 
 .academics-table .ant-table-tbody > tr:last-child > td {
@@ -236,6 +238,21 @@
   background-color: #7B83EB !important;
 }
 
+.academics-table .ant-empty {
+  padding: 40px 0;
+}
+
+.academics-table .ant-empty-image {
+  height: 100px;
+  margin-bottom: 16px;
+}
+
+.academics-table .ant-empty-description {
+  color: #666666;
+  font-size: 16px;
+  margin-top: 8px;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .academics-header {
@@ -247,6 +264,7 @@
   .academics-table {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    min-height: 300px;
   }
 
   .academics-table .ant-table-thead > tr > th {
@@ -257,5 +275,13 @@
 
   .academics-table .ant-table-tbody > tr > td {
     min-width: 120px;
+  }
+
+  .academics-table .ant-table-container {
+    min-height: 300px;
+  }
+
+  .academics-table .ant-table-placeholder {
+    height: 300px;
   }
 } 
