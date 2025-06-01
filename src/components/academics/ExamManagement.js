@@ -103,7 +103,7 @@ const ExamManagement = () => {
         exam_date: values.date.format('YYYY-MM-DD'),
         start_time: values.startTime.format('HH:mm:ss'),
         updatedAt: new Date().toISOString(),
-        classrooms: values.classrooms === 'all' ? classrooms.map(c => c.id) : values.classrooms
+        classrooms: values.classrooms.includes('all') ? classrooms.map(c => c.id) : values.classrooms
       };
 
       if (editingExam) {
