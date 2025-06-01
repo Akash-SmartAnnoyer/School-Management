@@ -18,6 +18,7 @@ import {
   Empty,
   Row,
   Col,
+  Popover,
 } from 'antd';
 import {
   PlusOutlined,
@@ -340,47 +341,88 @@ const ExamManagement = () => {
           );
         }
         
+        const MAX_VISIBLE_TAGS = 2;
+        const visibleClassrooms = classrooms.slice(0, MAX_VISIBLE_TAGS);
+        const remainingCount = classrooms.length - MAX_VISIBLE_TAGS;
+        
+        const renderClassroomTag = (classroom) => {
+          if (classroom.classroom_name) {
+            return (
+              <Tag 
+                key={classroom.id}
+                style={{ 
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  background: '#f6ffed',
+                  color: '#389e0d',
+                  border: '1px solid #f0f0f0',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  height: '24px',
+                  lineHeight: '1',
+                  margin: 0
+                }}
+              >
+                {classroom.classroom_name} {classroom.classroom_section}
+              </Tag>
+            );
+          }
+          
+          const classroomObj = classrooms.find(c => c.id === classroom);
+          return classroomObj ? (
+            <Tag 
+              key={classroom}
+              style={{ 
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: '#f6ffed',
+                color: '#389e0d',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: '24px',
+                lineHeight: '1',
+                margin: 0
+              }}
+            >
+              {classroomObj.class_name} {classroomObj.section}
+            </Tag>
+          ) : null;
+        };
+
+        const remainingClassrooms = classrooms.slice(MAX_VISIBLE_TAGS);
+        
         return (
           <Space wrap size={[4, 4]}>
-            {classrooms.map((classroom) => {
-              if (classroom.classroom_name) {
-                return (
-                  <Tag 
-                    key={classroom.id}
-                    style={{ 
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      background: '#f6ffed',
-                      color: '#389e0d',
-                      border: '1px solid #f0f0f0',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      height: '24px',
-                      lineHeight: '1',
-                      margin: 0
-                    }}
-                  >
-                    {classroom.classroom_name} {classroom.classroom_section}
-                  </Tag>
-                );
-              }
-              
-              const classroomObj = classrooms.find(c => c.id === classroom);
-              return classroomObj ? (
-                <Tag 
-                  key={classroom}
-                  style={{ 
+            {visibleClassrooms.map(renderClassroomTag)}
+            {remainingCount > 0 && (
+              <Popover
+                content={
+                  <div style={{ maxWidth: '300px' }}>
+                    <Space wrap size={[4, 4]}>
+                      {remainingClassrooms.map(renderClassroomTag)}
+                    </Space>
+                  </div>
+                }
+                title="All Classrooms"
+                trigger="hover"
+              >
+                <Tag
+                  style={{
                     padding: '4px 8px',
                     borderRadius: '6px',
                     fontSize: '13px',
                     fontWeight: 500,
-                    background: '#f6ffed',
-                    color: '#389e0d',
+                    background: '#f0f0f0',
+                    color: '#595959',
                     border: '1px solid #f0f0f0',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     height: '24px',
@@ -388,10 +430,10 @@ const ExamManagement = () => {
                     margin: 0
                   }}
                 >
-                  {classroomObj.class_name} {classroomObj.section}
+                  +{remainingCount} more
                 </Tag>
-              ) : null;
-            })}
+              </Popover>
+            )}
           </Space>
         );
       },
