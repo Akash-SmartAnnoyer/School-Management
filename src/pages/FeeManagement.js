@@ -1050,11 +1050,11 @@ const FeeManagement = () => {
       <style>
         {`
           .fee-management-page {
-            padding: 32px;
+            padding: 20px;
             background: #ffffff;
             min-height: 100vh;
             position: relative;
-            margin: 24px 0 0 32px;
+            margin: 16px 0 0 16px;
           }
 
           .fee-management-page::before {
@@ -1273,8 +1273,8 @@ const FeeManagement = () => {
 
           @media (max-width: 768px) {
             .fee-management-page {
-              padding: 20px;
-              margin: 16px 0 0 16px;
+              padding: 16px;
+              margin: 12px 0 0 12px;
             }
 
             .fee-management-page::before {

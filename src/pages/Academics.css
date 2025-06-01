@@ -1,9 +1,9 @@
 .academics-container {
-  padding: 32px;
+  padding: 20px;
   background: #ffffff;
   min-height: 100vh;
   position: relative;
-  margin: 24px 0 0 32px;
+  margin: 16px 0 0 16px;
 }
 
 .academics-container::before {
@@ -350,8 +350,8 @@
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .academics-container {
-    padding: 20px;
-    margin: 16px 0 0 16px;
+    padding: 16px;
+    margin: 12px 0 0 12px;
   }
 
   .academics-container::before {
