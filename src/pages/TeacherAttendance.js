@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, DatePicker, Card, message, Row, Col, Statistic, Typography, Input } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Table, Button, Space, DatePicker, Card, message, Row, Col, Statistic, Typography, Input, Select, Form } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, FilterOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
 
 const { Title } = Typography;
 const { TextArea } = Input;
+const { RangePicker } = DatePicker;
 
 const TeacherAttendance = () => {
   const [teachers, setTeachers] = useState([]);
@@ -14,11 +15,14 @@ const TeacherAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [attendanceDetails, setAttendanceDetails] = useState({});
+  const [filterForm] = Form.useForm();
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [dateRange, setDateRange] = useState([moment().subtract(30, 'days'), moment()]);
 
   useEffect(() => {
     loadTeachers();
     loadAttendance();
-  }, [selectedDate]);
+  }, [selectedDate, selectedTeacher, dateRange]);
 
   const loadTeachers = async () => {
     try {
@@ -51,8 +55,18 @@ const TeacherAttendance = () => {
   const loadAttendance = async () => {
     try {
       setLoading(true);
-      const date = selectedDate.format('YYYY-MM-DD');
-      const response = await api.teacherAttendance.getByDateRange(date, date);
+      const params = {};
+      
+      if (selectedTeacher) {
+        params.teacher = selectedTeacher;
+      }
+      
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        params.start_date = dateRange[0].format('YYYY-MM-DD');
+        params.end_date = dateRange[1].format('YYYY-MM-DD');
+      }
+
+      const response = await api.teacherAttendance.getByDateRange(params.start_date, params.end_date, params);
       const attendanceData = response.data.results || [];
       
       // Initialize attendance status and details from existing records
@@ -79,6 +93,13 @@ const TeacherAttendance = () => {
       ...prev,
       [teacherId]: status
     }));
+    // Clear details if status is not leave
+    if (status !== 'leave') {
+      setAttendanceDetails(prev => ({
+        ...prev,
+        [teacherId]: ''
+      }));
+    }
   };
 
   const handleDetailsChange = (teacherId, details) => {
@@ -92,28 +113,81 @@ const TeacherAttendance = () => {
     try {
       setLoading(true);
       const date = selectedDate.format('YYYY-MM-DD');
-      const attendanceRecords = Object.entries(attendanceStatus).map(([teacherId, status]) => ({
-        teacher: parseInt(teacherId),
-        date,
-        status: status.toLowerCase(),
-        details: attendanceDetails[teacherId] || ''
-      }));
+      
+      // Save each attendance record individually
+      for (const [teacherId, status] of Object.entries(attendanceStatus)) {
+        const attendanceRecord = {
+          teacher: parseInt(teacherId),
+          date,
+          status: status.toLowerCase(),
+          details: status === 'leave' ? (attendanceDetails[teacherId] || '') : ''
+        };
 
-      await api.teacherAttendance.create(attendanceRecords);
+        try {
+          // First try to find existing attendance record
+          const existingAttendance = attendance.find(
+            record => record.teacher === parseInt(teacherId) && record.date === date
+          );
+
+          if (existingAttendance) {
+            // Update existing record using PUT method
+            await api.teacherAttendance.update(existingAttendance.id, attendanceRecord);
+          } else {
+            try {
+              // Try to create new record
+              await api.teacherAttendance.create(attendanceRecord);
+            } catch (createError) {
+              // If creation fails due to unique constraint, try to find and update
+              if (createError.response?.data?.non_field_errors?.includes('The fields teacher, date must make a unique set')) {
+                // Fetch the existing record
+                const response = await api.teacherAttendance.getByDateRange(date, date, { teacher: teacherId });
+                const existingRecord = response.data.results?.[0];
+                
+                if (existingRecord) {
+                  // Update the existing record
+                  await api.teacherAttendance.update(existingRecord.id, attendanceRecord);
+                } else {
+                  throw createError; // Re-throw if we can't find the record
+                }
+              } else {
+                throw createError; // Re-throw other errors
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error saving attendance for teacher ${teacherId}:`, error);
+          if (error.response?.data?.date) {
+            message.error('Attendance can only be marked for today or yesterday');
+          } else if (error.response?.data?.non_field_errors) {
+            message.error(error.response.data.non_field_errors[0]);
+          } else {
+            message.error(`Error saving attendance for teacher ID ${teacherId}`);
+          }
+          throw error; // Re-throw to stop the process
+        }
+      }
+
       message.success('Attendance saved successfully');
       loadAttendance();
     } catch (error) {
       console.error('Error saving attendance:', error);
-      if (error.message?.includes('already exists')) {
-        message.error('Attendance already marked for some teachers');
-      } else if (error.message?.includes('Date must be today or yesterday')) {
-        message.error('Attendance can only be marked for today or yesterday');
-      } else {
-        message.error('Error saving attendance');
-      }
+      // Error messages are already shown in the loop
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFilterSubmit = (values) => {
+    setSelectedTeacher(values.teacher);
+    if (values.dateRange) {
+      setDateRange(values.dateRange);
+    }
+  };
+
+  const handleResetFilters = () => {
+    filterForm.resetFields();
+    setSelectedTeacher(null);
+    setDateRange([moment().subtract(30, 'days'), moment()]);
   };
 
   const columns = [
@@ -171,12 +245,13 @@ const TeacherAttendance = () => {
               Leave
             </Button>
           </Space>
-          {attendanceStatus[record.id] && (
+          {attendanceStatus[record.id] === 'leave' && (
             <TextArea
-              placeholder="Enter details"
+              placeholder="Enter leave details"
               value={attendanceDetails[record.id] || ''}
               onChange={(e) => handleDetailsChange(record.id, e.target.value)}
               rows={2}
+              required
             />
           )}
         </Space>
@@ -205,6 +280,51 @@ const TeacherAttendance = () => {
             />
           </Col>
         </Row>
+      </Card>
+
+      <Card style={{ marginBottom: '24px' }}>
+        <Form
+          form={filterForm}
+          onFinish={handleFilterSubmit}
+          layout="vertical"
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <Form.Item name="teacher" label="Filter by Teacher">
+                <Select
+                  placeholder="Select Teacher"
+                  allowClear
+                  onChange={(value) => setSelectedTeacher(value)}
+                >
+                  {teachers.map(teacher => (
+                    <Select.Option key={teacher.id} value={teacher.id}>
+                      {teacher.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="dateRange" label="Date Range">
+                <RangePicker
+                  style={{ width: '100%' }}
+                  value={dateRange}
+                  onChange={(dates) => setDateRange(dates)}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Space style={{ marginTop: '29px' }}>
+                <Button type="primary" htmlType="submit" icon={<FilterOutlined />}>
+                  Apply Filters
+                </Button>
+                <Button onClick={handleResetFilters}>
+                  Reset
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </Form>
       </Card>
 
       <Card style={{ marginBottom: '24px' }}>

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic, Typography } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic, Typography, Radio, Input, Tag } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
 
 const { Option } = Select;
 const { Title } = Typography;
+const { RangePicker } = DatePicker;
 
 const Attendance = () => {
   const [students, setStudents] = useState([]);
@@ -24,6 +25,10 @@ const Attendance = () => {
   const [teachersLoading, setTeachersLoading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [timetableId, setTimetableId] = useState(null);
+  const [viewMode, setViewMode] = useState('mark'); // 'mark' or 'view'
+  const [dateRange, setDateRange] = useState([moment().subtract(7, 'days'), moment()]);
+  const [searchText, setSearchText] = useState('');
+  const [filteredAttendance, setFilteredAttendance] = useState([]);
 
   useEffect(() => {
     loadClasses();
@@ -273,17 +278,21 @@ const Attendance = () => {
         taken_by_teacher: selectedTeacher
       }));
 
-      // Save attendance records one by one
-      for (const record of attendanceRecords) {
-        try {
-          await api.attendance.createAttendance(record);
-        } catch (error) {
-          console.error('Error saving attendance for student:', record.student, error);
-          // Continue with other records even if one fails
-        }
+      // Use bulk creation endpoint
+      const response = await api.attendance.createBulkAttendance(attendanceRecords);
+      
+      if (response.success_count > 0) {
+        message.success(`Successfully marked attendance for ${response.success_count} students`);
       }
       
-      message.success('Attendance saved successfully');
+      if (response.fail_count > 0) {
+        message.warning(`Failed to mark attendance for ${response.fail_count} students`);
+        // Log errors for failed records
+        response.errors.forEach((error, index) => {
+          console.error(`Error for student ${attendanceRecords[index].student}:`, error);
+        });
+      }
+      
       loadAttendance();
     } catch (error) {
       console.error('Error saving attendance:', error);
@@ -307,6 +316,57 @@ const Attendance = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadAttendanceRecords = async () => {
+    try {
+      setLoading(true);
+      const startDate = dateRange[0].format('YYYY-MM-DD');
+      const endDate = dateRange[1].format('YYYY-MM-DD');
+      
+      const params = {
+        startDate,
+        endDate
+      };
+      
+      if (selectedClass) {
+        params.classroom = selectedClass;
+      }
+      
+      const response = await api.attendance.getFilteredAttendance(params);
+      
+      if (response && response.data && response.data.results) {
+        setAttendance(response.data.results);
+        setFilteredAttendance(response.data.results);
+      } else {
+        setAttendance([]);
+        setFilteredAttendance([]);
+      }
+    } catch (error) {
+      console.error('Error loading attendance records:', error);
+      message.error('Failed to load attendance records');
+      setAttendance([]);
+      setFilteredAttendance([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    if (!value) {
+      setFilteredAttendance(attendance);
+      return;
+    }
+    
+    const filtered = attendance.filter(record => {
+      const student = students.find(s => s.id === record.student);
+      return student && (
+        student.name.toLowerCase().includes(value.toLowerCase()) ||
+        student.rollNumber.toString().includes(value)
+      );
+    });
+    setFilteredAttendance(filtered);
   };
 
   const columns = [
@@ -353,6 +413,52 @@ const Attendance = () => {
   const totalCount = students.filter(s => s.classId === selectedClass).length;
   const absentCount = totalCount - presentCount;
 
+  const viewColumns = [
+    {
+      title: 'Date',
+      dataIndex: 'date',
+      key: 'date',
+      render: (date) => moment(date).format('DD MMM YYYY'),
+    },
+    {
+      title: 'Roll Number',
+      dataIndex: 'student',
+      key: 'rollNumber',
+      render: (studentId) => {
+        const student = students.find(s => s.id === studentId);
+        return student ? student.rollNumber : '-';
+      },
+    },
+    {
+      title: 'Name',
+      dataIndex: 'student',
+      key: 'name',
+      render: (studentId) => {
+        const student = students.find(s => s.id === studentId);
+        return student ? student.name : '-';
+      },
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === 'present' ? 'success' : 'error'}>
+          {status.toUpperCase()}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Period',
+      dataIndex: 'timetable',
+      key: 'period',
+      render: (timetableId) => {
+        const period = availablePeriods.find(p => p.id === timetableId);
+        return period ? `${getSubjectName(period.subject)} (${period.start_time} - ${period.end_time})` : '-';
+      },
+    },
+  ];
+
   return (
     <div style={{ 
       height: '100%', 
@@ -376,25 +482,20 @@ const Attendance = () => {
             alignItems: 'center',
             gap: '8px'
           }}>
-            {/* <CalendarOutlined style={{ fontSize: '24px', color: '#7B83EB' }} /> */}
             <img src="/attendance.png" alt="Attendance" style={{ width: '40px', height: '40px' }} />
             Attendance Management
           </Title>
         </Col>
         <Col>
-          <Space size="small">
-            <DatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
-              format="YYYY-MM-DD"
-              style={{ 
-                width: 200,
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-            />
-          </Space>
+          <Radio.Group 
+            value={viewMode} 
+            onChange={(e) => setViewMode(e.target.value)}
+            buttonStyle="solid"
+            style={{ marginRight: '16px' }}
+          >
+            <Radio.Button value="mark">Mark Attendance</Radio.Button>
+            <Radio.Button value="view">View Attendance</Radio.Button>
+          </Radio.Group>
         </Col>
       </Row>
 
@@ -413,279 +514,179 @@ const Attendance = () => {
         }}
         bodyStyle={{ padding: 0, height: '100%' }}
       >
-        <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-          <Col xs={24} sm={12} md={6}>
-            <Select
-              style={{ 
-                width: '100%',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              placeholder="Select Class"
-              onChange={handleClassChange}
-              value={selectedClass}
-              loading={classesLoading}
-            >
-              {classes && classes.map(cls => (
-                <Option key={cls.id} value={cls.id}>
-                  {cls.class_name} - {cls.section} ({cls.status === 'active' ? 'Active' : 'Inactive'})
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Select
-              style={{ 
-                width: '100%',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              placeholder="Select Teacher"
-              onChange={handleTeacherChange}
-              value={selectedTeacher}
-              loading={teachersLoading}
-              disabled={!selectedClass}
-            >
-              {teachers && teachers.map(teacher => (
-                <Option key={teacher.id} value={teacher.id}>
-                  {teacher.name} - {teacher.subject} ({teacher.class})
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Select
-              style={{ 
-                width: '100%',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                border: '1px solid rgba(159, 179, 223, 0.3)'
-              }}
-              placeholder="Select Period"
-              onChange={handlePeriodChange}
-              value={selectedPeriod}
-              disabled={!selectedTeacher || availablePeriods.length === 0}
-            >
-              {availablePeriods.map(period => (
-                <Option key={period.id} value={period.id}>
-                  {getSubjectName(period.subject)} ({period.start_time} - {period.end_time}) - {period.day.toUpperCase()}
-                </Option>
-              ))}
-            </Select>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Button
-              type="primary"
-              onClick={handleSaveAttendance}
-              loading={loading}
-              disabled={!selectedClass || !selectedTeacher || !selectedPeriod}
-              style={{ 
-                width: '100%',
-                height: '40px',
-                borderRadius: '6px',
-                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                background: '#7B83EB',
-                border: 'none',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                e.currentTarget.style.background = '#8ba1d1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                e.currentTarget.style.background = '#7B83EB';
-              }}
-            >
-              Save Attendance
-            </Button>
-          </Col>
-        </Row>
+        {viewMode === 'mark' ? (
+          <>
+            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select Class"
+                  onChange={handleClassChange}
+                  value={selectedClass}
+                  loading={classesLoading}
+                >
+                  {classes.map(cls => (
+                    <Option key={cls.id} value={cls.id}>
+                      {cls.class_name} - {cls.section}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select Teacher"
+                  onChange={handleTeacherChange}
+                  value={selectedTeacher}
+                  loading={teachersLoading}
+                  disabled={!selectedClass}
+                >
+                  {teachers.map(teacher => (
+                    <Option key={teacher.id} value={teacher.id}>
+                      {teacher.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select Period"
+                  onChange={handlePeriodChange}
+                  value={selectedPeriod}
+                  disabled={!selectedTeacher || availablePeriods.length === 0}
+                >
+                  {availablePeriods.map(period => (
+                    <Option key={period.id} value={period.id}>
+                      {getSubjectName(period.subject)} ({period.start_time} - {period.end_time})
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <DatePicker
+                  style={{ width: '100%' }}
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  format="YYYY-MM-DD"
+                />
+              </Col>
+            </Row>
 
-        <Card 
-          style={{ 
-            margin: '0 16px 16px 16px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-            border: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
-          <Row gutter={[16, 16]}>
-            <Col xs={12} sm={8}>
-              <Statistic
-                title="Present"
-                value={presentCount}
-                prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Col>
-            <Col xs={12} sm={8}>
-              <Statistic
-                title="Absent"
-                value={absentCount}
-                prefix={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
-                valueStyle={{ color: '#ff4d4f' }}
-              />
-            </Col>
-            <Col xs={24} sm={8}>
-              <Statistic
-                title="Total"
-                value={totalCount}
-                prefix={<TeamOutlined style={{ color: '#7B83EB' }} />}
-                valueStyle={{ color: '#7B83EB' }}
-              />
-            </Col>
-          </Row>
-        </Card>
+            <Card style={{ margin: '0 16px 16px 16px' }}>
+              <Row gutter={[16, 16]}>
+                <Col xs={12} sm={8}>
+                  <Statistic
+                    title="Present"
+                    value={presentCount}
+                    prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col xs={12} sm={8}>
+                  <Statistic
+                    title="Absent"
+                    value={absentCount}
+                    prefix={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+                    valueStyle={{ color: '#ff4d4f' }}
+                  />
+                </Col>
+                <Col xs={24} sm={8}>
+                  <Statistic
+                    title="Total"
+                    value={totalCount}
+                    prefix={<TeamOutlined style={{ color: '#7B83EB' }} />}
+                    valueStyle={{ color: '#7B83EB' }}
+                  />
+                </Col>
+              </Row>
+            </Card>
 
-        <Card 
-          style={{ 
-            margin: '0 16px 16px 16px',
-            borderRadius: '12px',
-            boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',
-            border: '1px solid rgba(159, 179, 223, 0.3)'
-          }}
-        >
-          <Table
-            columns={columns}
-            dataSource={students.filter(student => student.classId === selectedClass)}
-            rowKey="id"
-            pagination={false}
-            scroll={{ x: true }}
-            className="custom-table"
-            loading={studentsLoading}
-          />
-        </Card>
+            <Card style={{ margin: '0 16px 16px 16px' }}>
+              <Table
+                columns={columns}
+                dataSource={students.filter(student => student.classId === selectedClass)}
+                rowKey="id"
+                pagination={false}
+                scroll={{ x: true }}
+                className="custom-table"
+                loading={studentsLoading}
+              />
+            </Card>
+
+            <div style={{ padding: '16px', textAlign: 'right' }}>
+              <Button
+                type="primary"
+                onClick={handleSaveAttendance}
+                loading={loading}
+                disabled={!selectedClass || !selectedTeacher || !selectedPeriod}
+              >
+                Save Attendance
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <Row gutter={[16, 16]} style={{ padding: '16px' }}>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select Class"
+                  onChange={handleClassChange}
+                  value={selectedClass}
+                  loading={classesLoading}
+                >
+                  {classes.map(cls => (
+                    <Option key={cls.id} value={cls.id}>
+                      {cls.class_name} - {cls.section}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <RangePicker
+                  style={{ width: '100%' }}
+                  value={dateRange}
+                  onChange={setDateRange}
+                  format="YYYY-MM-DD"
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Input
+                  placeholder="Search by name or roll number"
+                  prefix={<SearchOutlined />}
+                  value={searchText}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  allowClear
+                />
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Button
+                  type="primary"
+                  onClick={loadAttendanceRecords}
+                  loading={loading}
+                >
+                  Load Records
+                </Button>
+              </Col>
+            </Row>
+
+            <Card style={{ margin: '0 16px 16px 16px' }}>
+              <Table
+                columns={viewColumns}
+                dataSource={filteredAttendance}
+                rowKey="id"
+                pagination={{ pageSize: 10 }}
+                scroll={{ x: true }}
+                className="custom-table"
+                loading={loading}
+              />
+            </Card>
+          </>
+        )}
       </Card>
-
-      <style>
-        {`
-          .custom-table .ant-table {
-            border-radius: 12px;
-            overflow: hidden;
-          }
-          
-          .custom-table .ant-table-container {
-            overflow: hidden !important;
-            border-radius: 12px;
-          }
-          
-          .custom-table .ant-table-body {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            border-radius: 0 0 12px 12px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-thumb {
-            background: rgba(159, 179, 223, 0.3);
-            border-radius: 3px;
-          }
-
-          .custom-table .ant-table-body::-webkit-scrollbar-track {
-            background: rgba(159, 179, 223, 0.1);
-            border-radius: 3px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:first-child {
-            border-top-left-radius: 12px;
-          }
-          
-          .custom-table .ant-table-thead > tr > th:last-child {
-            border-top-right-radius: 12px;
-          }
-
-          .custom-table .ant-table-thead > tr > th {
-            background: rgba(159, 179, 223, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(159, 179, 223, 0.2);
-            padding: 12px 16px !important;
-          }
-          
-          .custom-table .ant-table-tbody > tr > td {
-            border-bottom: 1px solid rgba(159, 179, 223, 0.1);
-            padding: 12px 16px !important;
-          }
-          
-          .custom-table .ant-table-tbody > tr:hover > td {
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .custom-table .ant-btn {
-            border-radius: 6px;
-            transition: all 0.3s ease;
-          }
-
-          .custom-table .ant-btn-primary {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-          }
-
-          .custom-table .ant-btn-primary:hover {
-            background: #8ba1d1 !important;
-            border-color: #8ba1d1 !important;
-            box-shadow: 0 4px 12px rgba(159, 179, 223, 0.25) !important;
-          }
-
-          .custom-table .ant-btn-default {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            color: #7B83EB !important;
-          }
-
-          .custom-table .ant-btn-default:hover {
-            border-color: #7B83EB !important;
-            color: #8ba1d1 !important;
-            background: rgba(159, 179, 223, 0.05) !important;
-          }
-
-          .ant-select-selector {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-            border-radius: 6px !important;
-          }
-
-          .ant-select-selector:hover {
-            border-color: #7B83EB !important;
-          }
-
-          .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
-          }
-
-          .ant-picker {
-            border-color: rgba(159, 179, 223, 0.3) !important;
-            box-shadow: 0 2px 6px rgba(159, 179, 223, 0.15) !important;
-            border-radius: 6px !important;
-          }
-
-          .ant-picker:hover {
-            border-color: #7B83EB !important;
-          }
-
-          .ant-picker-focused {
-            border-color: #7B83EB !important;
-            box-shadow: 0 0 0 2px rgba(159, 179, 223, 0.2) !important;
-          }
-        `}
-      </style>
     </div>
   );
 };
 
-export default Attendance; 
+export default Attendance;

@@ -497,6 +497,15 @@ export const attendanceAPI = {
     });
     return handleResponse(response);
   },
+  createBulkAttendance: async (attendanceRecords) => {
+    const response = await fetch(`${BASE_URL}/attendance/bulk-create/`, {
+      method: 'POST',
+      headers: await getHeaders(),
+      body: JSON.stringify(attendanceRecords),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
   updateAttendance: async (id, attendanceData) => {
     const response = await fetch(`${BASE_URL}/attendances/${id}/`, {
       method: 'PUT',
@@ -509,6 +518,51 @@ export const attendanceAPI = {
   deleteAttendance: async (id) => {
     const response = await fetch(`${BASE_URL}/attendances/${id}/`, {
       method: 'DELETE',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByDate: async (date) => {
+    const response = await fetch(`${BASE_URL}/attendance/?date=${date}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByDateRange: async (startDate, endDate) => {
+    const response = await fetch(`${BASE_URL}/attendance/?start_date=${startDate}&end_date=${endDate}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByClassroom: async (classroomId) => {
+    const response = await fetch(`${BASE_URL}/attendance/?classroom=${classroomId}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getByStudent: async (studentId) => {
+    const response = await fetch(`${BASE_URL}/attendance/?student=${studentId}`, {
+      method: 'GET',
+      headers: await getHeaders(),
+      credentials: 'include'
+    });
+    return handleResponse(response);
+  },
+  getFilteredAttendance: async (params) => {
+    const queryParams = new URLSearchParams();
+    if (params.classroom) queryParams.append('classroom', params.classroom);
+    if (params.student) queryParams.append('student', params.student);
+    if (params.startDate) queryParams.append('start_date', params.startDate);
+    if (params.endDate) queryParams.append('end_date', params.endDate);
+    const response = await fetch(`${BASE_URL}/attendance/?${queryParams.toString()}`, {
+      method: 'GET',
       headers: await getHeaders(),
       credentials: 'include'
     });
