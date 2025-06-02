@@ -336,8 +336,29 @@ const Attendance = () => {
       const response = await api.attendance.getFilteredAttendance(params);
       
       if (response && response.data && response.data.results) {
-        setAttendance(response.data.results);
-        setFilteredAttendance(response.data.results);
+        // Get unique timetable IDs from attendance records
+        const timetableIds = [...new Set(response.data.results.map(record => record.timetable))];
+        
+        // Fetch timetable details for all unique IDs
+        const timetablePromises = timetableIds.map(id => api.timetable.getById(id));
+        const timetableResponses = await Promise.all(timetablePromises);
+        
+        // Create a map of timetable details
+        const timetableMap = timetableResponses.reduce((acc, response) => {
+          if (response && response.data) {
+            acc[response.data.id] = response.data;
+          }
+          return acc;
+        }, {});
+        
+        // Add timetable details to attendance records
+        const attendanceWithTimetable = response.data.results.map(record => ({
+          ...record,
+          timetableDetails: timetableMap[record.timetable]
+        }));
+        
+        setAttendance(attendanceWithTimetable);
+        setFilteredAttendance(attendanceWithTimetable);
       } else {
         setAttendance([]);
         setFilteredAttendance([]);
@@ -450,13 +471,34 @@ const Attendance = () => {
     },
     {
       title: 'Period',
-      dataIndex: 'timetable',
+      dataIndex: 'timetableDetails',
       key: 'period',
-      render: (timetableId) => {
-        const period = availablePeriods.find(p => p.id === timetableId);
-        return period ? `${getSubjectName(period.subject)} (${period.start_time} - ${period.end_time})` : '-';
+      render: (timetableDetails) => {
+        if (!timetableDetails) return '-';
+        return (
+          <div>
+            <div>{getSubjectName(timetableDetails.subject)}</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              {moment(timetableDetails.start_time, 'HH:mm:ss').format('hh:mm A')} - 
+              {moment(timetableDetails.end_time, 'HH:mm:ss').format('hh:mm A')}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              {timetableDetails.day.charAt(0).toUpperCase() + timetableDetails.day.slice(1)}
+            </div>
+          </div>
+        );
       },
     },
+    {
+      title: 'Teacher',
+      dataIndex: 'timetableDetails',
+      key: 'teacher',
+      render: (timetableDetails) => {
+        if (!timetableDetails) return '-';
+        const teacher = teachers.find(t => t.id === timetableDetails.teacher);
+        return teacher ? teacher.name : '-';
+      },
+    }
   ];
 
   return (
