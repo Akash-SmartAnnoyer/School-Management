@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic, Typography, Radio, Input, Tag } from 'antd';
+import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic, Typography, Radio, Input, Tag, Checkbox } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, SearchOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
@@ -29,6 +29,8 @@ const Attendance = () => {
   const [dateRange, setDateRange] = useState([moment().subtract(7, 'days'), moment()]);
   const [searchText, setSearchText] = useState('');
   const [filteredAttendance, setFilteredAttendance] = useState([]);
+  const [selectedRecords, setSelectedRecords] = useState([]);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     loadClasses();
@@ -390,6 +392,59 @@ const Attendance = () => {
     setFilteredAttendance(filtered);
   };
 
+  const handleUpdateAttendance = async (recordId, newStatus) => {
+    try {
+      setUpdateLoading(true);
+      const response = await api.attendance.updateAttendance(recordId, { status: newStatus.toLowerCase() });
+      if (response && response.data) {
+        message.success('Attendance updated successfully');
+        loadAttendanceRecords();
+      }
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      message.error('Failed to update attendance');
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleBulkUpdate = async () => {
+    if (selectedRecords.length === 0) {
+      message.warning('Please select records to update');
+      return;
+    }
+
+    try {
+      setUpdateLoading(true);
+      const updateData = selectedRecords.map(record => ({
+        id: record.id,
+        status: record.status.toLowerCase()
+      }));
+
+      const response = await api.attendance.updateBulkAttendance(updateData);
+      if (response && response.data) {
+        message.success(`Successfully updated ${response.data.updated.length} records`);
+        setSelectedRecords([]);
+        loadAttendanceRecords();
+      }
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      message.error('Failed to update attendance records');
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleRecordSelect = (record) => {
+    setSelectedRecords(prev => {
+      const exists = prev.find(r => r.id === record.id);
+      if (exists) {
+        return prev.filter(r => r.id !== record.id);
+      }
+      return [...prev, record];
+    });
+  };
+
   const columns = [
     {
       title: 'Roll Number',
@@ -498,7 +553,38 @@ const Attendance = () => {
         const teacher = teachers.find(t => t.id === timetableDetails.teacher);
         return teacher ? teacher.name : '-';
       },
-    }
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => {
+        const isSelected = selectedRecords.some(r => r.id === record.id);
+        if (!isSelected) return null;
+        
+        return (
+          <Space>
+            <Button
+              type={record.status === 'present' ? 'primary' : 'default'}
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleUpdateAttendance(record.id, 'present')}
+              size="small"
+              loading={updateLoading}
+            >
+              Present
+            </Button>
+            <Button
+              type={record.status === 'absent' ? 'primary' : 'default'}
+              icon={<CloseCircleOutlined />}
+              onClick={() => handleUpdateAttendance(record.id, 'absent')}
+              size="small"
+              loading={updateLoading}
+            >
+              Absent
+            </Button>
+          </Space>
+        );
+      },
+    },
   ];
 
   return (
@@ -670,7 +756,7 @@ const Attendance = () => {
         ) : (
           <>
             <Row gutter={[16, 16]} style={{ padding: '16px' }}>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} md={8}>
                 <Select
                   style={{ width: '100%' }}
                   placeholder="Select Class"
@@ -685,7 +771,7 @@ const Attendance = () => {
                   ))}
                 </Select>
               </Col>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} md={8}>
                 <RangePicker
                   style={{ width: '100%' }}
                   value={dateRange}
@@ -693,20 +779,12 @@ const Attendance = () => {
                   format="YYYY-MM-DD"
                 />
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Input
-                  placeholder="Search by name or roll number"
-                  prefix={<SearchOutlined />}
-                  value={searchText}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  allowClear
-                />
-              </Col>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} md={8}>
                 <Button
                   type="primary"
                   onClick={loadAttendanceRecords}
                   loading={loading}
+                  style={{ width: '100%' }}
                 >
                   Load Records
                 </Button>
@@ -714,6 +792,25 @@ const Attendance = () => {
             </Row>
 
             <Card style={{ margin: '0 16px 16px 16px' }}>
+              <div style={{ 
+                marginBottom: '16px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                padding: '0 16px'
+              }}>
+                <Typography.Text strong>
+                  Selected Records: {selectedRecords.length}
+                </Typography.Text>
+                <Button
+                  type="primary"
+                  onClick={handleBulkUpdate}
+                  disabled={selectedRecords.length === 0}
+                  loading={updateLoading}
+                >
+                  Update Selected
+                </Button>
+              </div>
               <Table
                 columns={viewColumns}
                 dataSource={filteredAttendance}
@@ -722,6 +819,13 @@ const Attendance = () => {
                 scroll={{ x: true }}
                 className="custom-table"
                 loading={loading}
+                rowSelection={{
+                  type: 'checkbox',
+                  selectedRowKeys: selectedRecords.map(r => r.id),
+                  onChange: (selectedRowKeys, selectedRows) => {
+                    setSelectedRecords(selectedRows);
+                  },
+                }}
               />
             </Card>
           </>
