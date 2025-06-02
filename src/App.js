@@ -134,7 +134,7 @@ function MainLayout() {
     { key: '5', label: 'Classes', icon: <BookOutlined />, path: '/classes' },
     { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
     { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
-    { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
+    // { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
     { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
     { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' },
     { key: '11', label: 'Fee Management', icon: <WalletOutlined />, path: '/fee-management' }

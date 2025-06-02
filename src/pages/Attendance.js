@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Statistic, Typography, Radio, Input, Tag, Checkbox } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, SearchOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, SearchOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
 
@@ -494,32 +494,121 @@ const Attendance = () => {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: (date) => moment(date).format('DD MMM YYYY'),
+      width: 150,
+      render: (date) => (
+        <Tag 
+          style={{ 
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: '#595959',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '24px',
+            lineHeight: '1',
+            margin: 0
+          }}
+        >
+          <CalendarOutlined style={{ marginRight: '4px', color: '#7B83EB' }} />
+          {moment(date).format('DD MMM YYYY')}
+        </Tag>
+      ),
     },
     {
       title: 'Roll Number',
       dataIndex: 'student',
       key: 'rollNumber',
+      width: 120,
       render: (studentId) => {
         const student = students.find(s => s.id === studentId);
-        return student ? student.rollNumber : '-';
+        return student ? (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: '#f5f5f5',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            {student.rollNumber}
+          </Tag>
+        ) : '-';
       },
     },
     {
       title: 'Name',
       dataIndex: 'student',
       key: 'name',
+      width: 200,
       render: (studentId) => {
         const student = students.find(s => s.id === studentId);
-        return student ? student.name : '-';
+        return student ? (
+          <Button 
+            type="link" 
+            style={{ 
+              padding: 0, 
+              height: 'auto',
+              fontSize: '15px',
+              fontWeight: 500,
+              color: '#595959',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#8c8c8c';
+              e.currentTarget.style.transform = 'translateX(5px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#595959';
+              e.currentTarget.style.transform = 'translateX(0)';
+            }}
+          >
+            {student.name}
+          </Button>
+        ) : '-';
       },
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 120,
       render: (status) => (
-        <Tag color={status === 'present' ? 'success' : 'error'}>
+        <Tag 
+          style={{ 
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: 500,
+            background: '#f5f5f5',
+            color: status === 'present' ? '#73d13d' : '#ffa940',
+            border: '1px solid #f0f0f0',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
+          }}
+        >
+          {status === 'present' ? (
+            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#73d13d' }} />
+          ) : (
+            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ffa940' }} />
+          )} 
           {status.toUpperCase()}
         </Tag>
       ),
@@ -528,16 +617,50 @@ const Attendance = () => {
       title: 'Period',
       dataIndex: 'timetableDetails',
       key: 'period',
+      width: 250,
       render: (timetableDetails) => {
         if (!timetableDetails) return '-';
         return (
-          <div>
-            <div>{getSubjectName(timetableDetails.subject)}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <Tag 
+              style={{ 
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+                color: '#595959',
+                border: '1px solid #f0f0f0',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '24px',
+                lineHeight: '1',
+                margin: 0
+              }}
+            >
+              {getSubjectName(timetableDetails.subject)}
+            </Tag>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#666',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <ClockCircleOutlined style={{ color: '#7B83EB' }} />
               {moment(timetableDetails.start_time, 'HH:mm:ss').format('hh:mm A')} - 
               {moment(timetableDetails.end_time, 'HH:mm:ss').format('hh:mm A')}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#666',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <CalendarOutlined style={{ color: '#7B83EB' }} />
               {timetableDetails.day.charAt(0).toUpperCase() + timetableDetails.day.slice(1)}
             </div>
           </div>
@@ -548,15 +671,40 @@ const Attendance = () => {
       title: 'Teacher',
       dataIndex: 'timetableDetails',
       key: 'teacher',
+      width: 180,
       render: (timetableDetails) => {
         if (!timetableDetails) return '-';
         const teacher = teachers.find(t => t.id === timetableDetails.teacher);
-        return teacher ? teacher.name : '-';
+        return teacher ? (
+          <Tag 
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: 'linear-gradient(45deg, #f5f5f5, #fafafa)',
+              color: '#595959',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            <UserOutlined style={{ marginRight: '4px', color: '#7B83EB' }} />
+            {teacher.name}
+          </Tag>
+        ) : '-';
       },
     },
     {
       title: 'Actions',
       key: 'actions',
+      width: 180,
+      fixed: 'right',
       render: (_, record) => {
         const isSelected = selectedRecords.some(r => r.id === record.id);
         if (!isSelected) return null;
@@ -569,6 +717,15 @@ const Attendance = () => {
               onClick={() => handleUpdateAttendance(record.id, 'present')}
               size="small"
               loading={updateLoading}
+              style={{
+                height: '24px',
+                padding: '0 8px',
+                fontSize: '12px',
+                borderRadius: '4px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
               Present
             </Button>
@@ -578,6 +735,15 @@ const Attendance = () => {
               onClick={() => handleUpdateAttendance(record.id, 'absent')}
               size="small"
               loading={updateLoading}
+              style={{
+                height: '24px',
+                padding: '0 8px',
+                fontSize: '12px',
+                borderRadius: '4px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
               Absent
             </Button>
@@ -811,26 +977,271 @@ const Attendance = () => {
                   Update Selected
                 </Button>
               </div>
-              <Table
-                columns={viewColumns}
-                dataSource={filteredAttendance}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-                scroll={{ x: true }}
-                className="custom-table"
-                loading={loading}
-                rowSelection={{
-                  type: 'checkbox',
-                  selectedRowKeys: selectedRecords.map(r => r.id),
-                  onChange: (selectedRowKeys, selectedRows) => {
-                    setSelectedRecords(selectedRows);
-                  },
-                }}
-              />
+              <div style={{ 
+                flex: 1, 
+                overflow: 'hidden',
+                padding: '0 16px 16px 16px'
+              }}>
+                <Table
+                  columns={viewColumns}
+                  dataSource={filteredAttendance}
+                  rowKey="id"
+                  pagination={{ pageSize: 10 }}
+                  scroll={{ x: '100%', y: 500 }}
+                  className="attendance-table"
+                  loading={loading}
+                  rowSelection={{
+                    type: 'checkbox',
+                    selectedRowKeys: selectedRecords.map(r => r.id),
+                    onChange: (selectedRowKeys, selectedRows) => {
+                      setSelectedRecords(selectedRows);
+                    },
+                    columnWidth: 40,
+                    fixed: 'left'
+                  }}
+                  locale={{
+                    emptyText: (
+                      <div style={{ 
+                        padding: '32px 0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '16px',
+                        height: '500px',
+                        justifyContent: 'center',
+                        background: '#fafafa',
+                        borderRadius: '8px',
+                        margin: '16px'
+                      }}>
+                        <div style={{
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: '50%',
+                          background: '#f0f0f0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: '16px'
+                        }}>
+                          <img 
+                            src="/attendance.png" 
+                            alt="No Data" 
+                            style={{ 
+                              width: '40px', 
+                              height: '40px',
+                              opacity: 0.5
+                            }} 
+                          />
+                        </div>
+                        <Typography.Title level={4} style={{ 
+                          color: '#8c8c8c',
+                          margin: 0
+                        }}>
+                          No Data Available
+                        </Typography.Title>
+                        <Typography.Text style={{ 
+                          color: '#bfbfbf',
+                          fontSize: '14px',
+                          textAlign: 'center',
+                          maxWidth: '400px'
+                        }}>
+                          Select a class and date range to view attendance records. 
+                          The data will appear here once you make your selection.
+                        </Typography.Text>
+                      </div>
+                    )
+                  }}
+                />
+              </div>
             </Card>
           </>
         )}
       </Card>
+
+      <style>
+        {`
+          .attendance-table {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+            height: 100%;
+          }
+
+          .attendance-table .ant-table {
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .attendance-table .ant-table-container {
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .attendance-table .ant-table-body {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+          }
+
+          .attendance-table .ant-spin-nested-loading {
+            height: 100%;
+          }
+
+          .attendance-table .ant-spin-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .attendance-table .ant-table-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent !important;
+            height: 500px !important;
+          }
+
+          .attendance-table .ant-spin {
+            max-height: none;
+          }
+
+          .attendance-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
+          }
+
+          .attendance-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
+          }
+
+          .attendance-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
+            font-weight: 600;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .attendance-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
+          }
+
+          .attendance-table .ant-table-tbody > tr:last-child > td {
+            border-bottom: none;
+          }
+
+          .attendance-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .attendance-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 4px 8px;
+            font-size: 13px;
+            height: 24px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+          }
+
+          .attendance-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .attendance-table .ant-table-pagination {
+            margin: 16px 0 !important;
+            padding: 8px 8px !important;
+            height: 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+          }
+
+          .attendance-table .ant-pagination-item {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+            margin: 0 4px;
+          }
+
+          .attendance-table .ant-pagination-prev .ant-pagination-item-link,
+          .attendance-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .attendance-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .attendance-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .attendance-table .ant-select-selector {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
+          }
+
+          .attendance-table .ant-select-selection-item {
+            line-height: 22px !important;
+            font-size: 12px;
+          }
+
+          .attendance-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .attendance-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .attendance-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .attendance-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .attendance-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .attendance-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .attendance-table .ant-checkbox:hover .ant-checkbox-inner,
+          .attendance-table .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB !important;
+          }
+
+          .attendance-table .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .attendance-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB !important;
+          }
+        `}
+      </style>
     </div>
   );
 };
