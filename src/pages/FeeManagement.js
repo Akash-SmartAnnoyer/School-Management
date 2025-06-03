@@ -598,58 +598,107 @@ const FeeManagement = () => {
   ];
 
   return (
-    <div className="fee-management-page">
-      <Card className="fee-management-card">
-        <div className="page-header">
-          <Title level={3} className="page-title">
-            <img src="/charge.png" alt="Fee Management" style={{ width: '40px', height: '40px' }} />
-             Fee Management
-          </Title>
-          <Space>
-            <Search
-              placeholder="Search..."
-              allowClear
-              onSearch={handleSearch}
-              style={{ width: 250 }}
-              prefix={<SearchOutlined />}
-            />
+    <div className="fee-management-page" style={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      padding: '0', 
+      overflow: 'hidden', 
+      margin: '0',
+      borderRadius: '16px',
+      background: '#ffffff',
+      boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
+      border: '1px solid rgba(159, 179, 223, 0.2)'
+    }}>
+      <div className="fee-management-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#ffffff'
+      }}>
+        <Title level={3} className="page-title">
+          <img src="/charge.png" alt="Fee Management" style={{ width: '40px', height: '40px' }} />
+          Fee Management
+        </Title>
+        <Space>
+          <Search
+            placeholder="Search..."
+            allowClear
+            onSearch={handleSearch}
+            style={{ 
+              width: 250,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
+          <Select
+            placeholder="Filter by Class"
+            allowClear
+            style={{ 
+              width: 150,
+              borderRadius: '6px',
+              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+              border: '1px solid rgba(159, 179, 223, 0.3)'
+            }}
+            onChange={(value) => handleFilterChange('class', value)}
+            suffixIcon={<FilterOutlined style={{ color: '#7B83EB' }} />}
+          >
+            {uniqueClasses.map(className => (
+              <Option key={className} value={className}>
+                {className}
+              </Option>
+            ))}
+          </Select>
+          {activeTab === '1' && (
             <Select
-              placeholder="Filter by Class"
+              placeholder="Filter by Status"
               allowClear
-              style={{ width: 150 }}
-              onChange={(value) => handleFilterChange('class', value)}
-              suffixIcon={<FilterOutlined />}
+              style={{ 
+                width: 150,
+                borderRadius: '6px',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                border: '1px solid rgba(159, 179, 223, 0.3)'
+              }}
+              onChange={(value) => handleFilterChange('status', value)}
+              suffixIcon={<FilterOutlined style={{ color: '#7B83EB' }} />}
             >
-              {uniqueClasses.map(className => (
-                <Option key={className} value={className}>
-                  {className}
-                </Option>
-              ))}
+              <Option value="Paid">Paid</Option>
+              <Option value="Unpaid">Unpaid</Option>
             </Select>
-            {activeTab === '1' && (
-              <Select
-                placeholder="Filter by Status"
-                allowClear
-                style={{ width: 150 }}
-                onChange={(value) => handleFilterChange('status', value)}
-                suffixIcon={<FilterOutlined />}
-              >
-                <Option value="Paid">Paid</Option>
-                <Option value="Unpaid">Unpaid</Option>
-              </Select>
-            )}
-            {activeTab === '2' && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleNewPayment}
-              >
-                New Payment
-              </Button>
-            )}
-          </Space>
-        </div>
+          )}
+          {activeTab === '2' && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleNewPayment}
+              style={{
+                background: '#7B83EB',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                height: '36px',
+                padding: '0 16px',
+                borderRadius: '6px',
+                color: 'white',
+                fontWeight: 500
+              }}
+            >
+              New Payment
+            </Button>
+          )}
+        </Space>
+      </div>
 
+      <div style={{ 
+        flex: 1, 
+        overflow: 'hidden',
+        padding: '0 16px 16px 16px'
+      }}>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <TabPane
             tab={
@@ -670,6 +719,8 @@ const FeeManagement = () => {
                 showSizeChanger: true,
                 showTotal: (total) => `Total ${total} students`
               }}
+              className="fee-management-table"
+              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
             />
           </TabPane>
           <TabPane
@@ -691,10 +742,12 @@ const FeeManagement = () => {
                 showSizeChanger: true,
                 showTotal: (total) => `Total ${total} payments`
               }}
+              className="fee-management-table"
+              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
             />
           </TabPane>
         </Tabs>
-      </Card>
+      </div>
 
       {/* Payment History Drawer */}
       <Drawer
@@ -1050,224 +1103,149 @@ const FeeManagement = () => {
       <style>
         {`
           .fee-management-page {
-            padding: 20px;
-            background: #ffffff;
-            min-height: 100vh;
-            position: relative;
-            margin: 16px 0 0 16px;
-          }
-
-          .fee-management-page::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 200px;
-            background: linear-gradient(135deg, rgba(123, 131, 235, 0.1) 0%, rgba(123, 131, 235, 0.05) 100%);
-            z-index: 0;
-          }
-
-          .fee-management-card {
-            background: #ffffff;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
             overflow: hidden;
+            margin: 0;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+            border: 1px solid rgba(159, 179, 223, 0.2);
           }
 
-          .fee-management-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #7B83EB, rgba(123, 131, 235, 0.5));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-          }
-
-          .fee-management-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-          }
-
-          .fee-management-card:hover::before {
-            opacity: 1;
-          }
-
-          .page-header {
+          .fee-management-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            position: relative;
-            z-index: 1;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #ffffff;
           }
 
-          .page-header .ant-typography {
+          .page-title {
             margin: 0 !important;
-            color: #1a1a1a;
+            color: #7B83EB !important;
+            display: flex;
+            align-items: center;
+            gap: 4px;
             font-size: 20px;
             font-weight: 600;
-            letter-spacing: -0.5px;
+            padding-top: 2px;
           }
 
-          .student-summary-card {
-            margin-bottom: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-          }
-
-          .payment-history-card {
-            margin-bottom: 8px;
+          .fee-management-table {
+            flex: 1;
+            background: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            height: 100%;
           }
 
-          .ant-timeline-item-content {
-            margin-left: 28px;
+          .fee-management-table .ant-table {
+            border-radius: 8px;
+            overflow: visible;
           }
 
-          .ant-table-thead > tr > th {
-            background: #fafafa;
-            font-weight: 600;
-            padding: 16px 24px;
-            color: #1a1a1a;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+          .fee-management-table .ant-table-container {
+            border-radius: 8px;
+            overflow: visible;
           }
 
-          .ant-table-tbody > tr > td {
-            padding: 16px 24px;
-            color: #333333;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            transition: all 0.2s ease;
-          }
-
-          .ant-table-tbody > tr:hover > td {
-            background: rgba(123, 131, 235, 0.04);
-          }
-
-          .ant-tag {
-            margin: 0;
-          }
-
-          .ant-drawer-header {
-            background: #ffffff;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            padding: 20px 24px;
-          }
-
-          .ant-modal-header {
-            background: #ffffff;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            padding: 24px 32px;
-          }
-
-          .ant-modal-title {
-            color: #1a1a1a;
-            font-weight: 600;
-            font-size: 20px;
-            letter-spacing: -0.5px;
-          }
-
-          .ant-modal-body {
-            padding: 32px;
-          }
-
-          .ant-modal-footer {
-            background: #ffffff;
-            border-top: 1px solid rgba(0, 0, 0, 0.04);
-            padding: 24px 32px;
-          }
-
-          /* Table Styles */
-          .ant-table {
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-            min-height: 400px;
-          }
-
-          .ant-table-container {
-            min-height: 400px;
-          }
-
-          .ant-table-body {
+          .fee-management-table .ant-table-body {
             overflow-y: auto !important;
             overflow-x: auto !important;
             margin-right: 1px;
           }
 
-          .ant-spin-nested-loading {
+          .fee-management-table .ant-spin-nested-loading {
             height: 100%;
           }
 
-          .ant-spin-container {
+          .fee-management-table .ant-spin-container {
             height: 100%;
             display: flex;
             flex-direction: column;
           }
 
-          .ant-table-placeholder {
-            height: 400px;
+          .fee-management-table .ant-table-placeholder {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #ffffff;
-            border: none;
           }
 
-          .ant-empty {
-            padding: 40px 0;
+          .fee-management-table .ant-spin {
+            max-height: none;
           }
 
-          .ant-empty-image {
-            height: 100px;
-            margin-bottom: 16px;
+          .fee-management-table .ant-spin-blur {
+            opacity: 0.5;
+            filter: blur(1px);
+            pointer-events: none;
           }
 
-          .ant-empty-description {
-            color: #666666;
-            font-size: 16px;
-            margin-top: 8px;
+          .fee-management-table .ant-spin-blur::after {
+            opacity: 0.4;
+            background: #fff;
           }
 
-          .ant-table-thead > tr > th {
-            background: #fafafa;
-            color: #1a1a1a;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+          .fee-management-table .ant-table-thead > tr > th {
+            background: rgba(123, 131, 235, 0.1) !important;
+            color: #7B83EB !important;
             font-weight: 600;
-            padding: 16px 24px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .ant-table-tbody > tr > td {
-            color: #333333;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            padding: 16px 24px;
-            transition: all 0.2s ease;
+          .fee-management-table .ant-table-tbody > tr > td {
+            padding: 4px 12px !important;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f0f0;
+            height: 32px;
+            line-height: 1.2;
+            font-size: 13px;
           }
 
-          .ant-table-tbody > tr:hover > td {
-            background: rgba(123, 131, 235, 0.04);
-          }
-
-          .ant-table-tbody > tr:last-child > td {
+          .fee-management-table .ant-table-tbody > tr:last-child > td {
             border-bottom: none;
           }
 
-          .ant-table-pagination {
+          .fee-management-table .ant-table-cell {
+            padding: 4px 12px !important;
+          }
+
+          .fee-management-table .ant-table-cell .ant-tag {
+            margin: 0;
+            padding: 4px 8px;
+            font-size: 13px;
+            height: 24px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+          }
+
+          .fee-management-table .ant-table-cell .ant-btn {
+            padding: 0 4px;
+            height: 22px;
+            font-size: 12px;
+          }
+
+          .fee-management-table .ant-table-cell .ant-avatar {
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .fee-management-table .ant-table-pagination {
             margin: 16px 0 !important;
             padding: 8px 8px !important;
             height: 32px;
@@ -1275,8 +1253,61 @@ const FeeManagement = () => {
             background: #ffffff;
           }
 
-          /* Tab Styling */
-          .ant-tabs-nav {
+          .fee-management-table .ant-pagination-item {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+            margin: 0 4px;
+          }
+
+          .fee-management-table .ant-pagination-prev .ant-pagination-item-link,
+          .fee-management-table .ant-pagination-next .ant-pagination-item-link {
+            min-width: 24px;
+            height: 24px;
+            line-height: 22px;
+            font-size: 12px;
+          }
+
+          .fee-management-table .ant-pagination-options {
+            margin-left: 8px;
+          }
+
+          .fee-management-table .ant-pagination-options-size-changer {
+            margin-right: 0;
+          }
+
+          .fee-management-table .ant-select-selector {
+            height: 24px !important;
+            line-height: 22px !important;
+            padding: 0 8px !important;
+          }
+
+          .fee-management-table .ant-select-selection-item {
+            line-height: 22px !important;
+            font-size: 12px;
+          }
+
+          .fee-management-table .ant-pagination-item-active {
+            background: #7B83EB !important;
+            border-color: #7B83EB !important;
+          }
+
+          .fee-management-table .ant-pagination-item-active a {
+            color: white !important;
+          }
+
+          .fee-management-table .ant-pagination-item:hover {
+            border-color: #7B83EB !important;
+          }
+
+          .fee-management-table .ant-pagination-prev:hover .ant-pagination-item-link,
+          .fee-management-table .ant-pagination-next:hover .ant-pagination-item-link {
+            border-color: #7B83EB !important;
+            color: #7B83EB !important;
+          }
+
+          .fee-management-table .ant-tabs-nav {
             background: #ffffff;
             border-bottom: 1px solid rgba(0, 0, 0, 0.04);
             margin-bottom: 16px;
@@ -1284,7 +1315,7 @@ const FeeManagement = () => {
             position: relative;
           }
 
-          .ant-tabs-tab {
+          .fee-management-table .ant-tabs-tab {
             color: #666666;
             font-weight: 500;
             padding: 12px 20px;
@@ -1295,43 +1326,22 @@ const FeeManagement = () => {
             border-radius: 8px 8px 0 0;
           }
 
-          .ant-tabs-tab::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #7B83EB;
-            transform: scaleX(0);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 3px 3px 0 0;
-          }
-
-          .ant-tabs-tab:hover {
+          .fee-management-table .ant-tabs-tab:hover {
             color: #7B83EB;
             background: rgba(123, 131, 235, 0.04);
           }
 
-          .ant-tabs-tab:hover::before {
-            transform: scaleX(0.5);
-          }
-
-          .ant-tabs-tab-active {
+          .fee-management-table .ant-tabs-tab-active {
             color: #7B83EB;
             font-weight: 600;
             background: rgba(123, 131, 235, 0.08);
           }
 
-          .ant-tabs-tab-active::before {
-            transform: scaleX(1);
-          }
-
-          .ant-tabs-ink-bar {
+          .fee-management-table .ant-tabs-ink-bar {
             display: none;
           }
 
-          .ant-tabs-tab-active::after {
+          .fee-management-table .ant-tabs-tab-active::after {
             content: '';
             position: absolute;
             top: 0;
@@ -1343,7 +1353,7 @@ const FeeManagement = () => {
             pointer-events: none;
           }
 
-          .ant-tabs-nav-wrap::before {
+          .fee-management-table .ant-tabs-nav-wrap::before {
             content: '';
             position: absolute;
             top: 0;
@@ -1359,54 +1369,19 @@ const FeeManagement = () => {
           }
 
           @media (max-width: 768px) {
-            .fee-management-page {
-              padding: 16px;
-              margin: 12px 0 0 12px;
-            }
-
-            .fee-management-page::before {
-              height: 150px;
-            }
-
-            .ant-tabs-tab {
-              padding: 10px 16px;
-              font-size: 14px;
-            }
-            
-            .ant-tabs-nav {
-              margin-bottom: 16px;
-            }
-
-            .page-header {
+            .fee-management-header {
               flex-direction: column;
               align-items: stretch;
               gap: 16px;
             }
 
-            .ant-modal-body {
-              padding: 20px;
+            .fee-management-table .ant-tabs-tab {
+              padding: 10px 16px;
+              font-size: 14px;
             }
-
-            .ant-table {
-              min-height: 300px;
-            }
-
-            .ant-table-container {
-              min-height: 300px;
-            }
-
-            .ant-table-placeholder {
-              height: 300px;
-            }
-
-            .ant-table-thead > tr > th {
-              position: sticky;
-              top: 0;
-              z-index: 1;
-            }
-
-            .ant-table-tbody > tr > td {
-              min-width: 120px;
+            
+            .fee-management-table .ant-tabs-nav {
+              margin-bottom: 16px;
             }
           }
         `}
