@@ -3,13 +3,13 @@ import { Table, Button, Space, DatePicker, Card, message, Row, Col, Statistic, T
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, FilterOutlined, UserOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
+import { useTeachers } from '../contexts/TeachersContext';
 
 const { Title } = Typography;
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 const TeacherAttendance = () => {
-  const [teachers, setTeachers] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [selectedDate, setSelectedDate] = useState(moment());
   const [loading, setLoading] = useState(false);
@@ -23,40 +23,14 @@ const TeacherAttendance = () => {
   const [selectedRecords, setSelectedRecords] = useState([]);
   const [updateLoading, setUpdateLoading] = useState(false);
 
+  // Use teachers context
+  const { teachers, loading: teachersLoading } = useTeachers();
+
   useEffect(() => {
-    loadTeachers();
     if (viewMode === 'view') {
       loadAttendance();
     }
   }, [selectedDate, selectedTeacher, dateRange, viewMode]);
-
-  const loadTeachers = async () => {
-    try {
-      setLoading(true);
-      const response = await api.teacher.getTeachers();
-      if (response && response.data && response.data.results) {
-        const mappedTeachers = response.data.results.map(teacher => ({
-          id: teacher.id,
-          name: teacher.name,
-          subject: teacher.subject,
-          employeeId: teacher.employee_id,
-          qualification: teacher.qualification,
-          class: teacher.class,
-          status: teacher.status
-        }));
-        setTeachers(mappedTeachers);
-      } else {
-        console.error('Unexpected API response structure:', response);
-        setTeachers([]);
-      }
-    } catch (error) {
-      console.error('Error loading teachers:', error);
-      message.error('Failed to load teachers');
-      setTeachers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadAttendance = async () => {
     try {
