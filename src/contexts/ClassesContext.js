@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { message } from 'antd';
+import { useAuth } from './AuthContext';
 
 const ClassesContext = createContext();
 
@@ -11,6 +12,7 @@ export const ClassesProvider = ({ children }) => {
   const [totalClasses, setTotalClasses] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [searchText, setSearchText] = useState('');
+  const { currentUser } = useAuth();
 
   const loadClasses = async (page = 1, size = 10, search = '') => {
     try {
@@ -95,8 +97,11 @@ export const ClassesProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadClasses();
-  }, []);
+    // Only load classes if user is authenticated
+    if (currentUser) {
+      loadClasses();
+    }
+  }, [currentUser]); // Add currentUser as dependency
 
   return (
     <ClassesContext.Provider value={{
