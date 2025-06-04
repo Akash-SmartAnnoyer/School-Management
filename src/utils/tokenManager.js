@@ -34,17 +34,17 @@ export const storeTokens = (accessToken, refreshToken, user) => {
   
   const encryptedUser = encryptData(user);
   
-  // Store in sessionStorage for better security
-  sessionStorage.setItem('accessToken', encryptedAccessToken);
-  sessionStorage.setItem('refreshToken', encryptedRefreshToken);
-  sessionStorage.setItem('currentUser', encryptedUser);
+  // Store in localStorage for persistence across tabs
+  localStorage.setItem('accessToken', encryptedAccessToken);
+  localStorage.setItem('refreshToken', encryptedRefreshToken);
+  localStorage.setItem('currentUser', encryptedUser);
 };
 
 // Get stored tokens
 export const getTokens = () => {
-  const encryptedAccessToken = sessionStorage.getItem('accessToken');
-  const encryptedRefreshToken = sessionStorage.getItem('refreshToken');
-  const encryptedUser = sessionStorage.getItem('currentUser');
+  const encryptedAccessToken = localStorage.getItem('accessToken');
+  const encryptedRefreshToken = localStorage.getItem('refreshToken');
+  const encryptedUser = localStorage.getItem('currentUser');
   
   if (!encryptedAccessToken || !encryptedRefreshToken || !encryptedUser) {
     return null;
@@ -77,9 +77,9 @@ export const getTokens = () => {
 
 // Clear all tokens
 export const clearTokens = () => {
-  sessionStorage.removeItem('accessToken');
-  sessionStorage.removeItem('refreshToken');
-  sessionStorage.removeItem('currentUser');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('currentUser');
 };
 
 // Check if user is authenticated
