@@ -56,16 +56,18 @@ const handleResponse = async (response) => {
 };
 
 // Helper function to get headers
-const getHeaders = async () => {
+const getHeaders = async (skipAuth = false) => {
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   };
 
-  const { getAccessToken } = await import('../utils/tokenManager');
-  const accessToken = getAccessToken();
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
+  if (!skipAuth) {
+    const { getAccessToken } = await import('../utils/tokenManager');
+    const accessToken = getAccessToken();
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
   }
 
   return headers;
@@ -74,7 +76,7 @@ const getHeaders = async () => {
 // Helper function to make API calls
 const makeRequest = async (url, options = {}) => {
   const defaultOptions = {
-    headers: await getHeaders(),
+    headers: await getHeaders(options.skipAuth),
     credentials: 'include',
     mode: 'cors'
   };
@@ -93,7 +95,7 @@ export const authAPI = {
   login: async (credentials) => {
     const response = await fetch(`${BASE_URL}/users/login/`, {
       method: 'POST',
-      headers: await getHeaders(),
+      headers: await getHeaders(true), // Skip auth for login
       body: JSON.stringify(credentials),
       credentials: 'include'
     });
@@ -102,7 +104,7 @@ export const authAPI = {
   refreshToken: async (refreshToken) => {
     const response = await fetch(`${BASE_URL}/token/refresh/`, {
       method: 'POST',
-      headers: await getHeaders(),
+      headers: await getHeaders(true), // Skip auth for token refresh
       body: JSON.stringify(refreshToken),
       credentials: 'include'
     });
@@ -111,7 +113,7 @@ export const authAPI = {
   register: async (userData) => {
     return makeRequest(`${BASE_URL}/users/register/`, {
       method: 'POST',
-      body: JSON.stringify(userData)
+      skipAuth: true // Skip auth for registration
     });
   },
   logout: async () => {

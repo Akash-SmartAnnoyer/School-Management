@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { message } from 'antd';
+import { useAuth } from './AuthContext';
 
 const StudentsContext = createContext();
 
@@ -10,8 +11,13 @@ export const StudentsProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const { isAuthenticated } = useAuth();
 
   const loadStudents = async (page = 1, size = 10) => {
+    if (!isAuthenticated()) {
+      return;
+    }
+    
     try {
       setLoading(true);
       const response = await api.student.getStudents(`?page=${page}&page_size=${size}`);
@@ -34,8 +40,10 @@ export const StudentsProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadStudents();
-  }, []);
+    if (isAuthenticated()) {
+      loadStudents();
+    }
+  }, [isAuthenticated]);
 
   return (
     <StudentsContext.Provider value={{

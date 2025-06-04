@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { message } from 'antd';
+import { useAuth } from './AuthContext';
 
 const TeachersContext = createContext();
 
@@ -10,8 +11,13 @@ export const TeachersProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTeachers, setTotalTeachers] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const { isAuthenticated } = useAuth();
 
   const loadTeachers = async (page = 1, size = 10, searchText = '') => {
+    if (!isAuthenticated()) {
+      return;
+    }
+
     try {
       setLoading(true);
       const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
@@ -35,8 +41,10 @@ export const TeachersProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadTeachers();
-  }, []);
+    if (isAuthenticated()) {
+      loadTeachers();
+    }
+  }, [isAuthenticated]);
 
   return (
     <TeachersContext.Provider value={{
