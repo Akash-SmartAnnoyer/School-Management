@@ -19,20 +19,40 @@ const AcademicCalendar = () => {
   const [loading, setLoading] = useState(false);
   const [showCustomType, setShowCustomType] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const mountedRef = React.useRef(false);
 
   useEffect(() => {
-    fetchEvents();
+    mountedRef.current = true;
+    
+    const loadEvents = async () => {
+      if (mountedRef.current) {
+        await fetchEvents();
+      }
+    };
+    
+    loadEvents();
+
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const fetchEvents = async () => {
+    console.log('Fetching events...');
     try {
       setLoading(true);
       const response = await eventAPI.getEvents();
-      setEvents(response.data.results || []);
+      if (mountedRef.current) {
+        setEvents(response.data.results || []);
+      }
     } catch (error) {
-      message.error('Failed to fetch events: ' + error.message);
+      if (mountedRef.current) {
+        message.error('Failed to fetch events: ' + error.message);
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
