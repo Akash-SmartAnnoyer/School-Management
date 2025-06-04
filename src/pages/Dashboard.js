@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Table, Tag, Button, Carousel, message, Progress, List, Typography, Space, Avatar, Timeline } from 'antd';
 import { UserOutlined, TeamOutlined, BookOutlined, CalendarOutlined, ArrowUpOutlined, ArrowDownOutlined, CheckCircleOutlined, DollarOutlined, BarChartOutlined, DownloadOutlined, PrinterOutlined, CarOutlined, PlusOutlined, CheckSquareOutlined } from '@ant-design/icons';
-import { subscribeToCollection, getStudents, getTeachers, getClasses, getAttendance } from '../firebase/services';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { uploadSampleData } from '../utils/sampleData';
 import moment from 'moment';
 import './Dashboard.css';
 import { Pie, Column, Line } from '@ant-design/plots';
 import { getCalendarEvents, initializeSampleData } from '../services/localStorage';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
+  const { currentUser, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -26,7 +25,7 @@ const Dashboard = () => {
   const [feeCollection, setFeeCollection] = useState([]);
   const [libraryStats, setLibraryStats] = useState({});
   const [transportStats, setTransportStats] = useState({});
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   // Sample finance data
   const monthlyFinanceData = [
@@ -159,30 +158,19 @@ const Dashboard = () => {
   ];
 
   useEffect(() => {
-    // Subscribe to real-time updates for all collections
-    const unsubscribeStudents = subscribeToCollection('students', (data) => {
-      setStudents(data);
-    });
-
-    const unsubscribeTeachers = subscribeToCollection('teachers', (data) => {
-      setTeachers(data);
-    });
-
-    const unsubscribeClasses = subscribeToCollection('classes', (data) => {
-      setClasses(data);
-    });
-
-    const unsubscribeAttendance = subscribeToCollection('attendance', (data) => {
-      setAttendance(data);
-    });
-
-    const unsubscribeFinance = subscribeToCollection('finance', (data) => {
-      setFinance(data);
-    });
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      message.warning('Please login to access the dashboard');
+      navigate('/login');
+      return;
+    }
 
     // Initialize and load calendar events from local storage
     initializeSampleData();
     setCalendarEvents(getCalendarEvents());
+
+    // Load dashboard data
+    loadDashboardData();
 
     // Sample notifications
     setNotifications([
@@ -241,15 +229,7 @@ const Dashboard = () => {
         { route: 'Route 3', students: 42, distance: '18 km' },
       ]
     });
-
-    return () => {
-      unsubscribeStudents();
-      unsubscribeTeachers();
-      unsubscribeClasses();
-      unsubscribeAttendance();
-      unsubscribeFinance();
-    };
-  }, []);
+  }, [isAuthenticated, navigate]);
 
   // Calculate today's attendance
   const today = moment().format('YYYY-MM-DD');
@@ -281,6 +261,31 @@ const Dashboard = () => {
   };
 
   const nextHoliday = getNextHoliday();
+
+  const loadDashboardData = async () => {
+    // TODO: Implement with new database
+    setLoading(false);
+  };
+
+  const loadStudents = async () => {
+    // TODO: Implement with new database
+    setStudents([]);
+  };
+
+  const loadTeachers = async () => {
+    // TODO: Implement with new database
+    setTeachers([]);
+  };
+
+  const loadClasses = async () => {
+    // TODO: Implement with new database
+    setClasses([]);
+  };
+
+  const loadAttendance = async () => {
+    // TODO: Implement with new database
+    setAttendance([]);
+  };
 
   return (
     <div className="dashboard-container">
@@ -612,7 +617,7 @@ const Dashboard = () => {
           <Col xs={24} md={12}>
             <div className="dashboard-section">
               <div className="section-header">
-l                <Title level={4}>Upcoming Events</Title>
+                <Title level={4}>Upcoming Events</Title>
               </div>
               <div className="section-content">
                 <List

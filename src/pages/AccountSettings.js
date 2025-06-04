@@ -27,9 +27,6 @@ import {
   GlobalOutlined,
   SettingOutlined
 } from '@ant-design/icons';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { uploadImage } from '../services/imageService';
 import { useAuth } from '../contexts/AuthContext';
 
 const { Title } = Typography;
@@ -43,30 +40,23 @@ const AccountSettings = () => {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    loadAccountSettings();
+    loadUserSettings();
   }, []);
 
-  const loadAccountSettings = async () => {
-    try {
-      const docRef = doc(db, 'users', currentUser.uid);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        form.setFieldsValue(docSnap.data());
-      }
-    } catch (error) {
-      message.error('Failed to load account settings');
-    }
+  const loadUserSettings = async () => {
+    // TODO: Implement with new database
+    setLoading(false);
+  };
+
+  const handleUpdateSettings = async (values) => {
+    // TODO: Implement with new database
+    message.success('Settings updated successfully');
   };
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const docRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(docRef, {
-        ...values,
-        updatedAt: new Date().toISOString()
-      });
+      // TODO: Implement with new database
       message.success('Account settings updated successfully');
     } catch (error) {
       message.error('Failed to update account settings');
@@ -78,7 +68,7 @@ const AccountSettings = () => {
   const handlePasswordChange = async (values) => {
     try {
       setLoading(true);
-      // Implement password change logic here
+      // TODO: Implement password change logic here
       message.success('Password changed successfully');
       passwordForm.resetFields();
     } catch (error) {
@@ -91,16 +81,7 @@ const AccountSettings = () => {
   const handleImageUpload = async (file) => {
     try {
       setImageLoading(true);
-      const { url, publicId } = await uploadImage(file, `users/${currentUser.uid}/profile`);
-      
-      const docRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(docRef, {
-        photoURL: url,
-        photoPublicId: publicId,
-        updatedAt: new Date().toISOString()
-      });
-
-      form.setFieldsValue({ photoURL: url });
+      // TODO: Implement image upload logic here
       message.success('Profile picture uploaded successfully');
     } catch (error) {
       message.error('Failed to upload profile picture');

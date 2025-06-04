@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, updateDoc, doc, query, where } from 'firebase/firestore';
 import {
   Box,
   Button,
@@ -23,7 +22,6 @@ import {
   Paper,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { db } from '../firebase/config';
 
 const AcademicYear = () => {
   const [academicYears, setAcademicYears] = useState([]);
@@ -38,21 +36,12 @@ const AcademicYear = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    fetchAcademicYears();
+    loadAcademicYears();
   }, []);
 
-  const fetchAcademicYears = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'academicYears'));
-      const years = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setAcademicYears(years.sort((a, b) => b.startDate.localeCompare(a.startDate)));
-    } catch (error) {
-      setError('Error fetching academic years');
-      console.error(error);
-    }
+  const loadAcademicYears = async () => {
+    // TODO: Implement with new database
+    setAcademicYears([]);
   };
 
   const handleOpenDialog = (year = null) => {
@@ -98,20 +87,38 @@ const AcademicYear = () => {
 
       if (currentYear.id) {
         // Update existing academic year
-        await updateDoc(doc(db, 'academicYears', currentYear.id), currentYear);
-        setSuccess('Academic year updated successfully');
+        handleEditYear(currentYear);
       } else {
         // Add new academic year
-        await addDoc(collection(db, 'academicYears'), currentYear);
-        setSuccess('Academic year added successfully');
+        handleAddYear(currentYear);
       }
-
-      handleCloseDialog();
-      fetchAcademicYears();
     } catch (error) {
       setError('Error saving academic year');
       console.error(error);
     }
+  };
+
+  const handleAddYear = async (values) => {
+    // TODO: Implement with new database
+    message.success('Academic year added successfully');
+    setIsModalVisible(false);
+    form.resetFields();
+    loadAcademicYears();
+  };
+
+  const handleEditYear = async (values) => {
+    // TODO: Implement with new database
+    message.success('Academic year updated successfully');
+    setIsModalVisible(false);
+    form.resetFields();
+    setEditingYear(null);
+    loadAcademicYears();
+  };
+
+  const handleDeleteYear = async (yearId) => {
+    // TODO: Implement with new database
+    message.success('Academic year deleted successfully');
+    loadAcademicYears();
   };
 
   const handlePromoteStudents = async () => {

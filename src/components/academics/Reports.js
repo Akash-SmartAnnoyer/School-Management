@@ -35,8 +35,6 @@ import {
   TrendingUp as TrendingUpIcon,
   School as SchoolIcon,
 } from '@mui/icons-material';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/config';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import {
@@ -97,13 +95,8 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      const querySnapshot = await getDocs(collection(db, 'classes'));
-      const classesList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched classes:', classesList);
-      setClasses(classesList);
+      // TODO: Implement with new database
+      setClasses([]);
     } catch (err) {
       console.error('Error fetching classes:', err);
       setError('Failed to fetch classes: ' + err.message);
@@ -115,13 +108,8 @@ const Reports = () => {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const q = query(collection(db, 'students'), where('classId', '==', selectedClass));
-      const querySnapshot = await getDocs(q);
-      const studentsList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setStudents(studentsList);
+      // TODO: Implement with new database
+      setStudents([]);
     } catch (err) {
       setError('Failed to fetch students');
       console.error(err);
@@ -134,13 +122,8 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      const querySnapshot = await getDocs(collection(db, 'exams'));
-      const examsList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched exams:', examsList);
-      setExams(examsList);
+      // TODO: Implement with new database
+      setExams([]);
     } catch (err) {
       console.error('Error fetching exams:', err);
       setError('Failed to fetch exams: ' + err.message);
@@ -158,18 +141,8 @@ const Reports = () => {
         return;
       }
 
-      const q = query(
-        collection(db, 'marks'),
-        where('classId', '==', selectedClass),
-        where('examId', '==', selectedExam)
-      );
-      const querySnapshot = await getDocs(q);
-      const marksList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched marks:', marksList);
-      setMarks(marksList);
+      // TODO: Implement with new database
+      setMarks([]);
     } catch (err) {
       console.error('Error fetching marks:', err);
       setError('Failed to fetch marks: ' + err.message);
@@ -408,6 +381,11 @@ const Reports = () => {
         </Grid>
       </Grid>
     );
+  };
+
+  const loadReportData = async () => {
+    // TODO: Implement with new database
+    setReportData([]);
   };
 
   return (

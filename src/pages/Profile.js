@@ -35,15 +35,22 @@ import {
   PictureOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import { getSchoolById, updatePrincipal, updateTeacher, updateSchool } from '../firebase/organizationService';
-import { ROLES } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+const ROLES = {
+  PRINCIPAL: 'Principal',
+  TEACHER: 'Teacher',
+  STUDENT: 'Student',
+  ADMIN: 'Admin'
+};
+
 const Profile = () => {
-  const { currentUser, updateProfile } = useAuth();
+  const { currentUser, isAuthenticated, updateProfile } = useAuth();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -52,10 +59,17 @@ const Profile = () => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      message.warning('Please login to access your profile');
+      navigate('/login');
+      return;
+    }
+
     if (currentUser) {
       loadUserProfile();
     }
-  }, [currentUser]);
+  }, [currentUser, isAuthenticated, navigate]);
 
   const loadUserProfile = async () => {
     try {
@@ -170,6 +184,26 @@ const Profile = () => {
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const getSchoolById = async (id) => {
+    // TODO: Implement with new database
+    return null;
+  };
+
+  const updatePrincipal = async (principalId, data) => {
+    // TODO: Implement with new database
+    return null;
+  };
+
+  const updateTeacher = async (teacherId, data) => {
+    // TODO: Implement with new database
+    return null;
+  };
+
+  const updateSchool = async (schoolId, data) => {
+    // TODO: Implement with new database
+    return null;
   };
 
   return (

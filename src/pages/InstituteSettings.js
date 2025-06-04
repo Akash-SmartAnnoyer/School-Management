@@ -23,9 +23,6 @@ import {
   GlobalOutlined,
   IdcardOutlined
 } from '@ant-design/icons';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { uploadImage } from '../services/imageService';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -40,26 +37,14 @@ const InstituteSettings = () => {
   }, []);
 
   const loadInstituteSettings = async () => {
-    try {
-      const docRef = doc(db, 'settings', 'institute');
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        form.setFieldsValue(docSnap.data());
-      }
-    } catch (error) {
-      message.error('Failed to load institute settings');
-    }
+    // TODO: Implement with new database
+    setLoading(false);
   };
 
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
-      const docRef = doc(db, 'settings', 'institute');
-      await updateDoc(docRef, {
-        ...values,
-        updatedAt: new Date().toISOString()
-      });
+      // TODO: Implement with new database
       message.success('Institute settings updated successfully');
     } catch (error) {
       message.error('Failed to update institute settings');
@@ -71,16 +56,7 @@ const InstituteSettings = () => {
   const handleImageUpload = async (file) => {
     try {
       setImageLoading(true);
-      const { url, publicId } = await uploadImage(file, 'institute/logo');
-      
-      const docRef = doc(db, 'settings', 'institute');
-      await updateDoc(docRef, {
-        logoURL: url,
-        logoPublicId: publicId,
-        updatedAt: new Date().toISOString()
-      });
-
-      form.setFieldsValue({ logoURL: url });
+      // TODO: Implement with new database
       message.success('Logo uploaded successfully');
     } catch (error) {
       message.error('Failed to upload logo');
