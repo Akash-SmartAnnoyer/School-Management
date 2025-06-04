@@ -550,10 +550,49 @@ const Academics = () => {
   const [subjects, setSubjects] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalSubjects, setTotalSubjects] = useState(0);
+  const mountedRef = React.useRef(false);
 
   useEffect(() => {
-    loadSubjects();
-  }, [currentPage]);
+    mountedRef.current = true;
+    
+    const loadSubjectsData = async () => {
+      if (mountedRef.current) {
+        await loadSubjects();
+      }
+    };
+    
+    loadSubjectsData();
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [currentPage]); // Only re-run when currentPage changes
+
+  const loadSubjects = async () => {
+    if (!mountedRef.current) return;
+    
+    try {
+      setLoading(true);
+      const response = await api.subject.getSubjects(`?page=${currentPage}`);
+      if (mountedRef.current) {
+        if (response.success) {
+          setSubjects(response.data.results);
+          setTotalSubjects(response.data.count);
+        } else {
+          messageApi.error('Failed to load subjects');
+        }
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        messageApi.error('Failed to load subjects');
+        console.error('Error loading subjects:', error);
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  };
 
   const loadMarks = async (examId) => {
     try {
@@ -567,24 +606,6 @@ const Academics = () => {
     } catch (error) {
       messageApi.error('Failed to load marks');
       console.error('Error loading marks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSubjects = async () => {
-    try {
-      setLoading(true);
-      const response = await api.subject.getSubjects(`?page=${currentPage}`);
-      if (response.success) {
-        setSubjects(response.data.results);
-        setTotalSubjects(response.data.count);
-      } else {
-        messageApi.error('Failed to load subjects');
-      }
-    } catch (error) {
-      messageApi.error('Failed to load subjects');
-      console.error('Error loading subjects:', error);
     } finally {
       setLoading(false);
     }
