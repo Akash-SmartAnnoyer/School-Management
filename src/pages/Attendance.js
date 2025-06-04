@@ -3,6 +3,8 @@ import { Table, Button, Space, Select, DatePicker, Card, message, Row, Col, Stat
 import { CheckCircleOutlined, CloseCircleOutlined, TeamOutlined, CalendarOutlined, SearchOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import moment from 'moment';
+import { useTeachers } from '../contexts/TeachersContext';
+import { useClasses } from '../contexts/ClassesContext';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -10,19 +12,15 @@ const { RangePicker } = DatePicker;
 
 const Attendance = () => {
   const [students, setStudents] = useState([]);
-  const [classes, setClasses] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [selectedDate, setSelectedDate] = useState(moment());
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState(null);
-  const [teachers, setTeachers] = useState([]);
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [classesLoading, setClassesLoading] = useState(false);
   const [studentsLoading, setStudentsLoading] = useState(false);
-  const [teachersLoading, setTeachersLoading] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [timetableId, setTimetableId] = useState(null);
   const [viewMode, setViewMode] = useState('mark'); // 'mark' or 'view'
@@ -32,9 +30,11 @@ const Attendance = () => {
   const [selectedRecords, setSelectedRecords] = useState([]);
   const [updateLoading, setUpdateLoading] = useState(false);
 
+  // Use contexts instead of state
+  const { teachers, loading: teachersLoading } = useTeachers();
+  const { classes, loading: classesLoading } = useClasses();
+
   useEffect(() => {
-    loadClasses();
-    loadTeachers();
     loadSubjects();
   }, []);
 
@@ -44,45 +44,6 @@ const Attendance = () => {
       loadTimetable();
     }
   }, [selectedClass, selectedDate, selectedTeacher]);
-
-  const loadClasses = async () => {
-    setClassesLoading(true);
-    try {
-      const response = await api.class.getClasses();
-      console.log('Classes API Response:', response);
-      if (response && response.data && response.data.results) {
-        setClasses(response.data.results || []);
-      } else {
-        console.error('Unexpected API response structure:', response);
-        setClasses([]);
-      }
-    } catch (error) {
-      console.error('Error loading classes:', error);
-      message.error('Failed to load classes');
-      setClasses([]);
-    } finally {
-      setClassesLoading(false);
-    }
-  };
-
-  const loadTeachers = async () => {
-    setTeachersLoading(true);
-    try {
-      const response = await api.teacher.getTeachers();
-      if (response && response.data && response.data.results) {
-        setTeachers(response.data.results || []);
-      } else {
-        console.error('Unexpected API response structure:', response);
-        setTeachers([]);
-      }
-    } catch (error) {
-      console.error('Error loading teachers:', error);
-      message.error('Failed to load teachers');
-      setTeachers([]);
-    } finally {
-      setTeachersLoading(false);
-    }
-  };
 
   const loadSubjects = async () => {
     try {
