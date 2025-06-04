@@ -68,6 +68,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import api from '../services/api';
 import { useStudents } from '../contexts/StudentsContext';
+import StatusBadge from '../components/StatusBadge';
 
 import './Students.css';
 
@@ -1512,63 +1513,13 @@ const Students = () => {
       title: 'Gender',
       dataIndex: 'gender',
       key: 'gender',
-      render: (gender) => (
-        <Tag 
-          style={{ 
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            fontWeight: 500,
-            background: '#f5f5f5',
-            color: gender === 'M' ? '#40a9ff' : '#ff85c0',
-            border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            height: '24px',
-            lineHeight: '1'
-          }}
-        >
-          {gender === 'M' ? (
-            <ManOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#40a9ff' }} />
-          ) : (
-            <WomanOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ff85c0' }} />
-          )} 
-          {gender}
-        </Tag>
-      ),
+      render: (gender) => <StatusBadge type="gender" value={gender} />
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag 
-          style={{ 
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '13px',
-            fontWeight: 500,
-            background: '#f5f5f5',
-            color: status === 'Active' 
-              ? '#73d13d' 
-              : '#ffa940',
-            border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            height: '24px',
-            lineHeight: '1'
-          }}
-        >
-          {status === 'Active' ? (
-            <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#73d13d' }} />
-          ) : (
-            <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ffa940' }} />
-          )} 
-          {status}
-        </Tag>
-      ),
+      render: (status) => <StatusBadge type="status" value={status} />
     },
     {
       title: 'Actions',

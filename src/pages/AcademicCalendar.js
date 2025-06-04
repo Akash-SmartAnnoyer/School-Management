@@ -4,6 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, CalendarOutlined, EyeOutlin
 import moment from 'moment';
 import './AcademicCalendar.css';
 import { eventAPI } from '../services/api';
+import StatusBadge from '../components/StatusBadge';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -131,17 +132,7 @@ const AcademicCalendar = () => {
       <ul className="events">
         {dayEvents.map(event => (
           <li key={event.id}>
-            <Tag 
-              color={
-                event.event_type === 'holiday' ? 'red' :
-                event.event_type === 'sports' ? 'green' :
-                event.event_type === 'school' ? 'blue' :
-                'purple'
-              }
-              className="event-tag"
-            >
-              {event.event_type}
-            </Tag>
+            <StatusBadge type="event" value={event.event_type} />
           </li>
         ))}
       </ul>
@@ -225,14 +216,7 @@ const AcademicCalendar = () => {
                   <List.Item.Meta
                     title={
                       <Space>
-                        <Tag color={
-                          event.event_type === 'holiday' ? 'red' :
-                          event.event_type === 'exam' ? 'blue' :
-                          event.event_type === 'sports' ? 'green' :
-                          'default'
-                        }>
-                          {event.event_type}
-                        </Tag>
+                        <StatusBadge type="event" value={event.event_type} />
                         <span style={{ color: '#595959' }}>{event.event_title}</span>
                       </Space>
                     }
@@ -281,14 +265,7 @@ const AcademicCalendar = () => {
                   <List.Item.Meta
                     title={
                       <Space>
-                        <Tag color={
-                          event.event_type === 'holiday' ? 'red' :
-                          event.event_type === 'exam' ? 'blue' :
-                          event.event_type === 'sports' ? 'green' :
-                          'default'
-                        }>
-                          {event.event_type}
-                        </Tag>
+                        <StatusBadge type="event" value={event.event_type} />
                         <span style={{ color: '#595959' }}>{event.event_title}</span>
                       </Space>
                     }
@@ -335,14 +312,7 @@ const AcademicCalendar = () => {
                   <List.Item.Meta
                     title={
                       <Space>
-                        <Tag color={
-                          event.event_type === 'holiday' ? 'red' :
-                          event.event_type === 'exam' ? 'blue' :
-                          event.event_type === 'sports' ? 'green' :
-                          'default'
-                        }>
-                          {event.event_type}
-                        </Tag>
+                        <StatusBadge type="event" value={event.event_type} />
                         <span style={{ color: '#595959' }}>{event.event_title}</span>
                       </Space>
                     }
@@ -379,14 +349,7 @@ const AcademicCalendar = () => {
                   <List.Item.Meta
                     title={
                       <Space>
-                        <Tag color={
-                          event.event_type === 'holiday' ? 'red' :
-                          event.event_type === 'exam' ? 'blue' :
-                          event.event_type === 'sports' ? 'green' :
-                          'default'
-                        }>
-                          {event.event_type}
-                        </Tag>
+                        <StatusBadge type="event" value={event.event_type} />
                         <span style={{ color: '#595959' }}>{event.event_title}</span>
                       </Space>
                     }
@@ -450,25 +413,11 @@ const AcademicCalendar = () => {
                 <div className="event-header">
                   <Space direction="vertical" size={4} style={{ width: '100%' }}>
                     <Space>
-                      <Tag 
-                        color={
-                          selectedEvent.event_type === 'holiday' ? 'red' :
-                          selectedEvent.event_type === 'sports' ? 'green' :
-                          selectedEvent.event_type === 'school' ? 'blue' :
-                          'purple'
-                        }
-                        className="event-tag"
-                      >
-                        {selectedEvent.event_type}
-                      </Tag>
-                      <Tag color={
-                        selectedEvent.status === 'upcoming' ? 'blue' :
-                        selectedEvent.status === 'ongoing' ? 'green' :
-                        selectedEvent.status === 'completed' ? 'default' :
-                        'red'
-                      }>
-                        {selectedEvent.status}
-                      </Tag>
+                      <StatusBadge type="event" value={selectedEvent.event_type} />
+                      <StatusBadge 
+                        type="status" 
+                        value={selectedEvent.status} 
+                      />
                     </Space>
                     <Typography.Title level={4} style={{ margin: 0 }}>
                       {selectedEvent.event_title}
