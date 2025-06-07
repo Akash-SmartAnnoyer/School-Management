@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Modal, Input, Select, Space, Button, Typography, Divider, Alert, Card } from 'antd';
-import { SearchOutlined, ReloadOutlined, FilterOutlined, UserOutlined, BookOutlined, CarOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined, FilterOutlined, UserOutlined, BookOutlined, CarOutlined, CloseOutlined } from '@ant-design/icons';
 import { useClasses } from '../contexts/ClassesContext';
 import { useTeachers } from '../contexts/TeachersContext';
 
@@ -95,11 +95,22 @@ const SearchModal = ({ visible, onClose }) => {
         content: modalStyles.content,
       }}
       destroyOnClose
+      closeIcon={<div style={{ 
+        position: 'absolute',
+        right: '20px',
+        top: '20px',
+        zIndex: 1000,
+        background: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: '50%',
+        padding: '8px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease'
+      }}>
+        <CloseOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
+      </div>}
     >
       <div style={{ padding: '8px 0' }}>
-        {/* Header */}
-
-
         {/* Search Input */}
         <Card
           style={{
@@ -150,6 +161,37 @@ const SearchModal = ({ visible, onClose }) => {
             </Text>
           </div>
         </Card>
+
+        {/* OR Separator */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          margin: '24px 0',
+          position: 'relative'
+        }}>
+          <div style={{ 
+            flex: 1, 
+            height: '1px', 
+            background: 'rgba(123, 131, 235, 0.2)' 
+          }} />
+          <div style={{ 
+            margin: '0 16px',
+            padding: '4px 16px',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '20px',
+            border: '1px solid rgba(123, 131, 235, 0.2)',
+            color: '#7B83EB',
+            fontWeight: '500',
+            fontSize: '14px'
+          }}>
+            OR
+          </div>
+          <div style={{ 
+            flex: 1, 
+            height: '1px', 
+            background: 'rgba(123, 131, 235, 0.2)' 
+          }} />
+        </div>
 
         {/* Filters Section */}
         <Card
