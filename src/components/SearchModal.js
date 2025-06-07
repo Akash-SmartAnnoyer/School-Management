@@ -107,24 +107,6 @@ const SearchModal = ({ visible, onClose }) => {
         content: modalStyles.content,
       }}
       destroyOnClose
-      closeIcon={<div style={{ 
-        position: 'absolute',
-        right: '16px',
-        top: '16px',
-        zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.9)',
-        borderRadius: '50%',
-        width: '24px',
-        height: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease'
-      }}>
-        <CloseOutlined style={{ fontSize: '12px', color: '#7B83EB' }} />
-      </div>}
     >
       <div style={{ padding: '8px 0' }}>
         <Radio.Group 
@@ -437,6 +419,51 @@ const SearchModal = ({ visible, onClose }) => {
 
         .ant-radio-button-wrapper:last-child {
           border-radius: 0 8px 8px 0 !important;
+        }
+
+        .ant-modal-close {
+          position: absolute !important;
+          right: 16px !important;
+          top: 16px !important;
+          width: 24px !important;
+          height: 24px !important;
+          background: rgba(255, 255, 255, 0.9) !important;
+          border-radius: 50% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          transition: all 0.3s ease !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          line-height: 1 !important;
+          border: none !important;
+        }
+
+        .ant-modal-close:hover {
+          background: rgba(255, 255, 255, 1) !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+          transform: scale(1.05) !important;
+        }
+
+        .ant-modal-close .anticon {
+          font-size: 12px !important;
+          color: #7B83EB !important;
+          transition: all 0.3s ease !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .ant-modal-close:hover .anticon {
+          transform: rotate(90deg) !important;
+        }
+
+        .ant-modal-close:before {
+          display: none !important;
         }
       `}</style>
     </Modal>
