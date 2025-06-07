@@ -987,30 +987,36 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
             border-radius: 8px;
             border: 1px solid #f0f0f0;
             height: 100%;
+            display: flex;
+            flex-direction: column;
           }
 
           .academics-table .ant-table {
-            border-radius: 8px;
-            overflow: visible;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
 
           .academics-table .ant-table-container {
-            border-radius: 8px;
-            overflow: visible;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
 
           .academics-table .ant-table-body {
+            flex: 1;
             overflow-y: auto !important;
             overflow-x: auto !important;
-            margin-right: 1px;
           }
 
           .academics-table .ant-spin-nested-loading {
-            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
           }
 
           .academics-table .ant-spin-container {
-            height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
           }
@@ -1020,21 +1026,14 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
           }
 
-          .academics-table .ant-spin {
-            max-height: none;
-          }
-
-          .academics-table .ant-spin-blur {
-            opacity: 0.5;
-            filter: blur(1px);
-            pointer-events: none;
-          }
-
-          .academics-table .ant-spin-blur::after {
-            opacity: 0.4;
-            background: #fff;
+          .academics-table .ant-table-pagination {
+            margin: 0 !important;
+            padding: 8px !important;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
           }
 
           .academics-table .ant-table-thead > tr > th {
@@ -1042,18 +1041,18 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
             color: #7B83EB !important;
             font-weight: 600;
             border-bottom: 1px solid #f0f0f0;
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
             white-space: nowrap;
-            height: 32px;
+            height: 40px;
             line-height: 1.2;
             font-size: 13px;
           }
 
           .academics-table .ant-table-tbody > tr > td {
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
             white-space: nowrap;
             border-bottom: 1px solid #f0f0f0;
-            height: 32px;
+            height: 40px;
             line-height: 1.2;
             font-size: 13px;
           }
@@ -1063,7 +1062,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           }
 
           .academics-table .ant-table-cell {
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
           }
 
           .academics-table .ant-table-cell .ant-tag {
@@ -1080,32 +1079,24 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
 
           .academics-table .ant-table-cell .ant-btn {
             padding: 0 4px;
-            height: 22px;
+            height: 24px;
             font-size: 12px;
-          }
-
-          .academics-table .ant-table-pagination {
-            margin: 16px 0 !important;
-            padding: 8px 8px !important;
-            height: 32px;
-            border-top: 1px solid #f0f0f0;
-            background: #ffffff;
           }
 
           .academics-table .ant-pagination-item {
-            min-width: 24px;
-            height: 24px;
-            line-height: 22px;
-            font-size: 12px;
+            min-width: 32px;
+            height: 32px;
+            line-height: 30px;
+            font-size: 13px;
             margin: 0 4px;
           }
 
           .academics-table .ant-pagination-prev .ant-pagination-item-link,
           .academics-table .ant-pagination-next .ant-pagination-item-link {
-            min-width: 24px;
-            height: 24px;
-            line-height: 22px;
-            font-size: 12px;
+            min-width: 32px;
+            height: 32px;
+            line-height: 30px;
+            font-size: 13px;
           }
 
           .academics-table .ant-pagination-options {
@@ -1117,14 +1108,14 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           }
 
           .academics-table .ant-select-selector {
-            height: 24px !important;
-            line-height: 22px !important;
+            height: 32px !important;
+            line-height: 30px !important;
             padding: 0 8px !important;
           }
 
           .academics-table .ant-select-selection-item {
-            line-height: 22px !important;
-            font-size: 12px;
+            line-height: 30px !important;
+            font-size: 13px;
           }
 
           .academics-table .ant-pagination-item-active {

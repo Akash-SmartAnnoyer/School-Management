@@ -626,33 +626,37 @@ const Academics = () => {
   };
 
   return (
-    <div className="academics-container">
-      <Card className="academics-card">
-        <Tabs
-          className="academics-tabs"
-          activeKey={activeTab}
-          onChange={handleTabChange}
-        >
-          <TabPane tab="Subject Management" key="1">
-            <SubManagement 
-              subjects={subjects}
-              loading={loading}
-              currentPage={currentPage}
-              totalSubjects={totalSubjects}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
-          </TabPane>
-          <TabPane tab="Exam Management" key="2">
-            <ExamManagement />
-          </TabPane>
-          <TabPane tab="Marks Entry" key="3">
-            <MarksEntry />
-          </TabPane>
-          <TabPane tab="Analytics" key="4">
-            <Analytics />
-          </TabPane>
-        </Tabs>
-      </Card>
+    <div style={{ 
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      padding: '24px',
+      background: '#f0f2f5'
+    }}>
+      <Tabs
+        activeKey={activeTab}
+        onChange={handleTabChange}
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '24px'
+        }}
+      >
+        <TabPanel value="subjects" index="subjects">
+          <SubManagement />
+        </TabPanel>
+        <TabPanel value="exams" index="exams">
+          <ExamManagement />
+        </TabPanel>
+        <TabPanel value="marks" index="marks">
+          <MarksEntry />
+        </TabPanel>
+      </Tabs>
 
       <MarksEntryForm
         visible={marksEntryVisible}
