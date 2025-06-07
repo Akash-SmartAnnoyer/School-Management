@@ -625,4 +625,214 @@
 
 .student-form-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Full Screen Student Form Styles */
+.student-form-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.header-icon {
+  font-size: 24px;
+}
+
+.header-title {
+  margin: 0 !important;
+  color: #7B83EB !important;
+}
+
+.submit-button {
+  background: #7B83EB;
+  border: none;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.submit-button:hover {
+  background: #6a71d4 !important;
+}
+
+.student-form-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.student-form-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.student-form-sidebar {
+  width: 20%;
+  padding: 24px;
+  border-left: 1px solid #f0f0f0;
+  background: #fafafa;
+  overflow-y: auto;
+}
+
+.fee-details-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.fee-details-card .ant-card-head {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.fee-details-card .ant-card-body {
+  padding: 16px;
+}
+
+.info-card {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+.info-card .ant-card-head {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 12px 16px;
+}
+
+.info-card .ant-card-body {
+  padding: 16px;
+}
+
+.photo-upload-card {
+  text-align: center;
+  background: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.photo-upload-card:hover {
+  border-color: #7B83EB;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #8c8c8c;
+}
+
+.card-icon {
+  font-size: 18px;
+}
+
+/* Form field styles */
+.student-form .ant-form-item-label > label {
+  color: #595959;
+  font-weight: 500;
+}
+
+.student-form .ant-input,
+.student-form .ant-select-selector,
+.student-form .ant-picker {
+  border-radius: 6px;
+  border-color: #d9d9d9;
+}
+
+.student-form .ant-input:hover,
+.student-form .ant-select-selector:hover,
+.student-form .ant-picker:hover {
+  border-color: #7B83EB;
+}
+
+.student-form .ant-input:focus,
+.student-form .ant-select-selector:focus,
+.student-form .ant-picker:focus {
+  border-color: #7B83EB;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2);
+}
+
+.student-form .ant-input-prefix {
+  color: #7B83EB;
+}
+
+/* Fee details card styles */
+.fee-details-card .ant-card {
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
+.fee-details-card .ant-card-extra {
+  padding: 0;
+}
+
+.fee-details-card .ant-btn-text {
+  color: #ff4d4f;
+}
+
+.fee-details-card .ant-btn-text:hover {
+  background: #fff1f0;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .student-form-sidebar {
+    width: 30%;
+  }
+}
+
+@media (max-width: 992px) {
+  .student-form-content {
+    flex-direction: column;
+  }
+
+  .student-form-sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #f0f0f0;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-form-header {
+    padding: 12px 16px;
+  }
+
+  .student-form-main {
+    padding: 16px;
+  }
+
+  .student-form-sidebar {
+    padding: 16px;
+  }
+
+  .info-card {
+    margin-bottom: 16px;
+  }
 } 
