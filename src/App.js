@@ -145,7 +145,13 @@ function MainLayout() {
             borderRadius: '4px',
             border: '1px solid #f0f0f0'
           }}>
-            {navigator.platform.includes('Mac') ? '⌘K' : 'Ctrl+K'}
+            {navigator.platform.includes('Mac') ? (
+              <>
+                <span style={{ fontSize: '12px' }}>⌘ + k</span>
+              </>
+            ) : (
+              'ctrl + k'
+            )}
           </span>
         </Space>
       ),
