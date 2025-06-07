@@ -63,6 +63,7 @@ import { StudentsProvider } from './contexts/StudentsContext';
 import { TeachersProvider } from './contexts/TeachersContext';
 import { ClassesProvider } from './contexts/ClassesContext';
 import AcademyLanding from './pages/AcademyLanding';
+import SearchModal from './components/SearchModal';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -93,6 +94,7 @@ function MainLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -127,6 +129,26 @@ function MainLayout() {
   }, []);
 
   const menuItems = [
+    { 
+      key: 'search', 
+      icon: <SearchOutlined />, 
+      label: (
+        <Space>
+          <span>Search</span>
+          <span style={{ 
+            fontSize: '12px', 
+            color: '#8c8c8c',
+            background: '#f5f5f5',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            border: '1px solid #f0f0f0'
+          }}>
+            {navigator.platform.includes('Mac') ? '⌘K' : 'Ctrl+K'}
+          </span>
+        </Space>
+      ),
+      onClick: () => setSearchModalVisible(true)
+    },
     { key: '1', label: 'Dashboard', icon: <DashboardOutlined />, path: '/' },
     { key: '2', label: 'Academic Calendar', icon: <CalendarOutlined />, path: '/academic-calendar' },
     { key: '3', label: 'Students', icon: <UserOutlined />, path: '/students' },
@@ -283,6 +305,19 @@ function MainLayout() {
     const selectedItem = menuItems.find(item => item.path === currentPath);
     return selectedItem ? [selectedItem.key] : [];
   };
+
+  // Add keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalVisible(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -717,6 +752,10 @@ function MainLayout() {
         visible={themeVisible}
         onClose={() => setThemeVisible(false)}
         onThemeChange={handleThemeChange}
+      />
+      <SearchModal 
+        visible={searchModalVisible} 
+        onClose={() => setSearchModalVisible(false)} 
       />
     </Layout>
   );

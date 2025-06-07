@@ -13,11 +13,13 @@ import {
   FileTextOutlined,
   DollarOutlined,
   BellOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getThemeColors } from '../../services/themeService';
 import ThemeConfigurator from '../ThemeConfigurator';
+import SearchModal from '../SearchModal';
 import '../styles/SideMenu.css';
 
 const { Header, Sider, Content } = Layout;
@@ -26,6 +28,7 @@ const { Title } = Typography;
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [themeDrawerVisible, setThemeDrawerVisible] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -46,6 +49,19 @@ const MainLayout = ({ children }) => {
     initializeTheme();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalVisible(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleThemeChange = (action) => {
     if (action === 'saved' || action === 'reset') {
       message.success(`Theme ${action === 'saved' ? 'saved' : 'reset'} successfully`);
@@ -53,6 +69,26 @@ const MainLayout = ({ children }) => {
   };
 
   const menuItems = [
+    {
+      key: 'search',
+      icon: <SearchOutlined />,
+      label: (
+        <Space>
+          <span>Search</span>
+          <span style={{ 
+            fontSize: '12px', 
+            color: '#8c8c8c',
+            background: '#f5f5f5',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            border: '1px solid #f0f0f0'
+          }}>
+            {navigator.platform.includes('Mac') ? '⌘K' : 'Ctrl+K'}
+          </span>
+        </Space>
+      ),
+      onClick: () => setSearchModalVisible(true)
+    },
     {
       key: 'dashboard',
       icon: <DashboardOutlined />,
@@ -223,6 +259,10 @@ const MainLayout = ({ children }) => {
         visible={themeDrawerVisible} 
         onClose={() => setThemeDrawerVisible(false)}
         onThemeChange={handleThemeChange}
+      />
+      <SearchModal 
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
       />
     </Layout>
   );

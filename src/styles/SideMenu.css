@@ -90,6 +90,34 @@
   opacity: 1;
 }
 
+/* Search Menu Item Styling */
+.custom-menu .ant-menu-item[data-menu-id*="search"] {
+  background: rgba(123, 131, 235, 0.05) !important;
+  border: 1px solid rgba(123, 131, 235, 0.1) !important;
+  margin: 8px !important;
+  border-radius: 8px !important;
+  height: auto !important;
+  padding: 8px 16px !important;
+  line-height: 1.5 !important;
+}
+
+.custom-menu .ant-menu-item[data-menu-id*="search"]:hover {
+  background: rgba(123, 131, 235, 0.1) !important;
+  border-color: rgba(123, 131, 235, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(123, 131, 235, 0.15) !important;
+}
+
+.custom-menu .ant-menu-item[data-menu-id*="search"] .anticon {
+  font-size: 20px !important;
+  margin-right: 12px !important;
+}
+
+.custom-menu .ant-menu-item[data-menu-id*="search"] span {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
 /* Collapsed State */
 .ant-layout-sider-collapsed .logo {
   padding: 16px 8px;
