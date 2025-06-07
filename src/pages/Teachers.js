@@ -134,6 +134,7 @@ import {
   SafetyCertificateOutlined,
   HomeOutlined,
   InfoCircleOutlined,
+  ArrowLeftOutlined,
 } from '@ant-design/icons';
 import { useTeachers } from '../contexts/TeachersContext';
 import { useMessage } from '../contexts/MessageContext';
@@ -151,6 +152,476 @@ const { Panel } = Collapse;
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Dragger } = Upload;
+
+const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) => {
+  const [form] = Form.useForm();
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  useEffect(() => {
+    if (visible) {
+      loadSubjects();
+      if (initialValues) {
+        const formattedValues = {
+          ...initialValues,
+          dob: initialValues.dob ? moment(initialValues.dob) : null,
+          joining_date: initialValues.joining_date ? moment(initialValues.joining_date) : null
+        };
+        form.setFieldsValue(formattedValues);
+        if (initialValues.photo) {
+          setPreviewImage(initialValues.photo);
+        } else {
+          setPreviewImage(null);
+        }
+      } else {
+        form.resetFields();
+        setPreviewImage(null);
+        setSelectedFile(null);
+      }
+    }
+  }, [visible, initialValues]);
+
+  const loadSubjects = async () => {
+    try {
+      setLoadingSubjects(true);
+      const response = await api.subject.getSubjects();
+      if (response.success) {
+        setSubjects(response.data.results || []);
+      }
+    } catch (error) {
+      message.error('Failed to load subjects');
+      console.error('Error loading subjects:', error);
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file) => {
+    try {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('You can only upload image files!');
+        return false;
+      }
+
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Image must be smaller than 2MB!');
+        return false;
+      }
+
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewImage(previewUrl);
+      setSelectedFile(file);
+      
+      return false;
+    } catch (error) {
+      console.error('Error handling image:', error);
+      message.error('Failed to process image');
+      return false;
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      onSubmit(values, initialValues, selectedFile);
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="teacher-form-screen">
+      <div className="teacher-form-header">
+        <Space>
+          <Button 
+            type="text" 
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => {
+              setSelectedFile(null);
+              setPreviewImage(null);
+              onCancel();
+            }}
+          />
+          <IdcardOutlined className="header-icon" style={{ color: '#7B83EB' }} />
+          <Typography.Title level={4} className="header-title" style={{ color: '#7B83EB', margin: 0 }}>
+            {initialValues ? 'Edit Teacher' : 'Add New Teacher'}
+          </Typography.Title>
+        </Space>
+        <Button 
+          type="primary" 
+          onClick={handleSubmit}
+          loading={loading}
+          className="submit-button"
+        >
+          {initialValues ? 'Update Teacher' : 'Add Teacher'}
+        </Button>
+      </div>
+
+      <div className="teacher-form-content">
+        <div className="teacher-form-main">
+          <Form
+            key={initialValues ? `edit-${initialValues.id}` : 'create'}
+            form={form}
+            layout="vertical"
+            className="teacher-form"
+          >
+            <Row gutter={24}>
+              <Col span={16}>
+                <Card 
+                  title={
+                    <Space>
+                      <BookOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                      <span style={{ color: '#7B83EB' }}>Professional Information</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="employee_id"
+                        label="Employee ID"
+                        rules={[{ required: true, message: 'Please input employee ID!' }]}
+                      >
+                        <Input prefix={<IdcardOutlined style={{ color: '#7B83EB' }} />} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="joining_date"
+                        label="Joining Date"
+                        rules={[{ required: true, message: 'Please select joining date!' }]}
+                      >
+                        <DatePicker style={{ width: '100%' }} />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="qualification"
+                        label="Qualification"
+                        rules={[{ required: true, message: 'Please input qualification!' }]}
+                      >
+                        <Input prefix={<SafetyCertificateOutlined style={{ color: '#7B83EB' }} />} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="specialization"
+                        label="Specialization"
+                        rules={[{ required: true, message: 'Please input specialization!' }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="subject"
+                        label="Subject"
+                        rules={[{ required: true, message: 'Please select subject!' }]}
+                      >
+                        <Select loading={loadingSubjects}>
+                          {subjects.map(subject => (
+                            <Option key={subject.id} value={subject.name}>
+                              {subject.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="years_of_experience"
+                        label="Years of Experience"
+                        rules={[{ required: true, message: 'Please input years of experience!' }]}
+                      >
+                        <Input type="number" min={0} step={0.5} />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item
+                    name="status"
+                    label="Status"
+                    rules={[{ required: true, message: 'Please select status!' }]}
+                  >
+                    <Select>
+                      <Option value="Active">Active</Option>
+                      <Option value="Inactive">Inactive</Option>
+                    </Select>
+                  </Form.Item>
+                </Card>
+
+                <Card 
+                  title={
+                    <Space>
+                      <HomeOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                      <span style={{ color: '#7B83EB' }}>Contact Information</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Form.Item
+                    name="address"
+                    label="Address"
+                    rules={[{ required: true, message: 'Please input address!' }]}
+                  >
+                    <Input.TextArea rows={3} />
+                  </Form.Item>
+                </Card>
+              </Col>
+
+              <Col span={8}>
+                <Card className="photo-upload-card">
+                  <Upload
+                    name="photo"
+                    listType="picture-card"
+                    showUploadList={false}
+                    beforeUpload={handlePhotoUpload}
+                    accept="image/*"
+                  >
+                    {previewImage ? (
+                      <img 
+                        src={previewImage} 
+                        alt="Preview" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      <div className="upload-placeholder">
+                        <PlusOutlined />
+                        <div>Upload Photo</div>
+                      </div>
+                    )}
+                  </Upload>
+                </Card>
+
+                <Card 
+                  title={
+                    <Space>
+                      <UserOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                      <span style={{ color: '#7B83EB' }}>Basic Information</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Form.Item
+                    name="first_name"
+                    label="First Name"
+                    rules={[{ required: true, message: 'Please input first name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="last_name"
+                    label="Last Name"
+                    rules={[{ required: true, message: 'Please input last name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: 'Please input email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="phone"
+                    label="Phone"
+                    rules={[{ required: true, message: 'Please input phone number!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="gender"
+                    label="Gender"
+                    rules={[{ required: true, message: 'Please select gender!' }]}
+                  >
+                    <Select>
+                      <Option value="M">Male</Option>
+                      <Option value="F">Female</Option>
+                      <Option value="O">Other</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="dob"
+                    label="DOB"
+                    rules={[{ required: true, message: 'Please select date of birth!' }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="blood_group"
+                    label="Blood Group"
+                    rules={[{ required: true, message: 'Please select blood group!' }]}
+                  >
+                    <Select>
+                      <Option value="A+">A+</Option>
+                      <Option value="A-">A-</Option>
+                      <Option value="B+">B+</Option>
+                      <Option value="B-">B-</Option>
+                      <Option value="AB+">AB+</Option>
+                      <Option value="AB-">AB-</Option>
+                      <Option value="O+">O+</Option>
+                      <Option value="O-">O-</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="nationality"
+                    label="Nationality"
+                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  {!initialValues && (
+                    <>
+                      <Form.Item
+                        name="password"
+                        label="Password"
+                        rules={[
+                          { required: true, message: 'Please input password!' },
+                          { min: 6, message: 'Password must be at least 6 characters!' }
+                        ]}
+                      >
+                        <Input.Password />
+                      </Form.Item>
+                      <Form.Item
+                        name="confirm_password"
+                        label="Confirm Password"
+                        dependencies={['password']}
+                        rules={[
+                          { required: true, message: 'Please confirm password!' },
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (!value || getFieldValue('password') === value) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(new Error('The two passwords do not match!'));
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password />
+                      </Form.Item>
+                    </>
+                  )}
+                </Card>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .teacher-form-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: #fff;
+          z-index: 1000;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .teacher-form-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 24px;
+          border-bottom: 1px solid #f0f0f0;
+          background: #fff;
+        }
+
+        .header-icon {
+          font-size: 24px;
+        }
+
+        .header-title {
+          margin: 0 !important;
+        }
+
+        .submit-button {
+          background: #7B83EB;
+          border: none;
+          height: 40px;
+          padding: 0 24px;
+          border-radius: 6px;
+        }
+
+        .teacher-form-content {
+          flex: 1;
+          display: flex;
+          overflow: hidden;
+        }
+
+        .teacher-form-main {
+          flex: 1;
+          padding: 24px;
+          overflow-y: auto;
+        }
+
+        .teacher-form-sidebar {
+          width: 20%;
+          padding: 24px;
+          border-left: 1px solid #f0f0f0;
+          background: #fafafa;
+          overflow-y: auto;
+        }
+
+        .info-card {
+          margin-bottom: 24px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .photo-upload-card {
+          text-align: center;
+          background: #fafafa;
+          border: 1px dashed #d9d9d9;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 24px;
+        }
+
+        .upload-placeholder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          color: #8c8c8c;
+        }
+
+        .card-icon {
+          font-size: 18px;
+        }
+      `}</style>
+    </div>
+  );
+};
 
 const Teachers = () => {
   const messageApi = useMessage();
@@ -938,334 +1409,16 @@ const Teachers = () => {
         </div>
       )}
 
-      <Modal
-        title={
-          <Space>
-            <IdcardOutlined className="modal-icon" />
-            <Typography.Title level={5} className="modal-title">
-              {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
-            </Typography.Title>
-          </Space>
-        }
-        open={modalVisible}
-        onOk={handleSubmit}
+      <TeacherForm
+        visible={modalVisible}
         onCancel={() => {
           setModalVisible(false);
-          form.resetFields();
-          setImageUrl(null);
+          setEditingTeacher(null);
         }}
-        width={900}
-        confirmLoading={actionLoading}
-        className="teacher-form-modal"
-      >
-        <Form form={form} layout="vertical">
-          <Row gutter={24}>
-            <Col span={8}>
-              <Card className="photo-upload-card">
-                <Upload
-                  showUploadList={false}
-                  beforeUpload={(file) => {
-                    const isImage = file.type.startsWith('image/');
-                    if (!isImage) {
-                      messageApi.error('You can only upload image files!');
-                      return false;
-                    }
-                    const isLt2M = file.size / 1024 / 1024 < 2;
-                    if (!isLt2M) {
-                      messageApi.error('Image must be smaller than 2MB!');
-                      return false;
-                    }
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => {
-                      setImageUrl(reader.result);
-                      setSelectedFile(file);
-                    };
-                    return false;
-                  }}
-                  accept="image/*"
-                  maxCount={1}
-                >
-                  <div className="upload-placeholder">
-                    {imageUrl ? (
-                      <img 
-                        src={imageUrl} 
-                        alt="Preview" 
-                        style={{ 
-                          width: '100%', 
-                          height: '100%', 
-                          objectFit: 'cover',
-                          borderRadius: '8px'
-                        }} 
-                      />
-                    ) : (
-                      <>
-                        <PlusOutlined />
-                        <div>Upload Photo</div>
-                      </>
-                    )}
-                  </div>
-                </Upload>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <UserOutlined className="card-icon" />
-                    <span>Basic Information</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Form.Item
-                  name="first_name"
-                  label="First Name"
-                  rules={[{ required: true, message: 'Please input first name!' }]}
-                >
-                  <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="last_name"
-                  label="Last Name"
-                  rules={[{ required: true, message: 'Please input last name!' }]}
-                >
-                  <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="email"
-                  label="Email"
-                  rules={[
-                    { required: true, message: 'Please input email!' },
-                    { type: 'email', message: 'Please enter a valid email!' }
-                  ]}
-                >
-                  <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="phone"
-                  label="Phone"
-                  rules={[{ required: true, message: 'Please input phone number!' }]}
-                >
-                  <Input prefix={<PhoneOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="gender"
-                  label="Gender"
-                  rules={[{ required: true, message: 'Please select gender!' }]}
-                >
-                  <Select>
-                    <Option value="M">Male</Option>
-                    <Option value="F">Female</Option>
-                    <Option value="O">Other</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  name="dob"
-                  label="DOB"
-                  rules={[{ required: true, message: 'Please select date of birth!' }]}
-                >
-                  <DatePicker style={{ width: '100%' }} />
-                </Form.Item>
-
-                {!editingTeacher && (
-                  <>
-                    <Form.Item
-                      name="password"
-                      label="Password"
-                      rules={[
-                        { required: true, message: 'Please input password!' },
-                        { min: 6, message: 'Password must be at least 6 characters!' }
-                      ]}
-                    >
-                      <Input.Password />
-                    </Form.Item>
-                    <Form.Item
-                      name="confirm_password"
-                      label="Confirm Password"
-                      dependencies={['password']}
-                      rules={[
-                        { required: true, message: 'Please confirm password!' },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (!value || getFieldValue('password') === value) {
-                              return Promise.resolve();
-                            }
-                            return Promise.reject(new Error('The two passwords do not match!'));
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input.Password />
-                    </Form.Item>
-                  </>
-                )}
-              </Card>
-            </Col>
-
-            <Col span={16}>
-              <Card 
-                title={
-                  <Space>
-                    <BookOutlined className="card-icon" />
-                    <span>Professional Information</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="employee_id"
-                      label="Employee ID"
-                      rules={[{ required: true, message: 'Please input employee ID!' }]}
-                    >
-                      <Input prefix={<IdcardOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="joining_date"
-                      label="Joining Date"
-                      rules={[{ required: true, message: 'Please select joining date!' }]}
-                    >
-                      <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="qualification"
-                      label="Qualification"
-                      rules={[{ required: true, message: 'Please input qualification!' }]}
-                    >
-                      <Input prefix={<SafetyCertificateOutlined style={{ color: '#bfbfbf' }} />} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="specialization"
-                      label="Specialization"
-                      rules={[{ required: true, message: 'Please input specialization!' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="subject"
-                      label="Subject"
-                      rules={[{ required: true, message: 'Please select subject!' }]}
-                    >
-                      <Select loading={loadingSubjects}>
-                        {subjects.map(subject => (
-                          <Option key={subject.id} value={subject.name}>
-                            {subject.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="years_of_experience"
-                      label="Years of Experience"
-                      rules={[{ required: true, message: 'Please input years of experience!' }]}
-                    >
-                      <Input type="number" min={0} step={0.5} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  name="status"
-                  label="Status"
-                  rules={[{ required: true, message: 'Please select status!' }]}
-                >
-                  <Select>
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                  </Select>
-                </Form.Item>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <HomeOutlined className="card-icon" />
-                    <span>Contact Information</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Form.Item
-                  name="address"
-                  label="Address"
-                  rules={[{ required: true, message: 'Please input address!' }]}
-                >
-                  <Input.TextArea rows={3} />
-                </Form.Item>
-              </Card>
-
-              <Card 
-                title={
-                  <Space>
-                    <InfoCircleOutlined className="card-icon" />
-                    <span>Additional Information</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="blood_group"
-                      label="Blood Group"
-                      rules={[{ required: true, message: 'Please select blood group!' }]}
-                    >
-                      <Select>
-                        <Option value="A+">A+</Option>
-                        <Option value="A-">A-</Option>
-                        <Option value="B+">B+</Option>
-                        <Option value="B-">B-</Option>
-                        <Option value="AB+">AB+</Option>
-                        <Option value="AB-">AB-</Option>
-                        <Option value="O+">O+</Option>
-                        <Option value="O-">O-</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="nationality"
-                      label="Nationality"
-                      rules={[{ required: true, message: 'Please input nationality!' }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  name="medicalConditions"
-                  label="Medical Conditions"
-                >
-                  <Input.TextArea rows={2} />
-                </Form.Item>
-              </Card>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
+        onSubmit={handleSubmit}
+        initialValues={editingTeacher}
+        loading={actionLoading}
+      />
 
       <Modal
         title="Change Status"
@@ -1605,78 +1758,88 @@ const Teachers = () => {
             background-color: #7B83EB !important;
           }
 
-          .teacher-form-modal .modal-icon {
-            font-size: 20px;
-            color: #7B83EB;
+          .teacher-form-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
           }
 
-          .teacher-form-modal .modal-title {
-            margin: 0;
-            color: #7B83EB;
+          .teacher-form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fff;
           }
 
-          .teacher-form-modal .photo-upload-card {
+          .header-icon {
+            font-size: 24px;
+          }
+
+          .header-title {
+            margin: 0 !important;
+          }
+
+          .submit-button {
+            background: #7B83EB;
+            border: none;
+            height: 40px;
+            padding: 0 24px;
+            border-radius: 6px;
+          }
+
+          .teacher-form-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+          }
+
+          .teacher-form-main {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+          }
+
+          .teacher-form-sidebar {
+            width: 20%;
+            padding: 24px;
+            border-left: 1px solid #f0f0f0;
+            background: #fafafa;
+            overflow-y: auto;
+          }
+
+          .info-card {
+            margin-bottom: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .photo-upload-card {
             text-align: center;
             background: #fafafa;
             border: 1px dashed #d9d9d9;
             border-radius: 8px;
             padding: 20px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
           }
 
-          .teacher-form-modal .upload-placeholder {
-            cursor: pointer;
-            color: #7B83EB;
+          .upload-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #8c8c8c;
           }
 
-          .teacher-form-modal .info-card {
-            margin-bottom: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          }
-
-          .teacher-form-modal .card-icon {
-            color: #7B83EB;
-          }
-
-          .teacher-form-modal .ant-card-head {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 12px 16px;
-          }
-
-          .teacher-form-modal .ant-card-head-title {
-            padding: 0;
-          }
-
-          .teacher-form-modal .ant-form-item-label > label {
-            color: #595959;
-            font-weight: 500;
-          }
-
-          .teacher-form-modal .ant-input-affix-wrapper:hover,
-          .teacher-form-modal .ant-input-affix-wrapper:focus,
-          .teacher-form-modal .ant-input-affix-wrapper-focused {
-            border-color: #7B83EB;
-          }
-
-          .teacher-form-modal .ant-select:hover .ant-select-selector,
-          .teacher-form-modal .ant-select-focused .ant-select-selector {
-            border-color: #7B83EB !important;
-          }
-
-          .teacher-form-modal .ant-picker:hover,
-          .teacher-form-modal .ant-picker-focused {
-            border-color: #7B83EB;
-          }
-
-          .teacher-form-modal .ant-btn-primary {
-            background: #7B83EB;
-            border-color: #7B83EB;
-          }
-
-          .teacher-form-modal .ant-btn-primary:hover {
-            background: #8ba1d1;
-            border-color: #8ba1d1;
+          .card-icon {
+            font-size: 18px;
           }
         `}
       </style>
