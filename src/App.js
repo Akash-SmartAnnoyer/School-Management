@@ -64,6 +64,7 @@ import { TeachersProvider } from './contexts/TeachersContext';
 import { ClassesProvider } from './contexts/ClassesContext';
 import AcademyLanding from './pages/AcademyLanding';
 import SearchModal from './components/SearchModal';
+import QuickActionsModal from './components/QuickActionsModal';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -95,6 +96,7 @@ function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [quickActionsVisible, setQuickActionsVisible] = useState(false);
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -318,6 +320,28 @@ function MainLayout() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleQuickActionClick = (action) => {
+    switch (action.key) {
+      case 'addStudent':
+        navigate('/students');
+        break;
+      case 'addTeacher':
+        navigate('/teachers');
+        break;
+      case 'markAttendance':
+        navigate('/attendance');
+        break;
+      case 'addEvent':
+        navigate('/academic-calendar');
+        break;
+      case 'theme':
+        setThemeVisible(true);
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -599,34 +623,33 @@ function MainLayout() {
             justifyContent: 'flex-end'
           }}>
             <Space>
-              <Dropdown menu={{ items: quickActions }} placement="bottomRight">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    background: '#7B83EB',
-                    borderColor: '#7B83EB',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                    e.currentTarget.style.background = '#8ba1d1';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                    e.currentTarget.style.background = '#7B83EB';
-                  }}
-                  size="small"
-                >
-                  Quick Actions
-                </Button>
-              </Dropdown>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setQuickActionsVisible(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#7B83EB';
+                }}
+                size="small"
+              >
+                Quick Actions
+              </Button>
 
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 <Space style={{
@@ -756,6 +779,11 @@ function MainLayout() {
       <SearchModal 
         visible={searchModalVisible} 
         onClose={() => setSearchModalVisible(false)} 
+      />
+      <QuickActionsModal
+        visible={quickActionsVisible}
+        onClose={() => setQuickActionsVisible(false)}
+        onActionClick={handleQuickActionClick}
       />
     </Layout>
   );
