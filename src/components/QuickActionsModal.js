@@ -1,4 +1,4 @@
-    import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Row, Col, Card, Tooltip } from 'antd';
 import {
   UserOutlined,
@@ -9,6 +9,8 @@ import {
 } from '@ant-design/icons';
 
 const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
+  const [hoveredCard, setHoveredCard] = useState(null);
+
   const actions = [
     {
       key: 'addStudent',
@@ -17,6 +19,17 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
       description: 'Register a new student in the system',
       bgColor: 'white',
       hoverColor: '#e6e9fd',
+      tooltipContent: {
+        title: 'Student Registration',
+        description: 'Register a new student in the system',
+        features: [
+          'Add personal information',
+          'Upload student documents',
+          'Assign to classes',
+          'Set up parent/guardian contacts',
+          'Configure fee structure'
+        ]
+      }
     },
     {
       key: 'addTeacher',
@@ -25,6 +38,17 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
       description: 'Register a new teacher in the system',
       bgColor: 'white',
       hoverColor: '#def7f5',
+      tooltipContent: {
+        title: 'Teacher Registration',
+        description: 'Register a new teacher in the system',
+        features: [
+          'Add professional details',
+          'Upload qualifications',
+          'Assign subjects and classes',
+          'Set up attendance tracking',
+          'Configure salary structure'
+        ]
+      }
     },
     {
       key: 'markAttendance',
@@ -33,6 +57,17 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
       description: 'Record attendance for students or teachers',
       bgColor: 'white',
       hoverColor: '#ffe6e6',
+      tooltipContent: {
+        title: 'Attendance Management',
+        description: 'Record and manage attendance records',
+        features: [
+          'Mark daily attendance',
+          'View attendance history',
+          'Generate attendance reports',
+          'Set up attendance rules',
+          'Configure notifications'
+        ]
+      }
     },
     {
       key: 'addEvent',
@@ -41,6 +76,17 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
       description: 'Schedule a new event in the academic calendar',
       bgColor: 'white',
       hoverColor: '#fff8d6',
+      tooltipContent: {
+        title: 'Calendar Event Management',
+        description: 'Schedule and manage academic events',
+        features: [
+          'Create academic events',
+          'Set up recurring events',
+          'Send event notifications',
+          'Manage event categories',
+          'Generate event reports'
+        ]
+      }
     },
     {
       key: 'theme',
@@ -49,6 +95,17 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
       description: 'Customize the application appearance',
       bgColor: 'white',
       hoverColor: '#e5faf7',
+      tooltipContent: {
+        title: 'Theme Customization',
+        description: 'Customize the application appearance',
+        features: [
+          'Change color scheme',
+          'Modify layout settings',
+          'Customize typography',
+          'Adjust spacing and margins',
+          'Save theme preferences'
+        ]
+      }
     },
   ];
 
@@ -58,6 +115,47 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
     }
     onClose();
   };
+
+  const renderTooltipContent = (action) => (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+      color: '#fff',
+      minWidth: '200px',
+      maxHeight: '300px',
+      overflowY: 'auto',
+      padding: '4px',
+    }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '4px'
+      }}>
+        <span style={{ fontSize: '14px', fontWeight: '600' }}>{action.tooltipContent.title}</span>
+        <div style={{ marginLeft: '8px' }}>{action.icon}</div>
+      </div>
+      <p style={{ fontSize: '13px', margin: 0, opacity: 0.9 }}>{action.tooltipContent.description}</p>
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
+        <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '6px' }}>Features:</div>
+        <ul style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}>
+          {action.tooltipContent.features.map((feature, index) => (
+            <li key={index} style={{ fontSize: '12px', opacity: 0.9 }}>
+              • {feature}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
 
   return (
     <Modal
@@ -72,7 +170,6 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
         {actions.map((action) => (
           <Col span={8} key={action.key}>
             <Card
-              hoverable
               onClick={() => handleActionClick(action)}
               style={{
                 height: '120px',
@@ -89,10 +186,12 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
                 padding: '12px 16px',
               }}
               onMouseEnter={(e) => {
+                setHoveredCard(action.key);
                 e.currentTarget.style.backgroundColor = action.hoverColor;
                 e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.08)';
               }}
               onMouseLeave={(e) => {
+                setHoveredCard(null);
                 e.currentTarget.style.backgroundColor = action.bgColor;
                 e.currentTarget.style.boxShadow = 'none';
               }}
@@ -122,28 +221,24 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
                   }}>
                     {action.title}
                   </h3>
-                  <Tooltip
-                    title={
-                      <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'flex-start',
-                        gap: '6px',
-                        color: '#fff',
-                        minWidth: '160px',
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                      }}>
-                        <div>{action.icon}</div>
-                        <div style={{ fontSize: '13px' }}>{action.description}</div>
-                      </div>
-                    }
-                    color="#000"
-                    overlayStyle={{ maxWidth: '220px' }}
-                    placement="topRight"
-                  >
-                    <InfoCircleOutlined style={{ fontSize: '14px', color: '#999', marginLeft: 8 }} />
-                  </Tooltip>
+                  <div style={{
+                    opacity: hoveredCard === action.key ? 1 : 0,
+                    transition: 'opacity 0.3s ease',
+                  }}>
+                    <Tooltip
+                      title={renderTooltipContent(action)}
+                      color="#000"
+                      overlayStyle={{ maxWidth: '300px' }}
+                      placement="topRight"
+                    >
+                      <InfoCircleOutlined style={{ 
+                        fontSize: '14px', 
+                        color: '#999', 
+                        marginLeft: 8,
+                        cursor: 'help'
+                      }} />
+                    </Tooltip>
+                  </div>
                 </div>
                 <p style={{
                   margin: '6px 0 0',
