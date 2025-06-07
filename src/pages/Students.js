@@ -208,159 +208,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             className="student-form"
           >
             <Row gutter={24}>
-              <Col span={8}>
-                <Card className="photo-upload-card">
-                  <Upload
-                    name="photo"
-                    listType="picture-card"
-                    showUploadList={false}
-                    beforeUpload={handlePhotoUpload}
-                    accept="image/*"
-                  >
-                    {previewImage ? (
-                      <img 
-                        src={previewImage} 
-                        alt="Preview" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                      />
-                    ) : (
-                      <div className="upload-placeholder">
-                        <PlusOutlined />
-                        <div>Upload Photo</div>
-                      </div>
-                    )}
-                  </Upload>
-                </Card>
-
-                <Card 
-                  title={
-                    <Space>
-                      <UserOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                      <span style={{ color: '#7B83EB' }}>Basic Information</span>
-                    </Space>
-                  }
-                  className="info-card"
-                >
-                  <Form.Item
-                    name="first_name"
-                    label="First Name"
-                    rules={[{ required: true, message: 'Please input first name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="last_name"
-                    label="Last Name"
-                    rules={[{ required: true, message: 'Please input last name!' }]}
-                  >
-                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: 'Please input email!' },
-                      { type: 'email', message: 'Please enter a valid email!' }
-                    ]}
-                  >
-                    <Input prefix={<MailOutlined style={{ color: '#7B83EB' }} />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="phone"
-                    label="Phone"
-                    rules={[{ required: true, message: 'Please input phone number!' }]}
-                  >
-                    <Input prefix={<PhoneOutlined style={{ color: '#7B83EB' }} />} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name="gender"
-                    label="Gender"
-                    rules={[{ required: true, message: 'Please select gender!' }]}
-                  >
-                    <Select>
-                      <Option value="M">Male</Option>
-                      <Option value="F">Female</Option>
-                      <Option value="O">Other</Option>
-                    </Select>
-                  </Form.Item>
-
-                  <Form.Item
-                    name="dob"
-                    label="DOB"
-                    rules={[{ required: true, message: 'Please select date of birth!' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-
-                  <Form.Item
-                    name={['profile', 'classroom_id']}
-                    label="Class"
-                    rules={[{ required: true, message: 'Please select class!' }]}
-                  >
-                    <Select loading={loadingClasses}>
-                      {classes.map(cls => (
-                        <Option key={cls.id} value={cls.id}>
-                          {cls.class_name} - Section {cls.section}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-
-                  <Form.Item
-                    name={['profile', 'nationality']}
-                    label="Nationality"
-                    rules={[{ required: true, message: 'Please input nationality!' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-
-                  <Form.Item
-                    name={['profile', 'class_name']}
-                    label="Class Name"
-                    rules={[{ required: true, message: 'Please input class name!' }]}
-                  >
-                    <Input />
-                  </Form.Item>
-
-                  {!initialValues && (
-                    <>
-                      <Form.Item
-                        name="password"
-                        label="Password"
-                        rules={[
-                          { required: true, message: 'Please input password!' },
-                          { min: 6, message: 'Password must be at least 6 characters!' }
-                        ]}
-                      >
-                        <Input.Password />
-                      </Form.Item>
-                      <Form.Item
-                        name="confirm_password"
-                        label="Confirm Password"
-                        dependencies={['password']}
-                        rules={[
-                          { required: true, message: 'Please confirm password!' },
-                          ({ getFieldValue }) => ({
-                            validator(_, value) {
-                              if (!value || getFieldValue('password') === value) {
-                                return Promise.resolve();
-                              }
-                              return Promise.reject(new Error('The two passwords do not match!'));
-                            },
-                          }),
-                        ]}
-                      >
-                        <Input.Password />
-                      </Form.Item>
-                    </>
-                  )}
-                </Card>
-              </Col>
-
               <Col span={16}>
                 <Card 
                   title={
@@ -565,262 +412,376 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                   </Form.Item>
                 </Card>
               </Col>
-            </Row>
-          </Form>
-        </div>
 
-        <div className="student-form-sidebar">
-          <Card 
-            title={
-              <Space>
-                <MoneyCollectOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                <span style={{ color: '#7B83EB' }}>Fee Details</span>
-              </Space>
-            }
-            className="fee-details-card"
-          >
-            <Form.List 
-              name="fee_details"
-              initialValue={initialValues?.fee_details || [{}]}
-            >
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <Card 
-                      key={key} 
-                      style={{ marginBottom: 16, border: '1px solid #f0f0f0' }}
-                      extra={
-                        fields.length > 1 && (
-                          <Button 
-                            type="text" 
-                            danger 
-                            icon={<DeleteOutlined />} 
-                            onClick={() => remove(name)}
-                          />
-                        )
-                      }
-                    >
-                      <Row gutter={16}>
-                        <Col span={24}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'fee_type']}
-                            label="Fee Type"
-                            rules={[{ required: false, message: 'Please select or enter fee type!' }]}
-                          >
-                            <Select
-                              showSearch
-                              allowClear
-                              placeholder="Select or enter fee type"
-                              dropdownRender={menu => (
-                                <>
-                                  {menu}
-                                  <Divider style={{ margin: '8px 0' }} />
-                                  <Form.Item
-                                    style={{ margin: '0 8px 4px' }}
-                                  >
-                                    <Input
-                                      placeholder="Add new fee type"
-                                      onPressEnter={e => {
-                                        e.preventDefault();
-                                        const value = e.target.value;
-                                        if (value) {
-                                          const newOption = { value, label: value };
-                                          const options = form.getFieldValue(['fee_details', name, 'fee_type_options']) || [];
-                                          if (!options.find(opt => opt.value === value)) {
-                                            form.setFieldsValue({
-                                              fee_details: {
-                                                [name]: {
-                                                  fee_type_options: [...options, newOption]
-                                                }
-                                              }
-                                            });
-                                          }
-                                          form.setFieldsValue({
-                                            fee_details: {
-                                              [name]: {
-                                                fee_type: value
-                                              }
-                                            }
-                                          });
-                                        }
-                                      }}
-                                    />
-                                  </Form.Item>
-                                </>
-                              )}
-                            >
-                              <Option value="Tuition Fee">Tuition Fee</Option>
-                              <Option value="Transport Fee">Transport Fee</Option>
-                              <Option value="Library Fee">Library Fee</Option>
-                              <Option value="Sports Fee">Sports Fee</Option>
-                              <Option value="Books Fee">Books Fee</Option>
-                              <Option value="Joining Fee">Joining Fee</Option>
-                              <Option value="Anniversary Fee">Anniversary Fee</Option>
-                              <Option value="Special Fee">Special Fee</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
+              <Col span={8}>
+                <Card className="photo-upload-card">
+                  <Upload
+                    name="photo"
+                    listType="picture-card"
+                    showUploadList={false}
+                    beforeUpload={handlePhotoUpload}
+                    accept="image/*"
+                  >
+                    {previewImage ? (
+                      <img 
+                        src={previewImage} 
+                        alt="Preview" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      />
+                    ) : (
+                      <div className="upload-placeholder">
+                        <PlusOutlined />
+                        <div>Upload Photo</div>
+                      </div>
+                    )}
+                  </Upload>
+                </Card>
 
-                      <Row gutter={16}>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'amount']}
-                            label="Total Amount"
-                            rules={[{ required: false, message: 'Please enter amount!' }]}
-                          >
-                            <Input prefix="₹" type="number" step="0.01" />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'period']}
-                            label="Fee Period"
-                            rules={[{ required: false, message: 'Please select period!' }]}
-                          >
-                            <Select onChange={(value) => {
-                              const amount = form.getFieldValue(['fee_details', name, 'amount']);
-                              if (amount) {
-                                let terms = 1;
-                                switch(value) {
-                                  case 'Monthly':
-                                    terms = 12;
-                                    break;
-                                  case 'Quarterly':
-                                    terms = 4;
-                                    break;
-                                  case 'Half Yearly':
-                                    terms = 2;
-                                    break;
-                                  case 'Yearly':
-                                    terms = 1;
-                                    break;
-                                }
-                                const amountPerTerm = (amount / terms).toFixed(2);
-                                form.setFieldsValue({
-                                  fee_details: {
-                                    [name]: {
-                                      terms,
-                                      amount_per_term: amountPerTerm
-                                    }
-                                  }
-                                });
-                              }
-                            }}>
-                              <Option value="Monthly">Monthly</Option>
-                              <Option value="Quarterly">Quarterly</Option>
-                              <Option value="Half Yearly">Half Yearly</Option>
-                              <Option value="Yearly">Yearly</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Row gutter={16}>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'terms']}
-                            label="Number of Terms"
-                          >
-                            <Input type="number" disabled />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'amount_per_term']}
-                            label="Amount per Term"
-                          >
-                            <Input prefix="₹" type="number" step="0.01" disabled />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Row gutter={16}>
-                        <Col span={12}>
-                          <Form.Item
-                            {...restField}
-                            name={[name, 'status']}
-                            label="Fee Status"
-                            rules={[{ required: false, message: 'Please select status!' }]}
-                          >
-                            <Select onChange={(value) => {
-                              if (value === 'Partial') {
-                                form.setFieldsValue({
-                                  fee_details: {
-                                    [name]: {
-                                      show_due_amount: true
-                                    }
-                                  }
-                                });
-                              } else {
-                                form.setFieldsValue({
-                                  fee_details: {
-                                    [name]: {
-                                      show_due_amount: false,
-                                      due_amount: null
-                                    }
-                                  }
-                                });
-                              }
-                            }}>
-                              <Option value="Paid">Paid</Option>
-                              <Option value="Unpaid">Unpaid</Option>
-                              <Option value="Partial">Partial</Option>
-                            </Select>
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            noStyle
-                            shouldUpdate={(prevValues, currentValues) => {
-                              return prevValues?.fee_details?.[name]?.status !== currentValues?.fee_details?.[name]?.status;
-                            }}
-                          >
-                            {({ getFieldValue }) => {
-                              const showDueAmount = getFieldValue(['fee_details', name, 'show_due_amount']);
-                              return showDueAmount ? (
-                                <Form.Item
-                                  {...restField}
-                                  name={[name, 'due_amount']}
-                                  label="Due Amount"
-                                  rules={[{ required: false, message: 'Please enter due amount!' }]}
-                                >
-                                  <Input prefix="₹" type="number" step="0.01" />
-                                </Form.Item>
-                              ) : null;
-                            }}
-                          </Form.Item>
-                        </Col>
-                      </Row>
-
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'remarks']}
-                        label="Remarks"
-                      >
-                        <Input.TextArea rows={2} />
-                      </Form.Item>
-                    </Card>
-                  ))}
-                  <Form.Item>
-                    <Button 
-                      type="dashed" 
-                      onClick={() => add()} 
-                      block 
-                      icon={<PlusOutlined />}
-                    >
-                      Add Fee
-                    </Button>
+                <Card 
+                  title={
+                    <Space>
+                      <UserOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                      <span style={{ color: '#7B83EB' }}>Basic Information</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Form.Item
+                    name="first_name"
+                    label="First Name"
+                    rules={[{ required: true, message: 'Please input first name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
                   </Form.Item>
-                </>
-              )}
-            </Form.List>
-          </Card>
+
+                  <Form.Item
+                    name="last_name"
+                    label="Last Name"
+                    rules={[{ required: true, message: 'Please input last name!' }]}
+                  >
+                    <Input prefix={<UserOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: 'Please input email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input prefix={<MailOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="phone"
+                    label="Phone"
+                    rules={[{ required: true, message: 'Please input phone number!' }]}
+                  >
+                    <Input prefix={<PhoneOutlined style={{ color: '#7B83EB' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="gender"
+                    label="Gender"
+                    rules={[{ required: true, message: 'Please select gender!' }]}
+                  >
+                    <Select>
+                      <Option value="M">Male</Option>
+                      <Option value="F">Female</Option>
+                      <Option value="O">Other</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="dob"
+                    label="DOB"
+                    rules={[{ required: true, message: 'Please select date of birth!' }]}
+                  >
+                    <DatePicker style={{ width: '100%' }} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name={['profile', 'classroom_id']}
+                    label="Class"
+                    rules={[{ required: true, message: 'Please select class!' }]}
+                  >
+                    <Select loading={loadingClasses}>
+                      {classes.map(cls => (
+                        <Option key={cls.id} value={cls.id}>
+                          {cls.class_name} - Section {cls.section}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name={['profile', 'nationality']}
+                    label="Nationality"
+                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    name={['profile', 'class_name']}
+                    label="Class Name"
+                    rules={[{ required: true, message: 'Please input class name!' }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  {!initialValues && (
+                    <>
+                      <Form.Item
+                        name="password"
+                        label="Password"
+                        rules={[
+                          { required: true, message: 'Please input password!' },
+                          { min: 6, message: 'Password must be at least 6 characters!' }
+                        ]}
+                      >
+                        <Input.Password />
+                      </Form.Item>
+                      <Form.Item
+                        name="confirm_password"
+                        label="Confirm Password"
+                        dependencies={['password']}
+                        rules={[
+                          { required: true, message: 'Please confirm password!' },
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (!value || getFieldValue('password') === value) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(new Error('The two passwords do not match!'));
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password />
+                      </Form.Item>
+                    </>
+                  )}
+                </Card>
+              </Col>
+            </Row>
+
+            <Card 
+              title={
+                <Space>
+                  <MoneyCollectOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                  <span style={{ color: '#7B83EB' }}>Fee Details</span>
+                </Space>
+              }
+              className="fee-details-card"
+            >
+              <Form.List 
+                name="fee_details"
+                initialValue={initialValues?.fee_details || [{}]}
+              >
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <Card 
+                        key={key} 
+                        style={{ marginBottom: 16, border: '1px solid #f0f0f0' }}
+                        extra={
+                          fields.length > 1 && (
+                            <Button 
+                              type="text" 
+                              danger 
+                              icon={<DeleteOutlined />} 
+                              onClick={() => remove(name)}
+                            />
+                          )
+                        }
+                      >
+                        <Row gutter={16}>
+                          <Col span={24}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'fee_type']}
+                              label="Fee Type"
+                              rules={[{ required: true, message: 'Please select or enter fee type!' }]}
+                            >
+                              <Select
+                                showSearch
+                                allowClear
+                                placeholder="Select or enter fee type"
+                              >
+                                <Option value="Tuition Fee">Tuition Fee</Option>
+                                <Option value="Transport Fee">Transport Fee</Option>
+                                <Option value="Library Fee">Library Fee</Option>
+                                <Option value="Sports Fee">Sports Fee</Option>
+                                <Option value="Books Fee">Books Fee</Option>
+                                <Option value="Joining Fee">Joining Fee</Option>
+                                <Option value="Anniversary Fee">Anniversary Fee</Option>
+                                <Option value="Special Fee">Special Fee</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Row gutter={16}>
+                          <Col span={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'amount']}
+                              label="Total Amount"
+                              rules={[{ required: true, message: 'Please enter amount!' }]}
+                            >
+                              <Input prefix="₹" type="number" step="0.01" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'period']}
+                              label="Fee Period"
+                              rules={[{ required: true, message: 'Please select period!' }]}
+                            >
+                              <Select onChange={(value) => {
+                                const amount = form.getFieldValue(['fee_details', name, 'amount']);
+                                if (amount) {
+                                  let terms = 1;
+                                  switch(value) {
+                                    case 'Monthly':
+                                      terms = 12;
+                                      break;
+                                    case 'Quarterly':
+                                      terms = 4;
+                                      break;
+                                    case 'Half Yearly':
+                                      terms = 2;
+                                      break;
+                                    case 'Yearly':
+                                      terms = 1;
+                                      break;
+                                  }
+                                  const amountPerTerm = (amount / terms).toFixed(2);
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        terms,
+                                        amount_per_term: amountPerTerm
+                                      }
+                                    }
+                                  });
+                                }
+                              }}>
+                                <Option value="Monthly">Monthly</Option>
+                                <Option value="Quarterly">Quarterly</Option>
+                                <Option value="Half Yearly">Half Yearly</Option>
+                                <Option value="Yearly">Yearly</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Row gutter={16}>
+                          <Col span={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'terms']}
+                              label="Number of Terms"
+                            >
+                              <Input type="number" disabled />
+                            </Form.Item>
+                          </Col>
+                          <Col span={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'amount_per_term']}
+                              label="Amount per Term"
+                            >
+                              <Input prefix="₹" type="number" step="0.01" disabled />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Row gutter={16}>
+                          <Col span={12}>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'status']}
+                              label="Fee Status"
+                              rules={[{ required: true, message: 'Please select status!' }]}
+                            >
+                              <Select onChange={(value) => {
+                                if (value === 'Partial') {
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        show_due_amount: true
+                                      }
+                                    }
+                                  });
+                                } else {
+                                  form.setFieldsValue({
+                                    fee_details: {
+                                      [name]: {
+                                        show_due_amount: false,
+                                        due_amount: null
+                                      }
+                                    }
+                                  });
+                                }
+                              }}>
+                                <Option value="Paid">Paid</Option>
+                                <Option value="Unpaid">Unpaid</Option>
+                                <Option value="Partial">Partial</Option>
+                              </Select>
+                            </Form.Item>
+                          </Col>
+                          <Col span={12}>
+                            <Form.Item
+                              noStyle
+                              shouldUpdate={(prevValues, currentValues) => {
+                                return prevValues?.fee_details?.[name]?.status !== currentValues?.fee_details?.[name]?.status;
+                              }}
+                            >
+                              {({ getFieldValue }) => {
+                                const showDueAmount = getFieldValue(['fee_details', name, 'show_due_amount']);
+                                return showDueAmount ? (
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, 'due_amount']}
+                                    label="Due Amount"
+                                    rules={[{ required: true, message: 'Please enter due amount!' }]}
+                                  >
+                                    <Input prefix="₹" type="number" step="0.01" />
+                                  </Form.Item>
+                                ) : null;
+                              }}
+                            </Form.Item>
+                          </Col>
+                        </Row>
+
+                        <Form.Item
+                          {...restField}
+                          name={[name, 'remarks']}
+                          label="Remarks"
+                        >
+                          <Input.TextArea rows={2} />
+                        </Form.Item>
+                      </Card>
+                    ))}
+                    <Form.Item>
+                      <Button 
+                        type="dashed" 
+                        onClick={() => add()} 
+                        block 
+                        icon={<PlusOutlined />}
+                      >
+                        Add Fee
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </Card>
+          </Form>
         </div>
       </div>
 
