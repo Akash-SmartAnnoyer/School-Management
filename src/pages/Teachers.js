@@ -236,7 +236,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   if (!visible) return null;
 
   return (
-    <div className="teacher-form-screen">
+    <div className="teacher-form-container">
       <div className="teacher-form-header">
         <Space>
           <Button 
@@ -535,16 +535,14 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       </div>
 
       <style jsx>{`
-        .teacher-form-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: #fff;
-          z-index: 1000;
+        .teacher-form-container {
+          height: 100%;
           display: flex;
           flex-direction: column;
+          background: #fff;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+          border: 1px solid rgba(159, 179, 223, 0.2);
         }
 
         .teacher-form-header {
@@ -554,6 +552,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
           padding: 16px 24px;
           border-bottom: 1px solid #f0f0f0;
           background: #fff;
+          border-radius: 16px 16px 0 0;
         }
 
         .header-icon {
@@ -581,14 +580,6 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         .teacher-form-main {
           flex: 1;
           padding: 24px;
-          overflow-y: auto;
-        }
-
-        .teacher-form-sidebar {
-          width: 20%;
-          padding: 24px;
-          border-left: 1px solid #f0f0f0;
-          background: #fafafa;
           overflow-y: auto;
         }
 
@@ -1285,6 +1276,10 @@ const Teachers = () => {
     loadTeachers(1, 10, value);
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    loadTeachers(pagination.current, pagination.pageSize);
+  };
+
   return (
     <div className="teachers-page" style={{ 
       height: '100%', 
@@ -1298,78 +1293,81 @@ const Teachers = () => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
-      <div className="teachers-header" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: '1px solid #f0f0f0',
-        background: '#ffffff'
-      }}>
-        <Title level={3} className="page-title">
-          <img src="/training.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
-          {/* <TeamOutlined className="title-icon" /> */}
-          Teachers
-        </Title>
-        <Space size="small">
-          <Input.Search
-            placeholder="Search teachers..."
-            allowClear
-            onSearch={handleSearch}
-            style={{ 
-              width: 250,
-              borderRadius: '6px',
-              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-          />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            className="add-teacher-btn"
-          >
-            Add Teacher
-          </Button>
-        </Space>
-      </div>
-
-      <div style={{ 
-        flex: 1, 
-        overflow: 'hidden',
-        padding: '0 16px 16px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'calc(100vh - 180px)'
-      }}>
-        <Table
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={teachers}
-          rowKey="id"
-          loading={teachersLoading || actionLoading}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-          className="teachers-table"
-          pagination={{
-            current: currentPage,
-            total: totalTeachers,
-            pageSize: 10,
-            onChange: (page) => loadTeachers(page),
-            showSizeChanger: false,
-            showTotal: (total) => `Total ${total} teachers`
-          }}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No teachers found"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
+      {!modalVisible ? (
+        <>
+          <div className="teachers-header" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 24px',
+            borderBottom: '1px solid #f0f0f0',
+            background: '#ffffff'
+          }}>
+            <Title level={3} className="page-title">
+              <img src="/teachers.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
+              Teachers
+            </Title>
+            <Space size="small">
+              <Input.Search
+                placeholder="Search teachers..."
+                allowClear
+                onSearch={handleSearch}
+                style={{ 
+                  width: 250,
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+                prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
               />
-            ),
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                className="add-teacher-btn"
+              >
+                Add Teacher
+              </Button>
+            </Space>
+          </div>
+
+          <div style={{ 
+            flex: 1, 
+            overflow: 'hidden',
+            padding: '0 16px 16px 16px'
+          }}>
+            <Table
+              columns={columns}
+              dataSource={teachers}
+              rowKey="id"
+              loading={teachersLoading || actionLoading}
+              pagination={{
+                current: currentPage,
+                pageSize: pageSize,
+                total: totalTeachers,
+                showSizeChanger: true,
+                showTotal: (total) => `Total ${total} teachers`,
+                onChange: handleTableChange
+              }}
+              onChange={handleTableChange}
+              rowSelection={rowSelection}
+              className="teachers-table"
+              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+            />
+          </div>
+        </>
+      ) : (
+        <TeacherForm
+          visible={modalVisible}
+          onCancel={() => {
+            setModalVisible(false);
+            setEditingTeacher(null);
           }}
+          onSubmit={handleSubmit}
+          initialValues={editingTeacher}
+          loading={actionLoading}
         />
-      </div>
+      )}
 
       {selectedRowKeys.length > 0 && (
         <div className="bulk-actions-bar">
@@ -1408,17 +1406,6 @@ const Teachers = () => {
           </Row>
         </div>
       )}
-
-      <TeacherForm
-        visible={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setEditingTeacher(null);
-        }}
-        onSubmit={handleSubmit}
-        initialValues={editingTeacher}
-        loading={actionLoading}
-      />
 
       <Modal
         title="Change Status"
@@ -1493,11 +1480,6 @@ const Teachers = () => {
           .page-title .ant-typography {
             color: #7B83EB !important;
             margin: 0 !important;
-          }
-
-          .title-icon {
-            font-size: 20px;
-            color: #7B83EB;
           }
 
           .teachers-table {
@@ -1756,90 +1738,6 @@ const Teachers = () => {
 
           .teachers-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
             background-color: #7B83EB !important;
-          }
-
-          .teacher-form-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #fff;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .teacher-form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid #f0f0f0;
-            background: #fff;
-          }
-
-          .header-icon {
-            font-size: 24px;
-          }
-
-          .header-title {
-            margin: 0 !important;
-          }
-
-          .submit-button {
-            background: #7B83EB;
-            border: none;
-            height: 40px;
-            padding: 0 24px;
-            border-radius: 6px;
-          }
-
-          .teacher-form-content {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-          }
-
-          .teacher-form-main {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-          }
-
-          .teacher-form-sidebar {
-            width: 20%;
-            padding: 24px;
-            border-left: 1px solid #f0f0f0;
-            background: #fafafa;
-            overflow-y: auto;
-          }
-
-          .info-card {
-            margin-bottom: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          }
-
-          .photo-upload-card {
-            text-align: center;
-            background: #fafafa;
-            border: 1px dashed #d9d9d9;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 24px;
-          }
-
-          .upload-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            color: #8c8c8c;
-          }
-
-          .card-icon {
-            font-size: 18px;
           }
         `}
       </style>

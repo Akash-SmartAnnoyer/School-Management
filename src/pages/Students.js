@@ -172,7 +172,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   if (!visible) return null;
 
   return (
-    <div className="student-form-screen">
+    <div className="student-form-container">
       <div className="student-form-header">
         <Space>
           <Button 
@@ -786,16 +786,14 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
       </div>
 
       <style jsx>{`
-        .student-form-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: #fff;
-          z-index: 1000;
+        .student-form-container {
+          height: 100%;
           display: flex;
           flex-direction: column;
+          background: #fff;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
+          border: 1px solid rgba(159, 179, 223, 0.2);
         }
 
         .student-form-header {
@@ -805,6 +803,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
           padding: 16px 24px;
           border-bottom: 1px solid #f0f0f0;
           background: #fff;
+          border-radius: 16px 16px 0 0;
         }
 
         .header-icon {
@@ -832,14 +831,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
         .student-form-main {
           flex: 1;
           padding: 24px;
-          overflow-y: auto;
-        }
-
-        .student-form-sidebar {
-          width: 20%;
-          padding: 24px;
-          border-left: 1px solid #f0f0f0;
-          background: #fafafa;
           overflow-y: auto;
         }
 
@@ -1653,77 +1644,91 @@ const Students = () => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
-      <div className="students-header" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: '1px solid #f0f0f0',
-        background: '#ffffff'
-      }}>
-        <Title level={3} className="page-title">
-          {/* <TeamOutlined className="title-icon" /> */}
-          <img src="/students.png" alt="Students" style={{ width: '40px', height: '40px' }} />
-          Students
-        </Title>
-        <Space size="small">
-          <Input.Search
-            placeholder="Search students..."
-            allowClear
-            onSearch={handleSearch}
-            style={{ 
-              width: 250,
-              borderRadius: '6px',
-              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-          />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            className="add-student-btn"
-          >
-            Add Student
-          </Button>
-        </Space>
-      </div>
+      {!modalVisible ? (
+        <>
+          <div className="students-header" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '16px 24px',
+            borderBottom: '1px solid #f0f0f0',
+            background: '#ffffff'
+          }}>
+            <Title level={3} className="page-title">
+              <img src="/students.png" alt="Students" style={{ width: '40px', height: '40px' }} />
+              Students
+            </Title>
+            <Space size="small">
+              <Input.Search
+                placeholder="Search students..."
+                allowClear
+                onSearch={handleSearch}
+                style={{ 
+                  width: 250,
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+                prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAdd}
+                className="add-student-btn"
+              >
+                Add Student
+              </Button>
+            </Space>
+          </div>
 
-      <div style={{ 
-        flex: 1, 
-        overflow: 'hidden',
-        padding: '0 16px 16px 16px'
-      }}>
-        <Table
-          columns={columns}
-          dataSource={filteredStudents}
-          rowKey="id"
-          loading={loading || tableLoading}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: totalStudents,
-            showSizeChanger: true,
-            showTotal: (total) => `Total ${total} students`,
-            onChange: (page, pageSize) => {
-              setCurrentPage(page);
-              setPageSize(pageSize);
-              loadStudents(page, pageSize);
-            }
+          <div style={{ 
+            flex: 1, 
+            overflow: 'hidden',
+            padding: '0 16px 16px 16px'
+          }}>
+            <Table
+              columns={columns}
+              dataSource={filteredStudents}
+              rowKey="id"
+              loading={loading || tableLoading}
+              pagination={{
+                current: currentPage,
+                pageSize: pageSize,
+                total: totalStudents,
+                showSizeChanger: true,
+                showTotal: (total) => `Total ${total} students`,
+                onChange: (page, pageSize) => {
+                  setCurrentPage(page);
+                  setPageSize(pageSize);
+                  loadStudents(page, pageSize);
+                }
+              }}
+              onChange={handleTableChange}
+              rowSelection={{
+                type: 'checkbox',
+                selectedRowKeys,
+                onChange: (newSelectedRowKeys) => {
+                  setSelectedRowKeys(newSelectedRowKeys);
+                },
+              }}
+              className="students-table"
+              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+            />
+          </div>
+        </>
+      ) : (
+        <StudentForm
+          visible={modalVisible}
+          onCancel={() => {
+            setModalVisible(false);
+            setEditingStudent(null);
           }}
-          onChange={handleTableChange}
-          rowSelection={{
-            type: 'checkbox',
-            selectedRowKeys,
-            onChange: (newSelectedRowKeys) => {
-              setSelectedRowKeys(newSelectedRowKeys);
-            },
-          }}
-          className="students-table"
-          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+          onSubmit={handleSubmit}
+          initialValues={editingStudent}
+          loading={formSubmitting}
         />
-      </div>
+      )}
 
       {selectedRowKeys.length > 0 && (
         <div className="bulk-actions-bar">
@@ -1762,17 +1767,6 @@ const Students = () => {
           </Row>
         </div>
       )}
-
-      <StudentForm
-        visible={modalVisible}
-        onCancel={() => {
-          setModalVisible(false);
-          setEditingStudent(null);
-        }}
-        onSubmit={handleSubmit}
-        initialValues={editingStudent}
-        loading={formSubmitting}
-      />
 
       <StudentDetailsDrawer
         visible={detailsDrawerVisible}
