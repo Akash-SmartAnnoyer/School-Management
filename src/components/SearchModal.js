@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Modal, Input, Select, Space, Button, Typography, Divider, Alert, Card } from 'antd';
+import { Modal, Input, Select, Space, Button, Typography, Divider, Alert, Card, Radio } from 'antd';
 import { SearchOutlined, ReloadOutlined, FilterOutlined, UserOutlined, BookOutlined, CarOutlined, CloseOutlined } from '@ant-design/icons';
 import { useClasses } from '../contexts/ClassesContext';
 import { useTeachers } from '../contexts/TeachersContext';
@@ -12,6 +12,7 @@ const SearchModal = ({ visible, onClose }) => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [transportationStatus, setTransportationStatus] = useState(null);
+  const [searchMode, setSearchMode] = useState('quick'); // 'quick' or 'filter'
   const { classes } = useClasses();
   const { teachers } = useTeachers();
 
@@ -25,12 +26,19 @@ const SearchModal = ({ visible, onClose }) => {
 
   // Handle search
   const handleSearch = () => {
+    if (searchMode === 'quick' && !searchText.trim()) {
+      return;
+    }
+    if (searchMode === 'filter' && !selectedClass && !selectedTeacher && !transportationStatus) {
+      return;
+    }
     // Implement search logic here
     console.log('Searching with:', {
       searchText,
       selectedClass,
       selectedTeacher,
-      transportationStatus
+      transportationStatus,
+      searchMode
     });
   };
 
@@ -40,19 +48,21 @@ const SearchModal = ({ visible, onClose }) => {
       if (e.key === 'Escape') {
         onClose();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault(); // Prevent browser's default search
+        // You can add logic here to open the modal if needed
+      }
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         handleSearch();
       }
     };
 
-    if (visible) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [visible, onClose]);
+  }, [visible, onClose, searchMode, searchText, selectedClass, selectedTeacher, transportationStatus]);
 
   const modalStyles = {
     overlay: {
@@ -65,6 +75,8 @@ const SearchModal = ({ visible, onClose }) => {
       border: '1px solid rgba(255, 255, 255, 0.2)',
       borderRadius: '20px',
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+      maxHeight: '80vh',
+      overflowY: 'auto'
     }
   };
 
@@ -97,244 +109,244 @@ const SearchModal = ({ visible, onClose }) => {
       destroyOnClose
       closeIcon={<div style={{ 
         position: 'absolute',
-        right: '20px',
-        top: '20px',
+        right: '16px',
+        top: '16px',
         zIndex: 1000,
         background: 'rgba(255, 255, 255, 0.9)',
         borderRadius: '50%',
-        padding: '8px',
+        width: '24px',
+        height: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         cursor: 'pointer',
         transition: 'all 0.3s ease'
       }}>
-        <CloseOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
+        <CloseOutlined style={{ fontSize: '12px', color: '#7B83EB' }} />
       </div>}
     >
       <div style={{ padding: '8px 0' }}>
-        {/* Search Input */}
-        <Card
-          style={{
-            marginBottom: '24px',
-            background: 'rgba(255, 255, 255, 0.6)',
-            border: 'none',
-            borderRadius: '16px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        <Radio.Group 
+          value={searchMode} 
+          onChange={(e) => setSearchMode(e.target.value)}
+          style={{ 
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '20px'
           }}
-          bodyStyle={{ padding: '20px' }}
         >
-          <div style={{ marginBottom: '12px' }}>
+          <Radio.Button value="quick" style={{ 
+            borderRadius: '8px',
+            padding: '4px 16px',
+            fontWeight: '700',
+            borderColor: searchMode === 'quick' ? '#7B83EB' : undefined,
+            color: searchMode === 'quick' ? '#7B83EB' : undefined
+          }}>
+            Quick Search
+          </Radio.Button>
+          <Radio.Button value="filter" style={{ 
+            borderRadius: '8px',
+            fontWeight: '700',
+            padding: '4px 16px',
+            borderColor: searchMode === 'filter' ? '#7B83EB' : undefined,
+            color: searchMode === 'filter' ? '#7B83EB' : undefined
+          }}>
+            Advanced Filters
+          </Radio.Button>
+        </Radio.Group>
+
+        {searchMode === 'quick' ? (
+          <Card
+            style={{
+              marginBottom: '24px',
+              background: 'rgba(255, 255, 255, 0.6)',
+              border: 'none',
+              borderRadius: '16px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            }}
+            bodyStyle={{ padding: '20px' }}
+          >
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginBottom: '12px' 
+              }}>
+                <UserOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                <Text strong style={{ fontSize: '16px', color: '#2c3e50' }}>
+                  Quick Student Search
+                </Text>
+              </div>
+              <Input
+                placeholder="Search by name, roll number, or admission number..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                prefix={<SearchOutlined style={{ color: '#7B83EB', marginRight: '8px' }} />}
+                allowClear
+                size="large"
+                style={{
+                  ...inputStyles,
+                  fontSize: '16px',
+                  height: '50px',
+                }}
+                onPressEnter={handleSearch}
+              />
+              <Text 
+                type="secondary" 
+                style={{ 
+                  fontSize: '13px', 
+                  display: 'block', 
+                  marginTop: '8px',
+                  fontStyle: 'italic'
+                }}
+              >
+                💡 Tip: Separate multiple names with commas for batch search
+              </Text>
+            </div>
+          </Card>
+        ) : (
+          <Card
+            style={{
+              marginBottom: '24px',
+              background: 'rgba(255, 255, 255, 0.6)',
+              border: 'none',
+              borderRadius: '16px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+            }}
+            bodyStyle={{ padding: '20px' }}
+          >
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
               gap: '8px', 
-              marginBottom: '12px' 
+              marginBottom: '20px' 
             }}>
-              <UserOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+              <FilterOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
               <Text strong style={{ fontSize: '16px', color: '#2c3e50' }}>
-                Student Search
+                Advanced Filters
               </Text>
             </div>
-            <Input
-              placeholder="Search by name, roll number, or admission number..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              prefix={<SearchOutlined style={{ color: '#7B83EB', marginRight: '8px' }} />}
-              allowClear
-              size="large"
-              style={{
-                ...inputStyles,
-                fontSize: '16px',
-                height: '50px',
-              }}
-              onPressEnter={handleSearch}
-            />
-            <Text 
-              type="secondary" 
-              style={{ 
-                fontSize: '13px', 
-                display: 'block', 
-                marginTop: '8px',
-                fontStyle: 'italic'
-              }}
-            >
-              💡 Tip: Separate multiple names with commas for batch search
-            </Text>
-          </div>
-        </Card>
-
-        {/* OR Separator */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          margin: '24px 0',
-          position: 'relative'
-        }}>
-          <div style={{ 
-            flex: 1, 
-            height: '1px', 
-            background: 'rgba(123, 131, 235, 0.2)' 
-          }} />
-          <div style={{ 
-            margin: '0 16px',
-            padding: '4px 16px',
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '20px',
-            border: '1px solid rgba(123, 131, 235, 0.2)',
-            color: '#7B83EB',
-            fontWeight: '500',
-            fontSize: '14px'
-          }}>
-            OR
-          </div>
-          <div style={{ 
-            flex: 1, 
-            height: '1px', 
-            background: 'rgba(123, 131, 235, 0.2)' 
-          }} />
-        </div>
-
-        {/* Filters Section */}
-        <Card
-          style={{
-            marginBottom: '24px',
-            background: 'rgba(255, 255, 255, 0.6)',
-            border: 'none',
-            borderRadius: '16px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-          }}
-          bodyStyle={{ padding: '20px' }}
-        >
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            marginBottom: '20px' 
-          }}>
-            <FilterOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-            <Text strong style={{ fontSize: '16px', color: '#2c3e50' }}>
-              Apply Filters
-            </Text>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-            gap: '16px' 
-          }}>
-            <div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px', 
-                marginBottom: '8px' 
-              }}>
-                <BookOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
-                <Text style={{ fontWeight: '500', color: '#34495e' }}>Class</Text>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+              gap: '16px' 
+            }}>
+              <div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  marginBottom: '8px' 
+                }}>
+                  <BookOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
+                  <Text style={{ fontWeight: '500', color: '#34495e' }}>Class</Text>
+                </div>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select class"
+                  value={selectedClass}
+                  onChange={setSelectedClass}
+                  allowClear
+                  size="large"
+                  dropdownStyle={{
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  {classes.map(cls => (
+                    <Option key={cls.id} value={cls.id}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <BookOutlined style={{ color: '#7B83EB', fontSize: '12px' }} />
+                        {cls.class_name} - Section {cls.section}
+                      </div>
+                    </Option>
+                  ))}
+                </Select>
               </div>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select class"
-                value={selectedClass}
-                onChange={setSelectedClass}
-                allowClear
-                size="large"
-                dropdownStyle={{
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-                }}
-              >
-                {classes.map(cls => (
-                  <Option key={cls.id} value={cls.id}>
+
+              <div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  marginBottom: '8px' 
+                }}>
+                  <UserOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
+                  <Text style={{ fontWeight: '500', color: '#34495e' }}>Teacher</Text>
+                </div>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Select teacher"
+                  value={selectedTeacher}
+                  onChange={setSelectedTeacher}
+                  allowClear
+                  size="large"
+                  dropdownStyle={{
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  {teachers.map(teacher => (
+                    <Option key={teacher.id} value={teacher.id}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <UserOutlined style={{ color: '#7B83EB', fontSize: '12px' }} />
+                        {teacher.name}
+                      </div>
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  marginBottom: '8px' 
+                }}>
+                  <CarOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
+                  <Text style={{ fontWeight: '500', color: '#34495e' }}>Transport</Text>
+                </div>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="Transportation status"
+                  value={transportationStatus}
+                  onChange={setTransportationStatus}
+                  allowClear
+                  size="large"
+                  dropdownStyle={{
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+                  }}
+                >
+                  <Option value="yes">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <BookOutlined style={{ color: '#7B83EB', fontSize: '12px' }} />
-                      {cls.class_name} - Section {cls.section}
+                      <CarOutlined style={{ color: '#27ae60', fontSize: '12px' }} />
+                      Using Transportation
                     </div>
                   </Option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px', 
-                marginBottom: '8px' 
-              }}>
-                <UserOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
-                <Text style={{ fontWeight: '500', color: '#34495e' }}>Teacher</Text>
-              </div>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Select teacher"
-                value={selectedTeacher}
-                onChange={setSelectedTeacher}
-                allowClear
-                size="large"
-                dropdownStyle={{
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-                }}
-              >
-                {teachers.map(teacher => (
-                  <Option key={teacher.id} value={teacher.id}>
+                  <Option value="no">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <UserOutlined style={{ color: '#7B83EB', fontSize: '12px' }} />
-                      {teacher.name}
+                      <UserOutlined style={{ color: '#e74c3c', fontSize: '12px' }} />
+                      Not Using Transportation
                     </div>
                   </Option>
-                ))}
-              </Select>
-            </div>
-
-            <div>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '6px', 
-                marginBottom: '8px' 
-              }}>
-                <CarOutlined style={{ color: '#7B83EB', fontSize: '14px' }} />
-                <Text style={{ fontWeight: '500', color: '#34495e' }}>Transport</Text>
+                </Select>
               </div>
-              <Select
-                style={{ width: '100%' }}
-                placeholder="Transportation status"
-                value={transportationStatus}
-                onChange={setTransportationStatus}
-                allowClear
-                size="large"
-                dropdownStyle={{
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-                }}
-              >
-                <Option value="yes">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CarOutlined style={{ color: '#27ae60', fontSize: '12px' }} />
-                    Using Transportation
-                  </div>
-                </Option>
-                <Option value="no">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <UserOutlined style={{ color: '#e74c3c', fontSize: '12px' }} />
-                    Not Using Transportation
-                  </div>
-                </Option>
-              </Select>
             </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Action Buttons */}
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
+          justifyContent: 'flex-end', 
           alignItems: 'center',
-          marginTop: '32px'
+          marginTop: '24px'
         }}>
-          <div style={{ fontSize: '13px', color: 'rgba(0, 0, 0, 0.5)' }}>
-          </div>
           <Space size="middle">
             <Button 
               icon={<ReloadOutlined />} 
@@ -350,7 +362,7 @@ const SearchModal = ({ visible, onClose }) => {
               }}
               className="reset-btn"
             >
-              Reset Filters
+              Reset {searchMode === 'filter' ? 'Filters' : 'Search'}
             </Button>
             <Button 
               type="primary" 
@@ -412,6 +424,19 @@ const SearchModal = ({ visible, onClose }) => {
         .ant-card:hover {
           box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
           transform: translateY(-2px);
+        }
+
+        .ant-radio-button-wrapper {
+          border-radius: 8px !important;
+          margin: 0 4px;
+        }
+
+        .ant-radio-button-wrapper:first-child {
+          border-radius: 8px 0 0 8px !important;
+        }
+
+        .ant-radio-button-wrapper:last-child {
+          border-radius: 0 8px 8px 0 !important;
         }
       `}</style>
     </Modal>
