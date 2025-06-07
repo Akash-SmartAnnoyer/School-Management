@@ -5,6 +5,7 @@ import { Cloudinary } from '@cloudinary/url-gen';
 import { AdvancedImage } from '@cloudinary/react';
 import { getCloudinaryImage } from '../services/imageService';
 import { useNavigate } from 'react-router-dom';
+import SearchModal from './SearchModal';
 
 const { Search } = Input;
 const { Text, Title } = Typography;
@@ -22,6 +23,7 @@ const GlobalSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const [students, setStudents] = useState([]);
@@ -38,6 +40,10 @@ const GlobalSearch = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSearchClick = () => {
+    setSearchModalVisible(true);
+  };
 
   const filterResults = (data, searchTerm) => {
     if (!searchTerm) return [];
@@ -219,6 +225,7 @@ const GlobalSearch = () => {
         allowClear
         value={searchValue}
         onChange={(e) => handleSearch(e.target.value)}
+        onClick={handleSearchClick}
         style={{
           width: '100%',
           borderRadius: '8px',
@@ -289,6 +296,11 @@ const GlobalSearch = () => {
       >
         {renderUserDetails()}
       </Drawer>
+
+      <SearchModal 
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+      />
     </div>
   );
 };
