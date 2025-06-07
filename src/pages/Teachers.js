@@ -1304,7 +1304,7 @@ const Teachers = () => {
             background: '#ffffff'
           }}>
             <Title level={3} className="page-title">
-              <img src="/teachers.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
+              <img src="/training.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
               Teachers
             </Title>
             <Space size="small">
