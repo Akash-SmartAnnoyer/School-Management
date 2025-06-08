@@ -21,11 +21,14 @@ export const StudentsProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await api.student.getStudents(`?page=${page}&page_size=${size}`);
-      if (response.success) {
+      if (response.status >= 200 && response.status < 300) {
         setStudents(response.data.results);
         setTotalStudents(response.data.count);
         setCurrentPage(page);
         setPageSize(size);
+      } else {
+        message.error('Failed to load students');
+        console.error('Error loading students:', response);
       }
     } catch (error) {
       message.error('Failed to load students');

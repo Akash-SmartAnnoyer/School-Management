@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip, Upload, Avatar } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import { DragHandleOutlined } from '@mui/icons-material';
 import api from '../services/api';
 import { MessageContext } from '../App';
 import ClassDetailsDrawer from '../components/ClassDetailsDrawer';
@@ -9,6 +10,8 @@ import { useClasses } from '../contexts/ClassesContext';
 import { useMessage } from '../contexts/MessageContext';
 import { useTeachers } from '../contexts/TeachersContext';
 import StyledModal from '../components/StyledModal';
+import ColumnSettingsDrawer from '../components/ColumnSettingsDrawer';
+import useColumnSettings from '../hooks/useColumnSettings';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -45,6 +48,23 @@ const Classes = () => {
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
   const [actionLoading, setActionLoading] = useState(false);
+
+  const {
+    columnSettingsVisible,
+    setColumnSettingsVisible,
+    columnSettings,
+    handleColumnVisibilityChange,
+    handleColumnReorder,
+    handleCheckAll,
+    getVisibleColumns
+  } = useColumnSettings([
+    { key: 'class_name', title: 'Class Name', visible: true, order: 0 },
+    { key: 'section', title: 'Section', visible: true, order: 1 },
+    { key: 'teacher', title: 'Class Teacher', visible: true, order: 2 },
+    { key: 'students', title: 'Students', visible: true, order: 3 },
+    { key: 'status', title: 'Status', visible: true, order: 4 },
+    { key: 'actions', title: 'Actions', visible: true, order: 5 }
+  ]);
 
   const handleAdd = () => {
     setEditingClass(null);
@@ -406,6 +426,19 @@ const Classes = () => {
             }}
             prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
           />
+          <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
+            onClick={() => setColumnSettingsVisible(true)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#f0f0f0';
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f5f5f5';
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -426,30 +459,27 @@ const Classes = () => {
         height: 'calc(100vh - 180px)'
       }}>
         <Table
-          rowSelection={rowSelection}
-          columns={columns}
+          columns={getVisibleColumns().map(col => {
+            const column = columns.find(c => c.key === col.key);
+            return column || { title: col.title, dataIndex: col.key, key: col.key };
+          })}
           dataSource={classes}
           rowKey="id"
           loading={classesLoading || actionLoading}
-          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-          className="classes-table"
           pagination={{
             current: currentPage,
             total: totalClasses,
             pageSize: 10,
             onChange: (page) => loadClasses(page),
-            showSizeChanger: false,
+            showSizeChanger: true,
             showTotal: (total) => `Total ${total} classes`
           }}
-          locale={{
-            emptyText: (
-              <Empty
-                description="No classes found"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
-              />
-            ),
+          onChange={(pagination, filters, sorter) => {
+            // Handle table change
           }}
+          rowSelection={rowSelection}
+          className="classes-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
         />
       </div>
 
@@ -660,6 +690,15 @@ const Classes = () => {
         onClose={() => setDrawerVisible(false)}
         classData={selectedClass}
         teachers={teachers}
+      />
+
+      <ColumnSettingsDrawer
+        visible={columnSettingsVisible}
+        onClose={() => setColumnSettingsVisible(false)}
+        columnSettings={columnSettings}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
+        onColumnReorder={handleColumnReorder}
+        onCheckAll={handleCheckAll}
       />
 
       <style>

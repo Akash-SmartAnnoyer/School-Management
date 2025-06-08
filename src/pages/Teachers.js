@@ -49,40 +49,6 @@ import {
   AutoComplete,
   Mentions,
   TreeSelect,
-  Upload as AntUpload,
-  Form as AntForm,
-  Modal as AntModal,
-  Drawer as AntDrawer,
-  Card as AntCard,
-  Statistic as AntStatistic,
-  Divider as AntDivider,
-  Badge as AntBadge,
-  Tabs as AntTabs,
-  List as AntList,
-  Timeline as AntTimeline,
-  Calendar as AntCalendar,
-  Progress as AntProgress,
-  Rate as AntRate,
-  Comment as AntComment,
-  Alert as AntAlert,
-  Steps as AntSteps,
-  Descriptions as AntDescriptions,
-  Image as AntImage,
-  Carousel as AntCarousel,
-  Collapse as AntCollapse,
-  Tree as AntTree,
-  Transfer as AntTransfer,
-  Cascader as AntCascader,
-  DatePicker as AntDatePicker,
-  TimePicker as AntTimePicker,
-  Switch as AntSwitch,
-  Slider as AntSlider,
-  Radio as AntRadio,
-  Checkbox as AntCheckbox,
-  InputNumber as AntInputNumber,
-  AutoComplete as AntAutoComplete,
-  Mentions as AntMentions,
-  TreeSelect as AntTreeSelect,
 } from 'antd';
 import {
   PlusOutlined,
@@ -135,6 +101,7 @@ import {
   HomeOutlined,
   InfoCircleOutlined,
   ArrowLeftOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { useTeachers } from '../contexts/TeachersContext';
 import { useMessage } from '../contexts/MessageContext';
@@ -143,6 +110,8 @@ import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import TeacherDetailsDrawer from '../components/TeacherDetailsDrawer';
 import moment from 'moment';
 import ImagePreviewModal from '../components/ImagePreviewModal';
+import ColumnSettingsDrawer from '../components/ColumnSettingsDrawer';
+import useColumnSettings from '../hooks/useColumnSettings';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -652,6 +621,24 @@ const Teachers = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const {
+    columnSettingsVisible,
+    setColumnSettingsVisible,
+    columnSettings,
+    handleColumnVisibilityChange,
+    handleColumnReorder,
+    handleCheckAll,
+    getVisibleColumns
+  } = useColumnSettings([
+    { key: 'photo', title: 'Photo', visible: true, order: 0 },
+    { key: 'name', title: 'Name', visible: true, order: 1 },
+    { key: 'subject', title: 'Subject', visible: true, order: 2 },
+    { key: 'qualification', title: 'Qualification', visible: true, order: 3 },
+    { key: 'class_id', title: 'Class', visible: true, order: 4 },
+    { key: 'status', title: 'Status', visible: true, order: 5 },
+    { key: 'actions', title: 'Actions', visible: true, order: 6 }
+  ]);
 
   useEffect(() => {
     loadSubjects();
@@ -1320,6 +1307,19 @@ const Teachers = () => {
                 }}
                 prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
               />
+              <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
+                onClick={() => setColumnSettingsVisible(true)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f0f0f0';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#f5f5f5';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              />
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -1337,7 +1337,10 @@ const Teachers = () => {
             padding: '0 16px 16px 16px'
           }}>
             <Table
-              columns={columns}
+              columns={getVisibleColumns().map(col => {
+                const column = columns.find(c => c.key === col.key);
+                return column || { title: col.title, dataIndex: col.key, key: col.key };
+              })}
               dataSource={teachers}
               rowKey="id"
               loading={teachersLoading || actionLoading}
@@ -1440,6 +1443,15 @@ const Teachers = () => {
         onCancel={handlePreviewCancel}
         onUpload={handlePreviewUpload}
         loading={uploadingImage}
+      />
+
+      <ColumnSettingsDrawer
+        visible={columnSettingsVisible}
+        onClose={() => setColumnSettingsVisible(false)}
+        columnSettings={columnSettings}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
+        onColumnReorder={handleColumnReorder}
+        onCheckAll={handleCheckAll}
       />
 
       <style>
