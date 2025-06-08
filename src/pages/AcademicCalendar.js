@@ -5,6 +5,7 @@ import moment from 'moment';
 import './AcademicCalendar.css';
 import { eventAPI } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
+import StyledModal from '../components/StyledModal';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -389,179 +390,157 @@ const AcademicCalendar = () => {
         </Tabs>
       </div>
 
-      <Modal
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
-            <Typography.Title level={5} style={{ margin: 0 }}>
-              Event Details
-            </Typography.Title>
-          </Space>
-        }
-        open={isViewModalVisible}
-        onCancel={() => setIsViewModalVisible(false)}
-        footer={[
-          <Button 
-            key="edit" 
-            type="primary" 
-            onClick={() => {
-              setIsViewModalVisible(false);
-              handleEditEvent(selectedEvent);
-            }}
-            icon={<EditOutlined />}
-            style={{
-              background: '#7B83EB',
-              borderColor: '#7B83EB',
-            }}
-          >
-            Edit Event
-          </Button>,
-          <Button 
-            key="close" 
-            onClick={() => setIsViewModalVisible(false)}
-          >
-            Close
-          </Button>
-        ]}
-        className="event-view-modal"
+      <StyledModal
+        visible={isViewModalVisible}
+        onClose={() => setIsViewModalVisible(false)}
         width={500}
       >
         {selectedEvent && (
           <div className="event-details">
             <Row gutter={[16, 16]}>
               <Col span={24}>
-                <div className="event-header">
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                  <div className="event-header">
                     <Space>
-                      <StatusBadge type="event" value={selectedEvent.event_type} />
-                      <StatusBadge 
-                        type="status" 
-                        value={selectedEvent.status} 
-                      />
-                    </Space>
-                    <Typography.Title level={4} style={{ margin: 0 }}>
-                      {selectedEvent.event_title}
-                    </Typography.Title>
-                  </Space>
-                </div>
-              </Col>
-
-              <Col span={24}>
-                <div className="event-timeline">
-                  <Row gutter={[16, 8]}>
-                    <Col span={12}>
-                      <Space>
-                        <CalendarOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-                        <div>
-                          <div className="timeline-label">Start</div>
-                          <div className="timeline-value">
-                            {moment(selectedEvent.start_datetime).format('MMM D, h:mm A')}
-                          </div>
-                        </div>
-                      </Space>
-                    </Col>
-                    <Col span={12}>
-                      <Space>
-                        <FieldTimeOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-                        <div>
-                          <div className="timeline-label">End</div>
-                          <div className="timeline-value">
-                            {moment(selectedEvent.end_datetime).format('MMM D, h:mm A')}
-                          </div>
-                        </div>
-                      </Space>
-                    </Col>
-                  </Row>
-                </div>
-              </Col>
-
-              {selectedEvent.description && (
-                <Col span={24}>
-                  <div className="event-description">
-                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                      <div className="description-label">
-                        <FileTextOutlined style={{ color: '#7B83EB', marginRight: '8px' }} />
-                        Description
-                      </div>
-                      <div className="description-content">
-                        {selectedEvent.description}
-                      </div>
+                      <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+                      <Typography.Title level={5} style={{ margin: 0 }}>
+                        Event Details
+                      </Typography.Title>
                     </Space>
                   </div>
-                </Col>
-              )}
 
-              <Col span={24}>
-                <div className="event-meta">
-                  <Row gutter={[16, 8]}>
-                    <Col span={8}>
-                      <Space>
-                        <UserOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-                        <div>
-                          <div className="meta-label">Created By</div>
-                          <div className="meta-value">{selectedEvent.created_by}</div>
+                  <div className="event-content">
+                    <Row gutter={[16, 16]}>
+                      <Col span={24}>
+                        <div className="event-title">
+                          <StatusBadge type="event" value={selectedEvent.event_type} />
+                          <Typography.Title level={4} style={{ margin: '8px 0' }}>
+                            {selectedEvent.event_title}
+                          </Typography.Title>
                         </div>
-                      </Space>
-                    </Col>
-                    <Col span={8}>
-                      <Space>
-                        <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-                        <div>
-                          <div className="meta-label">Created</div>
-                          <div className="meta-value">
-                            {moment(selectedEvent.created_at).format('MMM D')}
+                      </Col>
+
+                      <Col span={24}>
+                        <div className="event-timeline">
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              <Space>
+                                <CalendarOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                                <div>
+                                  <div className="timeline-label">Start</div>
+                                  <div className="timeline-value">
+                                    {moment(selectedEvent.start_datetime).format('MMM D, h:mm A')}
+                                  </div>
+                                </div>
+                              </Space>
+                            </Col>
+                            <Col span={12}>
+                              <Space>
+                                <FieldTimeOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                                <div>
+                                  <div className="timeline-label">End</div>
+                                  <div className="timeline-value">
+                                    {moment(selectedEvent.end_datetime).format('MMM D, h:mm A')}
+                                  </div>
+                                </div>
+                              </Space>
+                            </Col>
+                          </Row>
+                        </div>
+                      </Col>
+
+                      {selectedEvent.description && (
+                        <Col span={24}>
+                          <div className="event-description">
+                            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                              <div className="description-label">
+                                <FileTextOutlined style={{ color: '#7B83EB', marginRight: '8px' }} />
+                                Description
+                              </div>
+                              <div className="description-content">
+                                {selectedEvent.description}
+                              </div>
+                            </Space>
                           </div>
+                        </Col>
+                      )}
+
+                      <Col span={24}>
+                        <div className="event-meta">
+                          <Row gutter={[16, 8]}>
+                            <Col span={8}>
+                              <Space>
+                                <UserOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                                <div>
+                                  <div className="meta-label">Created By</div>
+                                  <div className="meta-value">{selectedEvent.created_by}</div>
+                                </div>
+                              </Space>
+                            </Col>
+                            <Col span={8}>
+                              <Space>
+                                <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                                <div>
+                                  <div className="meta-label">Created</div>
+                                  <div className="meta-value">
+                                    {moment(selectedEvent.created_at).format('MMM D')}
+                                  </div>
+                                </div>
+                              </Space>
+                            </Col>
+                            <Col span={8}>
+                              <Space>
+                                <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
+                                <div>
+                                  <div className="meta-label">Updated</div>
+                                  <div className="meta-value">
+                                    {moment(selectedEvent.updated_at).format('MMM D')}
+                                  </div>
+                                </div>
+                              </Space>
+                            </Col>
+                          </Row>
                         </div>
-                      </Space>
-                    </Col>
-                    <Col span={8}>
-                      <Space>
-                        <ClockCircleOutlined style={{ color: '#7B83EB', fontSize: '16px' }} />
-                        <div>
-                          <div className="meta-label">Updated</div>
-                          <div className="meta-value">
-                            {moment(selectedEvent.updated_at).format('MMM D')}
-                          </div>
-                        </div>
-                      </Space>
-                    </Col>
-                  </Row>
-                </div>
+                      </Col>
+                    </Row>
+                  </div>
+
+                  <div className="event-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <Button 
+                      type="primary" 
+                      onClick={() => {
+                        setIsViewModalVisible(false);
+                        handleEditEvent(selectedEvent);
+                      }}
+                      icon={<EditOutlined />}
+                      style={{
+                        background: '#7B83EB',
+                        borderColor: '#7B83EB',
+                      }}
+                    >
+                      Edit Event
+                    </Button>
+                    <Button onClick={() => setIsViewModalVisible(false)}>
+                      Close
+                    </Button>
+                  </div>
+                </Space>
               </Col>
             </Row>
           </div>
         )}
-      </Modal>
+      </StyledModal>
 
-      <Modal
-        title={
-          <Space>
-            <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
-            <Typography.Title level={5} style={{ margin: 0 }}>
-              {editingEvent ? 'Edit Event' : 'Add Event'}
-            </Typography.Title>
-          </Space>
-        }
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={() => {
+      <StyledModal
+        visible={isModalVisible}
+        onClose={() => {
           setIsModalVisible(false);
           setShowCustomType(false);
         }}
         width={500}
-        confirmLoading={submitting}
-        okText={editingEvent ? "Update" : "Create"}
-        okButtonProps={{
-          style: {
-            background: '#7B83EB',
-            borderColor: '#7B83EB',
-          },
-          loading: submitting
-        }}
-        className="event-form-modal"
       >
-        <Form 
-          form={form} 
+        <Form
+          form={form}
           layout="vertical"
           className="event-form"
         >
@@ -620,44 +599,25 @@ const AcademicCalendar = () => {
               </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item
                 name="event_type"
                 label={
                   <Space>
                     <TagOutlined style={{ color: '#7B83EB' }} />
-                    <span>Type</span>
+                    <span>Event Type</span>
                   </Space>
                 }
                 rules={[{ required: true, message: 'Please select event type' }]}
               >
-                <Select 
+                <Select
+                  placeholder="Select event type"
                   onChange={handleEventTypeChange}
-                  placeholder="Select type"
                 >
                   <Option value="holiday">Holiday</Option>
                   <Option value="sports">Sports</Option>
                   <Option value="school">School Event</Option>
                   <Option value="other">Other</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="status"
-                label={
-                  <Space>
-                    <CheckCircleOutlined style={{ color: '#7B83EB' }} />
-                    <span>Status</span>
-                  </Space>
-                }
-                rules={[{ required: true, message: 'Please select status' }]}
-              >
-                <Select placeholder="Select status">
-                  <Option value="upcoming">Upcoming</Option>
-                  <Option value="ongoing">Ongoing</Option>
-                  <Option value="completed">Completed</Option>
-                  <Option value="cancelled">Cancelled</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -698,8 +658,28 @@ const AcademicCalendar = () => {
               </Form.Item>
             </Col>
           </Row>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+            <Button onClick={() => {
+              setIsModalVisible(false);
+              setShowCustomType(false);
+            }}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              onClick={handleModalOk}
+              loading={submitting}
+              style={{
+                background: '#7B83EB',
+                borderColor: '#7B83EB',
+              }}
+            >
+              {editingEvent ? "Update" : "Create"}
+            </Button>
+          </div>
         </Form>
-      </Modal>
+      </StyledModal>
     </div>
   );
 };
