@@ -25,7 +25,7 @@ import {
   Empty,
   message,
   Popconfirm,
-  Checkbox
+  Checkbox,
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -56,7 +56,8 @@ import {
   SwapOutlined,
   DeleteFilled,
   MoneyCollectOutlined,
-  ArrowLeftOutlined
+  ArrowLeftOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -70,8 +71,10 @@ import moment from 'moment';
 import api from '../services/api';
 import { useStudents } from '../contexts/StudentsContext';
 import StatusBadge from '../components/StatusBadge';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 import './Students.css';
+import { DragHandleOutlined } from '@mui/icons-material';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -907,6 +910,284 @@ const ImagePreviewModal = ({ visible, imageUrl, onCancel, onUpload, loading }) =
   );
 };
 
+const ColumnSettingsDrawer = ({ 
+  visible, 
+  onClose, 
+  onApply, 
+  onCancel, 
+  columnSettings, 
+  onColumnVisibilityChange, 
+  onColumnReorder, 
+  onCheckAll 
+}) => {
+  const allChecked = columnSettings?.columns.every(col => col.visible) || false;
+  const indeterminate = columnSettings?.columns.some(col => col.visible) && !allChecked;
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    onColumnReorder(result);
+  };
+
+  return (
+    <Drawer
+      title={
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          color: 'white',
+          paddingRight: '40px'
+        }}>
+          <SettingOutlined style={{ fontSize: '18px' }} />
+          <span style={{ fontSize: '15px', fontWeight: 500 }}>Column Settings</span>
+        </div>
+      }
+      placement="right"
+      onClose={onCancel}
+      open={visible}
+      width={280}
+      className="column-settings-drawer"
+      extra={
+        <Space>
+          {/* <Button 
+            onClick={onCancel}
+            className="cancel-btn"
+            size="small"
+          >
+            Cancel
+          </Button> */}
+          <Button 
+            type="primary" 
+            onClick={onApply}
+            className="apply-btn"
+            size="small"
+          >
+            Apply
+          </Button>
+        </Space>
+      }
+    >
+      <div className="column-settings-content">
+        <div className="check-all-section">
+          <Checkbox
+            indeterminate={indeterminate}
+            checked={allChecked}
+            onChange={(e) => onCheckAll(e.target.checked)}
+            className="check-all-checkbox"
+          >
+            <span className="check-all-text">Select All Columns</span>
+          </Checkbox>
+        </div>
+        <Divider style={{ margin: '8px 0' }} />
+        <div className="columns-list">
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="column-list">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="droppable-area"
+                >
+                  {columnSettings?.columns.map((col, index) => (
+                    <Draggable 
+                      key={col.key} 
+                      draggableId={col.key} 
+                      index={index}
+                    >
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          style={{
+                            ...provided.draggableProps.style,
+                            marginBottom: '8px'
+                          }}
+                          className={`column-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                        >
+                          <div className="column-item-content">
+                            <div {...provided.dragHandleProps} className="drag-handle">
+                              <DragHandleOutlined />
+                            </div>
+                            <Checkbox
+                              checked={col.visible}
+                              onChange={(e) => onColumnVisibilityChange(col.key, e.target.checked)}
+                              className="column-checkbox"
+                            >
+                              <span className="column-title">{col.title}</span>
+                            </Checkbox>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        </div>
+      </div>
+
+      <style>
+        {`
+          .column-settings-drawer .ant-drawer-header {
+            background: #7B83EB;
+            border-bottom: none;
+            padding: 12px 16px;
+          }
+
+          .column-settings-drawer .ant-drawer-title {
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+          }
+
+          .column-settings-drawer .ant-drawer-close {
+            color: white;
+            font-size: 16px;
+            top: 12px;
+            right: 12px;
+          }
+
+          .column-settings-drawer .ant-drawer-body {
+            padding: 0;
+          }
+
+          .column-settings-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .check-all-section {
+            padding: 12px 16px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+          }
+
+          .check-all-checkbox {
+            width: 100%;
+          }
+
+          .check-all-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #262626;
+          }
+
+          .columns-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+          }
+
+          .droppable-area {
+            min-height: 100%;
+          }
+
+          .column-item {
+            background: white;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+          }
+
+          .column-item.dragging {
+            background: #fafafa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 1px solid #7B83EB;
+          }
+
+          .column-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+          }
+
+          .drag-handle {
+            color: #999;
+            cursor: grab;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .drag-handle:hover {
+            background: #f5f5f5;
+            color: #666;
+          }
+
+          .drag-handle:active {
+            cursor: grabbing;
+          }
+
+          .column-checkbox {
+            flex: 1;
+          }
+
+          .column-title {
+            font-size: 13px;
+            color: #262626;
+          }
+
+          .column-settings-drawer .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .column-settings-drawer .ant-checkbox:hover .ant-checkbox-inner,
+          .column-settings-drawer .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-drawer-footer {
+            border-top: 1px solid #f0f0f0;
+            padding: 12px 16px;
+            background: #fafafa;
+          }
+
+          .column-settings-drawer .ant-drawer-footer .ant-btn {
+            min-width: 80px;
+            height: 32px;
+            font-size: 13px;
+            font-weight: 500;
+          }
+
+          .column-settings-drawer .cancel-btn {
+            border-color: #d9d9d9;
+            color: #595959;
+          }
+
+          .column-settings-drawer .cancel-btn:hover {
+            border-color: #7B83EB;
+            color: #7B83EB;
+          }
+
+          .column-settings-drawer .apply-btn {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .apply-btn:hover {
+            background: #6a71d9;
+            border-color: #6a71d9;
+          }
+        `}
+      </style>
+    </Drawer>
+  );
+};
+
 const Students = () => {
   const { 
     students, 
@@ -937,6 +1218,19 @@ const Students = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [columnSettingsVisible, setColumnSettingsVisible] = useState(false);
+  const [columnSettings, setColumnSettings] = useState({
+    columns: [
+      { key: 'photo', title: 'Photo', visible: true, order: 0 },
+      { key: 'name', title: 'Name', visible: true, order: 1 },
+      { key: 'roll_no', title: 'Roll No', visible: true, order: 2 },
+      { key: 'class', title: 'Class', visible: true, order: 3 },
+      { key: 'gender', title: 'Gender', visible: true, order: 4 },
+      { key: 'status', title: 'Status', visible: true, order: 5 },
+      { key: 'actions', title: 'Actions', visible: true, order: 6 }
+    ]
+  });
+  const [tempColumnSettings, setTempColumnSettings] = useState(null);
 
   useEffect(() => {
     const filtered = students.filter(student =>
@@ -1418,6 +1712,54 @@ const Students = () => {
     setSearchText(value);
   };
 
+  const handleColumnVisibilityChange = (key, checked) => {
+    setTempColumnSettings(prev => ({
+      columns: prev.columns.map(col => 
+        col.key === key ? { ...col, visible: checked } : col
+      )
+    }));
+  };
+
+  const handleColumnReorder = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(tempColumnSettings.columns);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setTempColumnSettings(prev => ({
+      columns: items.map((item, index) => ({ ...item, order: index }))
+    }));
+  };
+
+  const handleCheckAll = (checked) => {
+    setTempColumnSettings(prev => ({
+      columns: prev.columns.map(col => ({ ...col, visible: checked }))
+    }));
+  };
+
+  const handleApplyColumnSettings = () => {
+    setColumnSettings(tempColumnSettings);
+    setColumnSettingsVisible(false);
+  };
+
+  const handleCancelColumnSettings = () => {
+    setTempColumnSettings(null);
+    setColumnSettingsVisible(false);
+  };
+
+  const handleOpenColumnSettings = () => {
+    setTempColumnSettings(JSON.parse(JSON.stringify(columnSettings))); // Deep copy
+    setColumnSettingsVisible(true);
+  };
+
+  const getVisibleColumns = () => {
+    const sortedColumns = [...columnSettings.columns].sort((a, b) => a.order - b.order);
+    return columns.filter(col => 
+      sortedColumns.find(c => c.key === col.key)?.visible
+    );
+  };
+
   const columns = [
     {
       title: 'Photo',
@@ -1672,6 +2014,31 @@ const Students = () => {
                 prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
               />
               <Button
+                type="text"
+                icon={<SettingOutlined />}
+                onClick={handleOpenColumnSettings}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                  background: '#f5f5f5'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f0f0f0';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#f5f5f5';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              />
+              <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={handleAdd}
@@ -1688,7 +2055,7 @@ const Students = () => {
             padding: '0 16px 16px 16px'
           }}>
             <Table
-              columns={columns}
+              columns={getVisibleColumns()}
               dataSource={filteredStudents}
               rowKey="id"
               loading={loading || tableLoading}
@@ -1807,6 +2174,17 @@ const Students = () => {
         loading={uploadingImage}
       />
 
+      <ColumnSettingsDrawer
+        visible={columnSettingsVisible}
+        onClose={handleCancelColumnSettings}
+        onApply={handleApplyColumnSettings}
+        onCancel={handleCancelColumnSettings}
+        columnSettings={tempColumnSettings}
+        onColumnVisibilityChange={handleColumnVisibilityChange}
+        onColumnReorder={handleColumnReorder}
+        onCheckAll={handleCheckAll}
+      />
+
       <style>
         {`
           .students-page {
@@ -1825,7 +2203,7 @@ const Students = () => {
           .students-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            alignItems: center;
             padding: 16px 24px;
             border-bottom: 1px solid #f0f0f0;
             background: #ffffff;
@@ -1835,7 +2213,7 @@ const Students = () => {
             margin: 0 !important;
             color: #7B83EB !important;
             display: flex;
-            align-items: center;
+            alignItems: center;
             gap: 4px;
             font-size: 20px;
             font-weight: 600;
@@ -2101,6 +2479,159 @@ const Students = () => {
 
           .students-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
             background-color: #7B83EB !important;
+          }
+
+          .column-settings-drawer .ant-drawer-header {
+            background: #7B83EB;
+            border-bottom: none;
+            padding: 12px 16px;
+          }
+
+          .column-settings-drawer .ant-drawer-title {
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+          }
+
+          .column-settings-drawer .ant-drawer-close {
+            color: white;
+            font-size: 16px;
+            top: 12px;
+            right: 12px;
+          }
+
+          .column-settings-drawer .ant-drawer-body {
+            padding: 0;
+          }
+
+          .column-settings-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .check-all-section {
+            padding: 12px 16px;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+          }
+
+          .check-all-checkbox {
+            width: 100%;
+          }
+
+          .check-all-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #262626;
+          }
+
+          .columns-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+          }
+
+          .droppable-area {
+            min-height: 100%;
+          }
+
+          .column-item {
+            background: white;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+          }
+
+          .column-item.dragging {
+            background: #fafafa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            border: 1px solid #7B83EB;
+          }
+
+          .column-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+          }
+
+          .drag-handle {
+            color: #999;
+            cursor: grab;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .drag-handle:hover {
+            background: #f5f5f5;
+            color: #666;
+          }
+
+          .drag-handle:active {
+            cursor: grabbing;
+          }
+
+          .column-checkbox {
+            flex: 1;
+          }
+
+          .column-title {
+            font-size: 13px;
+            color: #262626;
+          }
+
+          .column-settings-drawer .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+          .column-settings-drawer .ant-checkbox:hover .ant-checkbox-inner,
+          .column-settings-drawer .ant-checkbox-input:focus + .ant-checkbox-inner {
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+            background-color: #7B83EB;
+          }
+
+          .column-settings-drawer .ant-drawer-footer {
+            border-top: 1px solid #f0f0f0;
+            padding: 12px 16px;
+            background: #fafafa;
+          }
+
+          .column-settings-drawer .ant-drawer-footer .ant-btn {
+            min-width: 80px;
+            height: 32px;
+            font-size: 13px;
+            font-weight: 500;
+          }
+
+          .column-settings-drawer .cancel-btn {
+            border-color: #d9d9d9;
+            color: #595959;
+          }
+
+          .column-settings-drawer .cancel-btn:hover {
+            border-color: #7B83EB;
+            color: #7B83EB;
+          }
+
+          .column-settings-drawer .apply-btn {
+            background: #7B83EB;
+            border-color: #7B83EB;
+          }
+
+          .column-settings-drawer .apply-btn:hover {
+            background: #6a71d9;
+            border-color: #6a71d9;
           }
         `}
       </style>
