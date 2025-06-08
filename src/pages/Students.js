@@ -939,7 +939,7 @@ const ColumnSettingsDrawer = ({
           paddingRight: '40px'
         }}>
           <SettingOutlined style={{ fontSize: '18px' }} />
-          <span style={{ fontSize: '15px', fontWeight: 500 }}>Column Settings</span>
+          <span style={{ fontSize: '12px', fontWeight: 500 }}>Toggle Cols</span>
         </div>
       }
       placement="right"
@@ -947,31 +947,19 @@ const ColumnSettingsDrawer = ({
       open={visible}
       width={280}
       className="column-settings-drawer"
+      closable={false}
       extra={
-        <Space>
-          <Button 
-            type="primary" 
-            onClick={onApply}
-            className="apply-btn"
-            size="small"
-          >
-            Apply
-          </Button>
-        </Space>
+        <Checkbox
+          indeterminate={indeterminate}
+          checked={allChecked}
+          onChange={(e) => onCheckAll(e.target.checked)}
+          className="check-all-checkbox"
+        >
+          <span className="check-all-text">{allChecked ? 'Uncheck All' : 'Check All'}</span>
+        </Checkbox>
       }
     >
       <div className="column-settings-content">
-        <div className="check-all-section">
-          <Checkbox
-            indeterminate={indeterminate}
-            checked={allChecked}
-            onChange={(e) => onCheckAll(e.target.checked)}
-            className="check-all-checkbox"
-          >
-            <span className="check-all-text">Select All Columns</span>
-          </Checkbox>
-        </div>
-        <Divider style={{ margin: '8px 0' }} />
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="columns">
             {(provided) => (
@@ -1033,13 +1021,6 @@ const ColumnSettingsDrawer = ({
             font-weight: 500;
           }
 
-          .column-settings-drawer .ant-drawer-close {
-            color: white;
-            font-size: 16px;
-            top: 12px;
-            right: 12px;
-          }
-
           .column-settings-drawer .ant-drawer-body {
             padding: 0;
           }
@@ -1050,20 +1031,14 @@ const ColumnSettingsDrawer = ({
             flex-direction: column;
           }
 
-          .check-all-section {
-            padding: 12px 16px;
-            background: #fafafa;
-            border-bottom: 1px solid #f0f0f0;
-          }
-
           .check-all-checkbox {
-            width: 100%;
+            margin-right: 0;
           }
 
           .check-all-text {
             font-size: 13px;
             font-weight: 500;
-            color: #262626;
+            color: white;
           }
 
           .columns-list {
@@ -1138,27 +1113,21 @@ const ColumnSettingsDrawer = ({
             background-color: #7B83EB;
           }
 
-          .column-settings-drawer .ant-drawer-footer {
-            border-top: 1px solid #f0f0f0;
-            padding: 12px 16px;
-            background: #fafafa;
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-inner {
+            border-color: white;
           }
 
-          .column-settings-drawer .ant-drawer-footer .ant-btn {
-            min-width: 80px;
-            height: 32px;
-            font-size: 13px;
-            font-weight: 500;
+          .column-settings-drawer .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+            border-color: white;
           }
 
-          .column-settings-drawer .apply-btn {
-            background: #7B83EB;
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: white;
+            border-color: white;
+          }
+
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner::after {
             border-color: #7B83EB;
-          }
-
-          .column-settings-drawer .apply-btn:hover {
-            background: #6a71d9;
-            border-color: #6a71d9;
           }
         `}
       </style>
@@ -1691,7 +1660,8 @@ const Students = () => {
   };
 
   const handleColumnVisibilityChange = (key, checked) => {
-    setTempColumnSettings(prev => ({
+    setColumnSettings(prev => ({
+      ...prev,
       columns: prev.columns.map(col => 
         col.key === key ? { ...col, visible: checked } : col
       )
@@ -1700,34 +1670,25 @@ const Students = () => {
 
   const handleColumnReorder = (result) => {
     if (!result.destination) return;
-
-    const items = Array.from(tempColumnSettings.columns);
+    
+    const items = Array.from(columnSettings.columns);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-
-    setTempColumnSettings(prev => ({
-      columns: items.map((item, index) => ({ ...item, order: index }))
+    
+    setColumnSettings(prev => ({
+      ...prev,
+      columns: items
     }));
   };
 
   const handleCheckAll = (checked) => {
-    setTempColumnSettings(prev => ({
+    setColumnSettings(prev => ({
+      ...prev,
       columns: prev.columns.map(col => ({ ...col, visible: checked }))
     }));
   };
 
-  const handleApplyColumnSettings = () => {
-    setColumnSettings(tempColumnSettings);
-    setColumnSettingsVisible(false);
-  };
-
-  const handleCancelColumnSettings = () => {
-    setTempColumnSettings(null);
-    setColumnSettingsVisible(false);
-  };
-
   const handleOpenColumnSettings = () => {
-    setTempColumnSettings(JSON.parse(JSON.stringify(columnSettings))); // Deep copy
     setColumnSettingsVisible(true);
   };
 
@@ -2142,10 +2103,10 @@ const Students = () => {
 
       <ColumnSettingsDrawer
         visible={columnSettingsVisible}
-        onClose={handleCancelColumnSettings}
-        onApply={handleApplyColumnSettings}
-        onCancel={handleCancelColumnSettings}
-        columnSettings={tempColumnSettings}
+        onClose={() => setColumnSettingsVisible(false)}
+        onApply={() => {}} // Empty function since we don't need it anymore
+        onCancel={() => setColumnSettingsVisible(false)}
+        columnSettings={columnSettings}
         onColumnVisibilityChange={handleColumnVisibilityChange}
         onColumnReorder={handleColumnReorder}
         onCheckAll={handleCheckAll}
@@ -2459,13 +2420,6 @@ const Students = () => {
             font-weight: 500;
           }
 
-          .column-settings-drawer .ant-drawer-close {
-            color: white;
-            font-size: 16px;
-            top: 12px;
-            right: 12px;
-          }
-
           .column-settings-drawer .ant-drawer-body {
             padding: 0;
           }
@@ -2476,20 +2430,14 @@ const Students = () => {
             flex-direction: column;
           }
 
-          .check-all-section {
-            padding: 12px 16px;
-            background: #fafafa;
-            border-bottom: 1px solid #f0f0f0;
-          }
-
           .check-all-checkbox {
-            width: 100%;
+            margin-right: 0;
           }
 
           .check-all-text {
             font-size: 13px;
             font-weight: 500;
-            color: #262626;
+            color: white;
           }
 
           .columns-list {
@@ -2564,27 +2512,21 @@ const Students = () => {
             background-color: #7B83EB;
           }
 
-          .column-settings-drawer .ant-drawer-footer {
-            border-top: 1px solid #f0f0f0;
-            padding: 12px 16px;
-            background: #fafafa;
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-inner {
+            border-color: white;
           }
 
-          .column-settings-drawer .ant-drawer-footer .ant-btn {
-            min-width: 80px;
-            height: 32px;
-            font-size: 13px;
-            font-weight: 500;
+          .column-settings-drawer .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+            border-color: white;
           }
 
-          .column-settings-drawer .apply-btn {
-            background: #7B83EB;
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: white;
+            border-color: white;
+          }
+
+          .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner::after {
             border-color: #7B83EB;
-          }
-
-          .column-settings-drawer .apply-btn:hover {
-            background: #6a71d9;
-            border-color: #6a71d9;
           }
         `}
       </style>
