@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useClasses } from '../contexts/ClassesContext';
 import { useMessage } from '../contexts/MessageContext';
 import { useTeachers } from '../contexts/TeachersContext';
+import StyledModal from '../components/StyledModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -490,145 +491,169 @@ const Classes = () => {
         </div>
       )}
 
-      <Modal
-        title={
-          <Space>
-            <BookOutlined className="modal-icon" />
-            <Typography.Title level={5} className="modal-title">
-              {editingClass ? 'Edit Class' : 'Add New Class'}
-            </Typography.Title>
-          </Space>
-        }
-        open={isModalVisible}
-        onCancel={() => {
+      {/* Class Form Modal */}
+      <StyledModal
+        visible={isModalVisible}
+        onClose={() => {
           setIsModalVisible(false);
           form.resetFields();
           setEditingClass(null);
         }}
-        footer={null}
-        confirmLoading={loadingModal}
-        className="class-form-modal"
+        width={800}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleModalOk}
-        >
-          <Row gutter={24}>
-            <Col span={12}>
-              <Card 
-                title={
-                  <Space>
-                    <BookOutlined className="card-icon" />
-                    <span>Basic Information</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Form.Item
-                  name="className"
-                  label="Class Name"
-                  rules={[{ required: true, message: 'Please enter class name' }]}
-                >
-                  <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-
-                <Form.Item
-                  name="section"
-                  label="Section"
-                  rules={[{ required: true, message: 'Please select section' }]}
-                >
-                  <Select>
-                    {sections.map(section => (
-                      <Option key={section} value={section}>Section {section}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  name="capacity"
-                  label="Capacity"
-                  rules={[{ required: true, message: 'Please enter capacity' }]}
-                >
-                  <Input type="number" prefix={<TeamOutlined style={{ color: '#bfbfbf' }} />} />
-                </Form.Item>
-              </Card>
-            </Col>
-
-            <Col span={12}>
-              <Card 
-                title={
-                  <Space>
-                    <TeamOutlined className="card-icon" />
-                    <span>Class Details</span>
-                  </Space>
-                }
-                className="info-card"
-              >
-                <Form.Item
-                  name="teacherId"
-                  label="Class Teacher"
-                >
-                  <Select allowClear placeholder="Select teacher">
-                    {teachers.map(teacher => (
-                      <Option key={teacher.user_id} value={teacher.user_id}>
-                        {teacher.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  name="status"
-                  label="Status"
-                  rules={[{ required: true, message: 'Please select status' }]}
-                >
-                  <Select>
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                  </Select>
-                </Form.Item>
-              </Card>
-            </Col>
-          </Row>
-
-          <Form.Item>
+        <div className="class-form-container">
+          <div className="form-header">
             <Space>
-              <Button type="primary" htmlType="submit" loading={loadingModal}>
-                {editingClass ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={() => {
-                setIsModalVisible(false);
-                form.resetFields();
-                setEditingClass(null);
-              }}>
-                Cancel
-              </Button>
+              <BookOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                {editingClass ? 'Edit Class' : 'Add New Class'}
+              </Typography.Title>
             </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+          </div>
 
-      <Modal
-        title="Change Status"
-        open={bulkStatusModalVisible}
-        onOk={handleBulkStatusChange}
-        onCancel={() => setBulkStatusModalVisible(false)}
-        confirmLoading={teachersLoading}
-      >
-        <Form form={bulkStatusForm} layout="vertical">
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true, message: 'Please select status' }]}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleModalOk}
+            className="class-form"
           >
-            <Select>
-              <Option value="Active">Active</Option>
-              <Option value="Inactive">Inactive</Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Row gutter={24}>
+              <Col span={12}>
+                <Card 
+                  title={
+                    <Space>
+                      <BookOutlined style={{ color: '#7B83EB' }} />
+                      <span>Basic Information</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Form.Item
+                    name="className"
+                    label="Class Name"
+                    rules={[{ required: true, message: 'Please enter class name' }]}
+                  >
+                    <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+
+                  <Form.Item
+                    name="section"
+                    label="Section"
+                    rules={[{ required: true, message: 'Please select section' }]}
+                  >
+                    <Select>
+                      {sections.map(section => (
+                        <Option key={section} value={section}>Section {section}</Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="capacity"
+                    label="Capacity"
+                    rules={[{ required: true, message: 'Please enter capacity' }]}
+                  >
+                    <Input type="number" prefix={<TeamOutlined style={{ color: '#bfbfbf' }} />} />
+                  </Form.Item>
+                </Card>
+              </Col>
+
+              <Col span={12}>
+                <Card 
+                  title={
+                    <Space>
+                      <TeamOutlined style={{ color: '#7B83EB' }} />
+                      <span>Class Details</span>
+                    </Space>
+                  }
+                  className="info-card"
+                >
+                  <Form.Item
+                    name="teacherId"
+                    label="Class Teacher"
+                  >
+                    <Select allowClear placeholder="Select teacher">
+                      {teachers.map(teacher => (
+                        <Option key={teacher.user_id} value={teacher.user_id}>
+                          {teacher.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="status"
+                    label="Status"
+                    rules={[{ required: true, message: 'Please select status' }]}
+                  >
+                    <Select>
+                      <Option value="Active">Active</Option>
+                      <Option value="Inactive">Inactive</Option>
+                    </Select>
+                  </Form.Item>
+                </Card>
+              </Col>
+            </Row>
+
+            <div className="form-actions">
+              <Space>
+                <Button type="primary" htmlType="submit" loading={loadingModal}>
+                  {editingClass ? 'Update' : 'Add'}
+                </Button>
+                <Button onClick={() => {
+                  setIsModalVisible(false);
+                  form.resetFields();
+                  setEditingClass(null);
+                }}>
+                  Cancel
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        </div>
+      </StyledModal>
+
+      {/* Bulk Status Modal */}
+      <StyledModal
+        visible={bulkStatusModalVisible}
+        onClose={() => setBulkStatusModalVisible(false)}
+        width={400}
+      >
+        <div className="bulk-status-container">
+          <div className="form-header">
+            <Space>
+              <SwapOutlined style={{ fontSize: '20px', color: '#7B83EB' }} />
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                Change Status
+              </Typography.Title>
+            </Space>
+          </div>
+
+          <Form form={bulkStatusForm} layout="vertical" className="bulk-status-form">
+            <Form.Item
+              name="status"
+              label="Status"
+              rules={[{ required: true, message: 'Please select status' }]}
+            >
+              <Select>
+                <Option value="Active">Active</Option>
+                <Option value="Inactive">Inactive</Option>
+              </Select>
+            </Form.Item>
+
+            <div className="form-actions">
+              <Space>
+                <Button type="primary" onClick={handleBulkStatusChange} loading={teachersLoading}>
+                  Update Status
+                </Button>
+                <Button onClick={() => setBulkStatusModalVisible(false)}>
+                  Cancel
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        </div>
+      </StyledModal>
 
       <ClassDetailsDrawer
         visible={drawerVisible}

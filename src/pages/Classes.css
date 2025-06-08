@@ -1,0 +1,117 @@
+.class-form-container,
+.bulk-status-container {
+  padding: 24px;
+}
+
+.form-header {
+  margin-bottom: 24px;
+}
+
+.class-form,
+.bulk-status-form {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-card .ant-card-head {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.info-card .ant-card-head-title {
+  padding: 12px 0;
+}
+
+.form-actions {
+  margin-top: 24px;
+  text-align: right;
+}
+
+/* Form input styles */
+.ant-input,
+.ant-select-selector {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-input:hover,
+.ant-select-selector:hover {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.1) !important;
+}
+
+.ant-input:focus,
+.ant-select-selector:focus {
+  border-color: #7B83EB !important;
+  box-shadow: 0 0 0 2px rgba(123, 131, 235, 0.2) !important;
+}
+
+/* Button styles */
+.ant-btn {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #7B83EB 0%, #6A72D9 100%);
+  border: none;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #6A72D9 0%, #5A61C9 100%);
+  transform: translateY(-1px);
+}
+
+.ant-btn-default {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.ant-btn-default:hover {
+  border-color: #7B83EB;
+  color: #7B83EB;
+}
+
+/* Card styles */
+.ant-card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ant-card-head {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Form item styles */
+.ant-form-item-label > label {
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 500;
+}
+
+/* Select dropdown styles */
+.ant-select-dropdown {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ant-select-item {
+  transition: all 0.3s ease;
+}
+
+.ant-select-item-option-selected {
+  background: rgba(123, 131, 235, 0.1);
+  color: #7B83EB;
+}
+
+.ant-select-item-option-active {
+  background: rgba(123, 131, 235, 0.05);
+} 
