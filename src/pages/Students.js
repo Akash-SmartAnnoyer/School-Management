@@ -949,13 +949,6 @@ const ColumnSettingsDrawer = ({
       className="column-settings-drawer"
       extra={
         <Space>
-          {/* <Button 
-            onClick={onCancel}
-            className="cancel-btn"
-            size="small"
-          >
-            Cancel
-          </Button> */}
           <Button 
             type="primary" 
             onClick={onApply}
@@ -979,53 +972,51 @@ const ColumnSettingsDrawer = ({
           </Checkbox>
         </div>
         <Divider style={{ margin: '8px 0' }} />
-        <div className="columns-list">
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="column-list">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="droppable-area"
-                >
-                  {columnSettings?.columns.map((col, index) => (
-                    <Draggable 
-                      key={col.key} 
-                      draggableId={col.key} 
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          style={{
-                            ...provided.draggableProps.style,
-                            marginBottom: '8px'
-                          }}
-                          className={`column-item ${snapshot.isDragging ? 'dragging' : ''}`}
-                        >
-                          <div className="column-item-content">
-                            <div {...provided.dragHandleProps} className="drag-handle">
-                              <DragHandleOutlined />
-                            </div>
-                            <Checkbox
-                              checked={col.visible}
-                              onChange={(e) => onColumnVisibilityChange(col.key, e.target.checked)}
-                              className="column-checkbox"
-                            >
-                              <span className="column-title">{col.title}</span>
-                            </Checkbox>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="columns">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="columns-list"
+              >
+                {columnSettings?.columns.map((col, index) => (
+                  <Draggable 
+                    key={col.key} 
+                    draggableId={col.key} 
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        style={{
+                          ...provided.draggableProps.style,
+                          marginBottom: '8px'
+                        }}
+                        className={`column-item ${snapshot.isDragging ? 'dragging' : ''}`}
+                      >
+                        <div className="column-item-content">
+                          <div {...provided.dragHandleProps} className="drag-handle">
+                            <DragHandleOutlined />
                           </div>
+                          <Checkbox
+                            checked={col.visible}
+                            onChange={(e) => onColumnVisibilityChange(col.key, e.target.checked)}
+                            className="column-checkbox"
+                          >
+                            <span className="column-title">{col.title}</span>
+                          </Checkbox>
                         </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
 
       <style>
@@ -1079,10 +1070,7 @@ const ColumnSettingsDrawer = ({
             flex: 1;
             overflow-y: auto;
             padding: 12px 16px;
-          }
-
-          .droppable-area {
-            min-height: 100%;
+            min-height: 100px;
           }
 
           .column-item {
@@ -1161,16 +1149,6 @@ const ColumnSettingsDrawer = ({
             height: 32px;
             font-size: 13px;
             font-weight: 500;
-          }
-
-          .column-settings-drawer .cancel-btn {
-            border-color: #d9d9d9;
-            color: #595959;
-          }
-
-          .column-settings-drawer .cancel-btn:hover {
-            border-color: #7B83EB;
-            color: #7B83EB;
           }
 
           .column-settings-drawer .apply-btn {
@@ -2013,20 +1991,8 @@ const Students = () => {
                 }}
                 prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
               />
-              <Button
-                type="text"
-                icon={<SettingOutlined />}
-                onClick={handleOpenColumnSettings}
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease',
-                  background: '#f5f5f5'
-                }}
+              <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
+              onClick={handleOpenColumnSettings}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#f0f0f0';
                   e.currentTarget.style.transform = 'scale(1.1)';
@@ -2530,10 +2496,7 @@ const Students = () => {
             flex: 1;
             overflow-y: auto;
             padding: 12px 16px;
-          }
-
-          .droppable-area {
-            min-height: 100%;
+            min-height: 100px;
           }
 
           .column-item {
@@ -2612,16 +2575,6 @@ const Students = () => {
             height: 32px;
             font-size: 13px;
             font-weight: 500;
-          }
-
-          .column-settings-drawer .cancel-btn {
-            border-color: #d9d9d9;
-            color: #595959;
-          }
-
-          .column-settings-drawer .cancel-btn:hover {
-            border-color: #7B83EB;
-            color: #7B83EB;
           }
 
           .column-settings-drawer .apply-btn {
