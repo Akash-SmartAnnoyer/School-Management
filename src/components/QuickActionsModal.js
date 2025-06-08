@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Row, Col, Card, Tooltip } from 'antd';
+import { Row, Col, Card, Tooltip, Typography, Space } from 'antd';
 import {
     UserOutlined,
     TeamOutlined,
@@ -7,6 +7,9 @@ import {
     FormatPainterOutlined,
     InfoCircleOutlined,
 } from '@ant-design/icons';
+import StyledModal from './StyledModal';
+
+const { Title, Text } = Typography;
 
 const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
     const [hoveredCard, setHoveredCard] = useState(null);
@@ -158,103 +161,108 @@ const QuickActionsModal = ({ visible, onClose, onActionClick }) => {
     );
 
     return (
-        <Modal
-            title={<span style={{ fontSize: '22px', fontWeight: '700' }}>Select Action Type</span>}
-            open={visible}
-            onCancel={onClose}
-            footer={null}
+        <StyledModal
+            visible={visible}
+            onClose={onClose}
             width={800}
-            bodyStyle={{ padding: '24px' }}
         >
+            <div className="quick-actions-container">
+                <div className="form-header">
+                    <Space>
+                        {/* <UserOutlined style={{ fontSize: '20px', color: '#7B83EB' }} /> */}
+                        <Title level={5} style={{ margin: 0 }}>
+                            Select Action Type
+                        </Title>
+                    </Space>
+                </div>
 
-            <Row gutter={[16, 16]}>
-                {actions.map((action) => (
-                    <Col span={8} key={action.key}>
-                        <Card
-                            onClick={() => handleActionClick(action)}
-                            style={{
-                                height: '120px',
-                                backgroundColor: action.bgColor,
-                                border: '1px solid #d9d9d9',
-                                borderRadius: '10px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease',
-                            }}
-                            bodyStyle={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                height: '100%',
-                                padding: '12px 16px',
-                            }}
-                            onMouseEnter={(e) => {
-                                setHoveredCard(action.key);
-                                e.currentTarget.style.backgroundColor = action.hoverColor;
-                                e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.08)';
-                            }}
-                            onMouseLeave={(e) => {
-                                setHoveredCard(null);
-                                e.currentTarget.style.backgroundColor = action.bgColor;
-                                e.currentTarget.style.boxShadow = 'none';
-                            }}
-                        >
-                            {/* 25% Icon */}
-                            <div style={{
-                                width: '25%',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
-                                {action.icon}
-                            </div>
-
-                            {/* 75% Text */}
-                            <div style={{ width: '75%', paddingLeft: '12px', position: 'relative' }}>
-                                <div style={{
+                <Row gutter={[16, 16]}>
+                    {actions.map((action) => (
+                        <Col span={8} key={action.key}>
+                            <Card
+                                onClick={() => handleActionClick(action)}
+                                style={{
+                                    height: '120px',
+                                    backgroundColor: action.bgColor,
+                                    border: '1px solid #d9d9d9',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                bodyStyle={{
                                     display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
+                                    alignItems: 'center',
+                                    height: '100%',
+                                    padding: '12px 16px',
+                                }}
+                                onMouseEnter={(e) => {
+                                    setHoveredCard(action.key);
+                                    e.currentTarget.style.backgroundColor = action.hoverColor;
+                                    e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.08)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    setHoveredCard(null);
+                                    e.currentTarget.style.backgroundColor = action.bgColor;
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
+                            >
+                                <div style={{
+                                    width: '25%',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
                                 }}>
-                                    <h3 style={{
-                                        margin: 0,
-                                        fontSize: '16px',
-                                        fontWeight: '600',
-                                        color: '#000',
-                                    }}>
-                                        {action.title}
-                                    </h3>
-                                    <div style={{
-                                        opacity: hoveredCard === action.key ? 1 : 0,
-                                        transition: 'opacity 0.3s ease',
-                                    }}>
-                                        <Tooltip
-                                            title={renderTooltipContent(action)}
-                                            color="#000"
-                                            overlayStyle={{ maxWidth: '300px' }}
-                                            placement="topRight"
-                                        >
-                                            <InfoCircleOutlined style={{
-                                                fontSize: '14px',
-                                                color: '#999',
-                                                marginLeft: 8,
-                                                cursor: 'help'
-                                            }} />
-                                        </Tooltip>
-                                    </div>
+                                    {action.icon}
                                 </div>
-                                <p style={{
-                                    margin: '6px 0 0',
-                                    color: '#666',
-                                    fontSize: '13px',
-                                    lineHeight: 1.4,
-                                }}>
-                                    {action.description}
-                                </p>
-                            </div>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-        </Modal>
+
+                                <div style={{ width: '75%', paddingLeft: '12px', position: 'relative' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                    }}>
+                                        <h3 style={{
+                                            margin: 0,
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            color: '#000',
+                                        }}>
+                                            {action.title}
+                                        </h3>
+                                        <div style={{
+                                            opacity: hoveredCard === action.key ? 1 : 0,
+                                            transition: 'opacity 0.3s ease',
+                                        }}>
+                                            <Tooltip
+                                                title={renderTooltipContent(action)}
+                                                color="#000"
+                                                overlayStyle={{ maxWidth: '300px' }}
+                                                placement="topRight"
+                                            >
+                                                <InfoCircleOutlined style={{
+                                                    fontSize: '14px',
+                                                    color: '#999',
+                                                    marginLeft: 8,
+                                                    cursor: 'help'
+                                                }} />
+                                            </Tooltip>
+                                        </div>
+                                    </div>
+                                    <p style={{
+                                        margin: '6px 0 0',
+                                        color: '#666',
+                                        fontSize: '13px',
+                                        lineHeight: 1.4,
+                                    }}>
+                                        {action.description}
+                                    </p>
+                                </div>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </div>
+        </StyledModal>
     );
 };
 

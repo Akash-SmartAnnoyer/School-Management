@@ -1,0 +1,83 @@
+.quick-actions-container {
+  padding: 24px;
+}
+
+.form-header {
+  margin-bottom: 24px;
+}
+
+/* Card styles */
+.ant-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tooltip styles */
+.ant-tooltip {
+  max-width: 300px;
+}
+
+.ant-tooltip-inner {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Icon styles */
+.anticon {
+  transition: all 0.3s ease;
+}
+
+/* Text styles */
+h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+}
+
+p {
+  margin: 6px 0 0;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
+  transition: all 0.3s ease;
+}
+
+/* Hover effects */
+.ant-card:hover h3 {
+  color: #7B83EB;
+}
+
+.ant-card:hover .anticon {
+  transform: scale(1.1);
+}
+
+/* Grid layout */
+.ant-row {
+  margin: -8px;
+}
+
+.ant-col {
+  padding: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ant-col {
+    width: 100%;
+  }
+  
+  .quick-actions-container {
+    padding: 16px;
+  }
+} 
