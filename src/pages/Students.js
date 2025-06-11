@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
 import { 
   Table, 
   Button, 
@@ -1143,7 +1143,7 @@ const ColumnSettingsDrawer = ({
   );
 };
 
-const Students = () => {
+const Students = forwardRef((props, ref) => {
   const { 
     students, 
     loading, 
@@ -1190,8 +1190,16 @@ const Students = () => {
   const [exportType, setExportType] = useState('excel');
   const [exportEmails, setExportEmails] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
-  const [exportMode, setExportMode] = useState('download'); // 'download' or 'send'
-  const [studentCount] = useState(156); // Random count for now, will be replaced with DB value
+  const [exportMode, setExportMode] = useState('download');
+  const [studentCount] = useState(156);
+
+  // Expose handleAdd function through ref
+  useImperativeHandle(ref, () => ({
+    handleAdd: () => {
+      setEditingStudent(null);
+      setModalVisible(true);
+    }
+  }));
 
   useEffect(() => {
     const filtered = students.filter(student =>
@@ -2927,6 +2935,6 @@ const Students = () => {
       </style>
     </div>
   );
-};
+});
 
 export default Students; 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Typography, Input, Space, Avatar, Badge, Dropdown, Tooltip, ConfigProvider, message } from 'antd';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -98,6 +98,7 @@ function MainLayout() {
   const [themeVisible, setThemeVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [quickActionsVisible, setQuickActionsVisible] = useState(false);
+  const studentsRef = useRef(null);
 
   // Add this to check if we're on the Students page
   const isStudentsPage = location.pathname === '/students';
@@ -350,6 +351,18 @@ function MainLayout() {
         break;
       default:
         break;
+    }
+  };
+
+  const handleCreateStudent = () => {
+    if (isStudentsPage) {
+      // If we're on the students page, trigger the add student form
+      if (studentsRef.current) {
+        studentsRef.current.handleAdd();
+      }
+    } else {
+      // If we're not on the students page, navigate there first
+      navigate('/students');
     }
   };
 
@@ -765,7 +778,7 @@ function MainLayout() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={() => navigate('/students')}
+                    onClick={handleCreateStudent}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -866,7 +879,7 @@ function MainLayout() {
             } />
             <Route path="/students" element={
               <ProtectedRoute>
-                <Students />
+                <Students ref={studentsRef} />
               </ProtectedRoute>
             } />
             <Route path="/teachers" element={
