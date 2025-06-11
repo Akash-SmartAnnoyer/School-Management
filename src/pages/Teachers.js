@@ -102,6 +102,10 @@ import {
   InfoCircleOutlined,
   ArrowLeftOutlined,
   SettingOutlined,
+  ExportOutlined,
+  DownloadOutlined,
+  SendOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons';
 import { useTeachers } from '../contexts/TeachersContext';
 import { useMessage } from '../contexts/MessageContext';
@@ -112,6 +116,7 @@ import moment from 'moment';
 import ImagePreviewModal from '../components/ImagePreviewModal';
 import ColumnSettingsDrawer from '../components/ColumnSettingsDrawer';
 import useColumnSettings from '../hooks/useColumnSettings';
+import StyledModal from '../components/StyledModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -621,6 +626,12 @@ const Teachers = forwardRef((props, ref) => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportType, setExportType] = useState('excel');
+  const [exportEmails, setExportEmails] = useState([]);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMode, setExportMode] = useState('download');
+  const [teacherCount, setTeacherCount] = useState(teachers.length);
 
   const {
     columnSettingsVisible,
@@ -642,6 +653,7 @@ const Teachers = forwardRef((props, ref) => {
 
   useEffect(() => {
     loadSubjects();
+    setTeacherCount(teachers.length);
   }, []);
 
   useEffect(() => {
@@ -1274,6 +1286,8 @@ const Teachers = forwardRef((props, ref) => {
     }
   }));
 
+  useEffect(() => { setTeacherCount(teachers.length); }, [teachers]);
+
   return (
     <div className="teachers-page" style={{ 
       height: '100%', 
@@ -1289,42 +1303,43 @@ const Teachers = forwardRef((props, ref) => {
     }}>
       {!modalVisible ? (
         <>
-          <div className="teachers-header" style={{
+          <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '16px 24px',
-            borderBottom: '1px solid #f0f0f0',
-            background: '#ffffff'
+            marginBottom: '16px',
+            padding: '24px 24px 0 24px',
+            background: '#fff',
           }}>
-
+            {/* Left: Search */}
+            <Input.Search
+              placeholder="Search teachers..."
+              allowClear
+              onSearch={handleSearch}
+              style={{ width: 250, borderRadius: '6px', boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)', border: '1px solid rgba(159, 179, 223, 0.3)' }}
+              prefix={<SearchOutlined style={{ color: '#44cf65' }} />}
+            />
+            {/* Right: Controls */}
             <Space size="small">
-              <Input.Search
-                placeholder="Search teachers..."
-                allowClear
-                onSearch={handleSearch}
-                style={{ 
-                  width: 250,
-                  borderRadius: '6px',
-                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                  border: '1px solid rgba(159, 179, 223, 0.3)'
-                }}
-                prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-              />
-              <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
-                onClick={() => setColumnSettingsVisible(true)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f0f0f0';
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f5f5f5';
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
-
+              <Tooltip title="Total Teachers">
+                <div className="teacher-count-badge" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#f5f5f5', border: '1px solid #f0f0f0', borderRadius: '20px', cursor: 'default', transition: 'all 0.3s ease' }}>
+                  <UserAddOutlined style={{ fontSize: '16px', color: '#44cf65' }} />
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#44cf65' }}>{teacherCount}+</span>
+                </div>
+              </Tooltip>
+              <Tooltip title="Export Teachers">
+                <Button
+                  type="text"
+                  icon={<ExportOutlined />}
+                  onClick={() => setExportModalVisible(true)}
+                  style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', border: '1px solid #f0f0f0', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', transition: 'all 0.3s ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f0f0f0'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                />
+              </Tooltip>
+              <Tooltip title="Column Settings">
+                <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setColumnSettingsVisible(true)} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.filter = 'brightness(0.9)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }} />
+              </Tooltip>
             </Space>
           </div>
 
@@ -1450,6 +1465,53 @@ const Teachers = forwardRef((props, ref) => {
         onColumnReorder={handleColumnReorder}
         onCheckAll={handleCheckAll}
       />
+
+      <StyledModal
+        visible={exportModalVisible}
+        onClose={() => { setExportModalVisible(false); setExportType('excel'); setExportEmails([]); setExportMode('download'); }}
+        title={<Space><ExportOutlined style={{ color: '#44cf65' }} /><span>Export Teachers</span></Space>}
+        width={400}
+        className="export-modal"
+      >
+        <div className="export-modal-content">
+          <Form layout="vertical">
+            <Form.Item label="Export Format" className="export-format-item">
+              <div className="format-options">
+                <div className={`format-option ${exportType === 'excel' ? 'active' : ''}`} onClick={() => setExportType('excel')}>
+                  <FileExcelOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                  <span>Excel</span>
+                </div>
+                <div className={`format-option ${exportType === 'pdf' ? 'active' : ''}`} onClick={() => setExportType('pdf')}>
+                  <FilePdfOutlined style={{ color: '#ff4d4f', fontSize: '20px' }} />
+                  <span>PDF</span>
+                </div>
+              </div>
+            </Form.Item>
+            <Form.Item label="Export Mode" className="export-mode-item">
+              <div className="mode-options">
+                <div className={`mode-option ${exportMode === 'download' ? 'active' : ''}`} onClick={() => setExportMode('download')}>
+                  <DownloadOutlined style={{ fontSize: '18px' }} />
+                  <span>Download</span>
+                </div>
+                <div className={`mode-option ${exportMode === 'send' ? 'active' : ''}`} onClick={() => setExportMode('send')}>
+                  <SendOutlined style={{ fontSize: '18px' }} />
+                  <span>Send via Email</span>
+                </div>
+              </div>
+            </Form.Item>
+            {exportMode === 'send' && (
+              <Form.Item label="Email Addresses" className="email-item">
+                <Select mode="tags" style={{ width: '100%' }} placeholder="Enter email addresses" value={exportEmails} onChange={setExportEmails} tokenSeparators={[',']} className="email-select" maxTagCount={3} maxTagTextLength={20} dropdownStyle={{ maxHeight: '200px', overflow: 'auto' }} />
+              </Form.Item>
+            )}
+            <Form.Item className="export-submit-item">
+              <Button type="primary" onClick={() => { setExportLoading(true); setTimeout(() => { setExportLoading(false); setExportModalVisible(false); }, 1000); }} loading={exportLoading} block className="export-submit-button">
+                {exportMode === 'download' ? 'Download' : 'Send'}
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      </StyledModal>
 
       <style>
         {`

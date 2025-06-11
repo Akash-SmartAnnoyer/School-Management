@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip, Upload, Avatar } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined, ExportOutlined, DownloadOutlined, FileExcelOutlined, FilePdfOutlined, SendOutlined } from '@ant-design/icons';
 import { DragHandleOutlined } from '@mui/icons-material';
 import api from '../services/api';
 import { MessageContext } from '../App';
@@ -48,6 +48,12 @@ const Classes = forwardRef((props, ref) => {
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
   const [bulkStatusForm] = Form.useForm();
   const [actionLoading, setActionLoading] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportType, setExportType] = useState('excel');
+  const [exportEmails, setExportEmails] = useState([]);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMode, setExportMode] = useState('download');
+  const [classCount, setClassCount] = useState(classes.length);
 
   const {
     columnSettingsVisible,
@@ -391,6 +397,8 @@ const Classes = forwardRef((props, ref) => {
     loadClasses(1, 10, value);
   };
 
+  useEffect(() => { setClassCount(classes.length); }, [classes]);
+
   return (
     <div className="classes-page" style={{ 
       height: '100%', 
@@ -404,42 +412,41 @@ const Classes = forwardRef((props, ref) => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
-      <div className="classes-header" style={{
+      <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: '1px solid #f0f0f0',
-        background: '#ffffff'
+        marginBottom: '16px',
+        padding: '24px 24px 0 24px',
+        background: '#fff',
       }}>
-
+        <Input.Search
+          placeholder="Search classes..."
+          allowClear
+          onSearch={handleSearch}
+          style={{ width: 250, borderRadius: '6px', boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)', border: '1px solid rgba(159, 179, 223, 0.3)' }}
+          prefix={<SearchOutlined style={{ color: '#49e7f5' }} />}
+        />
         <Space size="small">
-          <Input.Search
-            placeholder="Search classes..."
-            allowClear
-            onSearch={handleSearch}
-            style={{ 
-              width: 250,
-              borderRadius: '6px',
-              boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-              border: '1px solid rgba(159, 179, 223, 0.3)'
-            }}
-            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-          />
-          <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
-            onClick={() => setColumnSettingsVisible(true)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f0f0f0';
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#f5f5f5';
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          />
-
+          <Tooltip title="Total Classes">
+            <div className="class-count-badge" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#f5f5f5', border: '1px solid #f0f0f0', borderRadius: '20px', cursor: 'default', transition: 'all 0.3s ease' }}>
+              <BookOutlined style={{ fontSize: '16px', color: '#49e7f5' }} />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#49e7f5' }}>{classCount}+</span>
+            </div>
+          </Tooltip>
+          <Tooltip title="Export Classes">
+            <Button
+              type="text"
+              icon={<ExportOutlined />}
+              onClick={() => setExportModalVisible(true)}
+              style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', border: '1px solid #f0f0f0', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', transition: 'all 0.3s ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f0f0f0'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+            />
+          </Tooltip>
+          <Tooltip title="Column Settings">
+            <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setColumnSettingsVisible(true)} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.filter = 'brightness(0.9)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }} />
+          </Tooltip>
         </Space>
       </div>
 
@@ -514,7 +521,6 @@ const Classes = forwardRef((props, ref) => {
         </div>
       )}
 
-      {/* Class Form Modal */}
       <StyledModal
         visible={isModalVisible}
         onClose={() => {
@@ -636,7 +642,6 @@ const Classes = forwardRef((props, ref) => {
         </div>
       </StyledModal>
 
-      {/* Bulk Status Modal */}
       <StyledModal
         visible={bulkStatusModalVisible}
         onClose={() => setBulkStatusModalVisible(false)}
@@ -674,6 +679,53 @@ const Classes = forwardRef((props, ref) => {
                 </Button>
               </Space>
             </div>
+          </Form>
+        </div>
+      </StyledModal>
+
+      <StyledModal
+        visible={exportModalVisible}
+        onClose={() => { setExportModalVisible(false); setExportType('excel'); setExportEmails([]); setExportMode('download'); }}
+        title={<Space><ExportOutlined style={{ color: '#49e7f5' }} /><span>Export Classes</span></Space>}
+        width={400}
+        className="export-modal"
+      >
+        <div className="export-modal-content">
+          <Form layout="vertical">
+            <Form.Item label="Export Format" className="export-format-item">
+              <div className="format-options">
+                <div className={`format-option ${exportType === 'excel' ? 'active' : ''}`} onClick={() => setExportType('excel')}>
+                  <FileExcelOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                  <span>Excel</span>
+                </div>
+                <div className={`format-option ${exportType === 'pdf' ? 'active' : ''}`} onClick={() => setExportType('pdf')}>
+                  <FilePdfOutlined style={{ color: '#ff4d4f', fontSize: '20px' }} />
+                  <span>PDF</span>
+                </div>
+              </div>
+            </Form.Item>
+            <Form.Item label="Export Mode" className="export-mode-item">
+              <div className="mode-options">
+                <div className={`mode-option ${exportMode === 'download' ? 'active' : ''}`} onClick={() => setExportMode('download')}>
+                  <DownloadOutlined style={{ fontSize: '18px' }} />
+                  <span>Download</span>
+                </div>
+                <div className={`mode-option ${exportMode === 'send' ? 'active' : ''}`} onClick={() => setExportMode('send')}>
+                  <SendOutlined style={{ fontSize: '18px' }} />
+                  <span>Send via Email</span>
+                </div>
+              </div>
+            </Form.Item>
+            {exportMode === 'send' && (
+              <Form.Item label="Email Addresses" className="email-item">
+                <Select mode="tags" style={{ width: '100%' }} placeholder="Enter email addresses" value={exportEmails} onChange={setExportEmails} tokenSeparators={[',']} className="email-select" maxTagCount={3} maxTagTextLength={20} dropdownStyle={{ maxHeight: '200px', overflow: 'auto' }} />
+              </Form.Item>
+            )}
+            <Form.Item className="export-submit-item">
+              <Button type="primary" onClick={() => { setExportLoading(true); setTimeout(() => { setExportLoading(false); setExportModalVisible(false); }, 1000); }} loading={exportLoading} block className="export-submit-button">
+                {exportMode === 'download' ? 'Download' : 'Send'}
+              </Button>
+            </Form.Item>
           </Form>
         </div>
       </StyledModal>
@@ -1051,6 +1103,64 @@ const Classes = forwardRef((props, ref) => {
           .class-form-modal .ant-btn-primary:hover {
             background: #8ba1d1;
             border-color: #8ba1d1;
+          }
+
+          .export-modal .export-format-item {
+            margin-bottom: 16px;
+          }
+
+          .export-modal .format-options {
+            display: flex;
+            gap: 8px;
+          }
+
+          .export-modal .format-option {
+            padding: 8px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .export-modal .format-option.active {
+            background: #f0f0f0;
+          }
+
+          .export-modal .export-mode-item {
+            margin-bottom: 16px;
+          }
+
+          .export-modal .mode-options {
+            display: flex;
+            gap: 8px;
+          }
+
+          .export-modal .mode-option {
+            padding: 8px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .export-modal .mode-option.active {
+            background: #f0f0f0;
+          }
+
+          .export-modal .email-item {
+            margin-bottom: 16px;
+          }
+
+          .export-modal .email-select {
+            width: 100%;
+          }
+
+          .export-modal .export-submit-item {
+            margin-top: 16px;
+          }
+
+          .export-modal .export-submit-button {
+            width: 100%;
           }
         `}
       </style>
