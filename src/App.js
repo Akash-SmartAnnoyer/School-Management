@@ -99,9 +99,13 @@ function MainLayout() {
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [quickActionsVisible, setQuickActionsVisible] = useState(false);
   const studentsRef = useRef(null);
+  const teachersRef = useRef(null);
+  const classesRef = useRef(null);
 
-  // Add this to check if we're on the Students page
+  // Add this to check if we're on specific pages
   const isStudentsPage = location.pathname === '/students';
+  const isTeachersPage = location.pathname === '/teachers';
+  const isClassesPage = location.pathname === '/classes';
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -363,6 +367,30 @@ function MainLayout() {
     } else {
       // If we're not on the students page, navigate there first
       navigate('/students');
+    }
+  };
+
+  const handleCreateTeacher = () => {
+    if (isTeachersPage) {
+      // If we're on the teachers page, trigger the add teacher form
+      if (teachersRef.current) {
+        teachersRef.current.handleAdd();
+      }
+    } else {
+      // If we're not on the teachers page, navigate there first
+      navigate('/teachers');
+    }
+  };
+
+  const handleCreateClass = () => {
+    if (isClassesPage) {
+      // If we're on the classes page, trigger the add class form
+      if (classesRef.current) {
+        classesRef.current.handleAdd();
+      }
+    } else {
+      // If we're not on the classes page, navigate there first
+      navigate('/classes');
     }
   };
 
@@ -628,16 +656,16 @@ function MainLayout() {
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
-          background: isStudentsPage ? '#f5f5f5' : '#fff',
+          background: (isStudentsPage || isTeachersPage || isClassesPage) ? '#f5f5f5' : '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: isStudentsPage ? 'none' : '0 1px 4px rgba(0, 21, 41, 0.08)',
+          boxShadow: (isStudentsPage || isTeachersPage || isClassesPage) ? 'none' : '0 1px 4px rgba(0, 21, 41, 0.08)',
           height: '64px',
           position: 'sticky',
           top: 0,
           zIndex: 999,
-          borderBottom: isStudentsPage ? '1px solid #e0e0e0' : 'none',
+          borderBottom: (isStudentsPage || isTeachersPage || isClassesPage) ? '1px solid #e0e0e0' : 'none',
           margin: 0
         }}>
           {/* Left Section */}
@@ -697,9 +725,9 @@ function MainLayout() {
             }}>
               <Title level={5} style={{ 
                 margin: 0, 
-                color: isStudentsPage ? '#1f1f1f' : '#7B83EB',
-                fontWeight: isStudentsPage ? 500 : 400,
-                fontSize: isStudentsPage ? '18px' : '14px',
+                color: (isStudentsPage || isTeachersPage || isClassesPage) ? '#1f1f1f' : '#7B83EB',
+                fontWeight: (isStudentsPage || isTeachersPage || isClassesPage) ? 500 : 400,
+                fontSize: (isStudentsPage || isTeachersPage || isClassesPage) ? '18px' : '14px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -721,6 +749,40 @@ function MainLayout() {
                       <span style={{ color: '#1f1f1f' }}> Portal</span>
                     </span>
                   </>
+                ) : isTeachersPage ? (
+                  <>
+                    <img 
+                      src="/training.png" 
+                      alt="Teachers" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Teacher </span>
+                      <span style={{ color: '#44cf65' }}>Management</span>
+                      <span style={{ color: '#1f1f1f' }}> Portal</span>
+                    </span>
+                  </>
+                ) : isClassesPage ? (
+                  <>
+                    <img 
+                      src="/seminar.png" 
+                      alt="Classes" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Class </span>
+                      <span style={{ color: '#49e7f5' }}>Management</span>
+                      <span style={{ color: '#1f1f1f' }}> Portal</span>
+                    </span>
+                  </>
                 ) : (
                   'Usha Vidyalayam'
                 )}
@@ -729,7 +791,7 @@ function MainLayout() {
           </div>
 
           {/* Center Section - Search */}
-          {!isStudentsPage && (
+          {!(isStudentsPage || isTeachersPage || isClassesPage) && (
             <div style={{
               flex: '2',
               maxWidth: '300px',
@@ -783,21 +845,123 @@ function MainLayout() {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      background: '#7B83EB',
-                      borderColor: '#7B83EB',
-                      boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)',
+                      background: '#f54278',
+                      borderColor: '#f54278',
+                      boxShadow: '0 2px 6px rgba(245, 66, 120, 0.2)',
                       transition: 'all 0.3s ease'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.3)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 66, 120, 0.3)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(123, 131, 235, 0.2)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(245, 66, 120, 0.2)';
                     }}
                   >
                     Create Student
+                  </Button>
+                </>
+              ) : isTeachersPage ? (
+                <>
+                  <Button
+                    type="default"
+                    icon={<UploadOutlined />}
+                    onClick={() => {/* Handle upload */}}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#fff',
+                      border: '1px solid #e0e0e0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                    }}
+                  >
+                    Upload Teachers
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleCreateTeacher}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#44cf65',
+                      borderColor: '#44cf65',
+                      boxShadow: '0 2px 6px rgba(68, 207, 101, 0.2)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(68, 207, 101, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(68, 207, 101, 0.2)';
+                    }}
+                  >
+                    Create Teacher
+                  </Button>
+                </>
+              ) : isClassesPage ? (
+                <>
+                  <Button
+                    type="default"
+                    icon={<UploadOutlined />}
+                    onClick={() => {/* Handle upload */}}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#fff',
+                      border: '1px solid #e0e0e0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                    }}
+                  >
+                    Upload Classes
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleCreateClass}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#49e7f5',
+                      borderColor: '#49e7f5',
+                      boxShadow: '0 2px 6px rgba(73, 231, 245, 0.2)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(73, 231, 245, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(73, 231, 245, 0.2)';
+                    }}
+                  >
+                    Create Class
                   </Button>
                 </>
               ) : (
@@ -884,12 +1048,12 @@ function MainLayout() {
             } />
             <Route path="/teachers" element={
               <ProtectedRoute>
-                <Teachers />
+                <Teachers ref={teachersRef} />
               </ProtectedRoute>
             } />
             <Route path="/classes" element={
               <ProtectedRoute>
-                <Classes />
+                <Classes ref={classesRef} />
               </ProtectedRoute>
             } />
             <Route path="/attendance" element={

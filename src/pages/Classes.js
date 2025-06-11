@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip, Upload, Avatar } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { DragHandleOutlined } from '@mui/icons-material';
@@ -19,7 +19,7 @@ const { Search } = Input;
 
 const sections = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-const Classes = () => {
+const Classes = forwardRef((props, ref) => {
   const messageApi = useMessage();
   const { 
     classes, 
@@ -66,11 +66,14 @@ const Classes = () => {
     { key: 'actions', title: 'Actions', visible: true, order: 5 }
   ]);
 
-  const handleAdd = () => {
-    setEditingClass(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
+  // Expose handleAdd function through ref
+  useImperativeHandle(ref, () => ({
+    handleAdd: () => {
+      setEditingClass(null);
+      form.resetFields();
+      setIsModalVisible(true);
+    }
+  }));
 
   const handleEdit = (record) => {
     setEditingClass(record);
@@ -409,10 +412,7 @@ const Classes = () => {
         borderBottom: '1px solid #f0f0f0',
         background: '#ffffff'
       }}>
-        <Title level={3} className="page-title">
-          <img src="/seminar.png" alt="Classes" style={{ width: '40px', height: '40px' }} />
-          Classes
-        </Title>
+
         <Space size="small">
           <Input.Search
             placeholder="Search classes..."
@@ -439,14 +439,7 @@ const Classes = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            className="add-class-btn"
-          >
-            Add Class
-          </Button>
+
         </Space>
       </div>
 
@@ -1063,6 +1056,6 @@ const Classes = () => {
       </style>
     </div>
   );
-};
+});
 
 export default Classes; 

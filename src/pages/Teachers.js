@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import {
   Table,
   Button,
@@ -583,7 +583,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
   );
 };
 
-const Teachers = () => {
+const Teachers = forwardRef((props, ref) => {
   const messageApi = useMessage();
   const { 
     teachers, 
@@ -677,7 +677,6 @@ const Teachers = () => {
 
   const handleAdd = () => {
     setEditingTeacher(null);
-    form.resetFields();
     setModalVisible(true);
   };
 
@@ -1267,6 +1266,14 @@ const Teachers = () => {
     loadTeachers(pagination.current, pagination.pageSize);
   };
 
+  // Expose handleAdd function through ref
+  useImperativeHandle(ref, () => ({
+    handleAdd: () => {
+      setEditingTeacher(null);
+      setModalVisible(true);
+    }
+  }));
+
   return (
     <div className="teachers-page" style={{ 
       height: '100%', 
@@ -1290,10 +1297,7 @@ const Teachers = () => {
             borderBottom: '1px solid #f0f0f0',
             background: '#ffffff'
           }}>
-            <Title level={3} className="page-title">
-              <img src="/training.png" alt="Teachers" style={{ width: '40px', height: '40px' }} />
-              Teachers
-            </Title>
+
             <Space size="small">
               <Input.Search
                 placeholder="Search teachers..."
@@ -1320,14 +1324,7 @@ const Teachers = () => {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-                className="add-teacher-btn"
-              >
-                Add Teacher
-              </Button>
+
             </Space>
           </div>
 
@@ -1755,6 +1752,6 @@ const Teachers = () => {
       </style>
     </div>
   );
-};
+});
 
 export default Teachers; 
