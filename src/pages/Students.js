@@ -1964,18 +1964,18 @@ const Students = () => {
       padding: '0', 
       overflow: 'hidden', 
       margin: '0',
-      borderRadius: '16px',
       background: '#ffffff',
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }}>
       {!modalVisible ? (
         <>
- 
-
           <div style={{ 
-            padding: '24px',
-            background: '#fff'
+            padding: '24px 24px 0 24px',
+            background: '#fff',
+            height: 'calc(100vh - 64px)',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
             <div style={{
               display: 'flex',
@@ -2059,34 +2059,41 @@ const Students = () => {
               </Space>
             </div>
 
-            <Table
-              columns={getVisibleColumns()}
-              dataSource={filteredStudents}
-              rowKey="id"
-              loading={loading || tableLoading}
-              pagination={{
-                current: currentPage,
-                pageSize: pageSize,
-                total: totalStudents,
-                showSizeChanger: true,
-                showTotal: (total) => `Total ${total} students`,
-                onChange: (page, pageSize) => {
-                  setCurrentPage(page);
-                  setPageSize(pageSize);
-                  loadStudents(page, pageSize);
-                }
-              }}
-              onChange={handleTableChange}
-              rowSelection={{
-                type: 'checkbox',
-                selectedRowKeys,
-                onChange: (newSelectedRowKeys) => {
-                  setSelectedRowKeys(newSelectedRowKeys);
-                },
-              }}
-              className="students-table"
-              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-            />
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <Table
+                columns={getVisibleColumns()}
+                dataSource={filteredStudents}
+                rowKey="id"
+                loading={loading || tableLoading}
+                pagination={{
+                  current: currentPage,
+                  pageSize: pageSize,
+                  total: totalStudents,
+                  showSizeChanger: true,
+                  showTotal: (total) => `Total ${total} students`,
+                  onChange: (page, pageSize) => {
+                    setCurrentPage(page);
+                    setPageSize(pageSize);
+                    loadStudents(page, pageSize);
+                  },
+                  style: { marginBottom: 0 }
+                }}
+                onChange={handleTableChange}
+                rowSelection={{
+                  type: 'checkbox',
+                  selectedRowKeys,
+                  onChange: (newSelectedRowKeys) => {
+                    setSelectedRowKeys(newSelectedRowKeys);
+                  },
+                }}
+                className="students-table"
+                scroll={{ x: 'max-content', y: 'calc(100vh - 240px)' }}
+                size="small"
+                style={{
+                  '--ant-table-row-height': '20px'
+                }}
+              />
+            </div>
           </div>
         </>
       ) : (
