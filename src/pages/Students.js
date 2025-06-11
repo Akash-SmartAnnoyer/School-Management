@@ -1983,19 +1983,22 @@ const Students = () => {
               alignItems: 'center',
               marginBottom: '16px'
             }}>
+              {/* Left side - Search */}
+              <Input.Search
+                placeholder="Search students..."
+                allowClear
+                onSearch={handleSearch}
+                style={{ 
+                  width: 250,
+                  borderRadius: '6px',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  border: '1px solid rgba(159, 179, 223, 0.3)'
+                }}
+                prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+              />
+
+              {/* Right side - Controls */}
               <Space size="small">
-                <Input.Search
-                  placeholder="Search students..."
-                  allowClear
-                  onSearch={handleSearch}
-                  style={{ 
-                    width: 250,
-                    borderRadius: '6px',
-                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                    border: '1px solid rgba(159, 179, 223, 0.3)'
-                  }}
-                  prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-                />
                 <Tooltip title="Total Students">
                   <div className="student-count-badge">
                     <UserAddOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
