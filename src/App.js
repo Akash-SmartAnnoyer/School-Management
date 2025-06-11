@@ -685,9 +685,32 @@ function MainLayout() {
               <Title level={5} style={{ 
                 margin: 0, 
                 color: isStudentsPage ? '#1f1f1f' : '#7B83EB',
-                fontWeight: isStudentsPage ? 500 : 400
+                fontWeight: isStudentsPage ? 500 : 400,
+                fontSize: isStudentsPage ? '18px' : '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                {isStudentsPage ? 'Students' : 'Usha Vidyalayam'}
+                {isStudentsPage ? (
+                  <>
+                    <img 
+                      src="/students.png" 
+                      alt="Students" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Student </span>
+                      <span style={{ color: '#f54278' }}>Management</span>
+                      <span style={{ color: '#1f1f1f' }}> Portal</span>
+                    </span>
+                  </>
+                ) : (
+                  'Usha Vidyalayam'
+                )}
               </Title>
             </div>
           </div>
