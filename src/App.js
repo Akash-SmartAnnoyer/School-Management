@@ -365,7 +365,8 @@ function MainLayout() {
           bottom: 0,
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          zIndex: 1000
         }}
       >
         <div 
@@ -381,12 +382,14 @@ function MainLayout() {
             margin: '16px 16px 4px 16px',
             borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: '1px solid #e0e0e0',
+            border: collapsed ? '1px solid #e0e0e0' : 'none',
             backgroundColor: 'transparent',
-            boxShadow: 'none'
+            boxShadow: 'none',
+            position: 'relative',
+            cursor: 'default'
           }}
         >
-          <div className="school-icon">
+          <div className="school-icon" style={{ cursor: 'default' }}>
             <img
               src="/logo-transparent-png.png"
               alt="App Logo"
@@ -399,15 +402,56 @@ function MainLayout() {
             />
           </div>
           {!collapsed && (
-            <Title level={5} style={{ 
-              color: '#7B83EB', 
-              margin: 0, 
-              fontWeight: 500, 
-              fontSize: '11px',
-              // lineHeight: '1.2'
-            }}>
-              360 Schooling
-            </Title>
+            <>
+              <Title level={5} style={{ 
+                color: '#7B83EB', 
+                margin: 0, 
+                fontWeight: 500, 
+                fontSize: '11px',
+                cursor: 'default'
+              }}>
+                360 Schooling
+              </Title>
+              <div
+                onClick={() => setCollapsed(true)}
+                style={{
+                  position: 'absolute',
+                  right: '-12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '24px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  zIndex: 1001,
+                  background: '#fff',
+                  borderRadius: '50%',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+                  e.currentTarget.style.background = '#f8f9ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.background = '#fff';
+                }}
+              >
+                <img
+                  src="/close.png"
+                  alt="Close"
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    objectFit: 'contain',
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              </div>
+            </>
           )}
         </div>
         <div style={{
@@ -575,7 +619,7 @@ function MainLayout() {
           height: '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 1000
+          zIndex: 999
         }}>
           {/* Left Section */}
           <div style={{
@@ -584,20 +628,48 @@ function MainLayout() {
             gap: '12px',
             flex: '1'
           }}>
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: '16px',
-                width: 0,
-                height: 48,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#7B83EB'
-              }}
-            />
+            {collapsed && (
+              <div
+                onClick={() => setCollapsed(false)}
+                style={{
+                  position: 'fixed',
+                  left: '68px',
+                  top: '12px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  zIndex: 1001,
+                  background: '#fff',
+                  borderRadius: '50%',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+                  e.currentTarget.style.background = '#f8f9ff';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <img
+                  src="/open.png"
+                  alt="Open"
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    objectFit: 'contain',
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              </div>
+            )}
             <div style={{
               display: 'flex',
               alignItems: 'center',
