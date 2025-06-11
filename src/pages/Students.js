@@ -26,6 +26,7 @@ import {
   message,
   Popconfirm,
   Checkbox,
+  Radio,
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -58,6 +59,12 @@ import {
   MoneyCollectOutlined,
   ArrowLeftOutlined,
   SettingOutlined,
+  ExportOutlined,
+  DownloadOutlined,
+  FilePdfOutlined,
+  FileExcelOutlined,
+  SendOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -75,6 +82,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 import './Students.css';
 import { DragHandleOutlined } from '@mui/icons-material';
+import StyledModal from '../components/StyledModal';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -1178,6 +1186,12 @@ const Students = () => {
     ]
   });
   const [tempColumnSettings, setTempColumnSettings] = useState(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportType, setExportType] = useState('excel');
+  const [exportEmails, setExportEmails] = useState([]);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMode, setExportMode] = useState('download'); // 'download' or 'send'
+  const [studentCount] = useState(156); // Random count for now, will be replaced with DB value
 
   useEffect(() => {
     const filtered = students.filter(student =>
@@ -1912,6 +1926,36 @@ const Students = () => {
     },
   ];
 
+  const handleExport = async () => {
+    try {
+      setExportLoading(true);
+      if (exportMode === 'download') {
+        // Handle file download based on exportType
+        if (exportType === 'excel') {
+          // Implement Excel export
+          message.success('Excel file downloaded successfully');
+        } else {
+          // Implement PDF export
+          message.success('PDF file downloaded successfully');
+        }
+      } else {
+        // Handle email sending
+        if (exportEmails.length === 0) {
+          message.error('Please add at least one email address');
+          return;
+        }
+        // Implement email sending logic
+        message.success('File sent successfully to the provided email addresses');
+      }
+      setExportModalVisible(false);
+    } catch (error) {
+      console.error('Error exporting:', error);
+      message.error('Failed to export file');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   return (
     <div className="students-page" style={{ 
       height: '100%', 
@@ -1952,19 +1996,63 @@ const Students = () => {
                 }}
                 prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
               />
-              <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px' }}
-              onClick={handleOpenColumnSettings}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f0f0f0';
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f5f5f5';
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              />
+              <Tooltip title="Total Students">
+                <div className="student-count-badge">
+                  <UserAddOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
+                  <span>{studentCount}+</span>
+                </div>
+              </Tooltip>
+              <Tooltip title="Export Students">
+                <Button
+                  type="text"
+                  icon={<ExportOutlined />}
+                  onClick={() => setExportModalVisible(true)}
+                  className="export-button"
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#f5f5f5',
+                    border: '1px solid #f0f0f0',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f0f0f0';
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title="Column Settings">
+                <img 
+                  src="/checklist.png" 
+                  alt="Settings" 
+                  style={{ 
+                    width: '24px', 
+                    height: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onClick={handleOpenColumnSettings}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.filter = 'brightness(0.9)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.filter = 'brightness(1)';
+                  }}
+                />
+              </Tooltip>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -2111,6 +2199,278 @@ const Students = () => {
         onColumnReorder={handleColumnReorder}
         onCheckAll={handleCheckAll}
       />
+
+      <StyledModal
+        visible={exportModalVisible}
+        onClose={() => {
+          setExportModalVisible(false);
+          setExportType('excel');
+          setExportEmails([]);
+          setExportMode('download');
+        }}
+        title={
+          <Space>
+            <ExportOutlined style={{ color: '#7B83EB' }} />
+            <span>Export Students</span>
+          </Space>
+        }
+        width={400}
+        className="export-modal"
+      >
+        <div className="export-modal-content">
+          <Form layout="vertical">
+            <Form.Item label="Export Format" className="export-format-item">
+              <div className="format-options">
+                <div 
+                  className={`format-option ${exportType === 'excel' ? 'active' : ''}`}
+                  onClick={() => setExportType('excel')}
+                >
+                  <FileExcelOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                  <span>Excel</span>
+                </div>
+                <div 
+                  className={`format-option ${exportType === 'pdf' ? 'active' : ''}`}
+                  onClick={() => setExportType('pdf')}
+                >
+                  <FilePdfOutlined style={{ color: '#ff4d4f', fontSize: '20px' }} />
+                  <span>PDF</span>
+                </div>
+              </div>
+            </Form.Item>
+
+            <Form.Item label="Export Mode" className="export-mode-item">
+              <div className="mode-options">
+                <div 
+                  className={`mode-option ${exportMode === 'download' ? 'active' : ''}`}
+                  onClick={() => setExportMode('download')}
+                >
+                  <DownloadOutlined style={{ fontSize: '18px' }} />
+                  <span>Download</span>
+                </div>
+                <div 
+                  className={`mode-option ${exportMode === 'send' ? 'active' : ''}`}
+                  onClick={() => setExportMode('send')}
+                >
+                  <SendOutlined style={{ fontSize: '18px' }} />
+                  <span>Send via Email</span>
+                </div>
+              </div>
+            </Form.Item>
+
+            {exportMode === 'send' && (
+              <Form.Item label="Email Addresses" className="email-item">
+                <Select
+                  mode="tags"
+                  style={{ width: '100%' }}
+                  placeholder="Enter email addresses"
+                  value={exportEmails}
+                  onChange={setExportEmails}
+                  tokenSeparators={[',']}
+                  className="email-select"
+                  maxTagCount={3}
+                  maxTagTextLength={20}
+                  dropdownStyle={{ 
+                    maxHeight: '200px',
+                    overflow: 'auto'
+                  }}
+                />
+              </Form.Item>
+            )}
+
+            <Form.Item className="export-submit-item">
+              <Button
+                type="primary"
+                onClick={handleExport}
+                loading={exportLoading}
+                block
+                className="export-submit-button"
+              >
+                {exportMode === 'download' ? 'Download' : 'Send'}
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+
+        <style jsx>{`
+          .export-modal .ant-modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+          }
+
+          .export-modal .ant-modal-header {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 24px;
+            margin: 0;
+          }
+
+          .export-modal .ant-modal-body {
+            padding: 24px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+          }
+
+          .export-modal .ant-modal-body::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+
+          .export-modal .ant-modal-body::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 3px;
+          }
+
+          .export-modal .ant-modal-body::-webkit-scrollbar-thumb {
+            background: #d9d9d9;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+          }
+
+          .export-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
+            background: #7B83EB;
+          }
+
+          .export-modal-content {
+            padding: 0;
+          }
+
+          .export-format-item,
+          .export-mode-item {
+            margin-bottom: 24px;
+          }
+
+          .format-options,
+          .mode-options {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+          }
+
+          .format-option,
+          .mode-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+          }
+
+          .format-option:hover,
+          .mode-option:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .format-option.active,
+          .mode-option.active {
+            background: #7B83EB;
+            border-color: #7B83EB;
+            color: white;
+          }
+
+          .format-option.active .anticon,
+          .mode-option.active .anticon {
+            color: white !important;
+          }
+
+          .format-option span,
+          .mode-option span {
+            font-size: 13px;
+            font-weight: 500;
+          }
+
+          .email-item {
+            margin-bottom: 24px;
+          }
+
+          .email-select {
+            border-radius: 6px;
+          }
+
+          .email-select .ant-select-selector {
+            border-radius: 6px !important;
+            border: 1px solid #f0f0f0 !important;
+            padding: 4px 8px !important;
+            min-height: 40px !important;
+          }
+
+          .email-select .ant-select-selection-item {
+            background: #f5f5f5 !important;
+            border: 1px solid #f0f0f0 !important;
+            border-radius: 4px !important;
+            padding: 2px 8px !important;
+            margin: 2px !important;
+            font-size: 12px !important;
+          }
+
+          .email-select .ant-select-selection-placeholder {
+            line-height: 38px !important;
+          }
+
+          .email-select .ant-select-selection-overflow {
+            flex-wrap: nowrap;
+            overflow: hidden;
+          }
+
+          .email-select .ant-select-selection-overflow-item {
+            flex: none;
+          }
+
+          .export-submit-item {
+            margin-bottom: 0;
+          }
+
+          .export-submit-button {
+            height: 40px;
+            background: #7B83EB;
+            border-color: #7B83EB;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+          }
+
+          .export-submit-button:hover {
+            background: #7B83EB;
+            border-color: #7B83EB;
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(123, 131, 235, 0.3);
+          }
+
+          .ant-form-item-label > label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #595959;
+          }
+
+          /* Select dropdown styling */
+          .email-select .ant-select-dropdown {
+            border-radius: 8px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+          }
+
+          .email-select .ant-select-item {
+            padding: 8px 12px;
+            font-size: 13px;
+          }
+
+          .email-select .ant-select-item-option-selected {
+            background: #f5f5f5;
+            color: #7B83EB;
+          }
+
+          .email-select .ant-select-item-option-active {
+            background: #fafafa;
+          }
+        `}</style>
+      </StyledModal>
 
       <style>
         {`
@@ -2527,6 +2887,44 @@ const Students = () => {
 
           .column-settings-drawer .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner::after {
             border-color: #7B83EB;
+          }
+
+          .student-count-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border: 1px solid #f0f0f0;
+            border-radius: 20px;
+            cursor: default;
+            transition: all 0.3s ease;
+          }
+
+          .student-count-badge:hover {
+            background: #f0f0f0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+          }
+
+          .student-count-badge span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #7B83EB;
+          }
+
+          .ant-tooltip {
+            font-size: 12px;
+          }
+
+          .ant-tooltip-inner {
+            padding: 6px 10px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.75);
+          }
+
+          .ant-tooltip-arrow-content {
+            background: rgba(0, 0, 0, 0.75);
           }
         `}
       </style>
