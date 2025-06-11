@@ -1971,104 +1971,91 @@ const Students = () => {
     }}>
       {!modalVisible ? (
         <>
-          <div className="students-header" style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '16px 24px',
-            borderBottom: '1px solid #f0f0f0',
-            background: '#ffffff'
-          }}>
-            <Title level={3} className="page-title">
-              <img src="/students.png" alt="Students" style={{ width: '40px', height: '40px' }} />
-              Students
-            </Title>
-            <Space size="small">
-              <Input.Search
-                placeholder="Search students..."
-                allowClear
-                onSearch={handleSearch}
-                style={{ 
-                  width: 250,
-                  borderRadius: '6px',
-                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                  border: '1px solid rgba(159, 179, 223, 0.3)'
-                }}
-                prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
-              />
-              <Tooltip title="Total Students">
-                <div className="student-count-badge">
-                  <UserAddOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
-                  <span>{studentCount}+</span>
-                </div>
-              </Tooltip>
-              <Tooltip title="Export Students">
-                <Button
-                  type="text"
-                  icon={<ExportOutlined />}
-                  onClick={() => setExportModalVisible(true)}
-                  className="export-button"
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#f5f5f5',
-                    border: '1px solid #f0f0f0',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f0f0f0';
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#f5f5f5';
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                />
-              </Tooltip>
-              <Tooltip title="Column Settings">
-                <img 
-                  src="/checklist.png" 
-                  alt="Settings" 
-                  style={{ 
-                    width: '24px', 
-                    height: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={handleOpenColumnSettings}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.filter = 'brightness(0.9)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.filter = 'brightness(1)';
-                  }}
-                />
-              </Tooltip>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-                className="add-student-btn"
-              >
-                Add Student
-              </Button>
-            </Space>
-          </div>
+ 
 
           <div style={{ 
-            flex: 1, 
-            overflow: 'hidden',
-            padding: '0 16px 16px 16px'
+            padding: '24px',
+            background: '#fff'
           }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <Space size="small">
+                <Input.Search
+                  placeholder="Search students..."
+                  allowClear
+                  onSearch={handleSearch}
+                  style={{ 
+                    width: 250,
+                    borderRadius: '6px',
+                    boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                    border: '1px solid rgba(159, 179, 223, 0.3)'
+                  }}
+                  prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+                />
+                <Tooltip title="Total Students">
+                  <div className="student-count-badge">
+                    <UserAddOutlined style={{ fontSize: '16px', color: '#7B83EB' }} />
+                    <span>{studentCount}+</span>
+                  </div>
+                </Tooltip>
+                <Tooltip title="Export Students">
+                  <Button
+                    type="text"
+                    icon={<ExportOutlined />}
+                    onClick={() => setExportModalVisible(true)}
+                    className="export-button"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f5f5f5',
+                      border: '1px solid #f0f0f0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f0f0f0';
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f5f5f5';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip title="Column Settings">
+                  <img 
+                    src="/checklist.png" 
+                    alt="Settings" 
+                    style={{ 
+                      width: '24px', 
+                      height: '24px',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onClick={handleOpenColumnSettings}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                      e.currentTarget.style.filter = 'brightness(0.9)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.filter = 'brightness(1)';
+                    }}
+                  />
+                </Tooltip>
+              </Space>
+            </div>
+
             <Table
               columns={getVisibleColumns()}
               dataSource={filteredStudents}

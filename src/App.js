@@ -28,7 +28,8 @@ import {
   FileAddOutlined,
   NotificationOutlined,
   FormatPainterOutlined,
-  LockOutlined
+  LockOutlined,
+  UploadOutlined
 } from '@ant-design/icons';
 import './App.css';
 import GlobalSearch from './components/GlobalSearch';
@@ -97,6 +98,9 @@ function MainLayout() {
   const [themeVisible, setThemeVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [quickActionsVisible, setQuickActionsVisible] = useState(false);
+
+  // Add this to check if we're on the Students page
+  const isStudentsPage = location.pathname === '/students';
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -611,15 +615,17 @@ function MainLayout() {
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
-          background: '#fff',
+          background: isStudentsPage ? '#f5f5f5' : '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
+          boxShadow: isStudentsPage ? 'none' : '0 1px 4px rgba(0, 21, 41, 0.08)',
           height: '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 999
+          zIndex: 999,
+          borderBottom: isStudentsPage ? '1px solid #e0e0e0' : 'none',
+          margin: 0
         }}>
           {/* Left Section */}
           <div style={{
@@ -676,21 +682,27 @@ function MainLayout() {
               gap: '12px',
               minWidth: '200px'
             }}>
-              <Title level={5} style={{ margin: 0, color: '#7B83EB' }}>
-                Usha Vidyalayam
+              <Title level={5} style={{ 
+                margin: 0, 
+                color: isStudentsPage ? '#1f1f1f' : '#7B83EB',
+                fontWeight: isStudentsPage ? 500 : 400
+              }}>
+                {isStudentsPage ? 'Students' : 'Usha Vidyalayam'}
               </Title>
             </div>
           </div>
 
           {/* Center Section - Search */}
-          <div style={{
-            flex: '2',
-            maxWidth: '300px',
-            margin: '0 24px',
-            marginTop: '40px'
-          }}>
-            <GlobalSearch />
-          </div>
+          {!isStudentsPage && (
+            <div style={{
+              flex: '2',
+              maxWidth: '300px',
+              margin: '0 24px',
+              marginTop: '40px'
+            }}>
+              <GlobalSearch />
+            </div>
+          )}
 
           {/* Right Section */}
           <div style={{
@@ -701,74 +713,127 @@ function MainLayout() {
             justifyContent: 'flex-end'
           }}>
             <Space>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setQuickActionsVisible(true)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  background: '#7B83EB',
-                  borderColor: '#7B83EB',
-                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                  e.currentTarget.style.background = '#8ba1d1';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                  e.currentTarget.style.background = '#7B83EB';
-                }}
-                size="small"
-              >
-                Quick Actions
-              </Button>
-
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <Space style={{
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  transition: 'background-color 0.3s',
-                  ':hover': {
-                    backgroundColor: '#f5f5f5'
-                  }
-                }}>
-                  <Avatar
-                    icon={<UserOutlined />}
+              {isStudentsPage ? (
+                <>
+                  <Button
+                    type="default"
+                    icon={<UploadOutlined />}
+                    onClick={() => {/* Handle upload */}}
                     style={{
-                      backgroundColor: '#7B83EB',
-                      width: 32,
-                      height: 32,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.2)'
+                      gap: '8px',
+                      background: '#fff',
+                      border: '1px solid #e0e0e0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
                     }}
-                  />
-                  <span style={{
-                    color: '#1f1f1f',
-                    fontWeight: 500
-                  }}>
-                    Admin
-                  </span>
-                </Space>
-              </Dropdown>
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                    }}
+                  >
+                    Upload Students
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate('/students')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#7B83EB',
+                      borderColor: '#7B83EB',
+                      boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(123, 131, 235, 0.2)';
+                    }}
+                  >
+                    Create Student
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setQuickActionsVisible(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '2px',
+                      background: '#7B83EB',
+                      borderColor: '#7B83EB',
+                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                      e.currentTarget.style.background = '#8ba1d1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                      e.currentTarget.style.background = '#7B83EB';
+                    }}
+                    size="small"
+                  >
+                    Quick Actions
+                  </Button>
+
+                  <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                    <Space style={{
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      transition: 'background-color 0.3s',
+                      ':hover': {
+                        backgroundColor: '#f5f5f5'
+                      }
+                    }}>
+                      <Avatar
+                        icon={<UserOutlined />}
+                        style={{
+                          backgroundColor: '#7B83EB',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.2)'
+                        }}
+                      />
+                      <span style={{
+                        color: '#1f1f1f',
+                        fontWeight: 500
+                      }}>
+                        Admin
+                      </span>
+                    </Space>
+                  </Dropdown>
+                </>
+              )}
             </Space>
           </div>
         </Header>
         <Content style={{
-          margin: '16px',
-          padding: '16px',
+          margin: 0,
+          padding: 0,
           background: '#fff',
-          borderRadius: '4px',
-          boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
-          minHeight: 'calc(100vh - 96px)'
+          minHeight: 'calc(100vh - 64px)'
         }}>
           <Routes>
             <Route path="/" element={
