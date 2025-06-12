@@ -194,10 +194,11 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
               setPreviewImage(null);
               onCancel();
             }}
+            className="back-button"
           />
-          <IdcardOutlined className="header-icon" style={{ color: '#7B83EB' }} />
-          <Typography.Title level={4} className="header-title" style={{ color: '#7B83EB', margin: 0 }}>
-            {initialValues ? 'Edit Student' : 'Add New Student'}
+          <Typography.Title level={4} className="header-title" style={{ margin: 0 }}>
+            <span style={{ color: '#1f1f1f' }}>{initialValues ? 'Edit ' : 'Add New '}</span>
+            <span style={{ color: '#f54278' }}>Student</span>
           </Typography.Title>
         </Space>
         <Button 
@@ -825,12 +826,33 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
           margin: 0 !important;
         }
 
+        .back-button {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f5f5f5;
+          border: none;
+          transition: all 0.3s;
+        }
+
+        .back-button:hover {
+          background: #e8e8e8;
+        }
+
         .submit-button {
-          background: #7B83EB;
+          background: #f54278;
           border: none;
           height: 40px;
           padding: 0 24px;
           border-radius: 6px;
+          transition: all 0.3s;
+        }
+
+        .submit-button:hover {
+          background: #e03a6a;
         }
 
         .student-form-content {
