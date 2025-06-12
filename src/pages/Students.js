@@ -206,18 +206,22 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             }} 
           />
           <Typography.Title level={4} className="header-title" style={{ margin: 0 }}>
-            <span style={{ color: '#1f1f1f' }}>{initialValues ? 'Edit ' : 'Add New '}</span>
+            <span style={{ color: '#1f1f1f' }}>
+              {initialValues?.isViewMode ? 'View ' : initialValues ? 'Edit ' : 'Add New '}
+            </span>
             <span style={{ color: '#f54278' }}>Student</span>
           </Typography.Title>
         </Space>
-        <Button 
-          type="primary" 
-          onClick={handleSubmit}
-          loading={loading}
-          className="submit-button"
-        >
-          {initialValues ? 'Update Student' : 'Add Student'}
-        </Button>
+        {!initialValues?.isViewMode && (
+          <Button 
+            type="primary" 
+            onClick={handleSubmit}
+            loading={loading}
+            className="submit-button"
+          >
+            {initialValues ? 'Update Student' : 'Add Student'}
+          </Button>
+        )}
       </div>
 
       <div className="student-form-content">
@@ -227,6 +231,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             form={form}
             layout="vertical"
             className="student-form"
+            disabled={initialValues?.isViewMode}
           >
             <Row gutter={24}>
               <Col span={16}>
@@ -1229,16 +1234,21 @@ const Students = forwardRef((props, ref) => {
 
   // Handle route changes
   useEffect(() => {
-    if (location.pathname.includes('/students/add')) {
-      setEditingStudent(null);
+    const path = location.pathname;
+    const id = path.split('/').pop();
+    
+    if (path === '/students/add') {
       setModalVisible(true);
-    } else if (location.pathname.includes('/students/edit/') && id) {
+      setEditingStudent(null);
+    } else if (path.includes('/students/edit/') && id) {
       loadStudentForEdit(id);
+    } else if (path.includes('/students/view/') && id) {
+      loadStudentForView(id);
     } else {
       setModalVisible(false);
       setEditingStudent(null);
     }
-  }, [location.pathname, id]);
+  }, [location.pathname]);
 
   const loadStudentForEdit = async (studentId) => {
     try {
@@ -1281,6 +1291,64 @@ const Students = forwardRef((props, ref) => {
         setEditingStudent({
           ...formValues,
           id: studentId
+        });
+        setModalVisible(true);
+      } else {
+        message.error('Failed to load student data');
+        navigate('/students');
+      }
+    } catch (error) {
+      console.error('Error loading student:', error);
+      message.error(error.message || 'Failed to load student data');
+      navigate('/students');
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const loadStudentForView = async (studentId) => {
+    try {
+      setTableLoading(true);
+      const response = await api.student.getStudent(studentId);
+      if (response.success) {
+        const studentData = response.data;
+        const formValues = {
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          email: studentData.email,
+          phone: studentData.phone,
+          gender: studentData.gender,
+          dob: studentData.dob ? moment(studentData.dob) : null,
+          blood_group: studentData.profile?.blood_group,
+          profile: {
+            nationality: studentData.profile?.nationality,
+            classroom_id: studentData.student_profile?.classroom,
+            class_name: studentData.profile?.class_name
+          },
+          student_id: studentData.student_profile?.student_id,
+          admission_number: studentData.student_profile?.admission_number,
+          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
+          last_grade_attended: studentData.student_profile?.last_grade_attended,
+          roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
+          father_name: studentData.student_profile?.father_name,
+          father_occupation: studentData.student_profile?.father_occupation,
+          mother_name: studentData.student_profile?.mother_name,
+          mother_occupation: studentData.student_profile?.mother_occupation,
+          parent_address: studentData.student_profile?.parent_address,
+          parent_email: studentData.student_profile?.parent_email,
+          parent_phone: studentData.student_profile?.parent_phone,
+          allergies: studentData.student_profile?.allergies,
+          remarks: studentData.student_profile?.remarks,
+          fee_details: studentData.student_profile?.fee_details || [],
+          photo: studentData.profile?.photo,
+          status: studentData.status
+        };
+        
+        setEditingStudent({
+          ...formValues,
+          id: studentId,
+          isViewMode: true
         });
         setModalVisible(true);
       } else {
@@ -1701,8 +1769,7 @@ const Students = forwardRef((props, ref) => {
   };
 
   const handleViewDetails = (student) => {
-    setSelectedStudentDetails(student);
-    setDetailsDrawerVisible(true);
+    navigate(`/students/view/${student.user_id}`);
   };
 
   const handleBulkDelete = async () => {
@@ -1824,31 +1891,24 @@ const Students = forwardRef((props, ref) => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: true,
       render: (text, record) => (
-        <Button 
-          type="link" 
-          onClick={() => handleViewDetails(record)}
-          style={{ 
-            padding: 0, 
-            height: 'auto',
-            fontSize: '15px',
-            fontWeight: 500,
-            color: '#595959',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = '#8c8c8c';
-            e.currentTarget.style.transform = 'translateX(5px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#595959';
-            e.currentTarget.style.transform = 'translateX(0)';
-          }}
-        >
-          {text}
-        </Button>
+        <Space>
+          <Avatar 
+            src={record.profile?.photo} 
+            style={{ 
+              backgroundColor: record.profile?.photo ? 'transparent' : '#1890ff',
+              color: '#fff'
+            }}
+          >
+            {!record.profile?.photo && text.charAt(0).toUpperCase()}
+          </Avatar>
+          <a onClick={() => handleViewDetails(record)}>{text}</a>
+        </Space>
       ),
+      width: 200,
+      fixed: 'left',
+      showSorterTooltip: false,
     },
     {
       title: 'Roll No',
@@ -2044,7 +2104,15 @@ const Students = forwardRef((props, ref) => {
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
     }} data-form-visible={modalVisible}>
-      {!modalVisible ? (
+      {modalVisible ? (
+        <StudentForm
+          visible={modalVisible}
+          onCancel={handleCancel}
+          onSubmit={handleSubmit}
+          initialValues={editingStudent}
+          loading={formSubmitting}
+        />
+      ) : (
         <>
           <div style={{ 
             padding: '24px 24px 0 24px',
@@ -2172,14 +2240,6 @@ const Students = forwardRef((props, ref) => {
             </div>
           </div>
         </>
-      ) : (
-        <StudentForm
-          visible={modalVisible}
-          onCancel={handleCancel}
-          onSubmit={handleSubmit}
-          initialValues={editingStudent}
-          loading={formSubmitting}
-        />
       )}
 
       {selectedRowKeys.length > 0 && (

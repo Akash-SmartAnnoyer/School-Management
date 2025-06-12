@@ -125,9 +125,13 @@ function MainLayout() {
             const isVisible = studentsElement.getAttribute('data-form-visible') === 'true';
             setIsStudentFormVisible(isVisible);
             // Update URL when form visibility changes
-            if (isVisible && !location.pathname.includes('/students/add') && !location.pathname.includes('/students/edit/')) {
+            if (isVisible && !location.pathname.includes('/students/add') && 
+                !location.pathname.includes('/students/edit/') && 
+                !location.pathname.includes('/students/view/')) {
               navigate('/students/add');
-            } else if (!isVisible && (location.pathname.includes('/students/add') || location.pathname.includes('/students/edit/'))) {
+            } else if (!isVisible && (location.pathname.includes('/students/add') || 
+                location.pathname.includes('/students/edit/') || 
+                location.pathname.includes('/students/view/'))) {
               navigate('/students');
             }
           }
@@ -1074,6 +1078,11 @@ function MainLayout() {
               </ProtectedRoute>
             } />
             <Route path="/students/edit/:id" element={
+              <ProtectedRoute>
+                <Students ref={studentsRef} />
+              </ProtectedRoute>
+            } />
+            <Route path="/students/view/:id" element={
               <ProtectedRoute>
                 <Students ref={studentsRef} />
               </ProtectedRoute>
