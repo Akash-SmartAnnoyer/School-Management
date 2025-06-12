@@ -108,9 +108,11 @@ function MainLayout() {
 
   useEffect(() => {
     const path = location.pathname;
-    setIsStudentsPage(path === '/students');
+    setIsStudentsPage(path.startsWith('/students'));
     setIsTeachersPage(path === '/teachers');
     setIsClassesPage(path === '/classes');
+    // Reset form visibility when path changes
+    setIsStudentFormVisible(path.includes('/students/add') || path.includes('/students/edit/'));
   }, [location]);
 
   // Listen for student form visibility changes
@@ -120,7 +122,14 @@ function MainLayout() {
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'attributes' && mutation.attributeName === 'data-form-visible') {
-            setIsStudentFormVisible(studentsElement.getAttribute('data-form-visible') === 'true');
+            const isVisible = studentsElement.getAttribute('data-form-visible') === 'true';
+            setIsStudentFormVisible(isVisible);
+            // Update URL when form visibility changes
+            if (isVisible && !location.pathname.includes('/students/add') && !location.pathname.includes('/students/edit/')) {
+              navigate('/students/add');
+            } else if (!isVisible && (location.pathname.includes('/students/add') || location.pathname.includes('/students/edit/'))) {
+              navigate('/students');
+            }
           }
         });
       });
@@ -128,7 +137,7 @@ function MainLayout() {
       observer.observe(studentsElement, { attributes: true });
       return () => observer.disconnect();
     }
-  }, [isStudentsPage]); // Only re-run when we're on the students page
+  }, [isStudentsPage, location, navigate]);
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -1047,12 +1056,7 @@ function MainLayout() {
             </Space>
           </div>
         </Header>
-        <Content style={{
-          margin: 0,
-          padding: 0,
-          background: '#fff',
-          minHeight: 'calc(100vh - 64px)'
-        }}>
+        <Content style={{ margin: '0 16px', overflow: 'initial' }}>
           <Routes>
             <Route path="/" element={
               <ProtectedRoute>
@@ -1060,6 +1064,16 @@ function MainLayout() {
               </ProtectedRoute>
             } />
             <Route path="/students" element={
+              <ProtectedRoute>
+                <Students ref={studentsRef} />
+              </ProtectedRoute>
+            } />
+            <Route path="/students/add" element={
+              <ProtectedRoute>
+                <Students ref={studentsRef} />
+              </ProtectedRoute>
+            } />
+            <Route path="/students/edit/:id" element={
               <ProtectedRoute>
                 <Students ref={studentsRef} />
               </ProtectedRoute>

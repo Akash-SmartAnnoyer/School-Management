@@ -73,7 +73,7 @@ import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
 import { MessageContext } from '../App';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 import api from '../services/api';
 import { useStudents } from '../contexts/StudentsContext';
@@ -1175,6 +1175,9 @@ const ColumnSettingsDrawer = ({
 };
 
 const Students = forwardRef((props, ref) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
   const { 
     students, 
     loading, 
@@ -1224,32 +1227,23 @@ const Students = forwardRef((props, ref) => {
   const [exportMode, setExportMode] = useState('download');
   const [studentCount] = useState(156);
 
-  // Expose handleAdd function through ref
-  useImperativeHandle(ref, () => ({
-    handleAdd: () => {
+  // Handle route changes
+  useEffect(() => {
+    if (location.pathname.includes('/students/add')) {
       setEditingStudent(null);
       setModalVisible(true);
+    } else if (location.pathname.includes('/students/edit/') && id) {
+      loadStudentForEdit(id);
+    } else {
+      setModalVisible(false);
+      setEditingStudent(null);
     }
-  }));
+  }, [location.pathname, id]);
 
-  useEffect(() => {
-    const filtered = students.filter(student =>
-      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchText.toLowerCase())
-    );
-    setFilteredStudents(filtered);
-  }, [students, searchText]);
-
-  const handleAdd = () => {
-    setEditingStudent(null);
-    setModalVisible(true);
-  };
-
-  const handleEdit = async (student) => {
+  const loadStudentForEdit = async (studentId) => {
     try {
       setTableLoading(true);
-      const response = await api.student.getStudent(student.user_id);
+      const response = await api.student.getStudent(studentId);
       if (response.data) {
         const studentData = response.data;
         const formValues = {
@@ -1286,18 +1280,51 @@ const Students = forwardRef((props, ref) => {
         
         setEditingStudent({
           ...formValues,
-          id: student.user_id
+          id: studentId
         });
         setModalVisible(true);
       } else {
         message.error('Failed to load student data');
+        navigate('/students');
       }
     } catch (error) {
       console.error('Error loading student:', error);
       message.error(error.message || 'Failed to load student data');
+      navigate('/students');
     } finally {
       setTableLoading(false);
     }
+  };
+
+  // Expose handleAdd function through ref
+  useImperativeHandle(ref, () => ({
+    handleAdd: () => {
+      navigate('/students/add');
+    }
+  }));
+
+  useEffect(() => {
+    const filtered = students.filter(student =>
+      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.roll_no.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredStudents(filtered);
+  }, [students, searchText]);
+
+  const handleAdd = () => {
+    setEditingStudent(null);
+    setModalVisible(true);
+  };
+
+  const handleEdit = async (student) => {
+    navigate(`/students/edit/${student.user_id}`);
+  };
+
+  const handleCancel = () => {
+    setModalVisible(false);
+    setEditingStudent(null);
+    navigate('/students');
   };
 
   const handleDelete = async (studentId) => {
@@ -2148,10 +2175,7 @@ const Students = forwardRef((props, ref) => {
       ) : (
         <StudentForm
           visible={modalVisible}
-          onCancel={() => {
-            setModalVisible(false);
-            setEditingStudent(null);
-          }}
+          onCancel={handleCancel}
           onSubmit={handleSubmit}
           initialValues={editingStudent}
           loading={formSubmitting}
