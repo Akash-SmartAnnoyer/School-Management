@@ -196,6 +196,15 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             }}
             className="back-button"
           />
+          <img 
+            src="/students.png" 
+            alt="Students" 
+            style={{ 
+              width: '24px', 
+              height: '24px',
+              objectFit: 'contain'
+            }} 
+          />
           <Typography.Title level={4} className="header-title" style={{ margin: 0 }}>
             <span style={{ color: '#1f1f1f' }}>{initialValues ? 'Edit ' : 'Add New '}</span>
             <span style={{ color: '#f54278' }}>Student</span>
