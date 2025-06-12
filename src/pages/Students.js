@@ -1986,6 +1986,16 @@ const Students = forwardRef((props, ref) => {
     }
   };
 
+  // Update form visibility state
+  useEffect(() => {
+    if (ref && ref.current) {
+      const element = document.querySelector('[data-form-visible]');
+      if (element) {
+        element.setAttribute('data-form-visible', modalVisible);
+      }
+    }
+  }, [modalVisible, ref]);
+
   return (
     <div className="students-page" style={{ 
       height: '100%', 
@@ -1997,7 +2007,7 @@ const Students = forwardRef((props, ref) => {
       background: '#ffffff',
       boxShadow: '0 4px 20px rgba(159, 179, 223, 0.15)',
       border: '1px solid rgba(159, 179, 223, 0.2)'
-    }}>
+    }} data-form-visible={modalVisible}>
       {!modalVisible ? (
         <>
           <div style={{ 

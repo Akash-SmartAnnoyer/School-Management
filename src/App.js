@@ -97,15 +97,38 @@ function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
-  const [quickActionsVisible, setQuickActionsVisible] = useState(false);
-  const studentsRef = useRef(null);
+  const [quickActionsModalVisible, setQuickActionsModalVisible] = useState(false);
+  const [isStudentsPage, setIsStudentsPage] = useState(false);
+  const [isTeachersPage, setIsTeachersPage] = useState(false);
+  const [isClassesPage, setIsClassesPage] = useState(false);
+  const [isStudentFormVisible, setIsStudentFormVisible] = useState(false);
+  const studentsRef = useRef();
   const teachersRef = useRef(null);
   const classesRef = useRef(null);
 
-  // Add this to check if we're on specific pages
-  const isStudentsPage = location.pathname === '/students';
-  const isTeachersPage = location.pathname === '/teachers';
-  const isClassesPage = location.pathname === '/classes';
+  useEffect(() => {
+    const path = location.pathname;
+    setIsStudentsPage(path === '/students');
+    setIsTeachersPage(path === '/teachers');
+    setIsClassesPage(path === '/classes');
+  }, [location]);
+
+  // Listen for student form visibility changes
+  useEffect(() => {
+    const studentsElement = document.querySelector('.students-page');
+    if (studentsElement) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'data-form-visible') {
+            setIsStudentFormVisible(studentsElement.getAttribute('data-form-visible') === 'true');
+          }
+        });
+      });
+
+      observer.observe(studentsElement, { attributes: true });
+      return () => observer.disconnect();
+    }
+  }, [isStudentsPage]); // Only re-run when we're on the students page
 
   // Add useEffect to load saved theme colors
   useEffect(() => {
@@ -359,14 +382,8 @@ function MainLayout() {
   };
 
   const handleCreateStudent = () => {
-    if (isStudentsPage) {
-      // If we're on the students page, trigger the add student form
-      if (studentsRef.current) {
-        studentsRef.current.handleAdd();
-      }
-    } else {
-      // If we're not on the students page, navigate there first
-      navigate('/students');
+    if (studentsRef.current) {
+      studentsRef.current.handleAdd();
     }
   };
 
@@ -666,7 +683,8 @@ function MainLayout() {
           top: 0,
           zIndex: 999,
           borderBottom: (isStudentsPage || isTeachersPage || isClassesPage) ? '1px solid #e0e0e0' : 'none',
-          margin: 0
+          margin: 0,
+          display: isStudentFormVisible ? 'none' : 'flex'
         }}>
           {/* Left Section */}
           <div style={{
@@ -969,7 +987,7 @@ function MainLayout() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={() => setQuickActionsVisible(true)}
+                    onClick={() => setQuickActionsModalVisible(true)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -1124,8 +1142,8 @@ function MainLayout() {
         onClose={() => setSearchModalVisible(false)} 
       />
       <QuickActionsModal
-        visible={quickActionsVisible}
-        onClose={() => setQuickActionsVisible(false)}
+        visible={quickActionsModalVisible}
+        onClose={() => setQuickActionsModalVisible(false)}
         onActionClick={handleQuickActionClick}
       />
     </Layout>
