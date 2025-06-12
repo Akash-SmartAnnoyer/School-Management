@@ -1893,18 +1893,7 @@ const Students = forwardRef((props, ref) => {
       key: 'name',
       sorter: true,
       render: (text, record) => (
-        <Space>
-          <Avatar 
-            src={record.profile?.photo} 
-            style={{ 
-              backgroundColor: record.profile?.photo ? 'transparent' : '#1890ff',
-              color: '#fff'
-            }}
-          >
-            {!record.profile?.photo && text.charAt(0).toUpperCase()}
-          </Avatar>
-          <a onClick={() => handleViewDetails(record)}>{text}</a>
-        </Space>
+        <a onClick={() => handleViewDetails(record)}>{text}</a>
       ),
       width: 200,
       fixed: 'left',
