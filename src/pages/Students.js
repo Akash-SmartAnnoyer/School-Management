@@ -70,6 +70,7 @@ import {
   PrinterOutlined,
   MoreOutlined,
   EnvironmentOutlined,
+  GlobalOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -247,7 +248,7 @@ const StudentView = ({ visible, onCancel, student }) => {
           display: 'flex', 
           alignItems: 'center', 
           gap: '8px', 
-          marginLeft: '56px',
+          marginLeft: '0',
           textAlign: 'left',
           width: '100%',
           justifyContent: 'space-between'
@@ -269,7 +270,7 @@ const StudentView = ({ visible, onCancel, student }) => {
             </Typography.Text>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <MailOutlined style={{ color: '#666' }} />
               <Typography.Text style={{ fontSize: '14px' }}>
@@ -292,546 +293,125 @@ const StudentView = ({ visible, onCancel, student }) => {
         </div>
       </div>
 
-      <div className="student-view-content">
-        <div className="student-header">
-          <div className="student-avatar-container">
-            <Avatar 
-              size={120} 
-              src={student.photo} 
-              icon={!student.photo && (student.gender === 'M' ? 
-                <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
-                <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-              className="student-avatar"
-            />
-            <div className="student-basic-info">
-              <div className="info-row">
-                <div className="info-label">Student ID</div>
-                <div className="info-value">{student.student_id}</div>
-              </div>
-              <div className="info-row">
-                <div className="info-label">Class</div>
-                <div className="info-value">{student.profile?.class_name}</div>
-              </div>
-              <div className="info-row">
-                <div className="info-label">Status</div>
-                <div className="info-value">
-                  <StatusBadge type="status" value={student.status} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="student-info">
-            <Title level={3} className="student-name">
-              {student.first_name} {student.last_name}
-            </Title>
-            <div className="student-meta">
-              <div className="meta-item">
-                <MailOutlined className="meta-icon" />
-                <span>{student.email || 'No email'}</span>
-              </div>
-              <div className="meta-item">
-                <PhoneOutlined className="meta-icon" />
-                <span>{student.phone || 'No phone'}</span>
-              </div>
-              <div className="meta-item">
-                <CalendarOutlined className="meta-icon" />
-                <span>{student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'No DOB'}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Tabs 
+      <div style={{ 
+        padding: '16px 24px',
+        borderBottom: '1px solid #f0f0f0'
+      }}>
+        <Tabs
           defaultActiveKey="details"
-          className="student-tabs"
-          tabBarStyle={{ marginBottom: 16 }}
-        >
-          <TabPane
-            tab={<span><InfoCircleOutlined /> Details</span>} 
-            key="details"
-          >
-            <div className="tab-content">
-              <Row gutter={[16, 16]}>
-                <Col xs={24} lg={16}>
-                  <Card 
-                    className="info-card"
-                    title={
-                      <Space>
-                        <UserOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                        <span style={{ color: '#7B83EB' }}>Basic Information</span>
-                      </Space>
-                    }
-                    bordered={false}
-                  >
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('First Name', student.first_name, <UserOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Last Name', student.last_name, <UserOutlined />)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Email', student.email, <MailOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Phone', student.phone, <PhoneOutlined />)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : student.gender === 'F' ? 'Female' : 'Other')}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A')}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Class', student.profile?.class_name)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Nationality', student.profile?.nationality)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Blood Group', student.blood_group)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Status', <StatusBadge type="status" value={student.status} />)}
-                      </Col>
-                    </Row>
-                  </Card>
+          items={[
+            {
+              key: 'details',
+              label: <span style={{ fontWeight: 'bold' }}>Details</span>,
+              children: (
+                <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <Card title="Basic Information" bordered={false}>
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          {renderDetailItem('First Name', student.first_name, <UserOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Last Name', student.last_name, <UserOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
+                        </Col>
+                      </Row>
+                    </Card>
 
-                  <Card 
-                    className="info-card"
-                    title={
-                      <Space>
-                        <BookOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                        <span style={{ color: '#7B83EB' }}>Academic Information</span>
-                      </Space>
-                    }
-                    bordered={false}
-                  >
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Student ID', student.student_id, <IdcardOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Admission Number', student.admission_number, <IdcardOutlined />)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A')}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Last Grade Attended', student.last_grade_attended)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Roll Number', student.roll_no)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Section', student.section)}
-                      </Col>
-                    </Row>
-                  </Card>
+                    <Card title="Contact Information" bordered={false} style={{ marginTop: '16px' }}>
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          {renderDetailItem('Email', student.email, <MailOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Phone', student.phone, <PhoneOutlined />)}
+                        </Col>
+                        <Col span={24}>
+                          {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />)}
+                        </Col>
+                      </Row>
+                    </Card>
+                  </div>
 
-                  <Card 
-                    className="info-card"
-                    title={
-                      <Space>
-                        <HomeOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                        <span style={{ color: '#7B83EB' }}>Parent Information</span>
-                      </Space>
-                    }
-                    bordered={false}
-                  >
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Father\'s Name', student.father_name, <UserOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Father\'s Occupation', student.father_occupation)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Mother\'s Name', student.mother_name, <UserOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Mother\'s Occupation', student.mother_occupation)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={24}>
-                        {renderDetailItem('Parent\'s Address', student.parent_address, <HomeOutlined />)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        {renderDetailItem('Parent\'s Email', student.parent_email, <MailOutlined />)}
-                      </Col>
-                      <Col span={12}>
-                        {renderDetailItem('Parent\'s Phone', student.parent_phone, <PhoneOutlined />)}
-                      </Col>
-                    </Row>
-                  </Card>
-
-                  <Card 
-                    className="info-card"
-                    title={
-                      <Space>
-                        <InfoCircleOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                        <span style={{ color: '#7B83EB' }}>Additional Information</span>
-                      </Space>
-                    }
-                    bordered={false}
-                  >
-                    <Row gutter={[16, 16]}>
-                      <Col span={24}>
-                        {renderDetailItem('Allergies', student.allergies || 'None', <HeartOutlined />)}
-                      </Col>
-                    </Row>
-                    <Row gutter={[16, 16]}>
-                      <Col span={24}>
-                        {renderDetailItem('Remarks', student.remarks || 'No remarks', <InfoCircleOutlined />)}
-                      </Col>
-                    </Row>
-                  </Card>
-                </Col>
-
-                <Col xs={24} lg={8}>
-                  <Card 
-                    className="info-card"
-                    title={
-                      <Space>
-                        <MoneyCollectOutlined className="card-icon" style={{ color: '#7B83EB' }} />
-                        <span style={{ color: '#7B83EB' }}>Fee Details</span>
-                      </Space>
-                    }
-                    bordered={false}
-                  >
-                    {student.fee_details && student.fee_details.length > 0 ? (
-                      student.fee_details.map((fee, index) => (
-                        <Card 
-                          key={index} 
-                          className="fee-card"
-                          size="small"
-                          title={fee.fee_type}
-                        >
-                          <Row gutter={[16, 16]}>
-                            <Col span={12}>
-                              {renderDetailItem('Total Amount', `₹${fee.amount}`)}
-                            </Col>
-                            <Col span={12}>
-                              {renderDetailItem('Fee Period', fee.period)}
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]}>
-                            <Col span={12}>
-                              {renderDetailItem('Number of Terms', fee.terms)}
-                            </Col>
-                            <Col span={12}>
-                              {renderDetailItem('Amount per Term', `₹${fee.amount_per_term}`)}
-                            </Col>
-                          </Row>
-                          <Row gutter={[16, 16]}>
-                            <Col span={12}>
-                              {renderDetailItem('Fee Status', <StatusBadge type="fee" value={fee.status} />)}
-                            </Col>
-                            {fee.status === 'Partial' && (
-                              <Col span={12}>
-                                {renderDetailItem('Due Amount', `₹${fee.due_amount}`)}
-                              </Col>
-                            )}
-                          </Row>
-                          {fee.remarks && (
-                            <Row gutter={[16, 16]}>
-                              <Col span={24}>
-                                {renderDetailItem('Remarks', fee.remarks)}
-                              </Col>
-                            </Row>
+                  <div style={{ width: '300px' }}>
+                    <Card bordered={false}>
+                      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                        <Avatar 
+                          size={120}
+                          src={student.photo}
+                          icon={!student.photo && (student.gender === 'M' ? 
+                            <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                            <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           )}
-                        </Card>
-                      ))
-                    ) : (
-                      <Empty description="No fee details available" />
-                    )}
-                  </Card>
-                </Col>
-              </Row>
-            </div>
-          </TabPane>
-          <TabPane 
-            tab={<span><CalendarOutlined /> Attendance</span>} 
-            key="attendance"
-          >
-            <div className="coming-soon-container">
-              <Empty 
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="Attendance information coming soon" 
-              />
-            </div>
-          </TabPane>
-          <TabPane 
-            tab={<span><BookOutlined /> Academics</span>} 
-            key="academics"
-          >
-            <div className="coming-soon-container">
-              <Empty 
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="Academic performance information coming soon" 
-              />
-            </div>
-          </TabPane>
-          <TabPane 
-            tab={<span><TeamOutlined /> Sports & Cultural</span>} 
-            key="activities"
-          >
-            <div className="coming-soon-container">
-              <Empty 
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="Sports & Cultural activities information coming soon" 
-              />
-            </div>
-          </TabPane>
-        </Tabs>
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {/* Add image preview handler */}}
+                        />
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <Typography.Title level={4} style={{ margin: '8px 0' }}>
+                          {student.first_name} {student.last_name}
+                        </Typography.Title>
+                        <Typography.Text type="secondary">
+                          #{student.student_id}
+                        </Typography.Text>
+                      </div>
+                      <Divider />
+                      <div style={{ marginTop: '16px' }}>
+                        <Typography.Text strong>Class</Typography.Text>
+                        <Typography.Paragraph>
+                          {getRomanNumeral(student.profile?.class_name)}-{student.section}
+                        </Typography.Paragraph>
+                        <Typography.Text strong>Roll Number</Typography.Text>
+                        <Typography.Paragraph>
+                          {student.roll_no || 'N/A'}
+                        </Typography.Paragraph>
+                        <Typography.Text strong>Status</Typography.Text>
+                        <Typography.Paragraph>
+                          <Tag color={student.status === 'active' ? 'green' : 'red'}>
+                            {student.status === 'active' ? 'Active' : 'Inactive'}
+                          </Tag>
+                        </Typography.Paragraph>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+              )
+            },
+            {
+              key: 'attendance',
+              label: <span style={{ fontWeight: 'bold' }}>Attendance</span>,
+              children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+            },
+            {
+              key: 'academics',
+              label: <span style={{ fontWeight: 'bold' }}>Academics</span>,
+              children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+            },
+            {
+              key: 'sports',
+              label: <span style={{ fontWeight: 'bold' }}>Sports & Cultural</span>,
+              children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+            },
+            {
+              key: 'others',
+              label: <span style={{ fontWeight: 'bold' }}>Others</span>,
+              children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+            }
+          ]}
+          style={{ margin: 0 }}
+        />
       </div>
-
-      <style jsx>{`
-        .student-view-container {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          background: #fff;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(159, 179, 223, 0.15);
-          border: 1px solid rgba(159, 179, 223, 0.2);
-        }
-
-        .student-view-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 24px;
-          border-bottom: 1px solid #f0f0f0;
-          background: #fff;
-          border-radius: 16px 16px 0 0;
-        }
-
-        .back-button {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #f5f5f5;
-          border: none;
-          transition: all 0.3s;
-        }
-
-        .back-button:hover {
-          background: #e8e8e8;
-        }
-
-        .student-view-content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          padding: 24px;
-          overflow-y: auto;
-        }
-
-        .student-header {
-          display: flex;
-          align-items: flex-start;
-          padding: 0 0 20px 0;
-          border-bottom: 1px solid #f0f0f0;
-          margin-bottom: 20px;
-        }
-
-        .student-avatar-container {
-          margin-right: 32px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
-
-        .student-avatar {
-          border: 4px solid #f0f0f0;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          margin-bottom: 16px;
-        }
-
-        .student-basic-info {
-          background: #f9f9f9;
-          border-radius: 8px;
-          padding: 12px;
-          width: 100%;
-          min-width: 200px;
-        }
-
-        .info-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .info-row:last-child {
-          margin-bottom: 0;
-          padding-bottom: 0;
-          border-bottom: none;
-        }
-
-        .info-label {
-          color: #8c8c8c;
-          font-size: 12px;
-        }
-
-        .info-value {
-          color: #262626;
-          font-size: 13px;
-          font-weight: 500;
-        }
-
-        .student-info {
-          flex: 1;
-          padding-top: 8px;
-        }
-
-        .student-name {
-          margin: 0 0 16px 0 !important;
-          color: #262626;
-          font-size: 28px !important;
-        }
-
-        .student-meta {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          color: #595959;
-          font-size: 14px;
-          background: #f5f5f5;
-          padding: 6px 12px;
-          border-radius: 6px;
-        }
-
-        .meta-icon {
-          margin-right: 8px;
-          color: #7B83EB;
-        }
-
-        .student-tabs {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .student-tabs .ant-tabs-content {
-          flex: 1;
-          overflow: auto;
-        }
-
-        .tab-content {
-          padding: 0 0 24px 0;
-          overflow: auto;
-        }
-
-        .info-card {
-          margin-bottom: 16px;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .info-card .ant-card-head {
-          padding: 12px 16px;
-          border-bottom: 1px solid #f0f0f0;
-          background: rgba(123, 131, 235, 0.05);
-        }
-
-        .info-card .ant-card-body {
-          padding: 16px;
-        }
-
-        .card-icon {
-          font-size: 16px;
-        }
-
-        .detail-item {
-          display: flex;
-          margin-bottom: 12px;
-        }
-
-        .detail-icon {
-          margin-right: 8px;
-          color: #7B83EB;
-          font-size: 16px;
-          display: flex;
-          align-items: flex-start;
-          padding-top: 2px;
-        }
-
-        .detail-content {
-          flex: 1;
-        }
-
-        .detail-label {
-          color: #8c8c8c;
-          font-size: 12px;
-          margin-bottom: 2px;
-        }
-
-        .detail-value {
-          color: #262626;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .fee-card {
-          margin-bottom: 12px;
-          border-radius: 6px;
-          border: 1px solid #f0f0f0;
-        }
-
-        .fee-card .ant-card-head {
-          padding: 8px 12px;
-          min-height: auto;
-          background: #fafafa;
-        }
-
-        .fee-card .ant-card-head-title {
-          font-size: 14px;
-          padding: 0;
-        }
-
-        .fee-card .ant-card-body {
-          padding: 12px;
-        }
-
-        .coming-soon-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 300px;
-          background: #fafafa;
-          border-radius: 8px;
-        }
-      `}</style>
     </div>
   );
 };
