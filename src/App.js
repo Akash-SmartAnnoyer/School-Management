@@ -443,6 +443,24 @@ function MainLayout() {
           flexDirection: 'column',
           zIndex: 1000
         }}
+        onMouseEnter={() => {
+          if (collapsed) {
+            const toggleIcon = document.querySelector('.sidebar-toggle');
+            if (toggleIcon) {
+              toggleIcon.style.opacity = '1';
+              toggleIcon.style.transform = 'translateX(0)';
+            }
+          }
+        }}
+        onMouseLeave={() => {
+          if (collapsed) {
+            const toggleIcon = document.querySelector('.sidebar-toggle');
+            if (toggleIcon) {
+              toggleIcon.style.opacity = '0';
+              toggleIcon.style.transform = 'translateX(-10px)';
+            }
+          }
+        }}
       >
         <div 
           className="logo" 
@@ -593,7 +611,6 @@ function MainLayout() {
                         color: '#7B83EB', 
                         fontWeight: 500, 
                         fontSize: '11px',
-                        // lineHeight: '1.2'
                       }}>
                         360 Schooling
                       </span>
@@ -708,11 +725,12 @@ function MainLayout() {
           }}>
             {collapsed && (
               <div
+                className="sidebar-toggle"
                 onClick={() => setCollapsed(false)}
                 style={{
                   position: 'fixed',
-                  left: '68px',
-                  top: '12px',
+                  left: '80px',
+                  top: '20px',
                   width: '32px',
                   height: '32px',
                   display: 'flex',
@@ -720,20 +738,22 @@ function MainLayout() {
                   justifyContent: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
-                  zIndex: 1001,
+                  zIndex: 1002,
                   background: '#fff',
                   borderRadius: '50%',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  opacity: 0,
+                  transform: 'translateX(-10px)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
                   e.currentTarget.style.background = '#f8f9ff';
-                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.transform = 'translateX(0) scale(1.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
                   e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.transform = 'translateX(0) scale(1)';
                 }}
               >
                 <img
