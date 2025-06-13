@@ -28,6 +28,7 @@ import {
   Checkbox,
   Radio,
   Tabs,
+  Dropdown,
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -66,6 +67,8 @@ import {
   FileExcelOutlined,
   SendOutlined,
   UserAddOutlined,
+  PrinterOutlined,
+  MoreOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -109,6 +112,45 @@ const StudentView = ({ visible, onCancel, student }) => {
     </div>
   );
 
+  const getRomanNumeral = (num) => {
+    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    return romanNumerals[num - 1] || num;
+  };
+
+  const items = [
+    {
+      key: 'edit',
+      label: 'Edit Student',
+      icon: <EditOutlined />,
+      onClick: () => {/* Add edit handler */}
+    },
+    {
+      key: 'email',
+      label: 'Send Email',
+      icon: <MailOutlined />,
+      onClick: () => {/* Add email handler */}
+    },
+    {
+      key: 'download',
+      label: 'Download',
+      icon: <DownloadOutlined />,
+      onClick: () => {/* Add download handler */}
+    },
+    {
+      key: 'print',
+      label: 'Print',
+      icon: <PrinterOutlined />,
+      onClick: () => {/* Add print handler */}
+    },
+    {
+      key: 'delete',
+      label: 'Delete',
+      icon: <DeleteOutlined />,
+      danger: true,
+      onClick: () => {/* Add delete handler */}
+    }
+  ];
+
   return (
     <div style={{ width: '100%', textAlign: 'left' }}>
       <div style={{ 
@@ -119,7 +161,8 @@ const StudentView = ({ visible, onCancel, student }) => {
         flexDirection: 'column',
         gap: '8px',
         width: '100%',
-        textAlign: 'left'
+        textAlign: 'left',
+        position: 'relative'
       }}>
         <div style={{ 
           display: 'flex', 
@@ -163,6 +206,39 @@ const StudentView = ({ visible, onCancel, student }) => {
             <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
               #{student.student_id}
             </Typography.Text>
+          </div>
+
+          <div style={{ 
+            position: 'absolute', 
+            right: '24px', 
+            top: '12px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '16px' 
+          }}>
+            <Typography.Text strong style={{ fontSize: '16px' }}>
+              {getRomanNumeral(student.profile?.class_name)}-{student.section}
+            </Typography.Text>
+            <Dropdown
+              menu={{ items }}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button
+                type="text"
+                icon={<MoreOutlined />}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              />
+            </Dropdown>
           </div>
         </div>
 
