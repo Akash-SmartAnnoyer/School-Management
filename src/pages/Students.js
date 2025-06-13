@@ -69,6 +69,7 @@ import {
   UserAddOutlined,
   PrinterOutlined,
   MoreOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -247,22 +248,47 @@ const StudentView = ({ visible, onCancel, student }) => {
           alignItems: 'center', 
           gap: '8px', 
           marginLeft: '56px',
-          textAlign: 'left'
+          textAlign: 'left',
+          width: '100%',
+          justifyContent: 'space-between'
         }}>
-          <Avatar 
-            size={32}
-            icon={<IdcardOutlined />}
-            style={{ backgroundColor: '#f0f0f0' }}
-          />
-          <Typography.Text strong style={{ fontSize: '14px' }}>
-            Admission Details
-          </Typography.Text>
-          <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
-            {student.admission_number}
-          </Typography.Text>
-          <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
-            {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
-          </Typography.Text>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Avatar 
+              size={32}
+              icon={<IdcardOutlined />}
+              style={{ backgroundColor: '#f0f0f0' }}
+            />
+            <Typography.Text strong style={{ fontSize: '14px' }}>
+              Admission Details
+            </Typography.Text>
+            <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
+              {student.admission_number}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+              {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
+            </Typography.Text>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '36px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <MailOutlined style={{ color: '#666' }} />
+              <Typography.Text style={{ fontSize: '14px' }}>
+                {student.email || 'No email'}
+              </Typography.Text>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <PhoneOutlined style={{ color: '#666' }} />
+              <Typography.Text style={{ fontSize: '14px' }}>
+                {student.phone || 'No phone'}
+              </Typography.Text>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <EnvironmentOutlined style={{ color: '#666' }} />
+              <Typography.Text style={{ fontSize: '14px' }}>
+                {student.parent_address || 'No address'}
+              </Typography.Text>
+            </div>
+          </div>
         </div>
       </div>
 
