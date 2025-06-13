@@ -111,28 +111,69 @@ const StudentView = ({ visible, onCancel, student }) => {
 
   return (
     <div className="student-view-container">
-      <div className="student-view-header">
-        <Space>
-          <Button 
-            type="text" 
-            icon={<ArrowLeftOutlined />} 
-            onClick={onCancel}
-            className="back-button"
-          />
-          <img 
-            src="/students.png" 
-            alt="Students" 
-            style={{ 
-              width: '24px', 
-              height: '24px',
-              objectFit: 'contain'
-            }} 
-          />
-          <Typography.Title level={4} className="header-title" style={{ margin: 0 }}>
-            <span style={{ color: '#1f1f1f' }}>View </span>
-            <span style={{ color: '#f54278' }}>Student</span>
-          </Typography.Title>
-        </Space>
+      <div className="student-view-header" style={{ 
+        height: '1.25in',
+        backgroundColor: '#f5f5f5',
+        padding: '16px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px'
+      }}>
+        <Button 
+          type="text" 
+          icon={<ArrowLeftOutlined />} 
+          onClick={onCancel}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'white',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        />
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Avatar 
+              size={40}
+              src={student.photo}
+              icon={!student.photo && (student.gender === 'M' ? 
+                <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )}
+              style={{ cursor: 'pointer' }}
+              onClick={() => {/* Add image preview handler */}}
+            />
+            <Typography.Title level={3} style={{ margin: 0 }}>
+              <span style={{ color: '#1f1f1f' }}>{student.first_name} </span>
+              <span style={{ color: '#f54278' }}>{student.last_name}</span>
+            </Typography.Title>
+          </div>
+          <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
+            #{student.student_id}
+          </Typography.Text>
+        </div>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Avatar 
+              size={40}
+              icon={<IdcardOutlined />}
+              style={{ backgroundColor: '#f0f0f0' }}
+            />
+            <div>
+              <Typography.Text strong style={{ fontSize: '16px', display: 'block' }}>
+                {student.admission_number}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
+                {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
+              </Typography.Text>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="student-view-content">
