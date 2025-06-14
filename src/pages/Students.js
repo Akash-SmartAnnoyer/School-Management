@@ -380,7 +380,6 @@ const StudentView = ({ visible, onCancel, student }) => {
                       title="Contact Information" 
                       bordered={false} 
                       style={{ 
-                        marginTop: '16px',
                         backgroundColor: '#E6EBF0',
                         borderRadius: '8px',
                         transition: 'background-color 0.3s ease'
@@ -541,20 +540,11 @@ const StudentView = ({ visible, onCancel, student }) => {
                       </div>
                       <Divider />
                       <div style={{ marginTop: '16px' }}>
-                        <Typography.Text strong>Class</Typography.Text>
-                        <Typography.Paragraph>
-                          {getRomanNumeral(student.profile?.class_name)}-{student.section}
-                        </Typography.Paragraph>
-                        <Typography.Text strong>Roll Number</Typography.Text>
-                        <Typography.Paragraph>
-                          {student.roll_no || 'N/A'}
-                        </Typography.Paragraph>
-                        <Typography.Text strong>Status</Typography.Text>
-                        <Typography.Paragraph>
-                          <Tag color={student.status === 'active' ? 'green' : 'red'}>
-                            {student.status === 'active' ? 'Active' : 'Inactive'}
-                          </Tag>
-                        </Typography.Paragraph>
+                        <Typography.Title level={5} style={{ marginBottom: '16px' }}>Basic Information</Typography.Title>
+                        {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
+                        {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                        {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
+                        {renderDetailItem('Nationality', student.nationality, <GlobalOutlined />)}
                       </div>
                     </Card>
                   </div>
