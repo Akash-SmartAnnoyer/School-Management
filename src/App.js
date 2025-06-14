@@ -290,6 +290,12 @@ function MainLayout() {
       label: <span style={styles.menuItem}>Fee Management</span>, 
       icon: <WalletOutlined style={styles.menuIcon} />, 
       path: '/fee-management' 
+    },
+    {
+      key: '12',
+      label: <span style={styles.menuItem}>Institute Configurations</span>,
+      icon: <SettingOutlined style={styles.menuIcon} />,
+      path: '/student-config'
     }
   ];
 
