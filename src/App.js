@@ -1107,6 +1107,93 @@ function MainLayout() {
             gap: '16px',
             justifyContent: 'flex-end'
           }}>
+            {isStudentsPage && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreateStudent}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#7B83EB';
+                }}
+                size="small"
+              >
+                Create Student
+              </Button>
+            )}
+            {isTeachersPage && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreateTeacher}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#7B83EB';
+                }}
+                size="small"
+              >
+                Create Teacher
+              </Button>
+            )}
+            {isClassesPage && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleCreateClass}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#7B83EB';
+                }}
+                size="small"
+              >
+                Create Class
+              </Button>
+            )}
             <Button
               type="primary"
               icon={<PlusOutlined />}
