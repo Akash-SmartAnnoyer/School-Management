@@ -637,12 +637,12 @@ function MainLayout() {
             </>
           )}
         </div>
-        <div style={{
+        {/* <div style={{
           height: '1px',
           backgroundColor: '#e0e0e0',
           margin: '0 8px 8px 8px',
           width: 'calc(100% - 16px)'
-        }} />
+        }} /> */}
         <div style={{
           flex: 1,
           overflow: 'hidden',
