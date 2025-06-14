@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle, useRef } from 'react';
 import { 
   Table, 
   Button, 
@@ -104,6 +104,8 @@ const cld = new Cloudinary({
 });
 
 const StudentView = ({ visible, onCancel, student }) => {
+  const navigate = useNavigate();
+  
   if (!visible || !student) return null;
 
   const renderDetailItem = (label, value, icon = null) => (
@@ -163,7 +165,9 @@ const StudentView = ({ visible, onCancel, student }) => {
       key: 'edit',
       label: 'Edit Student',
       icon: <EditOutlined />,
-      onClick: () => {/* Add edit handler */}
+      onClick: () => {
+        navigate(`/students/edit/${student.id}`);
+      }
     },
     {
       key: 'email',
