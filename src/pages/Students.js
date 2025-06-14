@@ -345,37 +345,6 @@ const StudentView = ({ visible, onCancel, student }) => {
               children: (
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                   <div style={{ flex: 1 }}>
-                    <Card title="Basic Information" bordered={false} style={{ 
-                      backgroundColor: '#E6EBF0',
-                      borderRadius: '8px',
-                      transition: 'background-color 0.3s ease'
-                    }} onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'white';
-                    }} onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#E6EBF0';
-                    }}>
-                      <Row gutter={[16, 8]}>
-                        <Col span={12}>
-                          {renderDetailItem('First Name', student.first_name, <UserOutlined />)}
-                        </Col>
-                        <Col span={12}>
-                          {renderDetailItem('Last Name', student.last_name, <UserOutlined />)}
-                        </Col>
-                        <Col span={12}>
-                          {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
-                        </Col>
-                        <Col span={12}>
-                          {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
-                        </Col>
-                        <Col span={12}>
-                          {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
-                        </Col>
-                        <Col span={12}>
-                          {renderDetailItem('Nationality', student.nationality, <GlobalOutlined />)}
-                        </Col>
-                      </Row>
-                    </Card>
-
                     <Card 
                       title="Contact Information" 
                       bordered={false} 
