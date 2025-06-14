@@ -222,8 +222,6 @@ const MainLayout = ({ children }) => {
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            boxShadow: '0 2px 8px var(--shadow-color)',
-            borderBottom: '1px solid var(--border-color)',
             height: '64px',
             position: 'relative',
             overflow: 'hidden',

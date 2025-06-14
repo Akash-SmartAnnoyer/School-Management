@@ -849,16 +849,14 @@ function MainLayout() {
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
-          background: '#fff',
+          background: '#E6EBF0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
           height: '64px',
           position: 'sticky',
           top: 0,
           zIndex: 999,
-          borderBottom: '1px solid #e0e0e0',
           margin: 0,
           display: isStudentFormVisible ? 'none' : 'flex'
         }}>
