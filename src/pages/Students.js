@@ -81,10 +81,10 @@ import { AdvancedImage } from '@cloudinary/react';
 import { auto } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity } from '@cloudinary/url-gen/qualifiers/gravity';
 import StudentDetailsDrawer from '../components/StudentDetailsDrawer';
-import { MessageContext } from '../App';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { MessageContext } from '../contexts/MessageContext';
 import moment from 'moment';
-import api from '../services/api';
+import api, { studentAPI } from '../services/api';
 import { useStudents } from '../contexts/StudentsContext';
 import StatusBadge from '../components/StatusBadge';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
@@ -93,6 +93,7 @@ import './Students.css';
 import { DragHandleOutlined } from '@mui/icons-material';
 import StyledModal from '../components/StyledModal';
 import TabPane from 'antd/es/tabs/TabPane';
+import useMessage from 'antd/es/message/useMessage';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -107,8 +108,24 @@ const cld = new Cloudinary({
 const StudentView = ({ visible, onCancel, student }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
   
   if (!visible || !student) return null;
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await studentAPI.deleteStudent(student.id);
+      messageApi.success('Student deleted successfully');
+      onCancel(); // Close the view modal
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      messageApi.error('Failed to delete student');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const renderDetailItem = (label, value, icon = null) => (
     <div className="detail-item" style={{ 
@@ -195,365 +212,378 @@ const StudentView = ({ visible, onCancel, student }) => {
       label: 'Delete',
       icon: <DeleteOutlined />,
       danger: true,
-      onClick: () => {/* Add delete handler */}
+      onClick: () => {
+        Modal.confirm({
+          title: 'Are you sure you want to delete this student?',
+          content: 'This action cannot be undone.',
+          okText: 'Yes, Delete',
+          okType: 'danger',
+          cancelText: 'No, Cancel',
+          onOk: handleDelete,
+          okButtonProps: { loading: isDeleting }
+        });
+      }
     }
   ];
 
   return (
-    <Spin spinning={isEditing} tip="Loading..." size="small">
-      <div style={{ width: '100%', textAlign: 'left' }}>
-        <div style={{ 
-          height: '1.25in',
-          backgroundColor: '#f5f5f5',
-          padding: '12px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          width: '100%',
-          textAlign: 'left',
-          position: 'relative'
-        }}>
+    <>
+      {contextHolder}
+      <Spin spinning={isEditing || isDeleting} tip="Loading..." size="small">
+        <div style={{ width: '100%', textAlign: 'left' }}>
           <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '16px',
+            height: '1.25in',
+            backgroundColor: '#f5f5f5',
+            padding: '12px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
             width: '100%',
-            textAlign: 'left'
+            textAlign: 'left',
+            position: 'relative'
           }}>
-            <Button 
-              type="text" 
-              icon={<ArrowLeftOutlined />} 
-              onClick={onCancel}
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'white',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}
-            />
-            
-            <Avatar 
-              size={40}
-              src={student.photo}
-              icon={!student.photo && (student.gender === 'M' ? 
-                <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
-                <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-              style={{ cursor: 'pointer' }}
-              onClick={() => {/* Add image preview handler */}}
-            />
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '16px',
+              width: '100%',
+              textAlign: 'left'
+            }}>
+              <Button 
+                type="text" 
+                icon={<ArrowLeftOutlined />} 
+                onClick={onCancel}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              />
+              
+              <Avatar 
+                size={40}
+                src={student.photo}
+                icon={!student.photo && (student.gender === 'M' ? 
+                  <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                  <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+                style={{ cursor: 'pointer' }}
+                onClick={() => {/* Add image preview handler */}}
+              />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Typography.Title level={3} style={{ margin: 0 }}>
-                <span style={{ color: '#1f1f1f' }}>{student.first_name} </span>
-                <span style={{ color: '#f54278' }}>{student.last_name}</span>
-              </Typography.Title>
-              <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
-                #{student.student_id}
-              </Typography.Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Typography.Title level={3} style={{ margin: 0 }}>
+                  <span style={{ color: '#1f1f1f' }}>{student.first_name} </span>
+                  <span style={{ color: '#f54278' }}>{student.last_name}</span>
+                </Typography.Title>
+                <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
+                  #{student.student_id}
+                </Typography.Text>
+              </div>
+
+              <div style={{ 
+                position: 'absolute', 
+                right: '24px', 
+                top: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px' 
+              }}>
+                <Typography.Text strong style={{ fontSize: '16px' }}>
+                  {getRomanNumeral(student.profile?.class_name)}-{student.section}
+                </Typography.Text>
+                <Dropdown
+                  menu={{ items }}
+                  trigger={['click']}
+                  placement="bottomRight"
+                >
+                  <Button
+                    type="text"
+                    icon={<MoreOutlined />}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'white',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                </Dropdown>
+              </div>
             </div>
 
             <div style={{ 
-              position: 'absolute', 
-              right: '24px', 
-              top: '12px', 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '16px' 
+              gap: '8px', 
+              marginLeft: '0',
+              textAlign: 'left',
+              width: '100%',
+              justifyContent: 'space-between'
             }}>
-              <Typography.Text strong style={{ fontSize: '16px' }}>
-                {getRomanNumeral(student.profile?.class_name)}-{student.section}
-              </Typography.Text>
-              <Dropdown
-                menu={{ items }}
-                trigger={['click']}
-                placement="bottomRight"
-              >
-                <Button
-                  type="text"
-                  icon={<MoreOutlined />}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                  }}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Avatar 
+                  size={32}
+                  icon={<IdcardOutlined />}
+                  style={{ backgroundColor: '#f0f0f0' }}
                 />
-              </Dropdown>
+                <Typography.Text strong style={{ fontSize: '14px' }}>
+                  Admission Details
+                </Typography.Text>
+                <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
+                  {student.admission_number}
+                </Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                  {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
+                </Typography.Text>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MailOutlined style={{ color: '#666' }} />
+                  <Typography.Text style={{ fontSize: '14px' }}>
+                    {student.email || 'No email'}
+                  </Typography.Text>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <PhoneOutlined style={{ color: '#666' }} />
+                  <Typography.Text style={{ fontSize: '14px' }}>
+                    {student.phone || 'No phone'}
+                  </Typography.Text>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <EnvironmentOutlined style={{ color: '#666' }} />
+                  <Typography.Text style={{ fontSize: '14px' }}>
+                    {student.parent_address || 'No address'}
+                  </Typography.Text>
+                </div>
+              </div>
             </div>
           </div>
 
           <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            marginLeft: '0',
-            textAlign: 'left',
-            width: '100%',
-            justifyContent: 'space-between'
+            padding: '16px 24px',
+            borderBottom: '1px solid #f0f0f0'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Avatar 
-                size={32}
-                icon={<IdcardOutlined />}
-                style={{ backgroundColor: '#f0f0f0' }}
-              />
-              <Typography.Text strong style={{ fontSize: '14px' }}>
-                Admission Details
-              </Typography.Text>
-              <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
-                {student.admission_number}
-              </Typography.Text>
-              <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
-                {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
-              </Typography.Text>
-            </div>
+            <Tabs
+              defaultActiveKey="details"
+              items={[
+                {
+                  key: 'details',
+                  label: <span style={{ fontWeight: 'bold' }}>Details</span>,
+                  children: (
+                    <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
+                      <div style={{ flex: 1 }}>
+                        <Card 
+                          title="Contact Information" 
+                          bordered={false} 
+                          style={{ 
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={24}>
+                              {renderDetailItem('Email', student.email, <MailOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Phone', student.phone, <PhoneOutlined />)}
+                            </Col>
+                            <Col span={24}>
+                              {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />)}
+                            </Col>
+                          </Row>
+                        </Card>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MailOutlined style={{ color: '#666' }} />
-                <Typography.Text style={{ fontSize: '14px' }}>
-                  {student.email || 'No email'}
-                </Typography.Text>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <PhoneOutlined style={{ color: '#666' }} />
-                <Typography.Text style={{ fontSize: '14px' }}>
-                  {student.phone || 'No phone'}
-                </Typography.Text>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <EnvironmentOutlined style={{ color: '#666' }} />
-                <Typography.Text style={{ fontSize: '14px' }}>
-                  {student.parent_address || 'No address'}
-                </Typography.Text>
-              </div>
-            </div>
+                        <Card 
+                          title="Academic Profile" 
+                          bordered={false} 
+                          style={{ 
+                            marginTop: '16px',
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Roll Number', student.id, <IdcardOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Admission Number', student.admission_number, <NumberOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Status', student.status === 'active' ? 'Active' : 'Inactive', <CheckCircleOutlined />)}
+                            </Col>
+                          </Row>
+                        </Card>
+
+                        <Card 
+                          title="Parent Information" 
+                          bordered={false} 
+                          style={{ 
+                            marginTop: '16px',
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              {renderDetailItem("Father's Name", student.father_name, <UserOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem("Father's Occupation", student.father_occupation, <UserOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem("Mother's Name", student.mother_name, <UserOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem("Mother's Occupation", student.mother_occupation, <UserOutlined />)}
+                            </Col>
+                            <Col span={24}>
+                              {renderDetailItem("Parent's Address", student.parent_address, <EnvironmentOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem("Parent's Email", student.parent_email, <MailOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem("Parent's Phone", student.parent_phone, <PhoneOutlined />)}
+                            </Col>
+                          </Row>
+                        </Card>
+
+                        <Card 
+                          title="Fee Details" 
+                          bordered={false} 
+                          style={{ 
+                            marginTop: '16px',
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              {renderDetailItem('Fee Type', student.fee_type, <MoneyCollectOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Fee Amount', student.fee_amount ? `₹${student.fee_amount}` : 'N/A', <MoneyCollectOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Payment Status', student.payment_status, <SafetyCertificateOutlined />)}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Last Payment Date', student.last_payment_date ? moment(student.last_payment_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                            </Col>
+                          </Row>
+                        </Card>
+                      </div>
+
+                      <div style={{ width: '300px' }}>
+                        <Card bordered={false}>
+                          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                            <Avatar 
+                              size={120}
+                              src={student.photo}
+                              icon={!student.photo && (student.gender === 'M' ? 
+                                <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                                <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              )}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => {/* Add image preview handler */}}
+                            />
+                          </div>
+                          <div style={{ textAlign: 'center' }}>
+                            <Typography.Title level={4} style={{ margin: '8px 0' }}>
+                              {student.first_name} {student.last_name}
+                            </Typography.Title>
+                            <Typography.Text type="secondary">
+                              #{student.student_id}
+                            </Typography.Text>
+                          </div>
+                          <Divider />
+                          <div style={{ marginTop: '16px' }}>
+                            <Typography.Title level={5} style={{ marginBottom: '16px' }}>Basic Information</Typography.Title>
+                            {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
+                            {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                            {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
+                            {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'attendance',
+                  label: <span style={{ fontWeight: 'bold' }}>Attendance</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                },
+                {
+                  key: 'academics',
+                  label: <span style={{ fontWeight: 'bold' }}>Academics</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                },
+                {
+                  key: 'sports',
+                  label: <span style={{ fontWeight: 'bold' }}>Sports & Cultural</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                },
+                {
+                  key: 'others',
+                  label: <span style={{ fontWeight: 'bold' }}>Others</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                }
+              ]}
+              style={{ margin: 0 }}
+            />
           </div>
         </div>
-
-        <div style={{ 
-          padding: '16px 24px',
-          borderBottom: '1px solid #f0f0f0'
-        }}>
-          <Tabs
-            defaultActiveKey="details"
-            items={[
-              {
-                key: 'details',
-                label: <span style={{ fontWeight: 'bold' }}>Details</span>,
-                children: (
-                  <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
-                    <div style={{ flex: 1 }}>
-                      <Card 
-                        title="Contact Information" 
-                        bordered={false} 
-                        style={{ 
-                          backgroundColor: '#E6EBF0',
-                          borderRadius: '8px',
-                          transition: 'background-color 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E6EBF0';
-                        }}
-                      >
-                        <Row gutter={[16, 8]}>
-                          <Col span={24}>
-                            {renderDetailItem('Email', student.email, <MailOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Phone', student.phone, <PhoneOutlined />)}
-                          </Col>
-                          <Col span={24}>
-                            {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />)}
-                          </Col>
-                        </Row>
-                      </Card>
-
-                      <Card 
-                        title="Academic Profile" 
-                        bordered={false} 
-                        style={{ 
-                          marginTop: '16px',
-                          backgroundColor: '#E6EBF0',
-                          borderRadius: '8px',
-                          transition: 'background-color 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E6EBF0';
-                        }}
-                      >
-                        <Row gutter={[16, 8]}>
-                          <Col span={12}>
-                            {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Roll Number', student.id, <IdcardOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Admission Number', student.admission_number, <NumberOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Status', student.status === 'active' ? 'Active' : 'Inactive', <CheckCircleOutlined />)}
-                          </Col>
-                        </Row>
-                      </Card>
-
-                      <Card 
-                        title="Parent Information" 
-                        bordered={false} 
-                        style={{ 
-                          marginTop: '16px',
-                          backgroundColor: '#E6EBF0',
-                          borderRadius: '8px',
-                          transition: 'background-color 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E6EBF0';
-                        }}
-                      >
-                        <Row gutter={[16, 8]}>
-                          <Col span={12}>
-                            {renderDetailItem("Father's Name", student.father_name, <UserOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem("Father's Occupation", student.father_occupation, <UserOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem("Mother's Name", student.mother_name, <UserOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem("Mother's Occupation", student.mother_occupation, <UserOutlined />)}
-                          </Col>
-                          <Col span={24}>
-                            {renderDetailItem("Parent's Address", student.parent_address, <EnvironmentOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem("Parent's Email", student.parent_email, <MailOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem("Parent's Phone", student.parent_phone, <PhoneOutlined />)}
-                          </Col>
-                        </Row>
-                      </Card>
-
-                      <Card 
-                        title="Fee Details" 
-                        bordered={false} 
-                        style={{ 
-                          marginTop: '16px',
-                          backgroundColor: '#E6EBF0',
-                          borderRadius: '8px',
-                          transition: 'background-color 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#E6EBF0';
-                        }}
-                      >
-                        <Row gutter={[16, 8]}>
-                          <Col span={12}>
-                            {renderDetailItem('Fee Type', student.fee_type, <MoneyCollectOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Fee Amount', student.fee_amount ? `₹${student.fee_amount}` : 'N/A', <MoneyCollectOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Payment Status', student.payment_status, <SafetyCertificateOutlined />)}
-                          </Col>
-                          <Col span={12}>
-                            {renderDetailItem('Last Payment Date', student.last_payment_date ? moment(student.last_payment_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
-                          </Col>
-                        </Row>
-                      </Card>
-                    </div>
-
-                    <div style={{ width: '300px' }}>
-                      <Card bordered={false}>
-                        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                          <Avatar 
-                            size={120}
-                            src={student.photo}
-                            icon={!student.photo && (student.gender === 'M' ? 
-                              <img src="/student-boy.png" alt="Male Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
-                              <img src="/student-girl.png" alt="Female Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            )}
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => {/* Add image preview handler */}}
-                          />
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <Typography.Title level={4} style={{ margin: '8px 0' }}>
-                            {student.first_name} {student.last_name}
-                          </Typography.Title>
-                          <Typography.Text type="secondary">
-                            #{student.student_id}
-                          </Typography.Text>
-                        </div>
-                        <Divider />
-                        <div style={{ marginTop: '16px' }}>
-                          <Typography.Title level={5} style={{ marginBottom: '16px' }}>Basic Information</Typography.Title>
-                          {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
-                          {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
-                          {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
-                          {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-                )
-              },
-              {
-                key: 'attendance',
-                label: <span style={{ fontWeight: 'bold' }}>Attendance</span>,
-                children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
-              },
-              {
-                key: 'academics',
-                label: <span style={{ fontWeight: 'bold' }}>Academics</span>,
-                children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
-              },
-              {
-                key: 'sports',
-                label: <span style={{ fontWeight: 'bold' }}>Sports & Cultural</span>,
-                children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
-              },
-              {
-                key: 'others',
-                label: <span style={{ fontWeight: 'bold' }}>Others</span>,
-                children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
-              }
-            ]}
-            style={{ margin: 0 }}
-          />
-        </div>
-      </div>
-    </Spin>
+      </Spin>
+    </>
   );
 };
 
