@@ -111,8 +111,41 @@ const StudentView = ({ visible, onCancel, student }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { refreshStudents } = useStudents();
+  const [editingSection, setEditingSection] = useState(null);
+  const [editedValues, setEditedValues] = useState({});
   
   if (!visible || !student) return null;
+
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setEditedValues({ ...student });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSection(null);
+    setEditedValues({});
+  };
+
+  const handleSaveEdit = async (section) => {
+    try {
+      // Here you would typically make an API call to update the student
+      await studentAPI.updateStudent(student.id, editedValues);
+      messageApi.success('Student information updated successfully');
+      refreshStudents();
+      setEditingSection(null);
+      setEditedValues({});
+    } catch (error) {
+      console.error('Error updating student:', error);
+      messageApi.error('Failed to update student information');
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditedValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleDelete = async () => {
     try {
@@ -129,7 +162,7 @@ const StudentView = ({ visible, onCancel, student }) => {
     }
   };
 
-  const renderDetailItem = (label, value, icon = null) => (
+  const renderDetailItem = (label, value, icon = null, field = null, section = null) => (
     <div className="detail-item" style={{ 
       display: 'flex', 
       alignItems: 'flex-start', 
@@ -164,13 +197,21 @@ const StudentView = ({ visible, onCancel, student }) => {
           }}>
             {label}
           </div>
-          <div className="detail-value" style={{ 
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#666'
-          }}>
-            {value || 'N/A'}
-          </div>
+          {editingSection === section && field ? (
+            <Input
+              value={editedValues[field] || ''}
+              onChange={(e) => handleFieldChange(field, e.target.value)}
+              style={{ width: '200px' }}
+            />
+          ) : (
+            <div className="detail-value" style={{ 
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }}>
+              {value || 'N/A'}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -386,7 +427,27 @@ const StudentView = ({ visible, onCancel, student }) => {
                     <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                       <div style={{ flex: 1 }}>
                         <Card 
-                          title="Contact Information" 
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Contact Information</span>
+                              {editingSection === 'contact' ? (
+                                <Space>
+                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('contact')}>
+                                    Save
+                                  </Button>
+                                  <Button size="small" onClick={handleCancelEdit}>
+                                    Cancel
+                                  </Button>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('contact')}
+                                />
+                              )}
+                            </div>
+                          }
                           bordered={false} 
                           style={{ 
                             backgroundColor: '#E6EBF0',
@@ -402,19 +463,39 @@ const StudentView = ({ visible, onCancel, student }) => {
                         >
                           <Row gutter={[16, 8]}>
                             <Col span={24}>
-                              {renderDetailItem('Email', student.email, <MailOutlined />)}
+                              {renderDetailItem('Email', student.email, <MailOutlined />, 'email', 'contact')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Phone', student.phone, <PhoneOutlined />)}
+                              {renderDetailItem('Phone', student.phone, <PhoneOutlined />, 'phone', 'contact')}
                             </Col>
                             <Col span={24}>
-                              {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />)}
+                              {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />, 'parent_address', 'contact')}
                             </Col>
                           </Row>
                         </Card>
 
                         <Card 
-                          title="Academic Profile" 
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Academic Profile</span>
+                              {editingSection === 'academic' ? (
+                                <Space>
+                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('academic')}>
+                                    Save
+                                  </Button>
+                                  <Button size="small" onClick={handleCancelEdit}>
+                                    Cancel
+                                  </Button>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('academic')}
+                                />
+                              )}
+                            </div>
+                          }
                           bordered={false} 
                           style={{ 
                             marginTop: '16px',
@@ -431,28 +512,48 @@ const StudentView = ({ visible, onCancel, student }) => {
                         >
                           <Row gutter={[16, 8]}>
                             <Col span={12}>
-                              {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />)}
+                              {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />, 'class_name', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Roll Number', student.id, <IdcardOutlined />)}
+                              {renderDetailItem('Roll Number', student.id, <IdcardOutlined />, 'id', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />)}
+                              {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />, 'last_grade_attended', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Admission Number', student.admission_number, <NumberOutlined />)}
+                              {renderDetailItem('Admission Number', student.admission_number, <NumberOutlined />, 'admission_number', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                              {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />, 'admission_date', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Status', student.status === 'active' ? 'Active' : 'Inactive', <CheckCircleOutlined />)}
+                              {renderDetailItem('Status', student.status === 'active' ? 'Active' : 'Inactive', <CheckCircleOutlined />, 'status', 'academic')}
                             </Col>
                           </Row>
                         </Card>
 
                         <Card 
-                          title="Parent Information" 
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Parent Information</span>
+                              {editingSection === 'parent' ? (
+                                <Space>
+                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('parent')}>
+                                    Save
+                                  </Button>
+                                  <Button size="small" onClick={handleCancelEdit}>
+                                    Cancel
+                                  </Button>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('parent')}
+                                />
+                              )}
+                            </div>
+                          }
                           bordered={false} 
                           style={{ 
                             marginTop: '16px',
@@ -469,31 +570,36 @@ const StudentView = ({ visible, onCancel, student }) => {
                         >
                           <Row gutter={[16, 8]}>
                             <Col span={12}>
-                              {renderDetailItem("Father's Name", student.father_name, <UserOutlined />)}
+                              {renderDetailItem("Father's Name", student.father_name, <UserOutlined />, 'father_name', 'parent')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem("Father's Occupation", student.father_occupation, <UserOutlined />)}
+                              {renderDetailItem("Father's Occupation", student.father_occupation, <UserOutlined />, 'father_occupation', 'parent')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem("Mother's Name", student.mother_name, <UserOutlined />)}
+                              {renderDetailItem("Mother's Name", student.mother_name, <UserOutlined />, 'mother_name', 'parent')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem("Mother's Occupation", student.mother_occupation, <UserOutlined />)}
+                              {renderDetailItem("Mother's Occupation", student.mother_occupation, <UserOutlined />, 'mother_occupation', 'parent')}
                             </Col>
                             <Col span={24}>
-                              {renderDetailItem("Parent's Address", student.parent_address, <EnvironmentOutlined />)}
+                              {renderDetailItem("Parent's Address", student.parent_address, <EnvironmentOutlined />, 'parent_address', 'parent')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem("Parent's Email", student.parent_email, <MailOutlined />)}
+                              {renderDetailItem("Parent's Email", student.parent_email, <MailOutlined />, 'parent_email', 'parent')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem("Parent's Phone", student.parent_phone, <PhoneOutlined />)}
+                              {renderDetailItem("Parent's Phone", student.parent_phone, <PhoneOutlined />, 'parent_phone', 'parent')}
                             </Col>
                           </Row>
                         </Card>
 
                         <Card 
-                          title="Fee Details" 
+                          title={
+                            <Space>
+                              <MoneyCollectOutlined className="card-icon" style={{ color: '#7B83EB' }} />
+                              <span style={{ color: '#7B83EB' }}>Fee Details</span>
+                            </Space>
+                          }
                           bordered={false} 
                           style={{ 
                             marginTop: '16px',
