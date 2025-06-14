@@ -391,10 +391,10 @@ const StudentView = ({ visible, onCancel, student }) => {
                     >
                       <Row gutter={[16, 8]}>
                         <Col span={12}>
-                          {renderDetailItem('Class', `${getRomanNumeral(student.class_name)}-${student.section}`, <BookOutlined />)}
+                          {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />)}
                         </Col>
                         <Col span={12}>
-                          {renderDetailItem('Roll Number', student.roll_number, <IdcardOutlined />)}
+                          {renderDetailItem('Roll Number', student.id, <IdcardOutlined />)}
                         </Col>
                         <Col span={12}>
                           {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />)}
@@ -513,7 +513,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                         {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
                         {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
                         {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
-                        {renderDetailItem('Nationality', student.nationality, <GlobalOutlined />)}
+                        {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
                       </div>
                     </Card>
                   </div>
