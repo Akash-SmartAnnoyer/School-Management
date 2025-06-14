@@ -539,7 +539,7 @@ function TabPanel(props) {
 
 const Academics = () => {
   const messageApi = useMessage();
-  const [activeTab, setActiveTab] = useState('1');
+  const [activeTab, setActiveTab] = useState('subjects');
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -647,15 +647,15 @@ const Academics = () => {
           padding: '24px'
         }}
       >
-        <TabPanel value="subjects" index="subjects">
+        <Tabs.TabPane tab="Subjects" key="subjects">
           <SubManagement />
-        </TabPanel>
-        <TabPanel value="exams" index="exams">
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Exams" key="exams">
           <ExamManagement />
-        </TabPanel>
-        <TabPanel value="marks" index="marks">
+        </Tabs.TabPane>
+        <Tabs.TabPane tab="Marks" key="marks">
           <MarksEntry />
-        </TabPanel>
+        </Tabs.TabPane>
       </Tabs>
 
       <MarksEntryForm
