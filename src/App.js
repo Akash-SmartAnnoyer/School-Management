@@ -505,45 +505,47 @@ function MainLayout() {
               }}>
                 360 Schooling
               </Title>
-              <div
-                onClick={() => setCollapsed(true)}
-                style={{
-                  position: 'absolute',
-                  right: '-12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '24px',
-                  height: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  zIndex: 1001,
-                  background: '#fff',
-                  borderRadius: '50%',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
-                  e.currentTarget.style.background = '#f8f9ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                  e.currentTarget.style.background = '#fff';
-                }}
-              >
-                <img
-                  src="/close.png"
-                  alt="Close"
+              <Tooltip title="Click to minimize the side menu" placement="right">
+                <div
+                  onClick={() => setCollapsed(true)}
                   style={{
-                    width: '16px',
-                    height: '16px',
-                    objectFit: 'contain',
-                    transition: 'all 0.3s ease'
+                    position: 'absolute',
+                    right: '-12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    zIndex: 1001,
+                    background: '#fff',
+                    borderRadius: '50%',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                   }}
-                />
-              </div>
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+                    e.currentTarget.style.background = '#f8f9ff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                    e.currentTarget.style.background = '#fff';
+                  }}
+                >
+                  <img
+                    src="/close.png"
+                    alt="Close"
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      objectFit: 'contain',
+                      transition: 'all 0.3s ease'
+                    }}
+                  />
+                </div>
+              </Tooltip>
             </>
           )}
         </div>
@@ -700,6 +702,104 @@ function MainLayout() {
         </div>
       </Sider>
       
+      {/* Toggle button with both hover and fixed position behavior */}
+      {collapsed && (
+        <Tooltip title="Click to expand the side menu" placement="right">
+          <div
+            className="sidebar-toggle"
+            onClick={() => setCollapsed(false)}
+            style={{
+              position: 'fixed',
+              left: '65px',
+              top: '20px',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              zIndex: 9999,
+              background: '#fff',
+              borderRadius: '50%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              opacity: 0,
+              transform: 'translateX(-10px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.transform = 'translateX(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+              e.currentTarget.style.background = '#f8f9ff';
+            }}
+            onMouseLeave={(e) => {
+              const sidebar = document.querySelector('.ant-layout-sider');
+              if (!sidebar?.matches(':hover')) {
+                e.currentTarget.style.opacity = '0';
+                e.currentTarget.style.transform = 'translateX(-10px)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                e.currentTarget.style.background = '#fff';
+              }
+            }}
+          >
+            <img
+              src="/open.png"
+              alt="Open"
+              style={{
+                width: '16px',
+                height: '16px',
+                objectFit: 'contain',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          </div>
+        </Tooltip>
+      )}
+
+      {!collapsed && (
+        <Tooltip title="Click to minimize the side menu" placement="right">
+          <div
+            onClick={() => setCollapsed(true)}
+            style={{
+              position: 'absolute',
+              right: '-12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              zIndex: 1001,
+              background: '#fff',
+              borderRadius: '50%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+              e.currentTarget.style.background = '#f8f9ff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+              e.currentTarget.style.background = '#fff';
+            }}
+          >
+            <img
+              src="/close.png"
+              alt="Close"
+              style={{
+                width: '16px',
+                height: '16px',
+                objectFit: 'contain',
+                transition: 'all 0.3s ease'
+              }}
+            />
+          </div>
+        </Tooltip>
+      )}
+
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
@@ -711,7 +811,7 @@ function MainLayout() {
           height: '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 999,
+          zIndex: 2,
           borderBottom: (isStudentsPage || isTeachersPage || isClassesPage) ? '1px solid #e0e0e0' : 'none',
           margin: 0,
           display: isStudentFormVisible ? 'none' : 'flex'
@@ -723,51 +823,6 @@ function MainLayout() {
             gap: '12px',
             flex: '1'
           }}>
-            {collapsed && (
-              <div
-                className="sidebar-toggle"
-                onClick={() => setCollapsed(false)}
-                style={{
-                  position: 'fixed',
-                  left: '80px',
-                  top: '20px',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  zIndex: 1002,
-                  background: '#fff',
-                  borderRadius: '50%',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  opacity: 0,
-                  transform: 'translateX(-10px)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
-                  e.currentTarget.style.background = '#f8f9ff';
-                  e.currentTarget.style.transform = 'translateX(0) scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.transform = 'translateX(0) scale(1)';
-                }}
-              >
-                <img
-                  src="/open.png"
-                  alt="Open"
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    objectFit: 'contain',
-                    transition: 'all 0.3s ease'
-                  }}
-                />
-              </div>
-            )}
             <div style={{
               display: 'flex',
               alignItems: 'center',
