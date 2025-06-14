@@ -702,7 +702,7 @@ function MainLayout() {
         </div>
       </Sider>
       
-      {/* Toggle button with both hover and fixed position behavior */}
+      {/* Only show expand icon when sidebar is collapsed */}
       {collapsed && (
         <Tooltip title="Click to expand the side menu" placement="right">
           <div
@@ -745,50 +745,6 @@ function MainLayout() {
             <img
               src="/open.png"
               alt="Open"
-              style={{
-                width: '16px',
-                height: '16px',
-                objectFit: 'contain',
-                transition: 'all 0.3s ease'
-              }}
-            />
-          </div>
-        </Tooltip>
-      )}
-
-      {!collapsed && (
-        <Tooltip title="Click to minimize the side menu" placement="right">
-          <div
-            onClick={() => setCollapsed(true)}
-            style={{
-              position: 'absolute',
-              right: '-12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '24px',
-              height: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              zIndex: 1001,
-              background: '#fff',
-              borderRadius: '50%',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
-              e.currentTarget.style.background = '#f8f9ff';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-              e.currentTarget.style.background = '#fff';
-            }}
-          >
-            <img
-              src="/close.png"
-              alt="Close"
               style={{
                 width: '16px',
                 height: '16px',
