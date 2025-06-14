@@ -475,7 +475,7 @@ function MainLayout() {
             margin: '16px 16px 4px 16px',
             borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: collapsed ? '1px solid #e0e0e0' : 'none',
+            border: 'none',
             backgroundColor: 'transparent',
             boxShadow: 'none',
             position: 'relative',
@@ -759,26 +759,61 @@ function MainLayout() {
       <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
         <Header style={{
           padding: '0 24px',
-          background: (isStudentsPage || isTeachersPage || isClassesPage) ? '#f5f5f5' : '#fff',
+          background: '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: (isStudentsPage || isTeachersPage || isClassesPage) ? 'none' : '0 1px 4px rgba(0, 21, 41, 0.08)',
+          boxShadow: '0 1px 4px rgba(0, 21, 41, 0.08)',
           height: '64px',
           position: 'sticky',
           top: 0,
-          zIndex: 2,
-          borderBottom: (isStudentsPage || isTeachersPage || isClassesPage) ? '1px solid #e0e0e0' : 'none',
+          zIndex: 999,
+          borderBottom: '1px solid #e0e0e0',
           margin: 0,
           display: isStudentFormVisible ? 'none' : 'flex'
         }}>
-          {/* Left Section */}
+          {/* Left Section - Title */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
             flex: '1'
           }}>
+            {collapsed && (
+              <div
+                className="sidebar-toggle"
+                onClick={() => setCollapsed(false)}
+                style={{
+                  position: 'fixed',
+                  left: '65px',
+                  top: '20px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  zIndex: 9999,
+                  background: '#fff',
+                  borderRadius: '50%',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  opacity: 0,
+                  transform: 'translateX(-10px)'
+                }}
+              >
+                <img
+                  src="/open.png"
+                  alt="Open"
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    objectFit: 'contain',
+                    transition: 'all 0.3s ease'
+                  }}
+                />
+              </div>
+            )}
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -787,9 +822,9 @@ function MainLayout() {
             }}>
               <Title level={5} style={{ 
                 margin: 0, 
-                color: (isStudentsPage || isTeachersPage || isClassesPage) ? '#1f1f1f' : '#7B83EB',
-                fontWeight: (isStudentsPage || isTeachersPage || isClassesPage) ? 500 : 400,
-                fontSize: (isStudentsPage || isTeachersPage || isClassesPage) ? '18px' : '14px',
+                color: '#1f1f1f',
+                fontWeight: 500,
+                fontSize: '18px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
@@ -845,250 +880,154 @@ function MainLayout() {
                       <span style={{ color: '#1f1f1f' }}> Portal</span>
                     </span>
                   </>
+                ) : location.pathname === '/' ? (
+                  <>
+                    <img 
+                      src="/dashboard.png" 
+                      alt="Dashboard" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Dashboard </span>
+                      <span style={{ color: '#7B83EB' }}>Overview</span>
+                    </span>
+                  </>
+                ) : location.pathname === '/academic-calendar' ? (
+                  <>
+                    <img 
+                      src="/calendar.png" 
+                      alt="Academic Calendar" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Academic </span>
+                      <span style={{ color: '#FF6B6B' }}>Calendar</span>
+                    </span>
+                  </>
+                ) : location.pathname === '/attendance' ? (
+                  <>
+                    <img 
+                      src="/attendance.png" 
+                      alt="Attendance" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Student </span>
+                      <span style={{ color: '#4ECDC4' }}>Attendance</span>
+                    </span>
+                  </>
+                ) : location.pathname === '/academics' ? (
+                  <>
+                    <img 
+                      src="/academics.png" 
+                      alt="Academics" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Academic </span>
+                      <span style={{ color: '#FFE66D' }}>Management</span>
+                    </span>
+                  </>
+                ) : location.pathname === '/timetable' ? (
+                  <>
+                    <img 
+                      src="/timetable.png" 
+                      alt="Timetable" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Class </span>
+                      <span style={{ color: '#00B894' }}>Timetable</span>
+                    </span>
+                  </>
+                ) : location.pathname === '/fee-management' ? (
+                  <>
+                    <img 
+                      src="/fee.png" 
+                      alt="Fee Management" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Fee </span>
+                      <span style={{ color: '#FDCB6E' }}>Management</span>
+                    </span>
+                  </>
                 ) : (
-                  'Usha Vidyalayam'
+                  <>
+                    <img 
+                      src="/logo-transparent-png.png" 
+                      alt="Logo" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>360 Schooling</span>
+                  </>
                 )}
               </Title>
             </div>
           </div>
 
-          {/* Center Section - Search */}
-          {!(isStudentsPage || isTeachersPage || isClassesPage) && (
-            <div style={{
-              flex: '2',
-              maxWidth: '300px',
-              margin: '0 24px',
-              marginTop: '40px'
-            }}>
-              <GlobalSearch />
-            </div>
-          )}
-
-          {/* Right Section */}
+          {/* Right Section - Quick Actions */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '16px',
-            flex: '1',
             justifyContent: 'flex-end'
           }}>
-            <Space>
-              {isStudentsPage ? (
-                <>
-                  <Button
-                    type="default"
-                    icon={<UploadOutlined />}
-                    onClick={() => {/* Handle upload */}}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#fff',
-                      border: '1px solid #e0e0e0',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                    }}
-                  >
-                    Upload Students
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreateStudent}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#f54278',
-                      borderColor: '#f54278',
-                      boxShadow: '0 2px 6px rgba(245, 66, 120, 0.2)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 66, 120, 0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(245, 66, 120, 0.2)';
-                    }}
-                  >
-                    Create Student
-                  </Button>
-                </>
-              ) : isTeachersPage ? (
-                <>
-                  <Button
-                    type="default"
-                    icon={<UploadOutlined />}
-                    onClick={() => {/* Handle upload */}}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#fff',
-                      border: '1px solid #e0e0e0',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                    }}
-                  >
-                    Upload Teachers
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreateTeacher}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#44cf65',
-                      borderColor: '#44cf65',
-                      boxShadow: '0 2px 6px rgba(68, 207, 101, 0.2)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(68, 207, 101, 0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(68, 207, 101, 0.2)';
-                    }}
-                  >
-                    Create Teacher
-                  </Button>
-                </>
-              ) : isClassesPage ? (
-                <>
-                  <Button
-                    type="default"
-                    icon={<UploadOutlined />}
-                    onClick={() => {/* Handle upload */}}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#fff',
-                      border: '1px solid #e0e0e0',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
-                    }}
-                  >
-                    Upload Classes
-                  </Button>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleCreateClass}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: '#49e7f5',
-                      borderColor: '#49e7f5',
-                      boxShadow: '0 2px 6px rgba(73, 231, 245, 0.2)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(73, 231, 245, 0.3)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(73, 231, 245, 0.2)';
-                    }}
-                  >
-                    Create Class
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setQuickActionsModalVisible(true)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '2px',
-                      background: '#7B83EB',
-                      borderColor: '#7B83EB',
-                      boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
-                      e.currentTarget.style.background = '#8ba1d1';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
-                      e.currentTarget.style.background = '#7B83EB';
-                    }}
-                    size="small"
-                  >
-                    Quick Actions
-                  </Button>
-
-                  <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                    <Space style={{
-                      cursor: 'pointer',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      transition: 'background-color 0.3s',
-                      ':hover': {
-                        backgroundColor: '#f5f5f5'
-                      }
-                    }}>
-                      <Avatar
-                        icon={<UserOutlined />}
-                        style={{
-                          backgroundColor: '#7B83EB',
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 2px 6px rgba(159, 179, 223, 0.2)'
-                        }}
-                      />
-                      <span style={{
-                        color: '#1f1f1f',
-                        fontWeight: 500
-                      }}>
-                        Admin
-                      </span>
-                    </Space>
-                  </Dropdown>
-                </>
-              )}
-            </Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setQuickActionsModalVisible(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '2px',
+                background: '#7B83EB',
+                borderColor: '#7B83EB',
+                boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                e.currentTarget.style.background = '#8ba1d1';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                e.currentTarget.style.background = '#7B83EB';
+              }}
+              size="small"
+            >
+              Quick Actions
+            </Button>
           </div>
         </Header>
         <Content style={{ margin: '0 16px', overflow: 'initial' }}>
