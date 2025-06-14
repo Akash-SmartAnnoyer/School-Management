@@ -188,6 +188,23 @@ function MainLayout() {
       fontSize: '16px',
       minWidth: '16px',
       marginRight: '8px'
+    },
+    logoContainer: {
+      height: 'auto',
+      padding: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: collapsed => collapsed ? 'column' : 'row',
+      gap: 8,
+      margin: '16px 16px 4px 16px',
+      borderRadius: '8px',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      border: 'none',
+      backgroundColor: 'transparent',
+      boxShadow: 'none',
+      position: 'relative',
+      cursor: 'default'
     }
   };
 
@@ -525,13 +542,13 @@ function MainLayout() {
           className="logo" 
           style={{ 
             height: 'auto', 
-            padding: '8px', 
+            padding: '0 12px',
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: 'center', 
+            justifyContent: 'flex-start',
             flexDirection: collapsed ? 'column' : 'row', 
             gap: 8,
-            margin: '16px 16px 4px 16px',
+            margin: '16px 0 4px 0',
             borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             border: 'none',
@@ -541,7 +558,12 @@ function MainLayout() {
             cursor: 'default'
           }}
         >
-          <div className="school-icon" style={{ cursor: 'default' }}>
+          <div className="school-icon" style={{ 
+            cursor: 'default',
+            minWidth: '16px',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
             <img
               src="/logo-transparent-png.png"
               alt="App Logo"
@@ -558,9 +580,14 @@ function MainLayout() {
               <Title level={5} style={{ 
                 color: '#7B83EB', 
                 margin: 0, 
-                fontWeight: 500, 
-                fontSize: '10px',
-                cursor: 'default'
+                padding: 0,
+                fontWeight: 600, 
+                fontSize: '14px',
+                cursor: 'default',
+                lineHeight: '1',
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%'
               }}>
                 360 Schooling
               </Title>
@@ -582,7 +609,8 @@ function MainLayout() {
                     zIndex: 1001,
                     background: '#fff',
                     borderRadius: '50%',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    marginRight: '12px'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
