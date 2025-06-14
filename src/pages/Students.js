@@ -110,6 +110,7 @@ const StudentView = ({ visible, onCancel, student }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const { refreshStudents } = useStudents();
   
   if (!visible || !student) return null;
 
@@ -118,6 +119,7 @@ const StudentView = ({ visible, onCancel, student }) => {
       setIsDeleting(true);
       await studentAPI.deleteStudent(student.id);
       messageApi.success('Student deleted successfully');
+      refreshStudents(); // Refresh the student list
       onCancel(); // Close the view modal
     } catch (error) {
       console.error('Error deleting student:', error);
