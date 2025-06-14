@@ -182,22 +182,22 @@ function MainLayout() {
       height: '40px',
       lineHeight: '40px',
       margin: '4px 0',
-      padding: '0 12px'
+      // padding: '0 12px'
     },
     menuIcon: {
       fontSize: '16px',
       minWidth: '16px',
-      marginRight: '8px'
+      marginRight: '2px'
     },
     logoContainer: {
       height: 'auto',
-      padding: '8px',
+      padding: '0 12px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       flexDirection: collapsed => collapsed ? 'column' : 'row',
-      gap: 8,
-      margin: '16px 16px 4px 16px',
+      gap: 2,
+      margin: '16px 0 4px 0',
       borderRadius: '8px',
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       border: 'none',
@@ -213,7 +213,7 @@ function MainLayout() {
       key: 'search', 
       icon: <SearchOutlined style={styles.menuIcon} />, 
       label: (
-        <Space>
+        <Space size={4}>
           <span style={styles.menuItem}>Search</span>
           <span style={{ 
             fontSize: '10px', 
@@ -547,7 +547,7 @@ function MainLayout() {
             alignItems: 'center', 
             justifyContent: 'flex-start',
             flexDirection: collapsed ? 'column' : 'row', 
-            gap: 8,
+            gap: 2,
             margin: '16px 0 4px 0',
             borderRadius: '8px',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -562,7 +562,8 @@ function MainLayout() {
             cursor: 'default',
             minWidth: '16px',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            marginRight: 2
           }}>
             <img
               src="/logo-transparent-png.png"
