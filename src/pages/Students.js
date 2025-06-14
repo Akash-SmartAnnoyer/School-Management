@@ -353,7 +353,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                 alignItems: 'center', 
                 gap: '16px' 
               }}>
-                {editingSection === 'basic' ? (
+                {/* {editingSection === 'basic' ? (
                   <Space>
                     <Button type="primary" size="small" onClick={() => handleSaveEdit('basic')}>
                       Save
@@ -383,7 +383,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                       }}
                     />
                   </>
-                )}
+                )} */}
                 <Dropdown
                   menu={{ items }}
                   trigger={['click']}
