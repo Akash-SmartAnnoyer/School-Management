@@ -664,6 +664,7 @@ function MainLayout() {
               fontSize: '12px'
             }}
             className="custom-menu"
+            rootClassName="custom-menu-root"
           />
         </div>
         <div style={{
