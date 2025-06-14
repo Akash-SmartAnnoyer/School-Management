@@ -566,7 +566,7 @@ function MainLayout() {
             marginRight: 2
           }}>
             <img
-              src="/logo-transparent-png.png"
+              src="/logo-png-favicon.png"
               alt="App Logo"
               style={{
                 width: collapsed ? '32px' : '24px',
@@ -582,8 +582,8 @@ function MainLayout() {
                 color: '#7B83EB', 
                 margin: 0, 
                 padding: 0,
-                fontWeight: 600, 
-                fontSize: '14px',
+                fontWeight: 700, 
+                fontSize: '20px',
                 cursor: 'default',
                 lineHeight: '1',
                 display: 'flex',
@@ -614,20 +614,20 @@ function MainLayout() {
                     marginRight: '12px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
-                    e.currentTarget.style.background = '#f8f9ff';
+                    // e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
+                    // e.currentTarget.style.background = '#f8f9ff';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                    e.currentTarget.style.background = '#fff';
+                    // e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                    // e.currentTarget.style.background = '#fff';
                   }}
                 >
                   <img
-                    src="/close.png"
+                    src="/closed.svg"
                     alt="Close"
                     style={{
-                      width: '16px',
-                      height: '16px',
+                      width: '20px',
+                      height: '20px',
                       objectFit: 'contain',
                       transition: 'all 0.3s ease'
                     }}
@@ -833,7 +833,7 @@ function MainLayout() {
             }}
           >
             <img
-              src="/open.png"
+              src="/sidebar.png"
               alt="Open"
               style={{
                 width: '16px',
@@ -891,11 +891,11 @@ function MainLayout() {
                 }}
               >
                 <img
-                  src="/open.png"
+                  src="/sidebar.png"
                   alt="Open"
                   style={{
-                    width: '16px',
-                    height: '16px',
+                    width: '20px',
+                    height: '20px',
                     objectFit: 'contain',
                     transition: 'all 0.3s ease'
                   }}

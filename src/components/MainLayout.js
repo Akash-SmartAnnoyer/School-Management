@@ -217,26 +217,26 @@ const MainLayout = ({ children }) => {
       <Layout>
         <Header 
           style={{ 
-            padding: '0 24px', 
+            padding: '0 16px',
             background: 'var(--surface-color)', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            height: '64px',
+            height: '40px',
             position: 'relative',
             overflow: 'hidden',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
               style={{ 
-                fontSize: '18px', 
-                width: 48, 
-                height: 48,
-                borderRadius: '8px',
+                fontSize: '14px',
+                width: 32,
+                height: 32,
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -245,20 +245,20 @@ const MainLayout = ({ children }) => {
               }}
             />
             {currentUser?.schoolName && (
-              <Title level={4} style={{ margin: 0, color: 'var(--text-primary)' }}>
+              <Title level={4} style={{ margin: 0, color: 'var(--text-primary)', fontSize: '14px' }}>
                 {currentUser.schoolName}
               </Title>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Button
               type="text"
               icon={<BellOutlined />}
               style={{ 
-                fontSize: '18px', 
-                width: 48, 
-                height: 48,
-                borderRadius: '8px',
+                fontSize: '14px',
+                width: 32,
+                height: 32,
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -273,10 +273,10 @@ const MainLayout = ({ children }) => {
               onClick={() => setThemeVisible(true)}
               title="Theme Settings"
               style={{ 
-                fontSize: '18px', 
-                width: 48, 
-                height: 48,
-                borderRadius: '8px',
+                fontSize: '14px',
+                width: 32,
+                height: 32,
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -289,8 +289,8 @@ const MainLayout = ({ children }) => {
               <Space 
                 style={{ 
                   cursor: 'pointer',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   color: 'var(--text-primary)',
                 }}
@@ -299,8 +299,8 @@ const MainLayout = ({ children }) => {
                   <AdvancedImage 
                     cldImg={getCloudinaryImage(currentUser.profilePublicId)}
                     style={{ 
-                      width: 40, 
-                      height: 40, 
+                      width: 28,
+                      height: 28,
                       borderRadius: '50%',
                       border: '2px solid var(--border-color)',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -309,14 +309,14 @@ const MainLayout = ({ children }) => {
                 ) : (
                   <Avatar 
                     icon={<UserOutlined />} 
-                    size={40}
+                    size={28}
                     style={{ 
                       backgroundColor: 'var(--primary-color)',
                       border: '2px solid var(--border-color)',
                     }}
                   />
                 )}
-                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '13px' }}>
                   {currentUser?.name}
                 </span>
               </Space>

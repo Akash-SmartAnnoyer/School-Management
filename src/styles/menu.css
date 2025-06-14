@@ -13,13 +13,13 @@
 }
 
 .custom-menu .ant-menu-item-selected {
-  background-color: #f8f9ff !important;
+  background-color: #E6EBF0 !important;
   color: #7B83EB !important;
   font-weight: 500 !important;
 }
 
 .custom-menu .ant-menu-item-selected:hover {
-  background-color: #f0f2ff !important;
+  background-color: #E6EBF0 !important;
   color: #7B83EB !important;
 }
 
