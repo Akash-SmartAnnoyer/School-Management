@@ -1,0 +1,46 @@
+.custom-menu .ant-menu-item {
+  font-size: 12px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 4px 0 !important;
+  padding: 0 12px !important;
+}
+
+.custom-menu .ant-menu-item-icon {
+  font-size: 16px !important;
+  min-width: 12px !important;
+  margin-right: 1px !important;
+}
+
+.custom-menu .ant-menu-item-selected {
+  background-color: #f8f9ff !important;
+  color: #7B83EB !important;
+  font-weight: 500 !important;
+}
+
+.custom-menu .ant-menu-item-selected:hover {
+  background-color: #f0f2ff !important;
+  color: #7B83EB !important;
+}
+
+.custom-menu .ant-menu-item:hover {
+  background-color: #f8f9ff !important;
+  color: inherit !important;
+}
+
+.custom-menu .ant-menu-item .anticon {
+  font-size: 16px !important;
+}
+
+.custom-menu .ant-menu-item-selected .anticon {
+  color: #7B83EB !important;
+}
+
+.custom-menu .ant-menu-item-selected:hover .anticon {
+  color: #7B83EB !important;
+}
+
+.custom-menu .ant-menu-item-selected::after {
+  border-right-color: #7B83EB !important;
+  border-right-width: 3px !important;
+} 

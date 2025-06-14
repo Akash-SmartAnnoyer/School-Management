@@ -41,6 +41,7 @@ import Sidebar from './components/Sidebar';
 import LoadingSpinner from './components/LoadingSpinner';
 import { LoadingProvider, useLoading } from './contexts/LoadingContext';
 import SchoolLoader from './components/SchoolLoader';
+import './styles/menu.css';
 
 // Import pages
 import Dashboard from './pages/Dashboard';
@@ -175,44 +176,102 @@ function MainLayout() {
     }
   }, []);
 
+  const styles = {
+    menuItem: {
+      fontSize: '12px',
+      height: '40px',
+      lineHeight: '40px',
+      margin: '4px 0',
+      padding: '0 12px'
+    },
+    menuIcon: {
+      fontSize: '16px',
+      minWidth: '16px',
+      marginRight: '8px'
+    }
+  };
+
   const menuItems = [
     { 
       key: 'search', 
-      icon: <SearchOutlined />, 
+      icon: <SearchOutlined style={styles.menuIcon} />, 
       label: (
         <Space>
-          <span>Search</span>
+          <span style={styles.menuItem}>Search</span>
           <span style={{ 
-            fontSize: '12px', 
+            fontSize: '10px', 
             color: '#8c8c8c',
             background: '#f5f5f5',
             padding: '2px 6px',
             borderRadius: '4px',
             border: '1px solid #f0f0f0'
           }}>
-            {navigator.platform.includes('Mac') ? (
-              <>
-                <span style={{ fontSize: '12px' }}>⌘ + k</span>
-              </>
-            ) : (
-              'ctrl + k'
-            )}
+            {navigator.platform.includes('Mac') ? '⌘ + k' : 'ctrl + k'}
           </span>
         </Space>
       ),
       onClick: () => setSearchModalVisible(true)
     },
-    { key: '1', label: 'Dashboard', icon: <DashboardOutlined />, path: '/' },
-    { key: '2', label: 'Academic Calendar', icon: <CalendarOutlined />, path: '/academic-calendar' },
-    { key: '3', label: 'Students', icon: <UserOutlined />, path: '/students' },
-    { key: '4', label: 'Teachers', icon: <TeamOutlined />, path: '/teachers' },
-    { key: '5', label: 'Classes', icon: <BookOutlined />, path: '/classes' },
-    { key: '6', label: 'Attendance', icon: <CalendarOutlined />, path: '/attendance' },
-    { key: '7', label: 'Teacher Attendance', icon: <CalendarOutlined />, path: '/teacher-attendance' },
-    // { key: '8', label: 'Attendance Reports', icon: <BarChartOutlined />, path: '/attendance-reports' },
-    { key: '9', label: 'Academics', icon: <FileTextOutlined />, path: '/academics' },
-    { key: '10', label: 'Timetable', icon: <CalendarOutlined />, path: '/timetable' },
-    { key: '11', label: 'Fee Management', icon: <WalletOutlined />, path: '/fee-management' }
+    { 
+      key: '1', 
+      label: <span style={styles.menuItem}>Dashboard</span>, 
+      icon: <DashboardOutlined style={styles.menuIcon} />, 
+      path: '/' 
+    },
+    { 
+      key: '2', 
+      label: <span style={styles.menuItem}>Academic Calendar</span>, 
+      icon: <CalendarOutlined style={styles.menuIcon} />, 
+      path: '/academic-calendar' 
+    },
+    { 
+      key: '3', 
+      label: <span style={styles.menuItem}>Students</span>, 
+      icon: <UserOutlined style={styles.menuIcon} />, 
+      path: '/students' 
+    },
+    { 
+      key: '4', 
+      label: <span style={styles.menuItem}>Teachers</span>, 
+      icon: <TeamOutlined style={styles.menuIcon} />, 
+      path: '/teachers' 
+    },
+    { 
+      key: '5', 
+      label: <span style={styles.menuItem}>Classes</span>, 
+      icon: <BookOutlined style={styles.menuIcon} />, 
+      path: '/classes' 
+    },
+    { 
+      key: '6', 
+      label: <span style={styles.menuItem}>Attendance</span>, 
+      icon: <CalendarOutlined style={styles.menuIcon} />, 
+      path: '/attendance' 
+    },
+    { 
+      key: '7', 
+      label: <span style={styles.menuItem}>Teacher Attendance</span>, 
+      icon: <CalendarOutlined style={styles.menuIcon} />, 
+      path: '/teacher-attendance' 
+    },
+    { 
+      key: '9', 
+      label: <span style={styles.menuItem}>Academics</span>, 
+      icon: <FileTextOutlined style={styles.menuIcon} />, 
+      path: '/academics' 
+    },
+    { 
+      key: '10', 
+      label: <span style={styles.menuItem}>Timetable</span>, 
+      icon: <CalendarOutlined style={styles.menuIcon} />, 
+      path: '/timetable' 
+    },
+    { 
+      key: '11', 
+      label: <span style={styles.menuItem}>Fee Management</span>, 
+      icon: <WalletOutlined style={styles.menuIcon} />, 
+      path: '/fee-management' 
+    }
   ];
 
   const userMenuItems = [
@@ -500,7 +559,7 @@ function MainLayout() {
                 color: '#7B83EB', 
                 margin: 0, 
                 fontWeight: 500, 
-                fontSize: '11px',
+                fontSize: '10px',
                 cursor: 'default'
               }}>
                 360 Schooling
@@ -572,7 +631,8 @@ function MainLayout() {
               border: 'none',
               padding: '0 8px',
               flex: 1,
-              overflow: 'auto'
+              overflow: 'auto',
+              fontSize: '12px'
             }}
             className="custom-menu"
           />
@@ -612,7 +672,7 @@ function MainLayout() {
                       <span style={{ 
                         color: '#7B83EB', 
                         fontWeight: 500, 
-                        fontSize: '11px',
+                        fontSize: '10px',
                       }}>
                         360 Schooling
                       </span>
@@ -688,7 +748,7 @@ function MainLayout() {
               {!collapsed && (
                 <span style={{
                   color: '#7B83EB',
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontWeight: 500,
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -824,7 +884,7 @@ function MainLayout() {
                 margin: 0, 
                 color: '#1f1f1f',
                 fontWeight: 500,
-                fontSize: '18px',
+                fontSize: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
