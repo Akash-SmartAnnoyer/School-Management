@@ -212,8 +212,9 @@ const StudentView = ({ visible, onCancel, student }) => {
     {
       key: 'delete',
       label: 'Delete',
-      icon: <DeleteOutlined />,
+      icon: isDeleting ? <LoadingOutlined /> : <DeleteOutlined />,
       danger: true,
+      disabled: isDeleting,
       onClick: () => {
         Modal.confirm({
           title: 'Are you sure you want to delete this student?',
