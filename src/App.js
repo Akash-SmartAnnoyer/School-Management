@@ -451,10 +451,10 @@ function MainLayout() {
   const handleQuickActionClick = (action) => {
     switch (action.key) {
       case 'addStudent':
-        navigate('/students');
+        navigate('/students/add');
         break;
       case 'addTeacher':
-        navigate('/teachers');
+        navigate('/teachers/add');
         break;
       case 'markAttendance':
         navigate('/attendance');
