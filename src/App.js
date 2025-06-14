@@ -67,6 +67,8 @@ import { ClassesProvider } from './contexts/ClassesContext';
 import AcademyLanding from './pages/AcademyLanding';
 import SearchModal from './components/SearchModal';
 import QuickActionsModal from './components/QuickActionsModal';
+import InstituteSettings from './pages/InstituteSettings';
+import StudentConfig from './pages/StudentConfig';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -1315,6 +1317,8 @@ function MainLayout() {
                 <Profile showPasswordSection={true} />
               </ProtectedRoute>
             } />
+            <Route path="/institute-settings" element={<InstituteSettings />} />
+            <Route path="/student-config" element={<StudentConfig />} />
           </Routes>
         </Content>
       </Layout>
