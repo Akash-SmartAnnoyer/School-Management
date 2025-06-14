@@ -801,7 +801,7 @@ function MainLayout() {
             style={{
               position: 'fixed',
               left: '65px',
-              top: '20px',
+              top: '16px',
               width: '32px',
               height: '32px',
               display: 'flex',
@@ -810,25 +810,25 @@ function MainLayout() {
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               zIndex: 9999,
-              background: '#fff',
+              background: '#7B83EB',
               borderRadius: '50%',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              boxShadow: '0 2px 8px rgba(123, 131, 235, 0.3)',
               opacity: 0,
               transform: 'translateX(-10px)'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = '1';
               e.currentTarget.style.transform = 'translateX(0)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.2)';
-              e.currentTarget.style.background = '#f8f9ff';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(123, 131, 235, 0.4)';
+              e.currentTarget.style.background = '#8ba1d1';
             }}
             onMouseLeave={(e) => {
               const sidebar = document.querySelector('.ant-layout-sider');
               if (!sidebar?.matches(':hover')) {
                 e.currentTarget.style.opacity = '0';
                 e.currentTarget.style.transform = 'translateX(-10px)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                e.currentTarget.style.background = '#fff';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(123, 131, 235, 0.3)';
+                e.currentTarget.style.background = '#7B83EB';
               }
             }}
           >
@@ -836,10 +836,11 @@ function MainLayout() {
               src="/sidebar.png"
               alt="Open"
               style={{
-                width: '16px',
-                height: '16px',
+                width: '20px',
+                height: '20px',
                 objectFit: 'contain',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                filter: 'brightness(0) invert(1)'
               }}
             />
           </div>
@@ -875,17 +876,17 @@ function MainLayout() {
                   position: 'fixed',
                   left: '65px',
                   top: '20px',
-                  width: '32px',
-                  height: '32px',
+                  width: '40px',
+                  height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   zIndex: 9999,
-                  background: '#fff',
+                  background: '#7B83EB',
                   borderRadius: '50%',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  boxShadow: '0 2px 8px rgba(123, 131, 235, 0.3)',
                   opacity: 0,
                   transform: 'translateX(-10px)'
                 }}
@@ -894,10 +895,11 @@ function MainLayout() {
                   src="/sidebar.png"
                   alt="Open"
                   style={{
-                    width: '20px',
-                    height: '20px',
+                    width: '24px',
+                    height: '24px',
                     objectFit: 'contain',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    filter: 'brightness(0) invert(1)'
                   }}
                 />
               </div>
