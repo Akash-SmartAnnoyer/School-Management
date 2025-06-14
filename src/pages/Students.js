@@ -321,10 +321,25 @@ const StudentView = ({ visible, onCancel, student }) => {
               />
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Typography.Title level={3} style={{ margin: 0 }}>
-                  <span style={{ color: '#1f1f1f' }}>{student.first_name} </span>
-                  <span style={{ color: '#f54278' }}>{student.last_name}</span>
-                </Typography.Title>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.first_name || ''}
+                      onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                    <Input
+                      value={editedValues.last_name || ''}
+                      onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                  </Space>
+                ) : (
+                  <Typography.Title level={3} style={{ margin: 0 }}>
+                    <span style={{ color: '#1f1f1f' }}>{student.first_name} </span>
+                    <span style={{ color: '#f54278' }}>{student.last_name}</span>
+                  </Typography.Title>
+                )}
                 <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
                   #{student.student_id}
                 </Typography.Text>
@@ -338,9 +353,37 @@ const StudentView = ({ visible, onCancel, student }) => {
                 alignItems: 'center', 
                 gap: '16px' 
               }}>
-                <Typography.Text strong style={{ fontSize: '16px' }}>
-                  {getRomanNumeral(student.profile?.class_name)}-{student.section}
-                </Typography.Text>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Button type="primary" size="small" onClick={() => handleSaveEdit('basic')}>
+                      Save
+                    </Button>
+                    <Button size="small" onClick={handleCancelEdit}>
+                      Cancel
+                    </Button>
+                  </Space>
+                ) : (
+                  <>
+                    <Typography.Text strong style={{ fontSize: '16px' }}>
+                      {getRomanNumeral(student.profile?.class_name)}-{student.section}
+                    </Typography.Text>
+                    <Button 
+                      type="text" 
+                      icon={<EditOutlined />} 
+                      onClick={() => handleEditSection('basic')}
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'white',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  </>
+                )}
                 <Dropdown
                   menu={{ items }}
                   trigger={['click']}
@@ -382,33 +425,75 @@ const StudentView = ({ visible, onCancel, student }) => {
                 <Typography.Text strong style={{ fontSize: '14px' }}>
                   Admission Details
                 </Typography.Text>
-                <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
-                  {student.admission_number}
-                </Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
-                  {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
-                </Typography.Text>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.admission_number || ''}
+                      onChange={(e) => handleFieldChange('admission_number', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                    <DatePicker
+                      value={editedValues.admission_date ? moment(editedValues.admission_date) : null}
+                      onChange={(date) => handleFieldChange('admission_date', date)}
+                      style={{ width: '150px' }}
+                    />
+                  </Space>
+                ) : (
+                  <>
+                    <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
+                      {student.admission_number}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                      {student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A'}
+                    </Typography.Text>
+                  </>
+                )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MailOutlined style={{ color: '#666' }} />
-                  <Typography.Text style={{ fontSize: '14px' }}>
-                    {student.email || 'No email'}
-                  </Typography.Text>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <PhoneOutlined style={{ color: '#666' }} />
-                  <Typography.Text style={{ fontSize: '14px' }}>
-                    {student.phone || 'No phone'}
-                  </Typography.Text>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <EnvironmentOutlined style={{ color: '#666' }} />
-                  <Typography.Text style={{ fontSize: '14px' }}>
-                    {student.parent_address || 'No address'}
-                  </Typography.Text>
-                </div>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      prefix={<MailOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                    <Input
+                      value={editedValues.phone || ''}
+                      onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      prefix={<PhoneOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                    <Input
+                      value={editedValues.parent_address || ''}
+                      onChange={(e) => handleFieldChange('parent_address', e.target.value)}
+                      prefix={<EnvironmentOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                  </Space>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MailOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {student.email || 'No email'}
+                      </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <PhoneOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {student.phone || 'No phone'}
+                      </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <EnvironmentOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {student.parent_address || 'No address'}
+                      </Typography.Text>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -655,11 +740,75 @@ const StudentView = ({ visible, onCancel, student }) => {
                           </div>
                           <Divider />
                           <div style={{ marginTop: '16px' }}>
-                            <Typography.Title level={5} style={{ marginBottom: '16px' }}>Basic Information</Typography.Title>
-                            {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
-                            {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
-                            {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
-                            {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                              <Typography.Title level={5} style={{ margin: 0 }}>Basic Information</Typography.Title>
+                              {editingSection === 'profile' ? (
+                                <Space>
+                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('profile')}>
+                                    Save
+                                  </Button>
+                                  <Button size="small" onClick={handleCancelEdit}>
+                                    Cancel
+                                  </Button>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('profile')}
+                                />
+                              )}
+                            </div>
+                            {editingSection === 'profile' ? (
+                              <>
+                                <Form.Item label="Gender" style={{ marginBottom: '8px' }}>
+                                  <Select
+                                    value={editedValues.gender}
+                                    onChange={(value) => handleFieldChange('gender', value)}
+                                    style={{ width: '100%' }}
+                                  >
+                                    <Select.Option value="M">Male</Select.Option>
+                                    <Select.Option value="F">Female</Select.Option>
+                                  </Select>
+                                </Form.Item>
+                                <Form.Item label="Date of Birth" style={{ marginBottom: '8px' }}>
+                                  <DatePicker
+                                    value={editedValues.dob ? moment(editedValues.dob) : null}
+                                    onChange={(date) => handleFieldChange('dob', date)}
+                                    style={{ width: '100%' }}
+                                  />
+                                </Form.Item>
+                                <Form.Item label="Blood Group" style={{ marginBottom: '8px' }}>
+                                  <Select
+                                    value={editedValues.blood_group}
+                                    onChange={(value) => handleFieldChange('blood_group', value)}
+                                    style={{ width: '100%' }}
+                                  >
+                                    <Select.Option value="A+">A+</Select.Option>
+                                    <Select.Option value="A-">A-</Select.Option>
+                                    <Select.Option value="B+">B+</Select.Option>
+                                    <Select.Option value="B-">B-</Select.Option>
+                                    <Select.Option value="AB+">AB+</Select.Option>
+                                    <Select.Option value="AB-">AB-</Select.Option>
+                                    <Select.Option value="O+">O+</Select.Option>
+                                    <Select.Option value="O-">O-</Select.Option>
+                                  </Select>
+                                </Form.Item>
+                                <Form.Item label="Nationality" style={{ marginBottom: '8px' }}>
+                                  <Input
+                                    value={editedValues.profile?.nationality || ''}
+                                    onChange={(e) => handleFieldChange('profile.nationality', e.target.value)}
+                                  />
+                                </Form.Item>
+                              </>
+                            ) : (
+                              <>
+                                {renderDetailItem('Gender', student.gender === 'M' ? 'Male' : 'Female', <ManOutlined />)}
+                                {renderDetailItem('Date of Birth', student.dob ? moment(student.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                                {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
+                                {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
+                              </>
+                            )}
                           </div>
                         </Card>
                       </div>
