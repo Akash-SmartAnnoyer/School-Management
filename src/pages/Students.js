@@ -71,6 +71,8 @@ import {
   MoreOutlined,
   EnvironmentOutlined,
   GlobalOutlined,
+  TrophyOutlined,
+  NumberOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -105,11 +107,48 @@ const StudentView = ({ visible, onCancel, student }) => {
   if (!visible || !student) return null;
 
   const renderDetailItem = (label, value, icon = null) => (
-    <div className="detail-item">
-      {icon && <div className="detail-icon">{icon}</div>}
-      <div className="detail-content">
-        <div className="detail-label">{label}</div>
-        <div className="detail-value">{value || 'N/A'}</div>
+    <div className="detail-item" style={{ 
+      display: 'flex', 
+      alignItems: 'flex-start', 
+      gap: '12px',
+      marginBottom: '8px'
+    }}>
+      {icon && (
+        <div className="detail-icon" style={{ 
+          color: '#666',
+          fontSize: '16px',
+          width: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '2px'
+        }}>
+          {icon}
+        </div>
+      )}
+      <div className="detail-content" style={{ flex: 1 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          gap: '8px',
+          flexWrap: 'wrap'
+        }}>
+          <div className="detail-label" style={{ 
+            color: '#1f1f1f', 
+            fontSize: '14px',
+            minWidth: '120px',
+            fontWeight: 600
+          }}>
+            {label}
+          </div>
+          <div className="detail-value" style={{ 
+            fontSize: '14px',
+            fontWeight: 400,
+            color: '#666'
+          }}>
+            {value || 'N/A'}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -306,8 +345,16 @@ const StudentView = ({ visible, onCancel, student }) => {
               children: (
                 <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
                   <div style={{ flex: 1 }}>
-                    <Card title="Basic Information" bordered={false}>
-                      <Row gutter={[16, 16]}>
+                    <Card title="Basic Information" bordered={false} style={{ 
+                      backgroundColor: '#E6EBF0',
+                      borderRadius: '8px',
+                      transition: 'background-color 0.3s ease'
+                    }} onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }} onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#E6EBF0';
+                    }}>
+                      <Row gutter={[16, 8]}>
                         <Col span={12}>
                           {renderDetailItem('First Name', student.first_name, <UserOutlined />)}
                         </Col>
@@ -324,14 +371,29 @@ const StudentView = ({ visible, onCancel, student }) => {
                           {renderDetailItem('Blood Group', student.blood_group, <HeartOutlined />)}
                         </Col>
                         <Col span={12}>
-                          {renderDetailItem('Nationality', student.profile?.nationality, <GlobalOutlined />)}
+                          {renderDetailItem('Nationality', student.nationality, <GlobalOutlined />)}
                         </Col>
                       </Row>
                     </Card>
 
-                    <Card title="Contact Information" bordered={false} style={{ marginTop: '16px' }}>
-                      <Row gutter={[16, 16]}>
-                        <Col span={12}>
+                    <Card 
+                      title="Contact Information" 
+                      bordered={false} 
+                      style={{ 
+                        marginTop: '16px',
+                        backgroundColor: '#E6EBF0',
+                        borderRadius: '8px',
+                        transition: 'background-color 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#E6EBF0';
+                      }}
+                    >
+                      <Row gutter={[16, 8]}>
+                        <Col span={24}>
                           {renderDetailItem('Email', student.email, <MailOutlined />)}
                         </Col>
                         <Col span={12}>
@@ -339,6 +401,117 @@ const StudentView = ({ visible, onCancel, student }) => {
                         </Col>
                         <Col span={24}>
                           {renderDetailItem('Address', student.parent_address, <EnvironmentOutlined />)}
+                        </Col>
+                      </Row>
+                    </Card>
+
+                    <Card 
+                      title="Academic Profile" 
+                      bordered={false} 
+                      style={{ 
+                        marginTop: '16px',
+                        backgroundColor: '#E6EBF0',
+                        borderRadius: '8px',
+                        transition: 'background-color 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#E6EBF0';
+                      }}
+                    >
+                      <Row gutter={[16, 8]}>
+                        <Col span={12}>
+                          {renderDetailItem('Class', `${getRomanNumeral(student.class_name)}-${student.section}`, <BookOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Roll Number', student.roll_number, <IdcardOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Admission Number', student.admission_number, <NumberOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Admission Date', student.admission_date ? moment(student.admission_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Status', student.status === 'active' ? 'Active' : 'Inactive', <CheckCircleOutlined />)}
+                        </Col>
+                      </Row>
+                    </Card>
+
+                    <Card 
+                      title="Parent Information" 
+                      bordered={false} 
+                      style={{ 
+                        marginTop: '16px',
+                        backgroundColor: '#E6EBF0',
+                        borderRadius: '8px',
+                        transition: 'background-color 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#E6EBF0';
+                      }}
+                    >
+                      <Row gutter={[16, 8]}>
+                        <Col span={12}>
+                          {renderDetailItem("Father's Name", student.father_name, <UserOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem("Father's Occupation", student.father_occupation, <UserOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem("Mother's Name", student.mother_name, <UserOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem("Mother's Occupation", student.mother_occupation, <UserOutlined />)}
+                        </Col>
+                        <Col span={24}>
+                          {renderDetailItem("Parent's Address", student.parent_address, <EnvironmentOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem("Parent's Email", student.parent_email, <MailOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem("Parent's Phone", student.parent_phone, <PhoneOutlined />)}
+                        </Col>
+                      </Row>
+                    </Card>
+
+                    <Card 
+                      title="Fee Details" 
+                      bordered={false} 
+                      style={{ 
+                        marginTop: '16px',
+                        backgroundColor: '#E6EBF0',
+                        borderRadius: '8px',
+                        transition: 'background-color 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'white';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#E6EBF0';
+                      }}
+                    >
+                      <Row gutter={[16, 8]}>
+                        <Col span={12}>
+                          {renderDetailItem('Fee Type', student.fee_type, <MoneyCollectOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Fee Amount', student.fee_amount ? `₹${student.fee_amount}` : 'N/A', <MoneyCollectOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Payment Status', student.payment_status, <SafetyCertificateOutlined />)}
+                        </Col>
+                        <Col span={12}>
+                          {renderDetailItem('Last Payment Date', student.last_payment_date ? moment(student.last_payment_date).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
                         </Col>
                       </Row>
                     </Card>
