@@ -976,6 +976,22 @@ function MainLayout() {
                       <span style={{ color: '#FDCB6E' }}>Management</span>
                     </span>
                   </>
+                ) : location.pathname === '/teacher-attendance' ? (
+                  <>
+                    <img 
+                      src="/teacher-attendance.png" 
+                      alt="Teacher Attendance" 
+                      style={{ 
+                        width: '24px', 
+                        height: '24px',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                    <span>
+                      <span style={{ color: '#1f1f1f' }}>Teacher </span>
+                      <span style={{ color: '#FF6B6B' }}>Attendance</span>
+                    </span>
+                  </>
                 ) : (
                   <>
                     <img 
