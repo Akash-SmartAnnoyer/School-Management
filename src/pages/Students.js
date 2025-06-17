@@ -3011,7 +3011,7 @@ const Students = forwardRef((props, ref) => {
                   },
                 }}
                 className="students-table"
-                scroll={{ x: 'max-content', y: 'calc(100vh - 240px)' }}
+                scroll={{ x: 'max-content', y: 'calc(100vh - 260px)' }}
                 size="small"
                 style={{
                   '--ant-table-row-height': '20px'
