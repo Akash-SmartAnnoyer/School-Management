@@ -14,7 +14,10 @@ import {
   DollarOutlined,
   BellOutlined,
   QuestionCircleOutlined,
-  SearchOutlined
+  SearchOutlined,
+  BankOutlined,
+  WalletOutlined,
+  ToolOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getThemeColors } from '../../services/themeService';
@@ -115,9 +118,38 @@ const MainLayout = ({ children }) => {
       label: 'Timetable',
     },
     {
+      key: 'configurations',
+      icon: <ToolOutlined />,
+      label: 'Configurations',
+      children: [
+        {
+          key: 'student-config',
+          icon: <UserOutlined />,
+          label: 'Student Configuration',
+        },
+        {
+          key: 'academic-config',
+          icon: <BookOutlined />,
+          label: 'Academic Configuration',
+        },
+        {
+          key: 'fee-config',
+          icon: <WalletOutlined />,
+          label: 'Fee Configuration',
+        }
+      ]
+    },
+    {
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
+      children: [
+        {
+          key: 'institute-settings',
+          icon: <BankOutlined />,
+          label: 'Institute Settings',
+        }
+      ]
     },
   ];
 

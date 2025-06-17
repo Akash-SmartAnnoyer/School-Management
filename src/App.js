@@ -67,6 +67,8 @@ import { ClassesProvider } from './contexts/ClassesContext';
 import AcademyLanding from './pages/AcademyLanding';
 import SearchModal from './components/SearchModal';
 import QuickActionsModal from './components/QuickActionsModal';
+import InstituteSettings from './pages/InstituteSettings';
+import StudentConfig from './pages/StudentConfig';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -288,6 +290,12 @@ function MainLayout() {
       label: <span style={styles.menuItem}>Fee Management</span>, 
       icon: <WalletOutlined style={styles.menuIcon} />, 
       path: '/fee-management' 
+    },
+    {
+      key: '12',
+      label: <span style={styles.menuItem}>Institute Configurations</span>,
+      icon: <SettingOutlined style={styles.menuIcon} />,
+      path: '/student-config'
     }
   ];
 
@@ -1315,6 +1323,8 @@ function MainLayout() {
                 <Profile showPasswordSection={true} />
               </ProtectedRoute>
             } />
+            <Route path="/institute-settings" element={<InstituteSettings />} />
+            <Route path="/student-config" element={<StudentConfig />} />
           </Routes>
         </Content>
       </Layout>
