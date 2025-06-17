@@ -855,7 +855,12 @@ function MainLayout() {
         </Tooltip>
       )}
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'all 0.2s' }}>
+      <Layout style={{ 
+        marginLeft: collapsed ? 80 : 200, 
+        transition: 'all 0.2s',
+        height: '100vh',
+        overflow: 'hidden'
+      }}>
         <Header style={{
           padding: '0 24px',
           background: '#E6EBF0',
@@ -1231,101 +1236,113 @@ function MainLayout() {
             </Button>
           </div>
         </Header>
-        <Content style={{ margin: '0 16px', overflow: 'initial' }}>
-          <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/students" element={
-              <ProtectedRoute>
-                <Students ref={studentsRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/students/add" element={
-              <ProtectedRoute>
-                <Students ref={studentsRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/students/edit/:id" element={
-              <ProtectedRoute>
-                <Students ref={studentsRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/students/view/:id" element={
-              <ProtectedRoute>
-                <Students ref={studentsRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/teachers" element={
-              <ProtectedRoute>
-                <Teachers ref={teachersRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/classes" element={
-              <ProtectedRoute>
-                <Classes ref={classesRef} />
-              </ProtectedRoute>
-            } />
-            <Route path="/attendance" element={
-              <ProtectedRoute>
-                <Attendance />
-              </ProtectedRoute>
-            } />
-            <Route path="/academics" element={
-              <ProtectedRoute>
-                <Academics />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/exam-management" element={
-              <ProtectedRoute>
-                <ExamManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/academic-calendar" element={
-              <ProtectedRoute>
-                <AcademicCalendar />
-              </ProtectedRoute>
-            } />
-            <Route path="/teacher-attendance" element={
-              <ProtectedRoute>
-                <TeacherAttendance />
-              </ProtectedRoute>
-            } />
-            <Route path="/attendance-reports" element={
-              <ProtectedRoute>
-                <AttendanceReport />
-              </ProtectedRoute>
-            } />
-            <Route path="/timetable/*" element={
-              <ProtectedRoute>
-                <Timetable />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <AccountSettings />
-              </ProtectedRoute>
-            } />
-            <Route path="/fee-management" element={
-              <ProtectedRoute>
-                <FeeManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="/change-password" element={
-              <ProtectedRoute>
-                <Profile showPasswordSection={true} />
-              </ProtectedRoute>
-            } />
-            <Route path="/institute-settings" element={<InstituteSettings />} />
-            <Route path="/student-config" element={<StudentConfig />} />
-          </Routes>
+        <Content style={{ 
+          margin: 0,
+          padding: '16px',
+          height: 'calc(100vh - 64px)',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          <div style={{ 
+            height: '100%',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <Routes>
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/students" element={
+                <ProtectedRoute>
+                  <Students ref={studentsRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/students/add" element={
+                <ProtectedRoute>
+                  <Students ref={studentsRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/students/edit/:id" element={
+                <ProtectedRoute>
+                  <Students ref={studentsRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/students/view/:id" element={
+                <ProtectedRoute>
+                  <Students ref={studentsRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/teachers" element={
+                <ProtectedRoute>
+                  <Teachers ref={teachersRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/classes" element={
+                <ProtectedRoute>
+                  <Classes ref={classesRef} />
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance" element={
+                <ProtectedRoute>
+                  <Attendance />
+                </ProtectedRoute>
+              } />
+              <Route path="/academics" element={
+                <ProtectedRoute>
+                  <Academics />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/exam-management" element={
+                <ProtectedRoute>
+                  <ExamManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/academic-calendar" element={
+                <ProtectedRoute>
+                  <AcademicCalendar />
+                </ProtectedRoute>
+              } />
+              <Route path="/teacher-attendance" element={
+                <ProtectedRoute>
+                  <TeacherAttendance />
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance-reports" element={
+                <ProtectedRoute>
+                  <AttendanceReport />
+                </ProtectedRoute>
+              } />
+              <Route path="/timetable/*" element={
+                <ProtectedRoute>
+                  <Timetable />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <AccountSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/fee-management" element={
+                <ProtectedRoute>
+                  <FeeManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/change-password" element={
+                <ProtectedRoute>
+                  <Profile showPasswordSection={true} />
+                </ProtectedRoute>
+              } />
+              <Route path="/institute-settings" element={<InstituteSettings />} />
+              <Route path="/student-config" element={<StudentConfig />} />
+            </Routes>
+          </div>
         </Content>
       </Layout>
       <ThemeConfigurator

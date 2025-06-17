@@ -200,3 +200,49 @@
   background: #8ba1d1;
   border-color: #8ba1d1;
 }
+
+.ant-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ant-layout-content {
+  margin: 0;
+  padding: 16px;
+  height: calc(100vh - 64px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove redundant content styles */
+.ant-layout-content::before {
+  display: none;
+}
+
+/* Ensure the main content area is the only scrollable area */
+.ant-layout-content > div {
+  height: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
