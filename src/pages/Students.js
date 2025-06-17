@@ -30,6 +30,7 @@ import {
   Tabs,
   Dropdown,
   Spin,
+  Alert,
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -94,6 +95,7 @@ import { DragHandleOutlined } from '@mui/icons-material';
 import StyledModal from '../components/StyledModal';
 import TabPane from 'antd/es/tabs/TabPane';
 import useMessage from 'antd/es/message/useMessage';
+import { useClasses } from '../contexts/ClassesContext';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -1945,11 +1947,14 @@ const Students = forwardRef((props, ref) => {
     loadStudents,
     refreshStudents 
   } = useStudents();
+  const { classes } = useClasses();
   const [form] = Form.useForm();
   const [bulkStatusForm] = Form.useForm();
+  const [bulkClassForm] = Form.useForm();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [bulkStatusModalVisible, setBulkStatusModalVisible] = useState(false);
+  const [bulkClassModalVisible, setBulkClassModalVisible] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchColumn, setSearchColumn] = useState('');
@@ -2832,6 +2837,33 @@ const Students = forwardRef((props, ref) => {
     }
   }, [modalVisible, ref]);
 
+  const areAllStudentsFromSameClass = () => {
+    if (selectedRowKeys.length === 0) return false;
+    
+    const selectedStudents = students.filter(student => selectedRowKeys.includes(student.id));
+    if (selectedStudents.length === 0) return false;
+    
+    const firstStudentClass = selectedStudents[0].classroom;
+    return selectedStudents.every(student => student.classroom === firstStudentClass);
+  };
+
+  const handleBulkClassChange = async () => {
+    try {
+      const values = await bulkClassForm.validateFields();
+      const updatePromises = selectedRowKeys.map(id => 
+        api.student.updateStudent(id, { classroom: values.classroom })
+      );
+      await Promise.all(updatePromises);
+      message.success('Class updated successfully for selected students');
+      setBulkClassModalVisible(false);
+      setSelectedRowKeys([]);
+      refreshStudents();
+    } catch (error) {
+      console.error('Error updating class:', error);
+      message.error('Failed to update class');
+    }
+  };
+
   return (
     <div className="students-page" style={{ 
       height: '100%', 
@@ -3000,6 +3032,19 @@ const Students = forwardRef((props, ref) => {
             </Col>
             <Col>
               <Space>
+                <Tooltip 
+                  title={!areAllStudentsFromSameClass() ? "All selected students must be from the same class to change their class" : ""}
+                >
+                  <Button
+                    type="primary"
+                    onClick={() => setBulkClassModalVisible(true)}
+                    className="bulk-action-btn"
+                    icon={<TeamOutlined />}
+                    disabled={!areAllStudentsFromSameClass()}
+                  >
+                    Change Class
+                  </Button>
+                </Tooltip>
                 <Button
                   type="primary"
                   onClick={() => setBulkStatusModalVisible(true)}
@@ -3057,6 +3102,40 @@ const Students = forwardRef((props, ref) => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Change Class"
+        open={bulkClassModalVisible}
+        onOk={handleBulkClassChange}
+        onCancel={() => setBulkClassModalVisible(false)}
+        confirmLoading={loading}
+      >
+        {!areAllStudentsFromSameClass() ? (
+          <Alert
+            message="Cannot Change Class"
+            description="All selected students must be from the same class to perform this action. Please select students from the same class and try again."
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        ) : (
+          <Form form={bulkClassForm} layout="vertical">
+            <Form.Item
+              name="classroom"
+              label="Class"
+              rules={[{ required: true, message: 'Please select class' }]}
+            >
+              <Select>
+                {classes.map(cls => (
+                  <Option key={cls.id} value={cls.id}>
+                    {`${cls.class_name} - Section ${cls.section}`}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Form>
+        )}
       </Modal>
 
       <ImagePreviewModal
