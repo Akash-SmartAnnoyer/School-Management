@@ -248,6 +248,186 @@ const feeService = {
     }
   },
 
+  // Get fee structure templates for a specific class
+  getClassTemplates: async (classId) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock class-specific templates
+      const classTemplates = {
+        1: [
+          { 
+            id: 1,
+            name: 'Standard Template - Class 1', 
+            description: 'Basic fee structure for Class 1',
+            isDefault: true,
+            data: { tuition_fee: 12000, transport_fee: 1500, library_fee: 500, lab_fee: 600, sports_fee: 300, exam_fee: 800, computer_fee: 300, activity_fee: 200, development_fee: 1500 }
+          },
+          { 
+            id: 2,
+            name: 'Premium Template - Class 1', 
+            description: 'Enhanced fee structure for Class 1',
+            isDefault: true,
+            data: { tuition_fee: 18000, transport_fee: 2500, library_fee: 800, lab_fee: 1000, sports_fee: 500, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2500 }
+          }
+        ],
+        2: [
+          { 
+            id: 3,
+            name: 'Standard Template - Class 2', 
+            description: 'Basic fee structure for Class 2',
+            isDefault: true,
+            data: { tuition_fee: 13000, transport_fee: 1600, library_fee: 550, lab_fee: 650, sports_fee: 350, exam_fee: 900, computer_fee: 350, activity_fee: 250, development_fee: 1700 }
+          },
+          { 
+            id: 4,
+            name: 'Premium Template - Class 2', 
+            description: 'Enhanced fee structure for Class 2',
+            isDefault: true,
+            data: { tuition_fee: 19500, transport_fee: 2700, library_fee: 850, lab_fee: 1100, sports_fee: 550, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2700 }
+          }
+        ],
+        10: [
+          { 
+            id: 19,
+            name: 'Standard Template - Class 10', 
+            description: 'Basic fee structure for Class 10',
+            isDefault: true,
+            data: { tuition_fee: 22000, transport_fee: 2500, library_fee: 1000, lab_fee: 1200, sports_fee: 800, exam_fee: 1800, computer_fee: 800, activity_fee: 700, development_fee: 3500 }
+          },
+          { 
+            id: 20,
+            name: 'Premium Template - Class 10', 
+            description: 'Enhanced fee structure for Class 10',
+            isDefault: true,
+            data: { tuition_fee: 33000, transport_fee: 4500, library_fee: 1300, lab_fee: 2000, sports_fee: 1000, exam_fee: 2200, computer_fee: 1000, activity_fee: 900, development_fee: 4500 }
+          },
+          { 
+            id: 21,
+            name: 'Science Stream - Class 10', 
+            description: 'Specialized for science subjects with lab facilities',
+            isDefault: true,
+            data: { tuition_fee: 30000, transport_fee: 4000, library_fee: 1100, lab_fee: 3000, sports_fee: 900, exam_fee: 2000, computer_fee: 900, activity_fee: 800, development_fee: 4000 }
+          }
+        ]
+      };
+      
+      const templates = classTemplates[classId] || [];
+      return {
+        success: true,
+        data: templates
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to fetch class templates'
+      };
+    }
+  },
+
+  // Create class-specific template
+  createClassTemplate: async (classId, templateData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would save to database
+      console.log('Creating class template:', { classId, templateData });
+      
+      return {
+        success: true,
+        data: { id: Date.now(), classId, ...templateData }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to create class template'
+      };
+    }
+  },
+
+  // Apply template to student
+  applyTemplateToStudent: async (studentId, templateId, academicYear) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would save to database
+      console.log('Applying template to student:', { studentId, templateId, academicYear });
+      
+      return {
+        success: true,
+        data: { studentId, templateId, academicYear, appliedAt: new Date().toISOString() }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to apply template to student'
+      };
+    }
+  },
+
+  // Get student fee structure
+  getStudentFeeStructure: async (studentId, academicYear) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock student fee structure
+      const studentFeeStructure = {
+        studentId,
+        academicYear,
+        templateId: 1,
+        templateName: 'Standard Template',
+        appliedAt: '2024-01-15T10:30:00Z',
+        feeStructure: {
+          tuition_fee: 12000,
+          transport_fee: 1500,
+          library_fee: 500,
+          lab_fee: 600,
+          sports_fee: 300,
+          exam_fee: 800,
+          computer_fee: 300,
+          activity_fee: 200,
+          development_fee: 1500
+        },
+        totalAmount: 16500
+      };
+      
+      return {
+        success: true,
+        data: studentFeeStructure
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to fetch student fee structure'
+      };
+    }
+  },
+
+  // Update student fee structure
+  updateStudentFeeStructure: async (studentId, feeData, academicYear) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would update database
+      console.log('Updating student fee structure:', { studentId, feeData, academicYear });
+      
+      return {
+        success: true,
+        data: { studentId, feeData, academicYear, updatedAt: new Date().toISOString() }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to update student fee structure'
+      };
+    }
+  },
+
   // Get fee structure templates
   getFeeTemplates: async () => {
     try {
@@ -258,23 +438,62 @@ const feeService = {
         { 
           id: 1,
           name: 'Standard Template', 
-          data: { tuition_fee: 12000, transport_fee: 2000, library_fee: 500, lab_fee: 800, sports_fee: 300 },
           description: 'Basic fee structure for regular classes',
-          isDefault: true
+          isDefault: true,
+          classBasedData: {
+            1: { tuition_fee: 12000, transport_fee: 1500, library_fee: 500, lab_fee: 600, sports_fee: 300, exam_fee: 800, computer_fee: 300, activity_fee: 200, development_fee: 1500 },
+            2: { tuition_fee: 13000, transport_fee: 1600, library_fee: 550, lab_fee: 650, sports_fee: 350, exam_fee: 900, computer_fee: 350, activity_fee: 250, development_fee: 1700 },
+            3: { tuition_fee: 14000, transport_fee: 1700, library_fee: 600, lab_fee: 700, sports_fee: 400, exam_fee: 1000, computer_fee: 400, activity_fee: 300, development_fee: 1900 },
+            4: { tuition_fee: 15000, transport_fee: 1800, library_fee: 650, lab_fee: 750, sports_fee: 450, exam_fee: 1100, computer_fee: 450, activity_fee: 350, development_fee: 2100 },
+            5: { tuition_fee: 16000, transport_fee: 1900, library_fee: 700, lab_fee: 800, sports_fee: 500, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2300 },
+            6: { tuition_fee: 17000, transport_fee: 2000, library_fee: 750, lab_fee: 850, sports_fee: 550, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2500 },
+            7: { tuition_fee: 18000, transport_fee: 2100, library_fee: 800, lab_fee: 900, sports_fee: 600, exam_fee: 1400, computer_fee: 600, activity_fee: 500, development_fee: 2700 },
+            8: { tuition_fee: 19000, transport_fee: 2200, library_fee: 850, lab_fee: 950, sports_fee: 650, exam_fee: 1500, computer_fee: 650, activity_fee: 550, development_fee: 2900 },
+            9: { tuition_fee: 20000, transport_fee: 2300, library_fee: 900, lab_fee: 1000, sports_fee: 700, exam_fee: 1600, computer_fee: 700, activity_fee: 600, development_fee: 3100 },
+            10: { tuition_fee: 22000, transport_fee: 2500, library_fee: 1000, lab_fee: 1200, sports_fee: 800, exam_fee: 1800, computer_fee: 800, activity_fee: 700, development_fee: 3500 },
+            11: { tuition_fee: 24000, transport_fee: 2700, library_fee: 1100, lab_fee: 1400, sports_fee: 900, exam_fee: 2000, computer_fee: 900, activity_fee: 800, development_fee: 3900 },
+            12: { tuition_fee: 26000, transport_fee: 2900, library_fee: 1200, lab_fee: 1600, sports_fee: 1000, exam_fee: 2200, computer_fee: 1000, activity_fee: 900, development_fee: 4300 }
+          }
         },
         { 
           id: 2,
           name: 'Premium Template', 
-          data: { tuition_fee: 18000, transport_fee: 3000, library_fee: 800, lab_fee: 1200, sports_fee: 500 },
           description: 'Enhanced fee structure with additional facilities',
-          isDefault: true
+          isDefault: true,
+          classBasedData: {
+            1: { tuition_fee: 18000, transport_fee: 2500, library_fee: 800, lab_fee: 1000, sports_fee: 500, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2500 },
+            2: { tuition_fee: 19500, transport_fee: 2700, library_fee: 850, lab_fee: 1100, sports_fee: 550, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2700 },
+            3: { tuition_fee: 21000, transport_fee: 2900, library_fee: 900, lab_fee: 1200, sports_fee: 600, exam_fee: 1400, computer_fee: 600, activity_fee: 500, development_fee: 2900 },
+            4: { tuition_fee: 22500, transport_fee: 3100, library_fee: 950, lab_fee: 1300, sports_fee: 650, exam_fee: 1500, computer_fee: 650, activity_fee: 550, development_fee: 3100 },
+            5: { tuition_fee: 24000, transport_fee: 3300, library_fee: 1000, lab_fee: 1400, sports_fee: 700, exam_fee: 1600, computer_fee: 700, activity_fee: 600, development_fee: 3300 },
+            6: { tuition_fee: 25500, transport_fee: 3500, library_fee: 1050, lab_fee: 1500, sports_fee: 750, exam_fee: 1700, computer_fee: 750, activity_fee: 650, development_fee: 3500 },
+            7: { tuition_fee: 27000, transport_fee: 3700, library_fee: 1100, lab_fee: 1600, sports_fee: 800, exam_fee: 1800, computer_fee: 800, activity_fee: 700, development_fee: 3700 },
+            8: { tuition_fee: 28500, transport_fee: 3900, library_fee: 1150, lab_fee: 1700, sports_fee: 850, exam_fee: 1900, computer_fee: 850, activity_fee: 750, development_fee: 3900 },
+            9: { tuition_fee: 30000, transport_fee: 4100, library_fee: 1200, lab_fee: 1800, sports_fee: 900, exam_fee: 2000, computer_fee: 900, activity_fee: 800, development_fee: 4100 },
+            10: { tuition_fee: 33000, transport_fee: 4500, library_fee: 1300, lab_fee: 2000, sports_fee: 1000, exam_fee: 2200, computer_fee: 1000, activity_fee: 900, development_fee: 4500 },
+            11: { tuition_fee: 36000, transport_fee: 4900, library_fee: 1400, lab_fee: 2200, sports_fee: 1100, exam_fee: 2400, computer_fee: 1100, activity_fee: 1000, development_fee: 4900 },
+            12: { tuition_fee: 39000, transport_fee: 5300, library_fee: 1500, lab_fee: 2400, sports_fee: 1200, exam_fee: 2600, computer_fee: 1200, activity_fee: 1100, development_fee: 5300 }
+          }
         },
         { 
           id: 3,
           name: 'Science Stream', 
-          data: { tuition_fee: 15000, transport_fee: 2500, library_fee: 600, lab_fee: 2000, sports_fee: 400 },
           description: 'Specialized for science subjects with lab facilities',
-          isDefault: true
+          isDefault: true,
+          classBasedData: {
+            1: { tuition_fee: 15000, transport_fee: 2000, library_fee: 600, lab_fee: 1500, sports_fee: 400, exam_fee: 1000, computer_fee: 400, activity_fee: 300, development_fee: 2000 },
+            2: { tuition_fee: 16500, transport_fee: 2200, library_fee: 650, lab_fee: 1650, sports_fee: 450, exam_fee: 1100, computer_fee: 450, activity_fee: 350, development_fee: 2200 },
+            3: { tuition_fee: 18000, transport_fee: 2400, library_fee: 700, lab_fee: 1800, sports_fee: 500, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2400 },
+            4: { tuition_fee: 19500, transport_fee: 2600, library_fee: 750, lab_fee: 1950, sports_fee: 550, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2600 },
+            5: { tuition_fee: 21000, transport_fee: 2800, library_fee: 800, lab_fee: 2100, sports_fee: 600, exam_fee: 1400, computer_fee: 600, activity_fee: 500, development_fee: 2800 },
+            6: { tuition_fee: 22500, transport_fee: 3000, library_fee: 850, lab_fee: 2250, sports_fee: 650, exam_fee: 1500, computer_fee: 650, activity_fee: 550, development_fee: 3000 },
+            7: { tuition_fee: 24000, transport_fee: 3200, library_fee: 900, lab_fee: 2400, sports_fee: 700, exam_fee: 1600, computer_fee: 700, activity_fee: 600, development_fee: 3200 },
+            8: { tuition_fee: 25500, transport_fee: 3400, library_fee: 950, lab_fee: 2550, sports_fee: 750, exam_fee: 1700, computer_fee: 750, activity_fee: 650, development_fee: 3400 },
+            9: { tuition_fee: 27000, transport_fee: 3600, library_fee: 1000, lab_fee: 2700, sports_fee: 800, exam_fee: 1800, computer_fee: 800, activity_fee: 700, development_fee: 3600 },
+            10: { tuition_fee: 30000, transport_fee: 4000, library_fee: 1100, lab_fee: 3000, sports_fee: 900, exam_fee: 2000, computer_fee: 900, activity_fee: 800, development_fee: 4000 },
+            11: { tuition_fee: 33000, transport_fee: 4400, library_fee: 1200, lab_fee: 3300, sports_fee: 1000, exam_fee: 2200, computer_fee: 1000, activity_fee: 900, development_fee: 4400 },
+            12: { tuition_fee: 36000, transport_fee: 4800, library_fee: 1300, lab_fee: 3600, sports_fee: 1100, exam_fee: 2400, computer_fee: 1100, activity_fee: 1000, development_fee: 4800 }
+          }
         }
       ];
       

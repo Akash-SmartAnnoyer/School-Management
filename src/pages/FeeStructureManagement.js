@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Button, Table, Select, Input, Modal, Form, Row, Col, Tag, Space, Divider, Tooltip, message, Badge, Alert, InputNumber, Switch } from 'antd';
-import { WalletOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined, PercentageOutlined, SettingOutlined, CheckCircleOutlined, StarOutlined, SaveOutlined, FormOutlined } from '@ant-design/icons';
+import { Card, Typography, Button, Table, Select, Input, Modal, Form, Row, Col, Tag, Space, Divider, Tooltip, message, Badge, Alert, InputNumber, Switch, Checkbox, Tabs, Avatar, List, Empty } from 'antd';
+import { WalletOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CopyOutlined, PercentageOutlined, SettingOutlined, CheckCircleOutlined, StarOutlined, SaveOutlined, FormOutlined, UserOutlined, TeamOutlined, BookOutlined } from '@ant-design/icons';
 import { useClasses } from '../contexts/ClassesContext';
 import feeService from '../services/feeService';
 import api from '../services/api';
@@ -8,124 +8,129 @@ import api from '../services/api';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
+const { TabPane } = Tabs;
 
 const FeeStructureManagement = () => {
   const { classes, loading: classesLoading } = useClasses();
-  const [structures, setStructures] = useState([]);
-  const [templates, setTemplates] = useState([]);
+  
+  // State for class-based templates
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [structureModalVisible, setStructureModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const [editStructure, setEditStructure] = useState(null);
-  const [templateModalVisible, setTemplateModalVisible] = useState(false);
-  const [templateForm] = Form.useForm();
-  const [hikeDiscount, setHikeDiscount] = useState(0);
-  const [hikeType, setHikeType] = useState('hike');
-  const [currentAppliedTemplate, setCurrentAppliedTemplate] = useState(null);
-  const [classStructures, setClassStructures] = useState({}); // Track structures per class
-  const [createFromTemplate, setCreateFromTemplate] = useState(false);
+  const [classTemplates, setClassTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
   
-  // New state for enhanced functionality
+  // State for student management
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentFeeStructure, setStudentFeeStructure] = useState(null);
+  const [loadingStudentFee, setLoadingStudentFee] = useState(false);
+  const [classStudents, setClassStudents] = useState([]);
+  const [loadingClassStudents, setLoadingClassStudents] = useState(false);
+  
+  // Modal states
+  const [templateModalVisible, setTemplateModalVisible] = useState(false);
+  const [createTemplateModalVisible, setCreateTemplateModalVisible] = useState(false);
+  const [applyTemplateModalVisible, setApplyTemplateModalVisible] = useState(false);
+  const [studentFeeModalVisible, setStudentFeeModalVisible] = useState(false);
+  
+  // Form instances
+  const [templateForm] = Form.useForm();
+  const [createTemplateForm] = Form.useForm();
+  const [applyTemplateForm] = Form.useForm();
+  const [studentFeeForm] = Form.useForm();
+  
+  // Other states
+  const [loading, setLoading] = useState(false);
   const [customFeeTypes, setCustomFeeTypes] = useState([]);
   const [feeTypeModalVisible, setFeeTypeModalVisible] = useState(false);
   const [feeTypeForm] = Form.useForm();
-  const [createTemplateModalVisible, setCreateTemplateModalVisible] = useState(false);
-  const [createTemplateForm] = Form.useForm();
-  const [dynamicFeeFields, setDynamicFeeFields] = useState([]);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
-  // Default fee types with class-based amounts
+  // Default fee types
   const defaultFeeTypes = [
-    { key: 'tuition_fee', name: 'Tuition Fee', required: true, classBased: true },
-    { key: 'transport_fee', name: 'Transport Fee', required: false, classBased: true },
-    { key: 'library_fee', name: 'Library Fee', required: false, classBased: true },
-    { key: 'lab_fee', name: 'Laboratory Fee', required: false, classBased: true },
-    { key: 'sports_fee', name: 'Sports Fee', required: false, classBased: true },
-    { key: 'exam_fee', name: 'Examination Fee', required: false, classBased: true },
-    { key: 'computer_fee', name: 'Computer Fee', required: false, classBased: true },
-    { key: 'activity_fee', name: 'Activity Fee', required: false, classBased: true },
-    { key: 'development_fee', name: 'Development Fee', required: false, classBased: true },
-    { key: 'admission_fee', name: 'Admission Fee', required: false, classBased: false },
-    { key: 'annual_fee', name: 'Annual Fee', required: false, classBased: false },
+    { key: 'tuition_fee', name: 'Tuition Fee', required: true },
+    { key: 'transport_fee', name: 'Transport Fee', required: false },
+    { key: 'library_fee', name: 'Library Fee', required: false },
+    { key: 'lab_fee', name: 'Laboratory Fee', required: false },
+    { key: 'sports_fee', name: 'Sports Fee', required: false },
+    { key: 'exam_fee', name: 'Examination Fee', required: false },
+    { key: 'computer_fee', name: 'Computer Fee', required: false },
+    { key: 'activity_fee', name: 'Activity Fee', required: false },
+    { key: 'development_fee', name: 'Development Fee', required: false },
+    { key: 'admission_fee', name: 'Admission Fee', required: false },
+    { key: 'annual_fee', name: 'Annual Fee', required: false },
   ];
 
-  // Class-based fee amounts (example structure)
-  const classBasedAmounts = {
-    1: { tuition_fee: 15000, transport_fee: 1500, library_fee: 800, lab_fee: 500, sports_fee: 600, exam_fee: 1000, computer_fee: 400, activity_fee: 300, development_fee: 2000 },
-    2: { tuition_fee: 16000, transport_fee: 1600, library_fee: 850, lab_fee: 550, sports_fee: 650, exam_fee: 1100, computer_fee: 450, activity_fee: 350, development_fee: 2200 },
-    3: { tuition_fee: 17000, transport_fee: 1700, library_fee: 900, lab_fee: 600, sports_fee: 700, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2400 },
-    4: { tuition_fee: 18000, transport_fee: 1800, library_fee: 950, lab_fee: 650, sports_fee: 750, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2600 },
-    5: { tuition_fee: 19000, transport_fee: 1900, library_fee: 1000, lab_fee: 700, sports_fee: 800, exam_fee: 1400, computer_fee: 600, activity_fee: 500, development_fee: 2800 },
-    6: { tuition_fee: 20000, transport_fee: 2000, library_fee: 1100, lab_fee: 800, sports_fee: 900, exam_fee: 1500, computer_fee: 700, activity_fee: 600, development_fee: 3000 },
-    7: { tuition_fee: 21000, transport_fee: 2100, library_fee: 1200, lab_fee: 900, sports_fee: 1000, exam_fee: 1600, computer_fee: 800, activity_fee: 700, development_fee: 3200 },
-    8: { tuition_fee: 22000, transport_fee: 2200, library_fee: 1300, lab_fee: 1000, sports_fee: 1100, exam_fee: 1700, computer_fee: 900, activity_fee: 800, development_fee: 3400 },
-    9: { tuition_fee: 23000, transport_fee: 2300, library_fee: 1400, lab_fee: 1200, sports_fee: 1200, exam_fee: 1800, computer_fee: 1000, activity_fee: 900, development_fee: 3600 },
-    10: { tuition_fee: 25000, transport_fee: 2500, library_fee: 1500, lab_fee: 1500, sports_fee: 1300, exam_fee: 2000, computer_fee: 1200, activity_fee: 1000, development_fee: 4000 },
-    11: { tuition_fee: 26000, transport_fee: 2600, library_fee: 1600, lab_fee: 1800, sports_fee: 1400, exam_fee: 2200, computer_fee: 1400, activity_fee: 1100, development_fee: 4200 },
-    12: { tuition_fee: 27000, transport_fee: 2700, library_fee: 1700, lab_fee: 2000, sports_fee: 1500, exam_fee: 2400, computer_fee: 1600, activity_fee: 1200, development_fee: 4400 },
-  };
-
   useEffect(() => {
-    loadStructures();
-    loadTemplates();
-    loadClassStructures();
-    loadCustomFeeTypes();
+    if (selectedClass) {
+      loadClassTemplates();
+      loadClassStudents();
+    }
   }, [selectedClass, selectedYear]);
 
-  const loadStructures = async () => {
-    setLoading(true);
-    try {
-      if (selectedClass) {
-        const response = await feeService.getFeeStructure(selectedClass, selectedYear);
-        if (response.success) {
-          setStructures([response.data]);
-          // Check which template is currently applied
-          const appliedTemplate = templates.find(t => 
-            JSON.stringify(t.data) === JSON.stringify(response.data)
-          );
-          setCurrentAppliedTemplate(appliedTemplate?.name || null);
-        } else {
-          setStructures([]);
-          setCurrentAppliedTemplate(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading structures:', error);
-      setStructures([]);
+  useEffect(() => {
+    if (selectedStudent) {
+      loadStudentFeeStructure();
     }
-    setLoading(false);
-  };
+  }, [selectedStudent, selectedYear]);
 
-  const loadClassStructures = async () => {
+  const loadClassTemplates = async () => {
+    if (!selectedClass) return;
+    
+    setLoadingTemplates(true);
     try {
-      // Load structures for all classes to show which have structures defined
-      const allStructures = {};
-      for (const cls of classes) {
-        const response = await feeService.getFeeStructure(cls.id, selectedYear);
-        if (response.success && response.data) {
-          allStructures[cls.id] = response.data;
-        }
-      }
-      setClassStructures(allStructures);
-    } catch (error) {
-      console.error('Error loading class structures:', error);
-    }
-  };
-
-  const loadTemplates = async () => {
-    try {
-      const response = await feeService.getFeeTemplates();
+      const response = await feeService.getClassTemplates(selectedClass);
       if (response.success) {
-        setTemplates(response.data);
+        setClassTemplates(response.data);
       } else {
-        console.error('Failed to load templates:', response.error);
-        setTemplates([]);
+        console.error('Failed to load class templates:', response.error);
+        setClassTemplates([]);
       }
     } catch (error) {
-      console.error('Error loading templates:', error);
-      setTemplates([]);
+      console.error('Error loading class templates:', error);
+      setClassTemplates([]);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const loadClassStudents = async () => {
+    if (!selectedClass) return;
+    
+    setLoadingClassStudents(true);
+    try {
+      const response = await api.class.getClass(selectedClass);
+      if (response.success && response.data) {
+        // Extract students from the class response
+        const students = response.data.students || [];
+        setClassStudents(students);
+      } else {
+        console.error('Failed to load class students:', response.error);
+        setClassStudents([]);
+      }
+    } catch (error) {
+      console.error('Error loading class students:', error);
+      setClassStudents([]);
+    } finally {
+      setLoadingClassStudents(false);
+    }
+  };
+
+  const loadStudentFeeStructure = async () => {
+    if (!selectedStudent) return;
+    
+    setLoadingStudentFee(true);
+    try {
+      const response = await feeService.getStudentFeeStructure(selectedStudent, selectedYear);
+      if (response.success) {
+        setStudentFeeStructure(response.data);
+      } else {
+        console.error('Failed to load student fee structure:', response.error);
+        setStudentFeeStructure(null);
+      }
+    } catch (error) {
+      console.error('Error loading student fee structure:', error);
+      setStudentFeeStructure(null);
+    } finally {
+      setLoadingStudentFee(false);
     }
   };
 
@@ -144,114 +149,74 @@ const FeeStructureManagement = () => {
     }
   };
 
-  const handleCreateStructure = () => {
-    setEditStructure(null);
-    setCreateFromTemplate(false);
-    form.resetFields();
-    
-    // Pre-fill with class-based amounts if available
-    if (selectedClass && classBasedAmounts[selectedClass]) {
-      form.setFieldsValue(classBasedAmounts[selectedClass]);
-    }
-    
-    setStructureModalVisible(true);
-  };
-
-  const handleCreateFromTemplate = () => {
-    setCreateFromTemplate(true);
-    setTemplateModalVisible(true);
-  };
-
-  const handleEditStructure = (record) => {
-    setEditStructure(record);
-    // Convert the structures array back to form format
-    const formData = {};
-    structures[0] && Object.entries(structures[0]).forEach(([key, value]) => {
-      formData[key] = value;
-    });
-    form.setFieldsValue(formData);
-    setStructureModalVisible(true);
-  };
-
-  const handleDeleteStructure = () => {
-    Modal.confirm({
-      title: 'Delete Fee Structure?',
-      content: `Are you sure you want to delete the fee structure for ${getSelectedClassName()}?`,
-      onOk: async () => {
-        try {
-          const response = await feeService.deleteFeeStructure(selectedClass, selectedYear);
-          if (response.success) {
-            message.success('Fee structure deleted successfully');
-            loadStructures();
-            loadClassStructures();
-          } else {
-            message.error(response.error || 'Failed to delete fee structure');
-          }
-        } catch (error) {
-          message.error('Failed to delete fee structure');
-        }
-      },
-    });
-  };
-
-  const handleApplyTemplate = (template) => {
-    if (createFromTemplate) {
-      // Apply template and open create modal
-      form.setFieldsValue(template.data);
-      setTemplateModalVisible(false);
-      setStructureModalVisible(true);
-    } else {
-      // Direct template application
-      Modal.confirm({
-        title: 'Apply Template',
-        content: `Apply "${template.name}" template to ${getSelectedClassName()}? This will replace any existing fee structure.`,
-        onOk: async () => {
-          try {
-            // Replace with actual API call
-            await feeService.createFeeStructure(selectedClass, selectedYear, template.data);
-            message.success(`Template "${template.name}" applied successfully`);
-            setCurrentAppliedTemplate(template.name);
-            setTemplateModalVisible(false);
-            loadStructures();
-            loadClassStructures();
-          } catch (error) {
-            message.error('Failed to apply template');
-          }
-        }
-      });
-    }
-  };
-
-  const handleHikeDiscount = () => {
-    const values = form.getFieldsValue();
-    const factor = hikeType === 'hike' ? 1 + hikeDiscount / 100 : 1 - hikeDiscount / 100;
-    const updated = {};
-    Object.keys(values).forEach(key => {
-      if (typeof values[key] === 'number' && values[key] > 0) {
-        updated[key] = Math.round(values[key] * factor);
-      } else {
-        updated[key] = values[key];
-      }
-    });
-    form.setFieldsValue(updated);
-    message.success(`${hikeType === 'hike' ? 'Hike' : 'Discount'} of ${hikeDiscount}% applied`);
-  };
-
-  const handleSubmit = async (values) => {
+  const handleCreateTemplate = async (values) => {
     try {
       setLoading(true);
-      if (editStructure) {
-        await feeService.updateFeeStructure(selectedClass, selectedYear, values);
-        message.success('Fee structure updated successfully');
+      const response = await feeService.createClassTemplate(selectedClass, {
+        name: values.name,
+        description: values.description,
+        data: values.feeStructure,
+        isDefault: false
+      });
+      
+      if (response.success) {
+        setClassTemplates([...classTemplates, response.data]);
+        setCreateTemplateModalVisible(false);
+        createTemplateForm.resetFields();
+        message.success('Template created successfully');
       } else {
-        await feeService.createFeeStructure(selectedClass, selectedYear, values);
-        message.success('Fee structure created successfully');
+        message.error(response.error || 'Failed to create template');
       }
-      setStructureModalVisible(false);
-      loadStructures();
-      loadClassStructures();
     } catch (error) {
-      message.error('Failed to save fee structure');
+      message.error('Failed to create template');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyTemplateToStudent = async (values) => {
+    try {
+      setLoading(true);
+      const response = await feeService.applyTemplateToStudent(
+        selectedStudent, 
+        values.templateId, 
+        selectedYear
+      );
+      
+      if (response.success) {
+        message.success('Template applied to student successfully');
+        setApplyTemplateModalVisible(false);
+        applyTemplateForm.resetFields();
+        loadStudentFeeStructure(); // Refresh student fee structure
+      } else {
+        message.error(response.error || 'Failed to apply template to student');
+      }
+    } catch (error) {
+      message.error('Failed to apply template to student');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStudentFeeStructure = async (values) => {
+    try {
+      setLoading(true);
+      const response = await feeService.updateStudentFeeStructure(
+        selectedStudent,
+        values.feeStructure,
+        selectedYear
+      );
+      
+      if (response.success) {
+        message.success('Student fee structure updated successfully');
+        setStudentFeeModalVisible(false);
+        studentFeeForm.resetFields();
+        loadStudentFeeStructure(); // Refresh student fee structure
+      } else {
+        message.error(response.error || 'Failed to update student fee structure');
+      }
+    } catch (error) {
+      message.error('Failed to update student fee structure');
     } finally {
       setLoading(false);
     }
@@ -278,59 +243,35 @@ const FeeStructureManagement = () => {
     }
   };
 
-  const handleCreateTemplate = async (values) => {
-    try {
-      const response = await feeService.createFeeTemplate({
-        name: values.name,
-        description: values.description,
-        data: values.feeStructure,
-        isDefault: false
-      });
-      
-      if (response.success) {
-        setTemplates([...templates, response.data]);
-        setCreateTemplateModalVisible(false);
-        createTemplateForm.resetFields();
-        message.success('Template created successfully');
-      } else {
-        message.error(response.error || 'Failed to create template');
-      }
-    } catch (error) {
-      message.error('Failed to create template');
-    }
-  };
-
   const getSelectedClassName = () => {
     const selectedClassObj = classes.find(cls => cls.id === selectedClass);
     return selectedClassObj ? `${selectedClassObj.class_name} - ${selectedClassObj.section}` : '';
   };
 
-  const hasStructure = (classId) => {
-    return classStructures[classId] !== undefined;
+  const getSelectedStudentName = () => {
+    const selectedStudentObj = classStudents.find(student => student.id === selectedStudent);
+    if (selectedStudentObj && selectedStudentObj.user) {
+      return `${selectedStudentObj.user.first_name} ${selectedStudentObj.user.last_name}`;
+    }
+    return '';
   };
 
   const getStructureTotal = (structure) => {
-    return Object.values(structure || {}).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0);
+    if (!structure) return 0;
+    return Object.values(structure).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0);
   };
 
   const getAllFeeTypes = () => {
-    return [...defaultFeeTypes, ...customFeeTypes];
+    const allTypes = [...defaultFeeTypes];
+    customFeeTypes.forEach(customType => {
+      allTypes.push({
+        key: customType.key,
+        name: customType.name,
+        required: false
+      });
+    });
+    return allTypes;
   };
-
-  const columns = [
-    { 
-      title: 'Fee Type', 
-      dataIndex: 'type', 
-      key: 'type', 
-      render: (text) => <Tag color="purple">{text.replace(/_/g, ' ').toUpperCase()}</Tag> 
-    },
-    { 
-      title: 'Amount', 
-      dataIndex: 'amount', 
-      key: 'amount', 
-      render: (amt) => <Text strong style={{ fontSize: '16px', color: '#7B83EB' }}>₹{amt?.toLocaleString()}</Text> 
-    },
-  ];
 
   const templateColumns = [
     { 
@@ -341,9 +282,6 @@ const FeeStructureManagement = () => {
         <div>
           <Space>
             <Text strong>{name}</Text>
-            {currentAppliedTemplate === name && selectedClass && (
-              <Badge status="success" text="Currently Applied" />
-            )}
             {record.isDefault && <Tag size="small" color="blue">Default</Tag>}
           </Space>
           <div><Text type="secondary" style={{ fontSize: '12px' }}>{record.description}</Text></div>
@@ -354,7 +292,9 @@ const FeeStructureManagement = () => {
       title: 'Total Amount', 
       key: 'total',
       render: (_, record) => (
-        <Text strong style={{ color: '#7B83EB' }}>₹{getStructureTotal(record.data).toLocaleString()}</Text>
+        <Text strong style={{ color: '#7B83EB' }}>
+          ₹{getStructureTotal(record.data).toLocaleString()}
+        </Text>
       )
     },
     { 
@@ -365,16 +305,85 @@ const FeeStructureManagement = () => {
           <Button 
             type="primary" 
             size="small"
-            onClick={() => handleApplyTemplate(record)}
-            disabled={!selectedClass}
+            onClick={() => {
+              setSelectedStudent(null);
+              setApplyTemplateModalVisible(true);
+              applyTemplateForm.setFieldsValue({ templateId: record.id });
+            }}
           >
-            {createFromTemplate ? 'Use Template' : 'Apply'}
+            Apply to Student
           </Button>
           {!record.isDefault && (
             <Button size="small" icon={<EditOutlined />}>Edit</Button>
           )}
         </Space>
       ) 
+    }
+  ];
+
+  const studentColumns = [
+    {
+      title: 'Student',
+      key: 'student',
+      render: (_, record) => (
+        <Space>
+          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#7B83EB' }} />
+          <div>
+            <div><Text strong>{`${record.user?.first_name || ''} ${record.user?.last_name || ''}`}</Text></div>
+            <div><Text type="secondary" style={{ fontSize: '12px' }}>ID: {record.id}</Text></div>
+          </div>
+        </Space>
+      )
+    },
+    {
+      title: 'Email',
+      key: 'email',
+      render: (_, record) => (
+        <Text>{record.user?.email || 'N/A'}</Text>
+      )
+    },
+    {
+      title: 'Current Template',
+      key: 'template',
+      render: (_, record) => {
+        // This would be fetched from student fee structure
+        return <Text>Standard Template</Text>;
+      }
+    },
+    {
+      title: 'Total Fee',
+      key: 'total',
+      render: (_, record) => {
+        // This would be calculated from student fee structure
+        return <Text strong style={{ color: '#7B83EB' }}>₹16,500</Text>;
+      }
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button 
+            size="small" 
+            onClick={() => {
+              setSelectedStudent(record.id);
+              setStudentFeeModalVisible(true);
+            }}
+          >
+            Manage Fee
+          </Button>
+          <Button 
+            size="small" 
+            type="primary"
+            onClick={() => {
+              setSelectedStudent(record.id);
+              setApplyTemplateModalVisible(true);
+            }}
+          >
+            Apply Template
+          </Button>
+        </Space>
+      )
     }
   ];
 
@@ -391,13 +400,6 @@ const FeeStructureManagement = () => {
             size="small"
           >
             Manage Fee Types
-          </Button>
-          <Button 
-            icon={<SaveOutlined />} 
-            onClick={() => setCreateTemplateModalVisible(true)}
-            size="small"
-          >
-            Create Template
           </Button>
           <Select
             placeholder="Academic Year"
@@ -418,7 +420,7 @@ const FeeStructureManagement = () => {
               <Option key={cls.id} value={cls.id}>
                 <Space>
                   {cls.class_name} - {cls.section}
-                  {hasStructure(cls.id) && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                  <Tag size="small">{cls.total_students || 0} students</Tag>
                 </Space>
               </Option>
             ))}
@@ -433,12 +435,7 @@ const FeeStructureManagement = () => {
               message={
                 <Space>
                   <Text strong>Selected: {getSelectedClassName()}</Text>
-                  {currentAppliedTemplate && (
-                    <Tag color="green" icon={<StarOutlined />}>Template: {currentAppliedTemplate}</Tag>
-                  )}
-                  {classBasedAmounts[selectedClass] && (
-                    <Tag color="blue">Class-based amounts available</Tag>
-                  )}
+                  <Tag color="blue">{classStudents.length} students</Tag>
                 </Space>
               }
               type="info"
@@ -449,148 +446,143 @@ const FeeStructureManagement = () => {
         </Row>
       )}
 
-      <Row gutter={16}>
-        <Col span={16}>
-          <Card 
-            title={<Space><WalletOutlined />Fee Structure Details</Space>}
-            bordered={false} 
-            style={{ borderRadius: 12 }}
-            extra={
-              selectedClass && structures.length > 0 && (
-                <Space>
-                  <Text type="secondary">Total: </Text>
-                  <Text strong style={{ fontSize: '18px', color: '#7B83EB' }}>
-                    ₹{getStructureTotal(structures[0]).toLocaleString()}
-                  </Text>
-                </Space>
-              )
-            }
+      {selectedClass && (
+        <Tabs defaultActiveKey="templates" style={{ marginTop: 16 }}>
+          <TabPane 
+            tab={
+              <Space>
+                <BookOutlined />
+                Class Templates
+              </Space>
+            } 
+            key="templates"
           >
-            {!selectedClass ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-                <WalletOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-                <div>Please select a class to view fee structure</div>
-              </div>
-            ) : (
-              <Table
-                columns={columns}
-                dataSource={structures.length ? Object.entries(structures[0]).map(([type, amount]) => ({ 
-                  key: type, 
-                  type: type.replace(/_/g, ' '), 
-                  amount 
-                })) : []}
-                loading={loading}
-                pagination={false}
-                locale={{ emptyText: 'No fee structure defined for this class' }}
-              />
-            )}
-            
-            {selectedClass && (
-              <div style={{ marginTop: 16, textAlign: 'center' }}>
-                <Space>
-                  {structures.length > 0 ? (
-                    <>
-                      <Button icon={<EditOutlined />} onClick={() => handleEditStructure(structures[0])}>
-                        Edit Structure
-                      </Button>
-                      <Button danger icon={<DeleteOutlined />} onClick={handleDeleteStructure}>
-                        Delete Structure
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateStructure} style={{ background: '#7B83EB', border: 'none' }}>
-                        Create New Structure
-                      </Button>
-                      <Button icon={<CopyOutlined />} onClick={handleCreateFromTemplate}>
-                        Create from Template
-                      </Button>
-                    </>
-                  )}
-                </Space>
-              </div>
-            )}
-          </Card>
-        </Col>
-        
-        <Col span={8}>
-          <Card 
-            title={<Space><CopyOutlined />Quick Templates</Space>}
-            bordered={false} 
-            style={{ borderRadius: 12 }}
-            extra={
-              <Button size="small" onClick={() => setTemplateModalVisible(true)}>
-                View All
-              </Button>
-            }
-          >
-            <Space direction="vertical" style={{ width: '100%' }}>
-              {templates.slice(0, 3).map(template => (
+            <Row gutter={16}>
+              <Col span={24}>
                 <Card 
-                  key={template.id}
-                  size="small" 
-                  style={{ backgroundColor: currentAppliedTemplate === template.name ? '#f6ffed' : '#fafafa' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <Text strong>{template.name}</Text>
-                      {currentAppliedTemplate === template.name && selectedClass && (
-                        <div><Tag size="small" color="success">Applied</Tag></div>
-                      )}
-                      <div><Text type="secondary">₹{getStructureTotal(template.data).toLocaleString()}</Text></div>
-                    </div>
+                  title={
+                    <Space>
+                      <CopyOutlined />
+                      Templates for {getSelectedClassName()}
+                    </Space>
+                  }
+                  extra={
                     <Button 
-                      size="small" 
-                      type={currentAppliedTemplate === template.name ? "default" : "primary"}
-                      onClick={() => handleApplyTemplate(template)}
-                      disabled={!selectedClass}
+                      type="primary" 
+                      icon={<PlusOutlined />}
+                      onClick={() => setCreateTemplateModalVisible(true)}
                     >
-                      {currentAppliedTemplate === template.name ? 'Applied' : 'Apply'}
+                      Create Template
                     </Button>
-                  </div>
+                  }
+                  bordered={false}
+                  style={{ borderRadius: 12 }}
+                >
+                  <Table
+                    columns={templateColumns}
+                    dataSource={classTemplates}
+                    loading={loadingTemplates}
+                    pagination={false}
+                    size="small"
+                    locale={{ 
+                      emptyText: (
+                        <Empty
+                          description="No templates found for this class"
+                          style={{ padding: '40px 0' }}
+                        />
+                      ) 
+                    }}
+                  />
                 </Card>
-              ))}
-            </Space>
-          </Card>
-        </Col>
-      </Row>
+              </Col>
+            </Row>
+          </TabPane>
 
-      {/* Structure Creation/Edit Modal */}
+          <TabPane 
+            tab={
+              <Space>
+                <TeamOutlined />
+                Students ({classStudents.length})
+              </Space>
+            } 
+            key="students"
+          >
+            <Row gutter={16}>
+              <Col span={24}>
+                <Card 
+                  title={
+                    <Space>
+                      <UserOutlined />
+                      Students in {getSelectedClassName()}
+                    </Space>
+                  }
+                  bordered={false}
+                  style={{ borderRadius: 12 }}
+                >
+                  <Table
+                    columns={studentColumns}
+                    dataSource={classStudents}
+                    loading={loadingClassStudents}
+                    pagination={{
+                      pageSize: 10,
+                      showSizeChanger: true,
+                      showTotal: (total) => `Total ${total} students`
+                    }}
+                    size="small"
+                    locale={{ 
+                      emptyText: (
+                        <Empty
+                          description="No students found in this class"
+                          style={{ padding: '40px 0' }}
+                        />
+                      ) 
+                    }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+        </Tabs>
+      )}
+
+      {!selectedClass && (
+        <div style={{ textAlign: 'center', padding: '60px 0', color: '#999' }}>
+          <WalletOutlined style={{ fontSize: '64px', marginBottom: '24px' }} />
+          <Title level={4} style={{ color: '#999' }}>Select a Class</Title>
+          <Text>Please select a class to manage fee structures and templates</Text>
+        </div>
+      )}
+
+      {/* Create Template Modal */}
       <Modal
-        title={
-          <Space>
-            <SettingOutlined />
-            {editStructure ? 'Edit Fee Structure' : 'Create Fee Structure'}
-            {selectedClass && <Tag color="blue">{getSelectedClassName()}</Tag>}
-          </Space>
-        }
-        visible={structureModalVisible}
-        onCancel={() => setStructureModalVisible(false)}
+        title={<Space><CopyOutlined />Create Template for {getSelectedClassName()}</Space>}
+        visible={createTemplateModalVisible}
+        onCancel={() => setCreateTemplateModalVisible(false)}
         footer={null}
         width={800}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form form={createTemplateForm} layout="vertical" onFinish={handleCreateTemplate}>
           <Row gutter={16}>
-            <Col span={24}>
-              <div style={{ marginBottom: 16 }}>
-                <Switch 
-                  checked={showAdvancedOptions} 
-                  onChange={setShowAdvancedOptions}
-                  checkedChildren="Advanced Options"
-                  unCheckedChildren="Basic Options"
-                />
-              </div>
+            <Col span={12}>
+              <Form.Item name="name" label="Template Name" rules={[{ required: true, message: 'Please enter template name' }]}>
+                <Input placeholder="Enter template name" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="description" label="Description">
+                <Input placeholder="Brief description" />
+              </Form.Item>
             </Col>
           </Row>
-
-          {/* Default Fee Types */}
+          
+          <Divider>Fee Structure</Divider>
+          
           <Row gutter={16}>
-            {getAllFeeTypes().slice(0, showAdvancedOptions ? getAllFeeTypes().length : 6).map((feeType, index) => (
+            {getAllFeeTypes().map((feeType) => (
               <Col span={12} key={feeType.key}>
                 <Form.Item 
-                  name={feeType.key} 
+                  name={['feeStructure', feeType.key]} 
                   label={feeType.name}
-                  rules={feeType.required ? [{ required: true, message: `Please enter ${feeType.name.toLowerCase()}` }] : []}
                 >
                   <InputNumber 
                     prefix="₹" 
@@ -604,71 +596,105 @@ const FeeStructureManagement = () => {
               </Col>
             ))}
           </Row>
-
-          {showAdvancedOptions && (
-            <>
-              <Divider>Bulk Adjustment</Divider>
-              <Row gutter={16} align="middle">
-                <Col span={8}>
-                  <InputNumber
-                    prefix={<PercentageOutlined />}
-                    value={hikeDiscount}
-                    onChange={setHikeDiscount}
-                    placeholder="Enter %"
-                    style={{ width: '100%' }}
-                    min={0}
-                    max={100}
-                  />
-                </Col>
-                <Col span={8}>
-                  <Select value={hikeType} onChange={setHikeType} style={{ width: '100%' }}>
-                    <Option value="hike">Increase</Option>
-                    <Option value="discount">Decrease</Option>
-                  </Select>
-                </Col>
-                <Col span={8}>
-                  <Button onClick={handleHikeDiscount} icon={<PercentageOutlined />} block>
-                    Apply {hikeDiscount}%
-                  </Button>
-                </Col>
-              </Row>
-            </>
-          )}
           
           <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
             <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setStructureModalVisible(false)}>Cancel</Button>
+              <Button onClick={() => setCreateTemplateModalVisible(false)}>Cancel</Button>
               <Button type="primary" htmlType="submit" loading={loading}>
-                {editStructure ? 'Update Structure' : 'Create Structure'}
+                Create Template
               </Button>
             </Space>
           </Form.Item>
         </Form>
       </Modal>
 
-      {/* Templates Modal */}
+      {/* Apply Template to Student Modal */}
       <Modal
-        title={<Space><CopyOutlined />Fee Structure Templates</Space>}
-        visible={templateModalVisible}
-        onCancel={() => setTemplateModalVisible(false)}
-        footer={
-          <Button onClick={() => setTemplateModalVisible(false)}>Close</Button>
-        }
+        title={<Space><UserOutlined />Apply Template to Student</Space>}
+        visible={applyTemplateModalVisible}
+        onCancel={() => setApplyTemplateModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <Form form={applyTemplateForm} layout="vertical" onFinish={handleApplyTemplateToStudent}>
+          <Form.Item name="templateId" label="Select Template" rules={[{ required: true, message: 'Please select a template' }]}>
+            <Select placeholder="Choose a template">
+              {classTemplates.map(template => (
+                <Option key={template.id} value={template.id}>
+                  <Space>
+                    {template.name}
+                    <Text type="secondary">₹{getStructureTotal(template.data).toLocaleString()}</Text>
+                  </Space>
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          
+          {selectedStudent && (
+            <Alert
+              message={`Applying template to: ${getSelectedStudentName()}`}
+              type="info"
+              style={{ marginBottom: 16 }}
+            />
+          )}
+          
+          <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => setApplyTemplateModalVisible(false)}>Cancel</Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Apply Template
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Student Fee Structure Modal */}
+      <Modal
+        title={<Space><WalletOutlined />Manage Student Fee Structure</Space>}
+        visible={studentFeeModalVisible}
+        onCancel={() => setStudentFeeModalVisible(false)}
+        footer={null}
         width={800}
       >
-        {!selectedClass && (
-          <Alert 
-            message="Please select a class first to apply templates" 
-            type="warning" 
-            style={{ marginBottom: 16 }} 
+        {selectedStudent && (
+          <Alert
+            message={`Managing fee structure for: ${getSelectedStudentName()}`}
+            type="info"
+            style={{ marginBottom: 16 }}
           />
         )}
-        <Table
-          columns={templateColumns}
-          dataSource={templates}
-          pagination={false}
-          size="small"
-        />
+        
+        <Form form={studentFeeForm} layout="vertical" onFinish={handleUpdateStudentFeeStructure}>
+          <Row gutter={16}>
+            {getAllFeeTypes().map((feeType) => (
+              <Col span={12} key={feeType.key}>
+                <Form.Item 
+                  name={['feeStructure', feeType.key]} 
+                  label={feeType.name}
+                >
+                  <InputNumber 
+                    prefix="₹" 
+                    placeholder="Enter amount" 
+                    style={{ width: '100%' }}
+                    min={0}
+                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                  />
+                </Form.Item>
+              </Col>
+            ))}
+          </Row>
+          
+          <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => setStudentFeeModalVisible(false)}>Cancel</Button>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Update Fee Structure
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Custom Fee Type Modal */}
@@ -705,68 +731,6 @@ const FeeStructureManagement = () => {
               <Button onClick={() => setFeeTypeModalVisible(false)}>Cancel</Button>
               <Button type="primary" htmlType="submit">
                 Create Fee Type
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Create Template Modal */}
-      <Modal
-        title={<Space><SaveOutlined />Create New Template</Space>}
-        visible={createTemplateModalVisible}
-        onCancel={() => setCreateTemplateModalVisible(false)}
-        footer={null}
-        width={700}
-      >
-        <Form form={createTemplateForm} layout="vertical" onFinish={handleCreateTemplate}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item 
-                name="name" 
-                label="Template Name" 
-                rules={[{ required: true, message: 'Please enter template name' }]}
-              >
-                <Input placeholder="e.g., Premium Template" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item 
-                name="description" 
-                label="Description"
-              >
-                <Input placeholder="Brief description" />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Divider>Fee Structure</Divider>
-          
-          <Row gutter={16}>
-            {getAllFeeTypes().map((feeType) => (
-              <Col span={12} key={feeType.key}>
-                <Form.Item 
-                  name={['feeStructure', feeType.key]} 
-                  label={feeType.name}
-                >
-                  <InputNumber 
-                    prefix="₹" 
-                    placeholder="Enter amount" 
-                    style={{ width: '100%' }}
-                    min={0}
-                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                  />
-                </Form.Item>
-              </Col>
-            ))}
-          </Row>
-          
-          <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              <Button onClick={() => setCreateTemplateModalVisible(false)}>Cancel</Button>
-              <Button type="primary" htmlType="submit">
-                Create Template
               </Button>
             </Space>
           </Form.Item>
