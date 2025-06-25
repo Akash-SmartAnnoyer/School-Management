@@ -145,24 +145,213 @@ const feeService = {
   },
 
   // Get fee structure for a class
-  getFeeStructure: async (classId) => {
+  getFeeStructure: async (classId, academicYear) => {
     try {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      return {
-        success: true,
-        data: {
-          tuition_fee: 12500,
-          transport_fee: 2000,
-          library_fee: 500,
-          sports_fee: 1000
-        }
+      // Mock class-based fee structures
+      const classBasedStructures = {
+        1: { tuition_fee: 15000, transport_fee: 1500, library_fee: 800, lab_fee: 500, sports_fee: 600, exam_fee: 1000, computer_fee: 400, activity_fee: 300, development_fee: 2000 },
+        2: { tuition_fee: 16000, transport_fee: 1600, library_fee: 850, lab_fee: 550, sports_fee: 650, exam_fee: 1100, computer_fee: 450, activity_fee: 350, development_fee: 2200 },
+        3: { tuition_fee: 17000, transport_fee: 1700, library_fee: 900, lab_fee: 600, sports_fee: 700, exam_fee: 1200, computer_fee: 500, activity_fee: 400, development_fee: 2400 },
+        4: { tuition_fee: 18000, transport_fee: 1800, library_fee: 950, lab_fee: 650, sports_fee: 750, exam_fee: 1300, computer_fee: 550, activity_fee: 450, development_fee: 2600 },
+        5: { tuition_fee: 19000, transport_fee: 1900, library_fee: 1000, lab_fee: 700, sports_fee: 800, exam_fee: 1400, computer_fee: 600, activity_fee: 500, development_fee: 2800 },
+        6: { tuition_fee: 20000, transport_fee: 2000, library_fee: 1100, lab_fee: 800, sports_fee: 900, exam_fee: 1500, computer_fee: 700, activity_fee: 600, development_fee: 3000 },
+        7: { tuition_fee: 21000, transport_fee: 2100, library_fee: 1200, lab_fee: 900, sports_fee: 1000, exam_fee: 1600, computer_fee: 800, activity_fee: 700, development_fee: 3200 },
+        8: { tuition_fee: 22000, transport_fee: 2200, library_fee: 1300, lab_fee: 1000, sports_fee: 1100, exam_fee: 1700, computer_fee: 900, activity_fee: 800, development_fee: 3400 },
+        9: { tuition_fee: 23000, transport_fee: 2300, library_fee: 1400, lab_fee: 1200, sports_fee: 1200, exam_fee: 1800, computer_fee: 1000, activity_fee: 900, development_fee: 3600 },
+        10: { tuition_fee: 25000, transport_fee: 2500, library_fee: 1500, lab_fee: 1500, sports_fee: 1300, exam_fee: 2000, computer_fee: 1200, activity_fee: 1000, development_fee: 4000 },
+        11: { tuition_fee: 26000, transport_fee: 2600, library_fee: 1600, lab_fee: 1800, sports_fee: 1400, exam_fee: 2200, computer_fee: 1400, activity_fee: 1100, development_fee: 4200 },
+        12: { tuition_fee: 27000, transport_fee: 2700, library_fee: 1700, lab_fee: 2000, sports_fee: 1500, exam_fee: 2400, computer_fee: 1600, activity_fee: 1200, development_fee: 4400 },
       };
+      
+      const structure = classBasedStructures[classId];
+      if (structure) {
+        return {
+          success: true,
+          data: structure
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Fee structure not found for this class'
+        };
+      }
     } catch (error) {
       return {
         success: false,
         error: 'Failed to fetch fee structure'
+      };
+    }
+  },
+
+  // Create fee structure
+  createFeeStructure: async (classId, academicYear, feeData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would save to database
+      console.log('Creating fee structure:', { classId, academicYear, feeData });
+      
+      return {
+        success: true,
+        data: feeData
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to create fee structure'
+      };
+    }
+  },
+
+  // Update fee structure
+  updateFeeStructure: async (classId, academicYear, feeData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would update database
+      console.log('Updating fee structure:', { classId, academicYear, feeData });
+      
+      return {
+        success: true,
+        data: feeData
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to update fee structure'
+      };
+    }
+  },
+
+  // Delete fee structure
+  deleteFeeStructure: async (classId, academicYear) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would delete from database
+      console.log('Deleting fee structure:', { classId, academicYear });
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to delete fee structure'
+      };
+    }
+  },
+
+  // Get fee structure templates
+  getFeeTemplates: async () => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const templates = [
+        { 
+          id: 1,
+          name: 'Standard Template', 
+          data: { tuition_fee: 12000, transport_fee: 2000, library_fee: 500, lab_fee: 800, sports_fee: 300 },
+          description: 'Basic fee structure for regular classes',
+          isDefault: true
+        },
+        { 
+          id: 2,
+          name: 'Premium Template', 
+          data: { tuition_fee: 18000, transport_fee: 3000, library_fee: 800, lab_fee: 1200, sports_fee: 500 },
+          description: 'Enhanced fee structure with additional facilities',
+          isDefault: true
+        },
+        { 
+          id: 3,
+          name: 'Science Stream', 
+          data: { tuition_fee: 15000, transport_fee: 2500, library_fee: 600, lab_fee: 2000, sports_fee: 400 },
+          description: 'Specialized for science subjects with lab facilities',
+          isDefault: true
+        }
+      ];
+      
+      return {
+        success: true,
+        data: templates
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to fetch fee templates'
+      };
+    }
+  },
+
+  // Create fee template
+  createFeeTemplate: async (templateData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would save to database
+      console.log('Creating fee template:', templateData);
+      
+      return {
+        success: true,
+        data: { id: Date.now(), ...templateData }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to create fee template'
+      };
+    }
+  },
+
+  // Get custom fee types
+  getCustomFeeTypes: async () => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const customTypes = [
+        { id: 1, name: 'Music Fee', key: 'music_fee', description: 'Music class fee' },
+        { id: 2, name: 'Art Fee', key: 'art_fee', description: 'Art and craft fee' },
+        { id: 3, name: 'Dance Fee', key: 'dance_fee', description: 'Dance class fee' },
+      ];
+      
+      return {
+        success: true,
+        data: customTypes
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to fetch custom fee types'
+      };
+    }
+  },
+
+  // Create custom fee type
+  createCustomFeeType: async (feeTypeData) => {
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock implementation - in real app, this would save to database
+      console.log('Creating custom fee type:', feeTypeData);
+      
+      return {
+        success: true,
+        data: { id: Date.now(), ...feeTypeData }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to create custom fee type'
       };
     }
   },

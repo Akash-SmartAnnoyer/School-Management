@@ -69,6 +69,7 @@ import SearchModal from './components/SearchModal';
 import QuickActionsModal from './components/QuickActionsModal';
 import InstituteSettings from './pages/InstituteSettings';
 import StudentConfig from './pages/StudentConfig';
+import FeeStructureManagement from './pages/FeeStructureManagement';
 
 const { Header, Sider, Content } = Layout;
 const { Title } = Typography;
@@ -290,6 +291,12 @@ function MainLayout() {
       label: <span style={styles.menuItem}>Fee Management</span>, 
       icon: <WalletOutlined style={styles.menuIcon} />, 
       path: '/fee-management' 
+    },
+    { 
+      key: '11a', 
+      label: <span style={styles.menuItem}>Fee Structure Management</span>, 
+      icon: <SettingOutlined style={styles.menuIcon} />, 
+      path: '/fee-structure-management' 
     },
     {
       key: '12',
@@ -1332,6 +1339,11 @@ function MainLayout() {
               <Route path="/fee-management" element={
                 <ProtectedRoute>
                   <FeeManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/fee-structure-management" element={
+                <ProtectedRoute>
+                  <FeeStructureManagement />
                 </ProtectedRoute>
               } />
               <Route path="/change-password" element={
