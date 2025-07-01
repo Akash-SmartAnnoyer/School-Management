@@ -762,8 +762,14 @@ export const feeAPI = {
     });
   },
   createPayment: async (paymentData) => {
-    return makeRequest(`${BASE_URL}/payments/`, {
+    return makeRequest(`${BASE_URL}/payments/create/`, {
       method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  },
+  updatePayment: async (id, paymentData) => {
+    return makeRequest(`${BASE_URL}/payments/${id}/`, {
+      method: 'PUT',
       body: JSON.stringify(paymentData)
     });
   },
