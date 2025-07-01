@@ -115,16 +115,75 @@ const FeeManagement = () => {
     try {
       setLoading(true);
       if (activeTab === '1') {
-        // Load student fee tracking data
-        const response = await feeService.getStudentFees({
-          search: searchText,
-          class: filters.class,
-          status: filters.status
-        });
-        if (response.success) {
-          setStudents(response.data);
-        } else {
-          messageApi.error(response.error || 'Failed to load student fees');
+        // Load student fee tracking data using Get Fee Payments endpoint
+        try {
+          // Get all payments first
+          const paymentsResponse = await api.fee.getPayments('');
+          if (paymentsResponse.success) {
+            // Group payments by student and calculate totals
+            const studentPayments = {};
+            
+            paymentsResponse.data.results.forEach(payment => {
+              const studentId = payment.student;
+              if (!studentPayments[studentId]) {
+                studentPayments[studentId] = {
+                  id: studentId,
+                  name: payment.student_name,
+                  payments: [],
+                  total_paid: 0,
+                  total_due: 0,
+                  due_months: 0
+                };
+              }
+              
+              studentPayments[studentId].payments.push(payment);
+              studentPayments[studentId].total_paid += parseFloat(payment.amount);
+            });
+            
+            // Get fee details to calculate dues
+            const feeDetailsResponse = await api.fee.getFeeDues('');
+            if (feeDetailsResponse.success) {
+              feeDetailsResponse.data.forEach(fee => {
+                const studentId = fee.student_id;
+                if (studentPayments[studentId]) {
+                  const payableAmount = parseFloat(fee.payable_amount);
+                  const paidAmount = studentPayments[studentId].total_paid;
+                  const dueAmount = payableAmount - paidAmount;
+                  
+                  studentPayments[studentId].total_due = dueAmount;
+                  studentPayments[studentId].due_months = Math.ceil(dueAmount / (payableAmount / fee.number_of_terms));
+                  studentPayments[studentId].status = dueAmount > 0 ? 'Unpaid' : 'Paid';
+                  studentPayments[studentId].class = fee.class || 'N/A';
+                  studentPayments[studentId].section = fee.section || 'N/A';
+                  studentPayments[studentId].student_id = fee.student_id || studentId;
+                }
+              });
+            }
+            
+            // Convert to array and apply filters
+            let filteredStudents = Object.values(studentPayments);
+            
+            // Apply search filter
+            if (searchText) {
+              filteredStudents = filteredStudents.filter(student => 
+                student.name.toLowerCase().includes(searchText.toLowerCase())
+              );
+            }
+            
+            // Apply status filter
+            if (filters.status) {
+              filteredStudents = filteredStudents.filter(student => 
+                student.status === filters.status
+              );
+            }
+            
+            setStudents(filteredStudents);
+          } else {
+            messageApi.error(paymentsResponse.error || 'Failed to load student fees');
+          }
+        } catch (error) {
+          console.error('Error loading student fees:', error);
+          messageApi.error('Failed to load student fees');
         }
       } else if (activeTab === '2') {
         // Load payment records using real API
@@ -224,11 +283,20 @@ const FeeManagement = () => {
   const handleViewHistory = async (student) => {
     try {
       setLoading(true);
-      const response = await feeService.getStudentPaymentHistory(student.id);
+      // Use the Get Fee Payments endpoint to get all payments for this student
+      const response = await api.fee.getPayments(`?student=${student.id}`);
       if (response.success) {
+        // Transform the data to match the expected format
+        const paymentHistory = response.data.results.map(payment => ({
+          ...payment,
+          payment_date: payment.date || payment.payment_date,
+          transaction_id: payment.transaction_id || `TXN${payment.id}`,
+          status: payment.status || 'successful'
+        }));
+        
         setSelectedStudent({
           ...student,
-          payment_history: response.data
+          payment_history: paymentHistory
         });
         setHistoryDrawerVisible(true);
       } else {
@@ -579,6 +647,26 @@ const FeeManagement = () => {
   const handleViewPayment = async (payment) => {
     setLoading(true);
     try {
+      // Use the Get Fee Payment Detail endpoint for individual payment details
+      const response = await api.fee.getPaymentById(payment.id);
+      if (response.success) {
+        setViewingPayment(response.data);
+        setViewPaymentModalVisible(true);
+      } else {
+        messageApi.error(response.error || 'Failed to fetch payment details');
+      }
+    } catch (error) {
+      console.error('Error fetching payment details:', error);
+      messageApi.error('Failed to fetch payment details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewPaymentFromHistory = async (payment) => {
+    setLoading(true);
+    try {
+      // Use the Get Fee Payment Detail endpoint for payment history details
       const response = await api.fee.getPaymentById(payment.id);
       if (response.success) {
         setViewingPayment(response.data);
@@ -1608,7 +1696,7 @@ const FeeManagement = () => {
           <>
             <Card className="student-summary-card">
               <Row gutter={16}>
-                <Col span={8}>
+                <Col span={6}>
                   <Statistic
                     title="Total Due"
                     value={selectedStudent.total_due}
@@ -1616,7 +1704,15 @@ const FeeManagement = () => {
                     valueStyle={{ color: '#ff4d4f' }}
                   />
                 </Col>
-                <Col span={8}>
+                <Col span={6}>
+                  <Statistic
+                    title="Total Paid"
+                    value={selectedStudent.total_paid || 0}
+                    prefix="₹"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col span={6}>
                   <Statistic
                     title="Due Months"
                     value={selectedStudent.due_months}
@@ -1624,10 +1720,11 @@ const FeeManagement = () => {
                     valueStyle={{ color: '#faad14' }}
                   />
                 </Col>
-                <Col span={8}>
+                <Col span={6}>
                   <Statistic
-                    title="Class/Section"
-                    value={`${selectedStudent.class} - ${selectedStudent.section}`}
+                    title="Total Payments"
+                    value={selectedStudent.payment_history?.length || 0}
+                    suffix="payments"
                     valueStyle={{ color: '#1890ff' }}
                   />
                 </Col>
@@ -1790,6 +1887,22 @@ const FeeManagement = () => {
                       <Text ellipsis style={{ maxWidth: 150 }}>
                         {text}
                       </Text>
+                    </Tooltip>
+                  ),
+                },
+                {
+                  title: 'Actions',
+                  key: 'actions',
+                  render: (_, record) => (
+                    <Tooltip title="View Details">
+                      <Button
+                        type="default"
+                        icon={<EyeOutlined />}
+                        onClick={() => handleViewPaymentFromHistory(record)}
+                        size="small"
+                      >
+                        View
+                      </Button>
                     </Tooltip>
                   ),
                 }
