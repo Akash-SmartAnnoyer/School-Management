@@ -38,6 +38,15 @@ const handleResponse = async (response) => {
     }
   }
 
+  // Handle 204 No Content response (common for DELETE operations)
+  if (response.status === 204) {
+    return {
+      status: response.status,
+      data: null,
+      success: true
+    };
+  }
+
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     const data = await response.json();
@@ -768,13 +777,13 @@ export const feeAPI = {
     });
   },
   updatePayment: async (id, paymentData) => {
-    return makeRequest(`${BASE_URL}/payments/${id}/`, {
-      method: 'PUT',
+    return makeRequest(`${BASE_URL}/payments/${id}/update/`, {
+      method: 'PATCH',
       body: JSON.stringify(paymentData)
     });
   },
   deletePayment: async (id) => {
-    return makeRequest(`${BASE_URL}/payments/${id}/`, {
+    return makeRequest(`${BASE_URL}/payments/${id}/delete/`, {
       method: 'DELETE'
     });
   },

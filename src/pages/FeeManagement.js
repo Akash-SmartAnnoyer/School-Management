@@ -95,6 +95,8 @@ const FeeManagement = () => {
   const [paymentForm] = Form.useForm();
   const [viewFeeModalVisible, setViewFeeModalVisible] = useState(false);
   const [viewingFee, setViewingFee] = useState(null);
+  const [viewPaymentModalVisible, setViewPaymentModalVisible] = useState(false);
+  const [viewingPayment, setViewingPayment] = useState(null);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -286,15 +288,32 @@ const FeeManagement = () => {
     }
   };
 
-  const handleEditPayment = (payment) => {
-    setEditingPayment(payment);
-    form.setFieldsValue({
-      ...payment,
-      payment_date: moment(payment.payment_date),
-      transaction_id: payment.transaction_id,
-      status: payment.status
-    });
-    setEditPaymentModalVisible(true);
+  const handleEditPayment = async (payment) => {
+    try {
+      setLoading(true);
+      // First fetch the payment details using the GET endpoint
+      const response = await api.fee.getPaymentById(payment.id);
+      if (response.success) {
+        const paymentDetails = response.data;
+        setEditingPayment(paymentDetails);
+        form.setFieldsValue({
+          amount: parseFloat(paymentDetails.amount),
+          payment_mode: paymentDetails.payment_mode,
+          payment_date: moment(paymentDetails.date || paymentDetails.payment_date),
+          remarks: paymentDetails.remarks,
+          transaction_id: paymentDetails.transaction_id || `TXN${Date.now()}`,
+          status: paymentDetails.status || 'successful'
+        });
+        setEditPaymentModalVisible(true);
+      } else {
+        messageApi.error(response.error || 'Failed to fetch payment details');
+      }
+    } catch (error) {
+      console.error('Error fetching payment details:', error);
+      messageApi.error('Failed to fetch payment details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeletePayment = (payment) => {
@@ -309,7 +328,8 @@ const FeeManagement = () => {
         try {
           setLoading(true);
           const response = await api.fee.deletePayment(payment.id);
-          if (response.success) {
+          // Handle 204 No Content response for successful deletion
+          if (response.success || response.status === 204) {
             messageApi.success('Payment deleted successfully');
             loadData();
           } else {
@@ -317,7 +337,13 @@ const FeeManagement = () => {
           }
         } catch (error) {
           console.error('Error deleting payment:', error);
-          messageApi.error('Failed to delete payment');
+          if (error.message && error.message.includes('404')) {
+            messageApi.error('Payment not found or already deleted');
+          } else if (error.message && error.message.includes('403')) {
+            messageApi.error('You do not have permission to delete this payment');
+          } else {
+            messageApi.error('Failed to delete payment');
+          }
         } finally {
           setLoading(false);
         }
@@ -328,6 +354,16 @@ const FeeManagement = () => {
   const handleEditSubmit = async (values) => {
     try {
       setLoading(true);
+      
+      // Validate that all required fields are present
+      const requiredFields = ['amount', 'payment_mode', 'payment_date', 'remarks', 'transaction_id', 'status'];
+      const missingFields = requiredFields.filter(field => !values[field]);
+      
+      if (missingFields.length > 0) {
+        messageApi.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+      
       const response = await api.fee.updatePayment(editingPayment.id, {
         amount: parseFloat(values.amount),
         payment_mode: values.payment_mode.toLowerCase(),
@@ -338,15 +374,25 @@ const FeeManagement = () => {
       });
       
       if (response.success) {
-        messageApi.success('Payment updated successfully');
+        messageApi.success(`Payment updated successfully! Amount: ₹${response.data.amount}, Status: ${response.data.status}`);
         setEditPaymentModalVisible(false);
+        setEditingPayment(null);
+        form.resetFields();
         loadData();
       } else {
         messageApi.error(response.error || 'Failed to update payment');
       }
     } catch (error) {
       console.error('Error updating payment:', error);
-      messageApi.error('Failed to update payment');
+      if (error.message && error.message.includes('Transaction ID is invalid')) {
+        messageApi.error('Transaction ID is invalid for this payment.');
+      } else if (error.message && error.message.includes('This field is required')) {
+        messageApi.error('All fields are required for payment updates.');
+      } else if (error.message && error.message.includes('Method not allowed')) {
+        messageApi.error('Update method not allowed. Please try again.');
+      } else {
+        messageApi.error('Failed to update payment');
+      }
     } finally {
       setLoading(false);
     }
@@ -485,6 +531,24 @@ const FeeManagement = () => {
       }
     } catch (error) {
       messageApi.error('Failed to fetch fee details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewPayment = async (payment) => {
+    setLoading(true);
+    try {
+      const response = await api.fee.getPaymentById(payment.id);
+      if (response.success) {
+        setViewingPayment(response.data);
+        setViewPaymentModalVisible(true);
+      } else {
+        messageApi.error(response.error || 'Failed to fetch payment details');
+      }
+    } catch (error) {
+      console.error('Error fetching payment details:', error);
+      messageApi.error('Failed to fetch payment details');
     } finally {
       setLoading(false);
     }
@@ -949,6 +1013,16 @@ const FeeManagement = () => {
       key: 'actions',
       render: (_, record) => (
         <Space>
+          <Tooltip title="View Details">
+            <Button
+              type="default"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewPayment(record)}
+              size="small"
+            >
+              View
+            </Button>
+          </Tooltip>
           <Tooltip title="Edit Payment">
             <Button
               type="primary"
@@ -1773,6 +1847,7 @@ const FeeManagement = () => {
               <Form.Item
                 label="Status"
                 name="status"
+                rules={[{ required: true, message: 'Please select status' }]}
               >
                 <Select>
                   <Option value="successful">Successful</Option>
@@ -1785,8 +1860,9 @@ const FeeManagement = () => {
           <Form.Item
             label="Remarks"
             name="remarks"
+            rules={[{ required: true, message: 'Please enter remarks' }]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea rows={4} placeholder="Enter payment remarks" />
           </Form.Item>
           <Form.Item>
             <Space>
@@ -2328,6 +2404,76 @@ const FeeManagement = () => {
             <Row gutter={16}>
               <Col span={12}><b>Student ID:</b> {viewingFee.student}</Col>
               <Col span={12}><b>User ID:</b> {viewingFee.user}</Col>
+            </Row>
+          </div>
+        ) : (
+          <div>Loading...</div>
+        )}
+      </Modal>
+
+      {/* View Payment Details Modal */}
+      <Modal
+        title={
+          <Space>
+            <EyeOutlined />
+            Payment Details
+          </Space>
+        }
+        visible={viewPaymentModalVisible}
+        onCancel={() => {
+          setViewPaymentModalVisible(false);
+          setViewingPayment(null);
+        }}
+        width={700}
+        footer={[
+          <Button
+            key="edit"
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setViewPaymentModalVisible(false);
+              if (viewingPayment) {
+                handleEditPayment(viewingPayment);
+              }
+            }}
+          >
+            Edit Payment
+          </Button>,
+          <Button
+            key="close"
+            onClick={() => {
+              setViewPaymentModalVisible(false);
+              setViewingPayment(null);
+            }}
+          >
+            Close
+          </Button>
+        ]}
+      >
+        {viewingPayment ? (
+          <div style={{ padding: 8 }}>
+            <Row gutter={16}>
+              <Col span={12}><b>Payment ID:</b> {viewingPayment.id}</Col>
+              <Col span={12}><b>Student ID:</b> {viewingPayment.student}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Student Name:</b> {viewingPayment.student_name}</Col>
+              <Col span={12}><b>Fee ID:</b> {viewingPayment.fee}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Fee Type:</b> {viewingPayment.fee_type}</Col>
+              <Col span={12}><b>Amount:</b> ₹{parseFloat(viewingPayment.amount).toLocaleString()}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Payment Mode:</b> {viewingPayment.payment_mode}</Col>
+              <Col span={12}><b>Date:</b> {viewingPayment.date || viewingPayment.payment_date}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Transaction ID:</b> {viewingPayment.transaction_id || 'N/A'}</Col>
+              <Col span={12}><b>Status:</b> {viewingPayment.status || 'N/A'}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={24}><b>Remarks:</b> {viewingPayment.remarks || 'No remarks'}</Col>
             </Row>
           </div>
         ) : (
