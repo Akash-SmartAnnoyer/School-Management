@@ -89,6 +89,11 @@ const FeeManagement = () => {
   const [feeDetails, setFeeDetails] = useState([]);
   const [classStudents, setClassStudents] = useState([]);
   const [loadingClassStudents, setLoadingClassStudents] = useState(false);
+  const [editFeeModalVisible, setEditFeeModalVisible] = useState(false);
+  const [editingFee, setEditingFee] = useState(null);
+  const [editFeeForm] = Form.useForm();
+  const [viewFeeModalVisible, setViewFeeModalVisible] = useState(false);
+  const [viewingFee, setViewingFee] = useState(null);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -283,19 +288,19 @@ const FeeManagement = () => {
     try {
       setLoading(true);
       const response = await api.fee.createFeeDue({
-        student_id: values.student_id,
+        student: values.student_id,
         fee_type: values.fee_type,
-        amount: parseFloat(values.amount),
-        period: values.period,
-        terms: parseInt(values.terms),
-        amount_per_term: parseFloat(values.amount_per_term),
-        status: values.status,
-        due_amount: values.status === 'Partial' ? parseFloat(values.due_amount) : null,
+        total_amount: parseFloat(values.amount),
+        scholarship_amount: parseFloat(values.scholarship_amount || 0),
+        fee_period: values.period.toLowerCase(),
+        number_of_terms: parseInt(values.terms),
+        term_start: parseInt(values.term_start),
+        term_end: parseInt(values.term_end || 3), // Default to March if not set
         remarks: values.remarks
       });
       
       if (response.success) {
-        messageApi.success('Fee details added successfully');
+        messageApi.success('Fee record created successfully');
         setFeeDetailsModalVisible(false);
         feeDetailsForm.resetFields();
         setSelectedClass(null);
@@ -303,11 +308,15 @@ const FeeManagement = () => {
         setClassStudents([]);
         loadData();
       } else {
-        messageApi.error(response.error || 'Failed to add fee details');
+        messageApi.error(response.error || 'Failed to create fee record');
       }
     } catch (error) {
-      console.error('Error adding fee details:', error);
-      messageApi.error('Failed to add fee details');
+      console.error('Error creating fee record:', error);
+      if (error.message.includes('unique set')) {
+        messageApi.error('A fee record already exists for this student and fee type combination.');
+      } else {
+        messageApi.error('Failed to create fee record');
+      }
     } finally {
       setLoading(false);
     }
@@ -350,32 +359,88 @@ const FeeManagement = () => {
     setSelectedStudentForFee(studentId);
   };
 
+  const handleViewFee = async (fee) => {
+    setLoading(true);
+    try {
+      const response = await api.fee.getFeeDueById(fee.id);
+      if (response.success) {
+        setViewingFee(response.data);
+        setViewFeeModalVisible(true);
+      } else {
+        messageApi.error(response.error || 'Failed to fetch fee details');
+      }
+    } catch (error) {
+      messageApi.error('Failed to fetch fee details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteFeeDetails = (fee) => {
     confirm({
       title: 'Are you sure you want to delete this fee detail?',
       icon: <ExclamationCircleOutlined />,
-      content: `This will delete the fee detail of ₹${fee.amount} for ${fee.student}.`,
+      content: `This will delete the fee detail of ₹${fee.total_amount} for ID: ${fee.student}.`,
       okText: 'Yes',
       okType: 'danger',
       cancelText: 'No',
       onOk: async () => {
         try {
           setLoading(true);
-          const response = await api.fee.deleteFeeDue(fee.id);
+          // Use new endpoint
+          const response = await api.fee.deleteFeeDue(fee.id, true);
           if (response.success) {
             messageApi.success('Fee detail deleted successfully');
             loadData();
+          } else if (response.status === 405) {
+            messageApi.error('Delete operation is disabled for this record.');
           } else {
             messageApi.error(response.error || 'Failed to delete fee detail');
           }
         } catch (error) {
-          console.error('Error deleting fee detail:', error);
-          messageApi.error('Failed to delete fee detail');
+          if (error.message && error.message.includes('disabled')) {
+            messageApi.error('Delete operation is disabled for this record.');
+          } else {
+            messageApi.error('Failed to delete fee detail');
+          }
         } finally {
           setLoading(false);
         }
       }
     });
+  };
+
+  const handleEditFee = (fee) => {
+    setEditingFee(fee);
+    editFeeForm.setFieldsValue({
+      total_amount: parseFloat(fee.total_amount),
+      scholarship_amount: parseFloat(fee.scholarship_amount),
+      fee_period: fee.fee_period,
+      remarks: fee.remarks,
+      term_start: fee.term_start,
+      term_end: fee.term_end,
+    });
+    setEditFeeModalVisible(true);
+  };
+
+  const handleEditFeeSubmit = async (values) => {
+    try {
+      setLoading(true);
+      const response = await api.fee.updateFeeDue(editingFee.id, values);
+      if (response.success) {
+        messageApi.success('Fee record updated successfully');
+        setEditFeeModalVisible(false);
+        setEditingFee(null);
+        editFeeForm.resetFields();
+        loadData();
+      } else {
+        messageApi.error(response.error || 'Failed to update fee record');
+      }
+    } catch (error) {
+      messageApi.error('Failed to update fee record');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const studentColumns = [
@@ -962,27 +1027,47 @@ const FeeManagement = () => {
                   ),
                 },
                 {
-                  title: 'Amount',
-                  dataIndex: 'amount',
-                  key: 'amount',
+                  title: 'Total Amount',
+                  dataIndex: 'total_amount',
+                  key: 'total_amount',
                   render: (amount) => (
                     <Text strong style={{ color: '#52c41a' }}>
-                      ₹{amount.toLocaleString()}
+                      ₹{parseFloat(amount).toLocaleString()}
+                    </Text>
+                  ),
+                },
+                {
+                  title: 'Scholarship Amount',
+                  dataIndex: 'scholarship_amount',
+                  key: 'scholarship_amount',
+                  render: (amount) => (
+                    <Text strong style={{ color: '#faad14' }}>
+                      ₹{parseFloat(amount).toLocaleString()}
+                    </Text>
+                  ),
+                },
+                {
+                  title: 'Payable Amount',
+                  dataIndex: 'payable_amount',
+                  key: 'payable_amount',
+                  render: (amount) => (
+                    <Text strong style={{ color: '#1890ff' }}>
+                      ₹{parseFloat(amount).toLocaleString()}
                     </Text>
                   ),
                 },
                 {
                   title: 'Period',
-                  dataIndex: 'period',
-                  key: 'period',
+                  dataIndex: 'fee_period',
+                  key: 'fee_period',
                   render: (period) => (
                     <Tag color="blue">{period}</Tag>
                   ),
                 },
                 {
                   title: 'Terms',
-                  dataIndex: 'terms',
-                  key: 'terms',
+                  dataIndex: 'number_of_terms',
+                  key: 'number_of_terms',
                   render: (terms) => (
                     <Tag color="purple">{terms} terms</Tag>
                   ),
@@ -993,14 +1078,14 @@ const FeeManagement = () => {
                   key: 'amount_per_term',
                   render: (amount) => (
                     <Text strong style={{ color: '#1890ff' }}>
-                      ₹{amount.toLocaleString()}
+                      ₹{parseFloat(amount).toLocaleString()}
                     </Text>
                   ),
                 },
                 {
                   title: 'Status',
-                  dataIndex: 'status',
-                  key: 'status',
+                  dataIndex: 'fee_status',
+                  key: 'fee_status',
                   render: (status) => (
                     <Tag 
                       style={{ 
@@ -1008,9 +1093,9 @@ const FeeManagement = () => {
                         borderRadius: '6px',
                         fontSize: '13px',
                         fontWeight: 500,
-                        background: status === 'Paid' ? '#f6ffed' : '#fff2f0',
-                        color: status === 'Paid' ? '#52c41a' : '#ff4d4f',
-                        border: `1px solid ${status === 'Paid' ? '#b7eb8f' : '#ffccc7'}`,
+                        background: status === 'paid' ? '#f6ffed' : '#fff2f0',
+                        color: status === 'paid' ? '#52c41a' : '#ff4d4f',
+                        border: `1px solid ${status === 'paid' ? '#b7eb8f' : '#ffccc7'}`,
                         boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -1020,25 +1105,13 @@ const FeeManagement = () => {
                         margin: 0
                       }}
                     >
-                      {status === 'Paid' ? (
+                      {status === 'paid' ? (
                         <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#52c41a' }} />
                       ) : (
                         <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ff4d4f' }} />
                       )} 
                       {status}
                     </Tag>
-                  ),
-                },
-                {
-                  title: 'Due Amount',
-                  dataIndex: 'due_amount',
-                  key: 'due_amount',
-                  render: (amount) => (
-                    amount ? (
-                      <Text strong style={{ color: '#ff4d4f' }}>
-                        ₹{amount.toLocaleString()}
-                      </Text>
-                    ) : '-'
                   ),
                 },
                 {
@@ -1058,6 +1131,26 @@ const FeeManagement = () => {
                   key: 'actions',
                   render: (_, record) => (
                     <Space>
+                      <Tooltip title="View">
+                        <Button
+                          type="default"
+                          icon={<EyeOutlined />}
+                          onClick={() => handleViewFee(record)}
+                          size="small"
+                        >
+                          View
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <Button
+                          type="primary"
+                          icon={<EditOutlined />}
+                          onClick={() => handleEditFee(record)}
+                          size="small"
+                        >
+                          Edit
+                        </Button>
+                      </Tooltip>
                       <Tooltip title="Delete">
                         <Button
                           type="text"
@@ -1565,14 +1658,14 @@ const FeeManagement = () => {
                     </>
                   )}
                 >
-                  <Option value="Tuition Fee">Tuition Fee</Option>
-                  <Option value="Transport Fee">Transport Fee</Option>
-                  <Option value="Library Fee">Library Fee</Option>
-                  <Option value="Sports Fee">Sports Fee</Option>
-                  <Option value="Books Fee">Books Fee</Option>
-                  <Option value="Joining Fee">Joining Fee</Option>
-                  <Option value="Anniversary Fee">Anniversary Fee</Option>
-                  <Option value="Special Fee">Special Fee</Option>
+                  <Option value="tuition">Tuition Fee</Option>
+                  <Option value="transport">Transport Fee</Option>
+                  <Option value="library">Library Fee</Option>
+                  <Option value="sports">Sports Fee</Option>
+                  <Option value="books">Books Fee</Option>
+                  <Option value="joining">Joining Fee</Option>
+                  <Option value="anniversary">Anniversary Fee</Option>
+                  <Option value="special">Special Fee</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -1590,64 +1683,143 @@ const FeeManagement = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
+                name="scholarship_amount"
+                label="Scholarship Amount"
+                initialValue={0}
+              >
+                <Input 
+                  prefix="₹" 
+                  type="number" 
+                  step="0.01" 
+                  onChange={(e) => {
+                    const amount = feeDetailsForm.getFieldValue('amount');
+                    const period = feeDetailsForm.getFieldValue('period');
+                    const scholarship = parseFloat(e.target.value) || 0;
+                    if (amount && period) {
+                      let terms = 1;
+                      switch(period) {
+                        case 'monthly':
+                          terms = 12;
+                          break;
+                        case 'quarterly':
+                          terms = 4;
+                          break;
+                        case 'half_yearly':
+                          terms = 2;
+                          break;
+                        case 'yearly':
+                          terms = 1;
+                          break;
+                      }
+                      const payableAmount = amount - scholarship;
+                      const amountPerTerm = (payableAmount / terms).toFixed(2);
+                      feeDetailsForm.setFieldsValue({
+                        terms,
+                        amount_per_term: amountPerTerm
+                      });
+                    }
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="term_start"
+                label="Term Start Month"
+                initialValue={4}
+                rules={[{ required: true, message: 'Please select term start month!' }]}
+              >
+                <Select>
+                  <Option value={1}>January</Option>
+                  <Option value={2}>February</Option>
+                  <Option value={3}>March</Option>
+                  <Option value={4}>April</Option>
+                  <Option value={5}>May</Option>
+                  <Option value={6}>June</Option>
+                  <Option value={7}>July</Option>
+                  <Option value={8}>August</Option>
+                  <Option value={9}>September</Option>
+                  <Option value={10}>October</Option>
+                  <Option value={11}>November</Option>
+                  <Option value={12}>December</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="term_end"
+                label="Term End Month"
+                initialValue={3}
+                rules={[{ required: true, message: 'Please select term end month!' }]}
+              >
+                <Select>
+                  <Option value={1}>January</Option>
+                  <Option value={2}>February</Option>
+                  <Option value={3}>March</Option>
+                  <Option value={4}>April</Option>
+                  <Option value={5}>May</Option>
+                  <Option value={6}>June</Option>
+                  <Option value={7}>July</Option>
+                  <Option value={8}>August</Option>
+                  <Option value={9}>September</Option>
+                  <Option value={10}>October</Option>
+                  <Option value={11}>November</Option>
+                  <Option value={12}>December</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
                 name="period"
                 label="Fee Period"
                 rules={[{ required: true, message: 'Please select period!' }]}
               >
                 <Select onChange={(value) => {
                   const amount = feeDetailsForm.getFieldValue('amount');
+                  const scholarship = feeDetailsForm.getFieldValue('scholarship_amount') || 0;
                   if (amount) {
                     let terms = 1;
                     switch(value) {
-                      case 'Monthly':
+                      case 'monthly':
                         terms = 12;
                         break;
-                      case 'Quarterly':
+                      case 'quarterly':
                         terms = 4;
                         break;
-                      case 'Half Yearly':
+                      case 'half_yearly':
                         terms = 2;
                         break;
-                      case 'Yearly':
+                      case 'yearly':
                         terms = 1;
                         break;
                     }
-                    const amountPerTerm = (amount / terms).toFixed(2);
+                    const payableAmount = amount - scholarship;
+                    const amountPerTerm = (payableAmount / terms).toFixed(2);
                     feeDetailsForm.setFieldsValue({
                       terms,
                       amount_per_term: amountPerTerm
                     });
                   }
                 }}>
-                  <Option value="Monthly">Monthly</Option>
-                  <Option value="Quarterly">Quarterly</Option>
-                  <Option value="Half Yearly">Half Yearly</Option>
-                  <Option value="Yearly">Yearly</Option>
+                  <Option value="monthly">Monthly</Option>
+                  <Option value="quarterly">Quarterly</Option>
+                  <Option value="half_yearly">Half Yearly</Option>
+                  <Option value="yearly">Yearly</Option>
                 </Select>
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="status"
-                label="Fee Status"
-                rules={[{ required: true, message: 'Please select status!' }]}
+                name="amount_per_term"
+                label="Amount per Term"
               >
-                <Select onChange={(value) => {
-                  if (value === 'Partial') {
-                    feeDetailsForm.setFieldsValue({
-                      show_due_amount: true
-                    });
-                  } else {
-                    feeDetailsForm.setFieldsValue({
-                      show_due_amount: false,
-                      due_amount: null
-                    });
-                  }
-                }}>
-                  <Option value="Paid">Paid</Option>
-                  <Option value="Unpaid">Unpaid</Option>
-                  <Option value="Partial">Partial</Option>
-                </Select>
+                <Input prefix="₹" type="number" step="0.01" disabled />
               </Form.Item>
             </Col>
           </Row>
@@ -1670,30 +1842,6 @@ const FeeManagement = () => {
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item
-            noStyle
-            shouldUpdate={(prevValues, currentValues) => {
-              return prevValues?.status !== currentValues?.status;
-            }}
-          >
-            {({ getFieldValue }) => {
-              const showDueAmount = getFieldValue('show_due_amount');
-              return showDueAmount ? (
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="due_amount"
-                      label="Due Amount"
-                      rules={[{ required: true, message: 'Please enter due amount!' }]}
-                    >
-                      <Input prefix="₹" type="number" step="0.01" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              ) : null;
-            }}
-          </Form.Item>
 
           <Form.Item
             name="remarks"
@@ -1721,6 +1869,192 @@ const FeeManagement = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Edit Fee Modal */}
+      <Modal
+        title={
+          <Space>
+            <EditOutlined />
+            Edit Fee Record
+          </Space>
+        }
+        visible={editFeeModalVisible}
+        onCancel={() => {
+          setEditFeeModalVisible(false);
+          setEditingFee(null);
+          editFeeForm.resetFields();
+        }}
+        width={800}
+        footer={null}
+      >
+        <Form
+          form={editFeeForm}
+          layout="vertical"
+          onFinish={handleEditFeeSubmit}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="total_amount"
+                label="Total Amount"
+                rules={[{ required: true, message: 'Please enter amount!' }]}
+              >
+                <Input prefix="₹" type="number" step="0.01" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="scholarship_amount"
+                label="Scholarship Amount"
+                initialValue={0}
+              >
+                <Input prefix="₹" type="number" step="0.01" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="fee_period"
+                label="Fee Period"
+                rules={[{ required: true, message: 'Please select period!' }]}
+              >
+                <Select>
+                  <Option value="monthly">Monthly</Option>
+                  <Option value="quarterly">Quarterly</Option>
+                  <Option value="half yearly">Half Yearly</Option>
+                  <Option value="yearly">Yearly</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="remarks"
+                label="Remarks"
+              >
+                <Input.TextArea rows={2} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="term_start"
+                label="Term Start Month"
+                rules={[{ required: true, message: 'Please select term start month!' }]}
+              >
+                <Select>
+                  <Option value={1}>January</Option>
+                  <Option value={2}>February</Option>
+                  <Option value={3}>March</Option>
+                  <Option value={4}>April</Option>
+                  <Option value={5}>May</Option>
+                  <Option value={6}>June</Option>
+                  <Option value={7}>July</Option>
+                  <Option value={8}>August</Option>
+                  <Option value={9}>September</Option>
+                  <Option value={10}>October</Option>
+                  <Option value={11}>November</Option>
+                  <Option value={12}>December</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="term_end"
+                label="Term End Month"
+                rules={[{ required: true, message: 'Please select term end month!' }]}
+              >
+                <Select>
+                  <Option value={1}>January</Option>
+                  <Option value={2}>February</Option>
+                  <Option value={3}>March</Option>
+                  <Option value={4}>April</Option>
+                  <Option value={5}>May</Option>
+                  <Option value={6}>June</Option>
+                  <Option value={7}>July</Option>
+                  <Option value={8}>August</Option>
+                  <Option value={9}>September</Option>
+                  <Option value={10}>October</Option>
+                  <Option value={11}>November</Option>
+                  <Option value={12}>December</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Update Fee Record
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditFeeModalVisible(false);
+                  setEditingFee(null);
+                  editFeeForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* View Fee Modal */}
+      <Modal
+        title={
+          <Space>
+            <EyeOutlined />
+            Fee Record Details
+          </Space>
+        }
+        visible={viewFeeModalVisible}
+        onCancel={() => {
+          setViewFeeModalVisible(false);
+          setViewingFee(null);
+        }}
+        width={700}
+        footer={null}
+      >
+        {viewingFee ? (
+          <div style={{ padding: 8 }}>
+            <Row gutter={16}>
+              <Col span={12}><b>Fee Type:</b> {viewingFee.fee_type}</Col>
+              <Col span={12}><b>Status:</b> {viewingFee.fee_status}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Period:</b> {viewingFee.fee_period}</Col>
+              <Col span={12}><b>Number of Terms:</b> {viewingFee.number_of_terms}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Total Amount:</b> ₹{parseFloat(viewingFee.total_amount).toLocaleString()}</Col>
+              <Col span={12}><b>Scholarship Amount:</b> ₹{parseFloat(viewingFee.scholarship_amount).toLocaleString()}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Payable Amount:</b> ₹{parseFloat(viewingFee.payable_amount).toLocaleString()}</Col>
+              <Col span={12}><b>Amount per Term:</b> ₹{parseFloat(viewingFee.amount_per_term).toLocaleString()}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Term Start:</b> {viewingFee.term_start}</Col>
+              <Col span={12}><b>Term End:</b> {viewingFee.term_end}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Remarks:</b> {viewingFee.remarks}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Created At:</b> {viewingFee.created_at}</Col>
+              <Col span={12}><b>Updated At:</b> {viewingFee.updated_at}</Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}><b>Student ID:</b> {viewingFee.student}</Col>
+              <Col span={12}><b>User ID:</b> {viewingFee.user}</Col>
+            </Row>
+          </div>
+        ) : (
+          <div>Loading...</div>
+        )}
       </Modal>
 
       <style>

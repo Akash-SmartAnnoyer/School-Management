@@ -713,7 +713,7 @@ export const feeAPI = {
   },
   createFeeDue: async (feeDueData) => {
     try {
-      return await makeRequest(`${BASE_URL}/fees/`, {
+      return await makeRequest(`${BASE_URL}/fees/create/`, {
         method: 'POST',
         body: JSON.stringify(feeDueData)
       });
