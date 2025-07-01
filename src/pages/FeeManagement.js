@@ -87,6 +87,8 @@ const FeeManagement = () => {
   const { classes, loading: classesLoading } = useClasses();
   const { students: allStudents, loading: studentsLoading } = useStudents();
   const [feeDetails, setFeeDetails] = useState([]);
+  const [classStudents, setClassStudents] = useState([]);
+  const [loadingClassStudents, setLoadingClassStudents] = useState(false);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -296,6 +298,9 @@ const FeeManagement = () => {
         messageApi.success('Fee details added successfully');
         setFeeDetailsModalVisible(false);
         feeDetailsForm.resetFields();
+        setSelectedClass(null);
+        setSelectedStudentForFee(null);
+        setClassStudents([]);
         loadData();
       } else {
         messageApi.error(response.error || 'Failed to add fee details');
@@ -308,9 +313,37 @@ const FeeManagement = () => {
     }
   };
 
-  const handleClassChange = (classId) => {
+  const handleClassChange = async (classId) => {
     setSelectedClass(classId);
     setSelectedStudentForFee(null);
+    setClassStudents([]);
+    
+    if (classId) {
+      await loadStudentsByClass(classId);
+    }
+  };
+
+  const loadStudentsByClass = async (classId) => {
+    try {
+      setLoadingClassStudents(true);
+      const response = await api.student.getStudentsByClass(classId);
+      if (response.success) {
+        const students = response.data.results || response.data || [];
+        setClassStudents(students);
+        if (students.length === 0) {
+          messageApi.warning('No students found in this class');
+        }
+      } else {
+        messageApi.error(response.error || 'Failed to load students for this class');
+        setClassStudents([]);
+      }
+    } catch (error) {
+      console.error('Error loading students by class:', error);
+      messageApi.error('Failed to load students for this class. Please try again.');
+      setClassStudents([]);
+    } finally {
+      setLoadingClassStudents(false);
+    }
   };
 
   const handleStudentChange = (studentId) => {
@@ -1415,6 +1448,9 @@ const FeeManagement = () => {
         onCancel={() => {
           setFeeDetailsModalVisible(false);
           feeDetailsForm.resetFields();
+          setSelectedClass(null);
+          setSelectedStudentForFee(null);
+          setClassStudents([]);
         }}
         width={800}
         footer={null}
@@ -1435,6 +1471,7 @@ const FeeManagement = () => {
                   placeholder="Select class"
                   loading={classesLoading}
                   onChange={handleClassChange}
+                  notFoundContent={classesLoading ? <span>Loading classes...</span> : <span>No classes found</span>}
                 >
                   {classes.map(cls => (
                     <Option key={cls.id} value={cls.id}>
@@ -1451,18 +1488,36 @@ const FeeManagement = () => {
                 rules={[{ required: true, message: 'Please select student' }]}
               >
                 <Select
-                  placeholder="Select student"
-                  loading={studentsLoading}
+                  placeholder={
+                    selectedClass ? 
+                      (loadingClassStudents ? "Loading students..." : `Select student (${classStudents.length} available)`) : 
+                      "Please select a class first"
+                  }
+                  loading={loadingClassStudents}
                   disabled={!selectedClass}
                   onChange={handleStudentChange}
+                  notFoundContent={
+                    !selectedClass ? 
+                      <span>Please select a class first</span> : 
+                      loadingClassStudents ? 
+                        <span>Loading students...</span> : 
+                        <span>No students found in this class</span>
+                  }
                 >
-                  {allStudents
-                    .filter(student => student.profile?.classroom_id === selectedClass)
-                    .map(student => (
+                  {loadingClassStudents ? (
+                    <Option disabled>
+                      <span style={{ color: '#999' }}>Loading students...</span>
+                    </Option>
+                  ) : (
+                    classStudents.map(student => (
                       <Option key={student.id} value={student.id}>
-                        {student.first_name} {student.last_name} - {student.student_profile?.student_id}
+                        {student.user ? 
+                          `${student.user.first_name} ${student.user.last_name} - ${student.student_profile?.student_id || student.user.id}` :
+                          `${student.first_name} ${student.last_name} - ${student.student_profile?.student_id || student.id}`
+                        }
                       </Option>
-                    ))}
+                    ))
+                  )}
                 </Select>
               </Form.Item>
             </Col>
@@ -1656,6 +1711,9 @@ const FeeManagement = () => {
                 onClick={() => {
                   setFeeDetailsModalVisible(false);
                   feeDetailsForm.resetFields();
+                  setSelectedClass(null);
+                  setSelectedStudentForFee(null);
+                  setClassStudents([]);
                 }}
               >
                 Cancel
