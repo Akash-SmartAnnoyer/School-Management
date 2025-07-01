@@ -770,6 +770,26 @@ export const feeAPI = {
       method: 'GET'
     });
   },
+  getFilteredPayments: async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+    
+    // Add filter parameters
+    if (filters.fee_id) queryParams.append('fee_id', filters.fee_id);
+    if (filters.student_id) queryParams.append('student_id', filters.student_id);
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.payment_mode) queryParams.append('payment_mode', filters.payment_mode);
+    if (filters.start_date) queryParams.append('start_date', filters.start_date);
+    if (filters.end_date) queryParams.append('end_date', filters.end_date);
+    if (filters.amount_min) queryParams.append('amount_min', filters.amount_min);
+    if (filters.amount_max) queryParams.append('amount_max', filters.amount_max);
+    
+    const queryString = queryParams.toString();
+    const url = queryString ? `${BASE_URL}/payments/filter/?${queryString}` : `${BASE_URL}/payments/filter/`;
+    
+    return makeRequest(url, {
+      method: 'GET'
+    });
+  },
   createPayment: async (paymentData) => {
     return makeRequest(`${BASE_URL}/payments/create/`, {
       method: 'POST',

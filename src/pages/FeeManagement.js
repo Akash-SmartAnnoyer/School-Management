@@ -74,8 +74,14 @@ const FeeManagement = () => {
   const [searchText, setSearchText] = useState('');
   const [filters, setFilters] = useState({
     class: undefined,
-    status: undefined
+    status: undefined,
+    payment_mode: undefined,
+    start_date: undefined,
+    end_date: undefined,
+    amount_min: undefined,
+    amount_max: undefined
   });
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const messageApi = useMessage();
   const [editPaymentModalVisible, setEditPaymentModalVisible] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
@@ -122,11 +128,32 @@ const FeeManagement = () => {
         }
       } else if (activeTab === '2') {
         // Load payment records using real API
-        const queryParams = [];
-        if (searchText) queryParams.push(`search=${encodeURIComponent(searchText)}`);
-        if (filters.class) queryParams.push(`class=${filters.class}`);
+        let response;
         
-        const response = await api.fee.getPayments(queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
+        // Check if advanced filters are applied
+        const hasAdvancedFilters = filters.payment_mode || filters.start_date || filters.end_date || 
+                                  filters.amount_min || filters.amount_max;
+        
+        if (hasAdvancedFilters) {
+          // Use filtered payments endpoint
+          const filterParams = {};
+          if (filters.payment_mode) filterParams.payment_mode = filters.payment_mode;
+          if (filters.start_date) filterParams.start_date = filters.start_date;
+          if (filters.end_date) filterParams.end_date = filters.end_date;
+          if (filters.amount_min) filterParams.amount_min = filters.amount_min;
+          if (filters.amount_max) filterParams.amount_max = filters.amount_max;
+          if (filters.status) filterParams.status = filters.status;
+          
+          response = await api.fee.getFilteredPayments(filterParams);
+        } else {
+          // Use regular payments endpoint with basic filters
+          const queryParams = [];
+          if (searchText) queryParams.push(`search=${encodeURIComponent(searchText)}`);
+          if (filters.class) queryParams.push(`class=${filters.class}`);
+          
+          response = await api.fee.getPayments(queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
+        }
+        
         if (response.success) {
           // Transform the data to include student names and class info
           const transformedPayments = await Promise.all(response.data.results.map(async (payment) => {
@@ -179,6 +206,19 @@ const FeeManagement = () => {
       ...prev,
       [key]: value
     }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      class: undefined,
+      status: undefined,
+      payment_mode: undefined,
+      start_date: undefined,
+      end_date: undefined,
+      amount_min: undefined,
+      amount_max: undefined
+    });
+    setSearchText('');
   };
 
   const handleViewHistory = async (student) => {
@@ -1123,25 +1163,45 @@ const FeeManagement = () => {
             </Select>
           )}
           {activeTab === '2' && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleNewPayment}
-              style={{
-                background: '#7B83EB',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                height: '36px',
-                padding: '0 16px',
-                borderRadius: '6px',
-                color: 'white',
-                fontWeight: 500
-              }}
-            >
-              New Payment
-            </Button>
+            <>
+              <Button
+                type="default"
+                icon={<FilterOutlined />}
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  height: '36px',
+                  padding: '0 16px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(159, 179, 223, 0.3)',
+                  color: '#7B83EB',
+                  fontWeight: 500
+                }}
+              >
+                {showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters'}
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleNewPayment}
+                style={{
+                  background: '#7B83EB',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  height: '36px',
+                  padding: '0 16px',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontWeight: 500
+                }}
+              >
+                New Payment
+              </Button>
+            </>
           )}
           {activeTab === '3' && (
             <Button
@@ -1166,6 +1226,107 @@ const FeeManagement = () => {
           )}
         </Space>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {activeTab === '2' && showAdvancedFilters && (
+        <div style={{
+          padding: '16px 24px',
+          borderBottom: '1px solid #f0f0f0',
+          background: '#fafafa',
+          borderLeft: '3px solid #7B83EB'
+        }}>
+          <Row gutter={16} align="middle">
+            <Col span={4}>
+              <Text strong>Payment Mode:</Text>
+              <Select
+                placeholder="All modes"
+                allowClear
+                style={{ width: '100%', marginTop: 4 }}
+                value={filters.payment_mode}
+                onChange={(value) => handleFilterChange('payment_mode', value)}
+              >
+                <Option value="upi">UPI</Option>
+                <Option value="cash">Cash</Option>
+                <Option value="bank_transfer">Bank Transfer</Option>
+                <Option value="card">Card</Option>
+              </Select>
+            </Col>
+            <Col span={4}>
+              <Text strong>Status:</Text>
+              <Select
+                placeholder="All statuses"
+                allowClear
+                style={{ width: '100%', marginTop: 4 }}
+                value={filters.status}
+                onChange={(value) => handleFilterChange('status', value)}
+              >
+                <Option value="successful">Successful</Option>
+                <Option value="pending">Pending</Option>
+                <Option value="failed">Failed</Option>
+              </Select>
+            </Col>
+            <Col span={4}>
+              <Text strong>Start Date:</Text>
+              <DatePicker
+                style={{ width: '100%', marginTop: 4 }}
+                placeholder="From date"
+                value={filters.start_date ? moment(filters.start_date) : null}
+                onChange={(date) => handleFilterChange('start_date', date ? date.format('YYYY-MM-DD') : undefined)}
+              />
+            </Col>
+            <Col span={4}>
+              <Text strong>End Date:</Text>
+              <DatePicker
+                style={{ width: '100%', marginTop: 4 }}
+                placeholder="To date"
+                value={filters.end_date ? moment(filters.end_date) : null}
+                onChange={(date) => handleFilterChange('end_date', date ? date.format('YYYY-MM-DD') : undefined)}
+              />
+            </Col>
+            <Col span={4}>
+              <Text strong>Amount Range:</Text>
+              <div style={{ marginTop: 4 }}>
+                <Input
+                  placeholder="Min amount"
+                  prefix="₹"
+                  style={{ marginBottom: 4 }}
+                  value={filters.amount_min}
+                  onChange={(e) => handleFilterChange('amount_min', e.target.value)}
+                />
+                <Input
+                  placeholder="Max amount"
+                  prefix="₹"
+                  value={filters.amount_max}
+                  onChange={(e) => handleFilterChange('amount_max', e.target.value)}
+                />
+              </div>
+            </Col>
+            <Col span={4}>
+              <Space direction="vertical" style={{ width: '100%', marginTop: 24 }}>
+                <Button
+                  type="primary"
+                  onClick={loadData}
+                  style={{
+                    background: '#7B83EB',
+                    border: 'none',
+                    width: '100%'
+                  }}
+                >
+                  Apply Filters
+                </Button>
+                <Button
+                  onClick={clearAllFilters}
+                  style={{
+                    width: '100%'
+                  }}
+                >
+                  Clear All
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
+      )}
 
       <div style={{ 
         flex: 1, 
