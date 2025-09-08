@@ -245,7 +245,11 @@ const Classes = forwardRef((props, ref) => {
               background: '#fff1f0',
               color: '#ff4d4f',
               border: '1px solid #ffccc7',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              lineHeight: '1'
             }}
           >
             Not Assigned
