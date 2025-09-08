@@ -120,8 +120,18 @@ const SubjectManagement = () => {
   const loadSubjects = async () => {
     try {
       setLoading(true);
-      const response = await api.subject.getAll();
-      setSubjects(response.data.data);
+      const response = await api.subject.getSubjects();
+      console.log('Subjects API Response:', response);
+      if (response.success) {
+        const subjectsData = response.data.results || response.data;
+        console.log('Subjects Data:', subjectsData);
+        console.log('Subjects Data Type:', typeof subjectsData);
+        console.log('Subjects Data Length:', subjectsData?.length);
+        setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+      } else {
+        console.log('API Response not successful:', response);
+        messageApi.error('Failed to load subjects');
+      }
     } catch (error) {
       messageApi.error('Failed to load subjects');
       console.error('Error loading subjects:', error);
@@ -168,11 +178,11 @@ const SubjectManagement = () => {
       };
 
       if (editingSubject) {
-        await api.subject.update(editingSubject.id, subjectData);
+        await api.subject.updateSubject(editingSubject.id, subjectData);
         messageApi.success('Subject updated successfully');
       } else {
         subjectData.createdAt = new Date().toISOString();
-        await api.subject.create(subjectData);
+        await api.subject.createSubject(subjectData);
         messageApi.success('Subject added successfully');
       }
       loadSubjects();

@@ -33,12 +33,16 @@ const { Title } = Typography;
 const { Option } = Select;
 const { Search } = AntInput;
 
-const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageChange }) => {
+const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageChange, onRefresh }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingSubject, setEditingSubject] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const messageApi = useMessage();
+
+  // Debug logging
+  console.log('SubManagement props:', { subjects, loading, currentPage, totalSubjects });
 
   const handleAdd = () => {
     setEditingSubject(null);
@@ -56,7 +60,8 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
     try {
       await api.subject.deleteSubject(id);
       messageApi.success('Subject deleted successfully');
-      onPageChange(currentPage);
+      // Refresh the data by calling onRefresh
+      await onRefresh();
     } catch (error) {
       messageApi.error('Failed to delete subject');
       console.error('Error deleting subject:', error);
@@ -68,7 +73,8 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
       await Promise.all(selectedRowKeys.map(id => api.subject.deleteSubject(id)));
       messageApi.success('Selected subjects deleted successfully');
       setSelectedRowKeys([]);
-      onPageChange(currentPage);
+      // Refresh the data by calling onRefresh
+      await onRefresh();
     } catch (error) {
       messageApi.error('Failed to delete selected subjects');
       console.error('Error deleting subjects:', error);
@@ -77,6 +83,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
 
   const handleSubmit = async (values) => {
     try {
+      setSubmitLoading(true);
       if (editingSubject) {
         await api.subject.updateSubject(editingSubject.id, values);
         messageApi.success('Subject updated successfully');
@@ -84,11 +91,16 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
         await api.subject.createSubject(values);
         messageApi.success('Subject added successfully');
       }
+      form.resetFields();
       setIsModalVisible(false);
-      onPageChange(currentPage);
+      setEditingSubject(null);
+      // Refresh the data by calling onRefresh
+      await onRefresh();
     } catch (error) {
       messageApi.error(editingSubject ? 'Failed to update subject' : 'Failed to add subject');
       console.error('Error saving subject:', error);
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -224,7 +236,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
           rowSelection={rowSelection}
           columns={columns}
           dataSource={subjects}
-          rowKey="id"
+          rowKey={(record) => record.id || record.code || Math.random()}
           loading={loading}
           className="academics-table"
           scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
@@ -433,10 +445,18 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
           </Space>
         }
         open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          if (!submitLoading) {
+            setIsModalVisible(false);
+            setEditingSubject(null);
+            form.resetFields();
+          }
+        }}
         footer={null}
         width={600}
         className="academics-modal"
+        maskClosable={!submitLoading}
+        closable={!submitLoading}
       >
         <Form
           form={form}
@@ -448,7 +468,7 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
             label="Subject Code"
             rules={[{ required: true, message: 'Please enter subject code' }]}
           >
-            <Input />
+            <Input disabled={submitLoading} />
           </Form.Item>
 
           <Form.Item
@@ -456,22 +476,34 @@ const SubManagement = ({ subjects, loading, currentPage, totalSubjects, onPageCh
             label="Subject Name"
             rules={[{ required: true, message: 'Please enter subject name' }]}
           >
-            <Input />
+            <Input disabled={submitLoading} />
           </Form.Item>
 
           <Form.Item
             name="description"
             label="Description"
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea rows={4} disabled={submitLoading} />
           </Form.Item>
 
           <Form.Item>
             <Space>
-              <Button onClick={() => setIsModalVisible(false)}>
+              <Button 
+                onClick={() => {
+                  setIsModalVisible(false);
+                  setEditingSubject(null);
+                  form.resetFields();
+                }}
+                disabled={submitLoading}
+              >
                 Cancel
               </Button>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={submitLoading}
+                disabled={submitLoading}
+              >
                 {editingSubject ? 'Update' : 'Add'}
               </Button>
             </Space>

@@ -594,6 +594,10 @@ const Academics = () => {
     }
   };
 
+  const refreshSubjects = async () => {
+    await loadSubjects();
+  };
+
   const loadMarks = async (examId) => {
     try {
       setLoading(true);
@@ -648,7 +652,14 @@ const Academics = () => {
         }}
       >
         <Tabs.TabPane tab="Subjects" key="subjects">
-          <SubManagement />
+          <SubManagement 
+            subjects={subjects}
+            loading={loading}
+            currentPage={currentPage}
+            totalSubjects={totalSubjects}
+            onPageChange={setCurrentPage}
+            onRefresh={refreshSubjects}
+          />
         </Tabs.TabPane>
         <Tabs.TabPane tab="Exams" key="exams">
           <ExamManagement />

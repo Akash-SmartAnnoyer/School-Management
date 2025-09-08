@@ -443,6 +443,8 @@ export const subjectAPI = {
       headers: await getHeaders(),
       credentials: 'include'
     });
+    console.log('Subjects API call:', `${BASE_URL}/subjects/${queryParams}`);
+    console.log('Subjects API response status:', response.status);
     return handleResponse(response);
   },
 
