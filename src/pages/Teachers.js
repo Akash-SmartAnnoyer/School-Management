@@ -200,10 +200,42 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 
   const handleSubmit = async () => {
     try {
+      console.log('Form instance before validation:', form);
+      console.log('Form fields before validation:', form.getFieldsValue());
+      
       const values = await form.validateFields();
+      console.log('Form values from TeacherForm:', values); // Debug log
+      
+      // Check if values are properly extracted
+      if (!values || Object.keys(values).length === 0) {
+        console.error('No values extracted from form');
+        message.error('Please fill in all required fields');
+        return;
+      }
+      
       onSubmit(values, initialValues, selectedFile);
     } catch (error) {
       console.error('Validation failed:', error);
+      console.error('Validation errors:', error.errorFields); // Debug log
+      
+      // Try to get form values even if validation fails
+      const formValues = form.getFieldsValue();
+      console.log('Form values after validation failure:', formValues);
+      
+      // Check if we have some values to work with
+      if (formValues && Object.keys(formValues).length > 0) {
+        console.log('Using form values despite validation failure');
+        onSubmit(formValues, initialValues, selectedFile);
+        return;
+      }
+      
+      // Show specific validation errors
+      if (error.errorFields && error.errorFields.length > 0) {
+        const errorMessages = error.errorFields.map(field => field.errors.join(', ')).join('; ');
+        message.error(`Validation failed: ${errorMessages}`);
+      } else {
+        message.error('Please fill in all required fields');
+      }
     }
   };
 
@@ -244,6 +276,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
             form={form}
             layout="vertical"
             className="teacher-form"
+            preserve={false}
           >
             <Row gutter={24}>
               <Col span={16}>
@@ -270,7 +303,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                       <Form.Item
                         name="joining_date"
                         label="Joining Date"
-                        rules={[{ required: true, message: 'Please select joining date!' }]}
+                        rules={[{ required: !initialValues, message: 'Please select joining date!' }]}
                       >
                         <DatePicker style={{ width: '100%' }} />
                       </Form.Item>
@@ -439,7 +472,7 @@ const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                   <Form.Item
                     name="dob"
                     label="DOB"
-                    rules={[{ required: true, message: 'Please select date of birth!' }]}
+                    rules={[{ required: !initialValues, message: 'Please select date of birth!' }]}
                   >
                     <DatePicker style={{ width: '100%' }} />
                   </Form.Item>
@@ -780,10 +813,10 @@ const Teachers = forwardRef((props, ref) => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (values) => {
     try {
       setActionLoading(true);
-      const values = await form.validateFields();
+      console.log('Received values in handleSubmit:', values); // Debug log
       
       if (editingTeacher) {
         // Initialize update data with only changed fields
@@ -805,8 +838,14 @@ const Teachers = forwardRef((props, ref) => {
         if (values.gender !== editingTeacher.gender) {
           updateData.gender = values.gender;
         }
-        if (values.dob?.format('YYYY-MM-DD') !== editingTeacher.dob?.format('YYYY-MM-DD')) {
-          updateData.dob = values.dob?.format('YYYY-MM-DD');
+        if (values.dob && editingTeacher.dob) {
+          if (values.dob.format('YYYY-MM-DD') !== editingTeacher.dob.format('YYYY-MM-DD')) {
+            updateData.dob = values.dob.format('YYYY-MM-DD');
+          }
+        } else if (values.dob && !editingTeacher.dob) {
+          updateData.dob = values.dob.format('YYYY-MM-DD');
+        } else if (!values.dob && editingTeacher.dob) {
+          updateData.dob = null;
         }
         
         // Compare and add changed profile fields
@@ -829,8 +868,14 @@ const Teachers = forwardRef((props, ref) => {
         if (values.employee_id !== editingTeacher.employee_id) {
           teacherProfileChanges.employee_id = values.employee_id;
         }
-        if (values.joining_date?.format('YYYY-MM-DD') !== editingTeacher.joining_date?.format('YYYY-MM-DD')) {
-          teacherProfileChanges.joining_date = values.joining_date?.format('YYYY-MM-DD');
+        if (values.joining_date && editingTeacher.joining_date) {
+          if (values.joining_date.format('YYYY-MM-DD') !== editingTeacher.joining_date.format('YYYY-MM-DD')) {
+            teacherProfileChanges.joining_date = values.joining_date.format('YYYY-MM-DD');
+          }
+        } else if (values.joining_date && !editingTeacher.joining_date) {
+          teacherProfileChanges.joining_date = values.joining_date.format('YYYY-MM-DD');
+        } else if (!values.joining_date && editingTeacher.joining_date) {
+          teacherProfileChanges.joining_date = null;
         }
         if (values.qualification !== editingTeacher.qualification) {
           teacherProfileChanges.qualification = values.qualification;
@@ -883,13 +928,17 @@ const Teachers = forwardRef((props, ref) => {
         }
       } else {
         // Format the data for create
+        console.log('Creating new teacher with values:', values);
+        console.log('Values type:', typeof values);
+        console.log('Values keys:', Object.keys(values || {}));
+        
         const createData = {
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
           phone: values.phone,
           gender: values.gender,
-          dob: values.dob.format('YYYY-MM-DD'),
+          dob: values.dob ? values.dob.format('YYYY-MM-DD') : null,
           role: 'teacher',
           password: values.password,
           confirm_password: values.confirm_password,
@@ -900,7 +949,7 @@ const Teachers = forwardRef((props, ref) => {
           },
           teacher_profile: {
             employee_id: values.employee_id,
-            joining_date: values.joining_date.format('YYYY-MM-DD'),
+            joining_date: values.joining_date ? values.joining_date.format('YYYY-MM-DD') : null,
             qualification: values.qualification,
             specialization: values.specialization,
             status: values.status,
