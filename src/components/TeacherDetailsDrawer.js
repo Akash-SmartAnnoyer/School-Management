@@ -119,6 +119,7 @@ const TeacherDetailsDrawer = ({ visible, onClose, teacher }) => {
       onClose={onClose}
       visible={visible}
       width={720}
+      bodyStyle={{ paddingBottom: '40px' }}
     >
       {contextHolder}
       {teacher && (
