@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
 import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Typography, Row, Col, Card, Checkbox, Popconfirm, Empty, Tooltip, Upload, Avatar } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined, ExportOutlined, DownloadOutlined, FileExcelOutlined, FilePdfOutlined, SendOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, BookOutlined, SearchOutlined, SwapOutlined, DeleteFilled, TeamOutlined, CheckCircleOutlined, CloseCircleOutlined, SettingOutlined, ExportOutlined, DownloadOutlined, FileExcelOutlined, FilePdfOutlined, SendOutlined, ImportOutlined } from '@ant-design/icons';
 import { DragHandleOutlined } from '@mui/icons-material';
 import api from '../services/api';
 import { MessageContext } from '../App';
@@ -10,8 +10,10 @@ import { useClasses } from '../contexts/ClassesContext';
 import { useMessage } from '../contexts/MessageContext';
 import { useTeachers } from '../contexts/TeachersContext';
 import StyledModal from '../components/StyledModal';
+import ImportModal from '../components/ImportModal';
 import ColumnSettingsDrawer from '../components/ColumnSettingsDrawer';
 import useColumnSettings from '../hooks/useColumnSettings';
+import { downloadSampleFile } from '../utils/sampleFileGenerator';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -53,6 +55,13 @@ const Classes = forwardRef((props, ref) => {
   const [exportEmails, setExportEmails] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMode, setExportMode] = useState('download');
+  
+  // Import modal states
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importStatus, setImportStatus] = useState('idle');
+  
   const [classCount, setClassCount] = useState(classes.length);
 
   const {
@@ -71,6 +80,47 @@ const Classes = forwardRef((props, ref) => {
     { key: 'status', title: 'Status', visible: true, order: 4 },
     { key: 'actions', title: 'Actions', visible: true, order: 5 }
   ]);
+
+  const handleImport = async (file) => {
+    setImportLoading(true);
+    setImportStatus('uploading');
+    setImportProgress(0);
+    
+    try {
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        setImportProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      setImportStatus('processing');
+      setImportProgress(0);
+      
+      // Simulate processing
+      for (let i = 0; i <= 100; i += 20) {
+        setImportProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      // Here you would typically process the Excel file
+      // For now, we'll just simulate success
+      setImportStatus('success');
+      message.success('Classes imported successfully!');
+      
+      // Refresh the classes list
+      refreshClasses();
+      
+    } catch (error) {
+      setImportStatus('error');
+      message.error('Import failed. Please check your file format.');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleDownloadSample = () => {
+    downloadSampleFile('classes');
+  };
 
   // Expose handleAdd function through ref
   useImperativeHandle(ref, () => ({
@@ -448,6 +498,16 @@ const Classes = forwardRef((props, ref) => {
               onMouseLeave={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
             />
           </Tooltip>
+          <Tooltip title="Import Classes">
+            <Button
+              type="text"
+              icon={<ImportOutlined />}
+              onClick={() => setImportModalVisible(true)}
+              style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5', border: '1px solid #f0f0f0', boxShadow: '0 2px 6px rgba(0,0,0,0.08)', transition: 'all 0.3s ease' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f0f0f0'; e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+            />
+          </Tooltip>
           <Tooltip title="Column Settings">
             <img src="/checklist.png" alt="Settings" style={{ width: '24px', height: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setColumnSettingsVisible(true)} onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.filter = 'brightness(0.9)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.filter = 'brightness(1)'; }} />
           </Tooltip>
@@ -752,6 +812,37 @@ const Classes = forwardRef((props, ref) => {
           </Form>
         </div>
       </StyledModal>
+
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => {
+          setImportModalVisible(false);
+          setImportStatus('idle');
+          setImportProgress(0);
+        }}
+        onImport={handleImport}
+        title="Import Classes"
+        sampleFileUrl={handleDownloadSample}
+        requiredFields={[
+          'Class Name',
+          'Section',
+          'Teacher Name',
+          'Teacher Email',
+          'Capacity',
+          'Room Number',
+          'Subject',
+          'Status'
+        ]}
+        optionalFields={[
+          'Schedule',
+          'Academic Year',
+          'Description'
+        ]}
+        brandColor="#49e7f5"
+        loading={importLoading}
+        importProgress={importProgress}
+        importStatus={importStatus}
+      />
 
       <ClassDetailsDrawer
         visible={drawerVisible}

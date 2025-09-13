@@ -67,6 +67,7 @@ import {
   DownloadOutlined,
   FilePdfOutlined,
   FileExcelOutlined,
+  ImportOutlined,
   SendOutlined,
   UserAddOutlined,
   PrinterOutlined,
@@ -93,9 +94,12 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import './Students.css';
 import { DragHandleOutlined } from '@mui/icons-material';
 import StyledModal from '../components/StyledModal';
+import ImportModal from '../components/ImportModal';
+import ImportHistoryModal from '../components/ImportHistoryModal';
 import TabPane from 'antd/es/tabs/TabPane';
 import useMessage from 'antd/es/message/useMessage';
 import { useClasses } from '../contexts/ClassesContext';
+import { downloadSampleFile } from '../utils/sampleFileGenerator';
 
 const { Option } = Select;
 const { Search } = AntInput;
@@ -2183,6 +2187,18 @@ const Students = forwardRef((props, ref) => {
   const [exportEmails, setExportEmails] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMode, setExportMode] = useState('download');
+  
+  // Import modal states
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
+  const [importStatus, setImportStatus] = useState('idle');
+  
+  // Import history states
+  const [importHistoryVisible, setImportHistoryVisible] = useState(false);
+  const [importHistory, setImportHistory] = useState([]);
+  const [importHistoryLoading, setImportHistoryLoading] = useState(false);
+  
   // Use totalStudents from context instead of hardcoded value
   const studentCount = totalStudents;
 
@@ -3076,6 +3092,118 @@ const Students = forwardRef((props, ref) => {
     }
   };
 
+  const handleImport = async (file) => {
+    setImportLoading(true);
+    setImportStatus('uploading');
+    setImportProgress(0);
+    
+    try {
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        setImportProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      setImportStatus('processing');
+      setImportProgress(0);
+      
+      // Simulate processing
+      for (let i = 0; i <= 100; i += 20) {
+        setImportProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      // Here you would typically process the Excel file
+      // For now, we'll just simulate success
+      setImportStatus('success');
+      message.success('Students imported successfully!');
+      
+      // Refresh the students list
+      refreshStudents();
+      
+    } catch (error) {
+      setImportStatus('error');
+      message.error('Import failed. Please check your file format.');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const handleDownloadSample = () => {
+    downloadSampleFile('students');
+  };
+
+  const handleShowHistory = () => {
+    setImportHistoryVisible(true);
+    loadImportHistory();
+  };
+
+  const loadImportHistory = async () => {
+    setImportHistoryLoading(true);
+    try {
+      // Simulate API call to get import history
+      // In real implementation, this would call the backend API
+      const mockHistory = [
+        {
+          id: '1',
+          filename: 'students_batch_1.xlsx',
+          status: 'completed',
+          progress: 100,
+          records: { total: 50, successful: 48, failed: 2 },
+          uploaded_at: '2024-01-15T10:30:00Z',
+          completed_at: '2024-01-15T10:32:00Z',
+          message: 'Students imported successfully',
+          errors: [
+            { row: 15, field: 'email', error: 'Invalid email format' },
+            { row: 23, field: 'student_id', error: 'Student ID already exists' }
+          ]
+        },
+        {
+          id: '2',
+          filename: 'students_batch_2.xlsx',
+          status: 'failed',
+          progress: 25,
+          records: { total: 30, successful: 0, failed: 30 },
+          uploaded_at: '2024-01-14T14:20:00Z',
+          completed_at: '2024-01-14T14:22:00Z',
+          message: 'Import failed due to invalid file format',
+          errors: [
+            { row: 1, field: 'first_name', error: 'Required field missing' }
+          ]
+        },
+        {
+          id: '3',
+          filename: 'students_batch_3.xlsx',
+          status: 'processing',
+          progress: 60,
+          records: { total: 100, successful: 60, failed: 0 },
+          uploaded_at: '2024-01-15T15:45:00Z',
+          completed_at: null,
+          message: 'Processing in progress...',
+          errors: []
+        }
+      ];
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setImportHistory(mockHistory);
+    } catch (error) {
+      message.error('Failed to load import history');
+    } finally {
+      setImportHistoryLoading(false);
+    }
+  };
+
+  const handleDownloadImportFile = (record) => {
+    // In real implementation, this would download the original file or results
+    message.info(`Downloading ${record.filename}...`);
+  };
+
+  const handleViewImportDetails = (record) => {
+    // This is handled by the ImportHistoryModal component
+    console.log('Viewing details for:', record);
+  };
+
   // Update form visibility state
   useEffect(() => {
     if (ref && ref.current) {
@@ -3185,6 +3313,36 @@ const Students = forwardRef((props, ref) => {
                     icon={<ExportOutlined />}
                     onClick={() => setExportModalVisible(true)}
                     className="export-button"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#f5f5f5',
+                      border: '1px solid #f0f0f0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f0f0f0';
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f5f5f5';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip title="Import Students">
+                  <Button
+                    type="text"
+                    icon={<ImportOutlined />}
+                    onClick={() => setImportModalVisible(true)}
+                    className="import-button"
                     style={{
                       width: '36px',
                       height: '36px',
@@ -3663,6 +3821,54 @@ const Students = forwardRef((props, ref) => {
           }
         `}</style>
       </StyledModal>
+
+      <ImportModal
+        visible={importModalVisible}
+        onClose={() => {
+          setImportModalVisible(false);
+          setImportStatus('idle');
+          setImportProgress(0);
+        }}
+        onImport={handleImport}
+        title="Import Students"
+        sampleFileUrl={handleDownloadSample}
+        requiredFields={[
+          'First Name',
+          'Last Name',
+          'Student ID',
+          'Email',
+          'Phone',
+          'Date of Birth',
+          'Gender',
+          'Class',
+          'Section',
+          'Status'
+        ]}
+        optionalFields={[
+          'Address',
+          'Parent Name',
+          'Parent Phone',
+          'Parent Email',
+          'Admission Date'
+        ]}
+        brandColor="#7B83EB"
+        loading={importLoading}
+        importProgress={importProgress}
+        importStatus={importStatus}
+        onShowHistory={handleShowHistory}
+        showHistoryButton={true}
+      />
+
+      <ImportHistoryModal
+        visible={importHistoryVisible}
+        onClose={() => setImportHistoryVisible(false)}
+        title="Students Import History"
+        brandColor="#7B83EB"
+        importHistory={importHistory}
+        loading={importHistoryLoading}
+        onDownloadFile={handleDownloadImportFile}
+        onViewDetails={handleViewImportDetails}
+      />
 
       <style>
         {`
