@@ -49,6 +49,8 @@ import {
   AutoComplete,
   Mentions,
   TreeSelect,
+  Spin,
+  Dropdown,
 } from 'antd';
 import {
   PlusOutlined,
@@ -106,6 +108,10 @@ import {
   DownloadOutlined,
   SendOutlined,
   UserAddOutlined,
+  HeartOutlined,
+  MoreOutlined,
+  LoadingOutlined,
+  PrinterOutlined,
 } from '@ant-design/icons';
 import { useTeachers } from '../contexts/TeachersContext';
 import { useMessage } from '../contexts/MessageContext';
@@ -126,6 +132,804 @@ const { Panel } = Collapse;
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Dragger } = Upload;
+
+const TeacherView = ({ visible, onCancel, teacher, onTeacherUpdate }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  const { refreshTeachers } = useTeachers();
+  const [editingSection, setEditingSection] = useState(null);
+  const [editedValues, setEditedValues] = useState({});
+  const [teacherData, setTeacherData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    if (visible && teacher) {
+      loadTeacherDetails();
+    }
+  }, [visible, teacher]);
+
+  const loadTeacherDetails = async () => {
+    if (!teacher?.user_id) return;
+    
+    try {
+      setLoading(true);
+      const response = await api.teacher.getTeacher(teacher.user_id);
+      if (response.data) {
+        setTeacherData(response.data);
+      } else {
+        messageApi.error('Failed to load teacher details');
+      }
+    } catch (error) {
+      messageApi.error('Failed to load teacher details');
+      console.error('Error loading teacher details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!visible || !teacher) return null;
+
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setEditedValues({ 
+      ...teacherData,
+      profile: { ...teacherData?.profile },
+      teacher_profile: { ...teacherData?.teacher_profile }
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSection(null);
+    setEditedValues({});
+  };
+
+  const handleSaveEdit = async (section) => {
+    try {
+      setIsSaving(true);
+      
+      // Prepare the update data based on the section being edited
+      const updateData = {};
+      
+      if (section === 'contact') {
+        updateData.email = editedValues.email;
+        updateData.phone = editedValues.phone;
+        updateData.profile = {
+          address: editedValues.profile?.address
+        };
+      } else if (section === 'professional') {
+        updateData.teacher_profile = {
+          employee_id: editedValues.teacher_profile?.employee_id,
+          subject: editedValues.teacher_profile?.subject,
+          qualification: editedValues.teacher_profile?.qualification,
+          specialization: editedValues.teacher_profile?.specialization,
+          years_of_experience: editedValues.teacher_profile?.years_of_experience,
+          status: editedValues.teacher_profile?.status
+        };
+      } else if (section === 'personal') {
+        updateData.gender = editedValues.gender;
+        updateData.dob = editedValues.dob?.format('YYYY-MM-DD');
+        updateData.profile = {
+          blood_group: editedValues.profile?.blood_group,
+          nationality: editedValues.profile?.nationality
+        };
+      }
+      
+      // Create FormData for the update
+      const formData = new FormData();
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (key === 'profile' || key === 'teacher_profile') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      
+      await api.teacher.updateTeacher(teacherData.user_id, formData);
+      messageApi.success('Teacher information updated successfully');
+      
+      // Refresh the teacher data to show updated information
+      await loadTeacherDetails();
+      await refreshTeachers();
+      setEditingSection(null);
+      setEditedValues({});
+    } catch (error) {
+      console.error('Error updating teacher:', error);
+      messageApi.error('Failed to update teacher information');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFieldChange = (field, value) => {
+    setEditedValues(prev => {
+      if (field.includes('.')) {
+        const [parent, child] = field.split('.');
+        return {
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: value
+          }
+        };
+      } else {
+        return {
+          ...prev,
+          [field]: value
+        };
+      }
+    });
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await api.teacher.deleteTeacher(teacher.user_id);
+      messageApi.success('Teacher deleted successfully');
+      refreshTeachers();
+      onCancel();
+    } catch (error) {
+      console.error('Error deleting teacher:', error);
+      messageApi.error('Failed to delete teacher');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const renderDetailItem = (label, value, icon = null, field = null, section = null) => (
+    <div className="detail-item" style={{ 
+      display: 'flex', 
+      alignItems: 'flex-start', 
+      gap: '12px',
+      marginBottom: '8px'
+    }}>
+      {icon && (
+        <div className="detail-icon" style={{ 
+          color: '#666',
+          fontSize: '16px',
+          width: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '2px'
+        }}>
+          {icon}
+        </div>
+      )}
+      <div className="detail-content" style={{ flex: 1 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'flex-start', 
+          gap: '8px',
+          flexWrap: 'wrap'
+        }}>
+          <div className="detail-label" style={{ 
+            color: '#1f1f1f', 
+            fontSize: '14px',
+            minWidth: '120px',
+            fontWeight: 600
+          }}>
+            {label}
+          </div>
+          {editingSection === section && field ? (
+            <Input
+              value={field.includes('.') ? 
+                (field.split('.')[0] === 'profile' ? editedValues.profile?.[field.split('.')[1]] : 
+                 field.split('.')[0] === 'teacher_profile' ? editedValues.teacher_profile?.[field.split('.')[1]] : 
+                 editedValues[field]) : editedValues[field] || ''}
+              onChange={(e) => handleFieldChange(field, e.target.value)}
+              style={{ width: '200px' }}
+            />
+          ) : (
+            <div className="detail-value" style={{ 
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#666'
+            }}>
+              {value || 'N/A'}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const items = [
+    {
+      key: 'edit',
+      label: 'Edit Teacher',
+      icon: <EditOutlined />,
+      onClick: () => {
+        setIsEditing(true);
+        // Navigate to edit or open edit modal
+      }
+    },
+    {
+      key: 'email',
+      label: 'Send Email',
+      icon: <MailOutlined />,
+      onClick: () => {/* Add email handler */}
+    },
+    {
+      key: 'download',
+      label: 'Download',
+      icon: <DownloadOutlined />,
+      onClick: () => {/* Add download handler */}
+    },
+    {
+      key: 'print',
+      label: 'Print',
+      icon: <PrinterOutlined />,
+      onClick: () => {/* Add print handler */}
+    },
+    {
+      key: 'delete',
+      label: 'Delete',
+      icon: isDeleting ? <LoadingOutlined /> : <DeleteOutlined />,
+      danger: true,
+      disabled: isDeleting,
+      onClick: () => {
+        Modal.confirm({
+          title: 'Are you sure you want to delete this teacher?',
+          content: 'This action cannot be undone.',
+          okText: 'Yes, Delete',
+          okType: 'danger',
+          cancelText: 'No, Cancel',
+          onOk: handleDelete,
+          okButtonProps: { loading: isDeleting }
+        });
+      }
+    }
+  ];
+
+  return (
+    <>
+      {contextHolder}
+      <Spin spinning={isEditing || isDeleting || isSaving} tip="Loading..." size="small">
+        <div style={{ 
+          width: '100%', 
+          textAlign: 'left',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            height: '1.25in',
+            backgroundColor: '#f5f5f5',
+            padding: '12px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
+            textAlign: 'left',
+            position: 'relative',
+            flexShrink: 0
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '16px',
+              width: '100%',
+              textAlign: 'left'
+            }}>
+              <Button 
+                type="text" 
+                icon={<ArrowLeftOutlined />} 
+                onClick={onCancel}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              />
+              
+              <Avatar 
+                size={40}
+                src={teacherData?.profile?.photo}
+                icon={!teacherData?.profile?.photo && (teacherData?.gender === 'M' ? 
+                  <img src="/teacher-boy.png" alt="Male Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                  <img src="/teacher-girl.png" alt="Female Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+                style={{ cursor: 'pointer' }}
+                onClick={() => {/* Add image preview handler */}}
+              />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.first_name || ''}
+                      onChange={(e) => handleFieldChange('first_name', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                    <Input
+                      value={editedValues.last_name || ''}
+                      onChange={(e) => handleFieldChange('last_name', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                  </Space>
+                ) : (
+                  <Typography.Title level={3} style={{ margin: 0 }}>
+                    <span style={{ color: '#1f1f1f' }}>{teacherData?.first_name || teacher?.first_name} </span>
+                    <span style={{ color: '#f54278' }}>{teacherData?.last_name || teacher?.last_name}</span>
+                  </Typography.Title>
+                )}
+                <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
+                  #{teacherData?.teacher_profile?.employee_id || teacher?.employee_id}
+                </Typography.Text>
+              </div>
+
+              <div style={{ 
+                position: 'absolute', 
+                right: '24px', 
+                top: '12px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '16px' 
+              }}>
+                <Dropdown
+                  menu={{ items }}
+                  trigger={['click']}
+                  placement="bottomRight"
+                >
+                  <Button
+                    type="text"
+                    icon={<MoreOutlined />}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'white',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                </Dropdown>
+              </div>
+            </div>
+
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              marginLeft: '0',
+              textAlign: 'left',
+              width: '100%',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Avatar 
+                  size={32}
+                  icon={<IdcardOutlined />}
+                  style={{ backgroundColor: '#f0f0f0' }}
+                />
+                <Typography.Text strong style={{ fontSize: '14px' }}>
+                  Professional Details
+                </Typography.Text>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.employee_id || ''}
+                      onChange={(e) => handleFieldChange('employee_id', e.target.value)}
+                      style={{ width: '150px' }}
+                    />
+                    <DatePicker
+                      value={editedValues.joining_date ? moment(editedValues.joining_date) : null}
+                      onChange={(date) => handleFieldChange('joining_date', date)}
+                      style={{ width: '150px' }}
+                    />
+                  </Space>
+                ) : (
+                  <>
+                    <Typography.Text strong style={{ fontSize: '14px', marginLeft: '8px' }}>
+                      {teacherData?.teacher_profile?.employee_id || teacher?.employee_id}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: '12px', marginLeft: '4px' }}>
+                      {teacherData?.teacher_profile?.joining_date ? moment(teacherData.teacher_profile.joining_date).format('DD MMM, YYYY') : 'N/A'}
+                    </Typography.Text>
+                  </>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginRight: '24px' }}>
+                {editingSection === 'basic' ? (
+                  <Space>
+                    <Input
+                      value={editedValues.email || ''}
+                      onChange={(e) => handleFieldChange('email', e.target.value)}
+                      prefix={<MailOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                    <Input
+                      value={editedValues.phone || ''}
+                      onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      prefix={<PhoneOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                    <Input
+                      value={editedValues.address || ''}
+                      onChange={(e) => handleFieldChange('address', e.target.value)}
+                      prefix={<EnvironmentOutlined style={{ color: '#666' }} />}
+                      style={{ width: '200px' }}
+                    />
+                  </Space>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MailOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {teacherData?.email || teacher?.email || 'No email'}
+                      </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <PhoneOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {teacherData?.phone || teacher?.phone || 'No phone'}
+                      </Typography.Text>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <EnvironmentOutlined style={{ color: '#666' }} />
+                      <Typography.Text style={{ fontSize: '14px' }}>
+                        {teacherData?.profile?.address || teacher?.address || 'No address'}
+                      </Typography.Text>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ 
+            padding: '16px 24px',
+            borderBottom: '1px solid #f0f0f0',
+            flex: 1,
+            overflow: 'auto'
+          }}>
+            <Tabs
+              defaultActiveKey="details"
+              items={[
+                {
+                  key: 'details',
+                  label: <span style={{ fontWeight: 'bold' }}>Details</span>,
+                  children: (
+                    <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
+                      <div style={{ flex: 1 }}>
+                        <Card 
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Contact Information</span>
+                              {editingSection === 'contact' ? (
+                                <Space>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('contact')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('contact')}
+                                />
+                              )}
+                            </div>
+                          }
+                          bordered={false} 
+                          style={{ 
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={24}>
+                              {renderDetailItem('Email', teacherData?.email || teacher?.email, <MailOutlined />, 'email', 'contact')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Phone', teacherData?.phone || teacher?.phone, <PhoneOutlined />, 'phone', 'contact')}
+                            </Col>
+                            <Col span={24}>
+                              {renderDetailItem('Address', teacherData?.profile?.address || teacher?.address, <EnvironmentOutlined />, 'profile.address', 'contact')}
+                            </Col>
+                          </Row>
+                        </Card>
+
+                        <Card 
+                          title={
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>Professional Information</span>
+                              {editingSection === 'professional' ? (
+                                <Space>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('professional')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('professional')}
+                                />
+                              )}
+                            </div>
+                          }
+                          bordered={false} 
+                          style={{ 
+                            backgroundColor: '#E6EBF0',
+                            borderRadius: '8px',
+                            transition: 'background-color 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#E6EBF0';
+                          }}
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={12}>
+                              {renderDetailItem('Employee ID', teacherData?.teacher_profile?.employee_id || teacher?.employee_id, <IdcardOutlined />, 'teacher_profile.employee_id', 'professional')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Subject', teacherData?.teacher_profile?.subject || teacher?.subject, <BookOutlined />, 'teacher_profile.subject', 'professional')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Qualification', teacherData?.teacher_profile?.qualification || teacher?.qualification, <SafetyCertificateOutlined />, 'teacher_profile.qualification', 'professional')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Specialization', teacherData?.teacher_profile?.specialization || teacher?.specialization, <BookOutlined />, 'teacher_profile.specialization', 'professional')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Experience', `${teacherData?.teacher_profile?.years_of_experience || teacher?.years_of_experience || '0'} years`, <TrophyOutlined />, 'teacher_profile.years_of_experience', 'professional')}
+                            </Col>
+                            <Col span={12}>
+                              {renderDetailItem('Status', teacherData?.teacher_profile?.status || teacher?.status, <CheckCircleOutlined />, 'teacher_profile.status', 'professional')}
+                            </Col>
+                          </Row>
+                        </Card>
+                      </div>
+
+                      <div style={{ width: '300px' }}>
+                        <Card bordered={false}>
+                          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                            <Avatar 
+                              size={120}
+                              src={teacherData?.profile?.photo}
+                              icon={!teacherData?.profile?.photo && (teacherData?.gender === 'M' ? 
+                                <img src="/teacher-boy.png" alt="Male Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 
+                                <img src="/teacher-girl.png" alt="Female Teacher" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              )}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => {/* Add image preview handler */}}
+                            />
+                          </div>
+                          <div style={{ textAlign: 'center' }}>
+                            <Typography.Title level={4} style={{ margin: '8px 0' }}>
+                              {teacherData?.first_name || teacher?.first_name} {teacherData?.last_name || teacher?.last_name}
+                            </Typography.Title>
+                            <Typography.Text type="secondary">
+                              #{teacherData?.teacher_profile?.employee_id || teacher?.employee_id}
+                            </Typography.Text>
+                          </div>
+                          <Divider />
+                          <div style={{ marginTop: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                              <Typography.Title level={5} style={{ margin: 0 }}>Personal Information</Typography.Title>
+                              {editingSection === 'personal' ? (
+                                <Space>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('personal')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                </Space>
+                              ) : (
+                                <Button 
+                                  type="text" 
+                                  icon={<EditOutlined />} 
+                                  onClick={() => handleEditSection('personal')}
+                                />
+                              )}
+                            </div>
+                            {editingSection === 'personal' ? (
+                              <>
+                                <Form.Item label="Gender" style={{ marginBottom: '8px' }}>
+                                  <Select
+                                    value={editedValues.gender}
+                                    onChange={(value) => handleFieldChange('gender', value)}
+                                    style={{ width: '100%' }}
+                                  >
+                                    <Select.Option value="M">Male</Select.Option>
+                                    <Select.Option value="F">Female</Select.Option>
+                                    <Select.Option value="O">Other</Select.Option>
+                                  </Select>
+                                </Form.Item>
+                                <Form.Item label="Date of Birth" style={{ marginBottom: '8px' }}>
+                                  <DatePicker
+                                    value={editedValues.dob ? moment(editedValues.dob) : null}
+                                    onChange={(date) => handleFieldChange('dob', date)}
+                                    style={{ width: '100%' }}
+                                  />
+                                </Form.Item>
+                                <Form.Item label="Blood Group" style={{ marginBottom: '8px' }}>
+                                  <Select
+                                    value={editedValues.profile?.blood_group}
+                                    onChange={(value) => handleFieldChange('profile.blood_group', value)}
+                                    style={{ width: '100%' }}
+                                  >
+                                    <Select.Option value="A+">A+</Select.Option>
+                                    <Select.Option value="A-">A-</Select.Option>
+                                    <Select.Option value="B+">B+</Select.Option>
+                                    <Select.Option value="B-">B-</Select.Option>
+                                    <Select.Option value="AB+">AB+</Select.Option>
+                                    <Select.Option value="AB-">AB-</Select.Option>
+                                    <Select.Option value="O+">O+</Select.Option>
+                                    <Select.Option value="O-">O-</Select.Option>
+                                  </Select>
+                                </Form.Item>
+                                <Form.Item label="Nationality" style={{ marginBottom: '8px' }}>
+                                  <Input
+                                    value={editedValues.profile?.nationality || ''}
+                                    onChange={(e) => handleFieldChange('profile.nationality', e.target.value)}
+                                    style={{ width: '100%' }}
+                                  />
+                                </Form.Item>
+                              </>
+                            ) : (
+                              <>
+                                {renderDetailItem('Gender', teacherData?.gender === 'M' ? 'Male' : teacherData?.gender === 'F' ? 'Female' : 'Other', <UserOutlined />)}
+                                {renderDetailItem('Date of Birth', teacherData?.dob ? moment(teacherData.dob).format('DD MMM, YYYY') : 'N/A', <CalendarOutlined />)}
+                                {renderDetailItem('Blood Group', teacherData?.profile?.blood_group, <HeartOutlined />)}
+                                {renderDetailItem('Nationality', teacherData?.profile?.nationality, <IdcardOutlined />)}
+                              </>
+                            )}
+                          </div>
+                        </Card>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'attendance',
+                  label: <span style={{ fontWeight: 'bold' }}>Attendance</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                },
+                {
+                  key: 'academics',
+                  label: <span style={{ fontWeight: 'bold' }}>Academics</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                },
+                {
+                  key: 'activities',
+                  label: <span style={{ fontWeight: 'bold' }}>Activities</span>,
+                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                }
+              ]}
+              style={{ margin: 0 }}
+            />
+          </div>
+        </div>
+      </Spin>
+    </>
+  );
+};
 
 const TeacherForm = ({ visible, onCancel, onSubmit, initialValues, loading }) => {
   const [form] = Form.useForm();
@@ -648,6 +1452,7 @@ const Teachers = forwardRef((props, ref) => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [detailsDrawerVisible, setDetailsDrawerVisible] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [viewMode, setViewMode] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
@@ -1187,7 +1992,8 @@ const Teachers = forwardRef((props, ref) => {
       render: (text, record) => (
         <Button type="link" onClick={() => {
           setSelectedTeacher(record);
-          setDetailsDrawerVisible(true);
+          setViewMode(true);
+          setModalVisible(true);
         }}>
           {text}
         </Button>
@@ -1420,6 +2226,17 @@ const Teachers = forwardRef((props, ref) => {
             />
           </div>
         </>
+      ) : viewMode ? (
+        <TeacherView
+          visible={modalVisible}
+          onCancel={() => {
+            setModalVisible(false);
+            setViewMode(false);
+            setSelectedTeacher(null);
+          }}
+          teacher={selectedTeacher}
+          onTeacherUpdate={() => {}}
+        />
       ) : (
         <TeacherForm
           visible={modalVisible}
@@ -1492,11 +2309,6 @@ const Teachers = forwardRef((props, ref) => {
         </Form>
       </Modal>
 
-      <TeacherDetailsDrawer
-        visible={detailsDrawerVisible}
-        onClose={() => setDetailsDrawerVisible(false)}
-        teacher={selectedTeacher}
-      />
 
       <ImagePreviewModal
         visible={previewVisible}
