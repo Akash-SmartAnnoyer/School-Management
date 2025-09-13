@@ -2183,7 +2183,8 @@ const Students = forwardRef((props, ref) => {
   const [exportEmails, setExportEmails] = useState([]);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMode, setExportMode] = useState('download');
-  const [studentCount] = useState(156);
+  // Use totalStudents from context instead of hardcoded value
+  const studentCount = totalStudents;
 
   // Handle route changes
   useEffect(() => {

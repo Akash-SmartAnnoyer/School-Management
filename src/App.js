@@ -292,18 +292,18 @@ function MainLayout() {
       icon: <WalletOutlined style={styles.menuIcon} />, 
       path: '/fee-management' 
     },
-    { 
-      key: '11a', 
-      label: <span style={styles.menuItem}>Fee Structure Management</span>, 
-      icon: <SettingOutlined style={styles.menuIcon} />, 
-      path: '/fee-structure-management' 
-    },
-    {
-      key: '12',
-      label: <span style={styles.menuItem}>Institute Configurations</span>,
-      icon: <SettingOutlined style={styles.menuIcon} />,
-      path: '/student-config'
-    }
+    // { 
+    //   key: '11a', 
+    //   label: <span style={styles.menuItem}>Fee Structure Management</span>, 
+    //   icon: <SettingOutlined style={styles.menuIcon} />, 
+    //   path: '/fee-structure-management' 
+    // },
+    // {
+    //   key: '12',
+    //   label: <span style={styles.menuItem}>Institute Configurations</span>,
+    //   icon: <SettingOutlined style={styles.menuIcon} />,
+    //   path: '/student-config'
+    // }
   ];
 
   const userMenuItems = [
