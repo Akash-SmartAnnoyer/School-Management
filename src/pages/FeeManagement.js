@@ -1422,7 +1422,7 @@ const FeeManagement = () => {
         padding: '0 16px 16px 16px'
       }}>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane
+        <TabPane
             tab={
               <span>
                 <TeamOutlined />
@@ -1445,30 +1445,7 @@ const FeeManagement = () => {
               scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
             />
           </TabPane>
-          <TabPane
-            tab={
-              <span>
-                <MoneyCollectOutlined />
-                Payment Records
-              </span>
-            }
-            key="2"
-          >
-            <Table
-              columns={paymentColumns}
-              dataSource={payments}
-              loading={loading}
-              rowKey="id"
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `Total ${total} payments`
-              }}
-              className="fee-management-table"
-              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
-            />
-          </TabPane>
-          <TabPane
+        <TabPane
             tab={
               <span>
                 <SettingOutlined />
@@ -1666,6 +1643,29 @@ const FeeManagement = () => {
                 pageSize: 10,
                 showSizeChanger: true,
                 showTotal: (total) => `Total ${total} fee details`
+              }}
+              className="fee-management-table"
+              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+            />
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <MoneyCollectOutlined />
+                Payment Records
+              </span>
+            }
+            key="2"
+          >
+            <Table
+              columns={paymentColumns}
+              dataSource={payments}
+              loading={loading}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showTotal: (total) => `Total ${total} payments`
               }}
               className="fee-management-table"
               scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
