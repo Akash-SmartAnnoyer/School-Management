@@ -2347,6 +2347,10 @@ const Teachers = forwardRef((props, ref) => {
         title={<Space><ExportOutlined style={{ color: '#44cf65' }} /><span>Export Teachers</span></Space>}
         width={400}
         className="export-modal"
+        style={{
+          maxHeight: 'none',
+          overflowY: 'visible'
+        }}
       >
         <div className="export-modal-content">
           <Form layout="vertical">
@@ -2376,7 +2380,22 @@ const Teachers = forwardRef((props, ref) => {
             </Form.Item>
             {exportMode === 'send' && (
               <Form.Item label="Email Addresses" className="email-item">
-                <Select mode="tags" style={{ width: '100%' }} placeholder="Enter email addresses" value={exportEmails} onChange={setExportEmails} tokenSeparators={[',']} className="email-select" maxTagCount={3} maxTagTextLength={20} dropdownStyle={{ maxHeight: '200px', overflow: 'auto' }} />
+                <Select
+                  mode="tags"
+                  style={{ width: '100%' }}
+                  placeholder="Enter email addresses"
+                  value={exportEmails}
+                  onChange={setExportEmails}
+                  tokenSeparators={[',']}
+                  className="email-select"
+                  maxTagCount={3}
+                  maxTagTextLength={20}
+                  dropdownStyle={{ 
+                    maxHeight: '300px',
+                    overflow: 'auto'
+                  }}
+                  getPopupContainer={(trigger) => trigger.parentElement}
+                />
               </Form.Item>
             )}
             <Form.Item className="export-submit-item">
@@ -2684,6 +2703,165 @@ const Teachers = forwardRef((props, ref) => {
 
           .teachers-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
             background-color: #7B83EB !important;
+          }
+
+          /* Export Modal Styles */
+          .export-modal .ant-modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+          }
+
+          .export-modal .ant-modal-header {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 24px;
+            margin: 0;
+          }
+
+          .export-modal .ant-modal-body {
+            padding: 24px;
+            max-height: none;
+            overflow-y: visible;
+          }
+
+          .export-modal-content {
+            padding: 0;
+          }
+
+          .export-format-item,
+          .export-mode-item {
+            margin-bottom: 24px;
+          }
+
+          .format-options,
+          .mode-options {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+          }
+
+          .format-option,
+          .mode-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+          }
+
+          .format-option:hover,
+          .mode-option:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          }
+
+          .format-option.active,
+          .mode-option.active {
+            background: #44cf65;
+            border-color: #44cf65;
+            color: white;
+          }
+
+          .format-option.active .anticon,
+          .mode-option.active .anticon {
+            color: white !important;
+          }
+
+          .format-option span,
+          .mode-option span {
+            font-size: 13px;
+            font-weight: 500;
+          }
+
+          .email-item {
+            margin-bottom: 24px;
+          }
+
+          .email-select {
+            border-radius: 6px;
+          }
+
+          .email-select .ant-select-selector {
+            border-radius: 6px !important;
+            border: 1px solid #f0f0f0 !important;
+            padding: 4px 8px !important;
+            min-height: 40px !important;
+          }
+
+          .email-select .ant-select-selection-item {
+            background: #f5f5f5 !important;
+            border: 1px solid #f0f0f0 !important;
+            border-radius: 4px !important;
+            padding: 2px 8px !important;
+            margin: 2px !important;
+            font-size: 12px !important;
+          }
+
+          .email-select .ant-select-selection-placeholder {
+            line-height: 38px !important;
+          }
+
+          .email-select .ant-select-selection-overflow {
+            flex-wrap: nowrap;
+            overflow: hidden;
+          }
+
+          .email-select .ant-select-selection-overflow-item {
+            flex: none;
+          }
+
+          .export-submit-item {
+            margin-bottom: 0;
+          }
+
+          .export-submit-button {
+            height: 40px;
+            background: #44cf65;
+            border-color: #44cf65;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+          }
+
+          .export-submit-button:hover {
+            background: #44cf65;
+            border-color: #44cf65;
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(68, 207, 101, 0.3);
+          }
+
+          .ant-form-item-label > label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #595959;
+          }
+
+          /* Select dropdown styling */
+          .email-select .ant-select-dropdown {
+            border-radius: 8px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+          }
+
+          .email-select .ant-select-item {
+            padding: 8px 12px;
+            font-size: 13px;
+          }
+
+          .email-select .ant-select-item-option-selected {
+            background: #f5f5f5;
+            color: #44cf65;
+          }
+
+          .email-select .ant-select-item-option-active {
+            background: #fafafa;
           }
         `}
       </style>
