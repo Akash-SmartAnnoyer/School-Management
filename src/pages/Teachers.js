@@ -173,10 +173,24 @@ const TeacherView = ({ visible, onCancel, teacher, onTeacherUpdate }) => {
 
   const handleEditSection = (section) => {
     setEditingSection(section);
+    // Populate editedValues with current teacherData, flattening nested objects for easier editing
+    const currentData = teacherData || teacher;
     setEditedValues({ 
-      ...teacherData,
-      profile: { ...teacherData?.profile },
-      teacher_profile: { ...teacherData?.teacher_profile }
+      ...currentData,
+      // Flatten nested objects for easier editing
+      employee_id: currentData?.teacher_profile?.employee_id,
+      joining_date: currentData?.teacher_profile?.joining_date,
+      qualification: currentData?.teacher_profile?.qualification,
+      specialization: currentData?.teacher_profile?.specialization,
+      years_of_experience: currentData?.teacher_profile?.years_of_experience,
+      status: currentData?.teacher_profile?.status,
+      subject: currentData?.teacher_profile?.subject,
+      address: currentData?.profile?.address,
+      blood_group: currentData?.profile?.blood_group,
+      nationality: currentData?.profile?.nationality,
+      // Keep nested objects for API calls
+      profile: { ...currentData?.profile },
+      teacher_profile: { ...currentData?.teacher_profile }
     });
   };
 
@@ -589,7 +603,7 @@ const TeacherView = ({ visible, onCancel, teacher, onTeacherUpdate }) => {
           </div>
 
           <div style={{ 
-            padding: '16px 24px',
+            padding: '16px 24px 40px 24px',
             borderBottom: '1px solid #f0f0f0',
             flex: 1,
             overflow: 'auto'
