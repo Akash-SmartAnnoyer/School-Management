@@ -95,7 +95,6 @@ import './Students.css';
 import { DragHandleOutlined } from '@mui/icons-material';
 import StyledModal from '../components/StyledModal';
 import ImportModal from '../components/ImportModal';
-import ImportHistoryModal from '../components/ImportHistoryModal';
 import TabPane from 'antd/es/tabs/TabPane';
 import useMessage from 'antd/es/message/useMessage';
 import { useClasses } from '../contexts/ClassesContext';
@@ -2195,7 +2194,6 @@ const Students = forwardRef((props, ref) => {
   const [importStatus, setImportStatus] = useState('idle');
   
   // Import history states
-  const [importHistoryVisible, setImportHistoryVisible] = useState(false);
   const [importHistory, setImportHistory] = useState([]);
   const [importHistoryLoading, setImportHistoryLoading] = useState(false);
   
@@ -3133,10 +3131,6 @@ const Students = forwardRef((props, ref) => {
     downloadSampleFile('students');
   };
 
-  const handleShowHistory = () => {
-    setImportHistoryVisible(true);
-    loadImportHistory();
-  };
 
   const loadImportHistory = async () => {
     setImportHistoryLoading(true);
@@ -3855,19 +3849,11 @@ const Students = forwardRef((props, ref) => {
         loading={importLoading}
         importProgress={importProgress}
         importStatus={importStatus}
-        onShowHistory={handleShowHistory}
-        showHistoryButton={true}
-      />
-
-      <ImportHistoryModal
-        visible={importHistoryVisible}
-        onClose={() => setImportHistoryVisible(false)}
-        title="Students Import History"
-        brandColor="#7B83EB"
         importHistory={importHistory}
-        loading={importHistoryLoading}
+        historyLoading={importHistoryLoading}
+        onLoadHistory={loadImportHistory}
         onDownloadFile={handleDownloadImportFile}
-        onViewDetails={handleViewImportDetails}
+        showHistoryTab={true}
       />
 
       <style>
