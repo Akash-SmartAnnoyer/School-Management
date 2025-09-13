@@ -106,6 +106,8 @@ const FeeManagement = () => {
   const [selectedPaymentStudent, setSelectedPaymentStudent] = useState(null);
   const [paymentClassStudents, setPaymentClassStudents] = useState([]);
   const [loadingPaymentClassStudents, setLoadingPaymentClassStudents] = useState(false);
+  const [paymentFeeDues, setPaymentFeeDues] = useState([]);
+  const [loadingPaymentFeeDues, setLoadingPaymentFeeDues] = useState(false);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -376,16 +378,24 @@ const FeeManagement = () => {
     try {
       setLoading(true);
       
-      // Find the fee due record
-      const feeDue = feeDetails.find(fee => fee.id === values.fee_due);
+      // Find the fee due record from payment fee dues
+      const feeDue = paymentFeeDues.find(fee => fee.id === values.fee_due);
       if (!feeDue) {
         messageApi.error('Fee due record not found');
         return;
       }
 
+      // Validate that fee due has required fields
+      if (!feeDue.fee_type) {
+        messageApi.error('Fee due record is missing fee_type');
+        console.error('Invalid fee due record:', feeDue);
+        return;
+      }
+
       const paymentData = {
-        student: values.student_id || feeDue.student_id,
+        student: values.student_id,
         fee: feeDue.id,
+        fee_type: feeDue.fee_type, // Add fee_type from selected fee due
         amount: parseFloat(values.amount),
         date: values.payment_date.format('YYYY-MM-DD'),
         payment_mode: values.payment_mode.toLowerCase(),
@@ -393,7 +403,9 @@ const FeeManagement = () => {
       };
 
       console.log('Creating payment with data:', paymentData); // Debug log
+      console.log('Selected fee due:', feeDue); // Debug log
       const response = await api.fee.createPayment(paymentData);
+      console.log('Payment API response:', response); // Debug log
       
       if (response.success) {
         console.log('Payment created successfully:', response.data); // Debug log
@@ -403,6 +415,7 @@ const FeeManagement = () => {
         setSelectedPaymentClass(null);
         setSelectedPaymentStudent(null);
         setPaymentClassStudents([]);
+        setPaymentFeeDues([]);
         // Ensure data refresh happens after modal is closed
         setTimeout(() => {
           console.log('Refreshing data after payment creation...'); // Debug log
@@ -751,6 +764,64 @@ const FeeManagement = () => {
 
   const handlePaymentStudentChange = (studentId) => {
     setSelectedPaymentStudent(studentId);
+    // Load fee dues for the selected student
+    if (studentId) {
+      loadPaymentFeeDues(studentId);
+    } else {
+      setPaymentFeeDues([]);
+    }
+  };
+
+  const loadPaymentFeeDues = async (studentId) => {
+    try {
+      setLoadingPaymentFeeDues(true);
+      // First get student details to find their classroom
+      const student = paymentClassStudents.find(s => s.id === studentId);
+      if (!student) {
+        setPaymentFeeDues([]);
+        return;
+      }
+
+      // Use the classroom_id to fetch fee dues
+      const classroomId = student.profile?.classroom_id;
+      if (!classroomId) {
+        setPaymentFeeDues([]);
+        return;
+      }
+
+      const response = await api.fee.getFeeDues(`?classroom_id=${classroomId}`);
+      if (response.success) {
+        // Filter fee dues for the selected student and unpaid status
+        const studentFeeDues = (response.data.results || response.data).filter(fee => 
+          fee.student === studentId && fee.fee_status !== 'paid'
+        );
+        
+        // Transform the data to include student names
+        const transformedFeeDues = studentFeeDues.map(fee => {
+          const student = paymentClassStudents.find(s => s.id === fee.student);
+          return {
+            ...fee,
+            student_name: student ? `${student.first_name} ${student.last_name}` : 'Unknown Student'
+          };
+        });
+        
+        // Debug log to check fee due structure
+        console.log('Transformed fee dues:', transformedFeeDues);
+        
+        console.log('Loaded payment fee dues:', transformedFeeDues); // Debug log
+        setPaymentFeeDues(transformedFeeDues);
+      } else {
+        console.error('Failed to load fee dues:', response.error); // Debug log
+        messageApi.error(response.error || 'Failed to load fee dues');
+        setPaymentFeeDues([]);
+      }
+    } catch (error) {
+      console.error('Error loading payment fee dues:', error);
+      messageApi.error('Failed to load fee dues');
+      setPaymentFeeDues([]);
+    } finally {
+      setLoadingPaymentFeeDues(false);
+    }
   };
 
   const handleViewFee = async (fee) => {
@@ -2112,6 +2183,7 @@ const FeeManagement = () => {
           setSelectedPaymentClass(null);
           setSelectedPaymentStudent(null);
           setPaymentClassStudents([]);
+          setPaymentFeeDues([]);
         }}
         width={800}
         footer={null}
@@ -2190,11 +2262,18 @@ const FeeManagement = () => {
               >
                 <Select
                   showSearch
-                  placeholder="Select fee due"
+                  placeholder={
+                    !selectedPaymentStudent ? 
+                      "Please select a student first" :
+                      loadingPaymentFeeDues ? 
+                        "Loading fee dues..." : 
+                        `Select fee due (${paymentFeeDues.length} available)`
+                  }
                   optionFilterProp="children"
+                  loading={loadingPaymentFeeDues}
                   disabled={!selectedPaymentStudent}
                   onChange={(value) => {
-                    const selectedFee = feeDetails.find(fee => fee.id === value);
+                    const selectedFee = paymentFeeDues.find(fee => fee.id === value);
                     if (selectedFee) {
                       // Auto-fill the amount with the payable amount
                       paymentForm.setFieldsValue({
@@ -2202,14 +2281,25 @@ const FeeManagement = () => {
                       });
                     }
                   }}
+                  notFoundContent={
+                    !selectedPaymentStudent ? 
+                      <span>Please select a student first</span> : 
+                      loadingPaymentFeeDues ? 
+                        <span>Loading fee dues...</span> : 
+                        <span>No unpaid fee dues found for this student</span>
+                  }
                 >
-                  {feeDetails
-                    .filter(fee => fee.fee_status !== 'paid' && (!selectedPaymentStudent || fee.student === selectedPaymentStudent))
-                    .map(fee => (
+                  {loadingPaymentFeeDues ? (
+                    <Option disabled>
+                      <span style={{ color: '#999' }}>Loading fee dues...</span>
+                    </Option>
+                  ) : (
+                    paymentFeeDues.map(fee => (
                       <Option key={fee.id} value={fee.id}>
-                        {fee.student} - {fee.fee_type} - ₹{parseFloat(fee.payable_amount).toLocaleString()}
+                        {fee.student_name} - {fee.fee_type} - ₹{parseFloat(fee.payable_amount).toLocaleString()}
                       </Option>
-                    ))}
+                    ))
+                  )}
                 </Select>
               </Form.Item>
             </Col>
