@@ -736,13 +736,13 @@ export const feeAPI = {
     }
   },
   updateFeeDue: async (id, feeDueData) => {
-    return makeRequest(`${BASE_URL}/fees/${id}/`, {
+    return makeRequest(`${BASE_URL}/fees/${id}/update/`, {
       method: 'PUT',
       body: JSON.stringify(feeDueData)
     });
   },
   deleteFeeDue: async (id) => {
-    return makeRequest(`${BASE_URL}/fees/${id}/`, {
+    return makeRequest(`${BASE_URL}/fees/${id}/delete/`, {
       method: 'DELETE'
     });
   },

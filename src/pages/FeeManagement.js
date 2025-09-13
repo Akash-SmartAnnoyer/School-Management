@@ -95,14 +95,13 @@ const FeeManagement = () => {
   const [feeDetails, setFeeDetails] = useState([]);
   const [classStudents, setClassStudents] = useState([]);
   const [loadingClassStudents, setLoadingClassStudents] = useState(false);
-  const [editFeeModalVisible, setEditFeeModalVisible] = useState(false);
   const [editingFee, setEditingFee] = useState(null);
-  const [editFeeForm] = Form.useForm();
   const [paymentForm] = Form.useForm();
   const [viewFeeModalVisible, setViewFeeModalVisible] = useState(false);
   const [viewingFee, setViewingFee] = useState(null);
   const [viewPaymentModalVisible, setViewPaymentModalVisible] = useState(false);
   const [viewingPayment, setViewingPayment] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -533,41 +532,72 @@ const FeeManagement = () => {
   };
 
   const handleNewFeeDetails = () => {
+    setIsEditMode(false);
+    setEditingFee(null);
     setFeeDetailsModalVisible(true);
   };
 
   const handleFeeDetailsSubmit = async (values) => {
     try {
       setLoading(true);
-      const response = await api.fee.createFeeDue({
-        student: values.student_id,
-        fee_type: values.fee_type,
-        total_amount: parseFloat(values.amount),
-        scholarship_amount: parseFloat(values.scholarship_amount || 0),
-        fee_period: values.period.toLowerCase(),
-        number_of_terms: parseInt(values.terms),
-        term_start: parseInt(values.term_start),
-        term_end: parseInt(values.term_end || 3), // Default to March if not set
-        remarks: values.remarks
-      });
       
-      if (response.success) {
-        messageApi.success('Fee record created successfully');
-        setFeeDetailsModalVisible(false);
-        feeDetailsForm.resetFields();
-        setSelectedClass(null);
-        setSelectedStudentForFee(null);
-        setClassStudents([]);
-        loadData();
+      if (isEditMode && editingFee) {
+        // Update existing fee record (only editable fields)
+        const response = await api.fee.updateFeeDue(editingFee.id, {
+          total_amount: parseFloat(values.amount),
+          scholarship_amount: parseFloat(values.scholarship_amount || 0),
+          fee_period: values.period.toLowerCase(),
+          number_of_terms: parseInt(values.terms),
+          term_start: parseInt(values.term_start),
+          term_end: parseInt(values.term_end || 3),
+          remarks: values.remarks
+        });
+        
+        if (response.success) {
+          messageApi.success('Fee record updated successfully');
+          setFeeDetailsModalVisible(false);
+          feeDetailsForm.resetFields();
+          setSelectedClass(null);
+          setSelectedStudentForFee(null);
+          setClassStudents([]);
+          setIsEditMode(false);
+          setEditingFee(null);
+          loadData();
+        } else {
+          messageApi.error(response.error || 'Failed to update fee record');
+        }
       } else {
-        messageApi.error(response.error || 'Failed to create fee record');
+        // Create new fee record
+        const response = await api.fee.createFeeDue({
+          student: values.student_id,
+          fee_type: values.fee_type,
+          total_amount: parseFloat(values.amount),
+          scholarship_amount: parseFloat(values.scholarship_amount || 0),
+          fee_period: values.period.toLowerCase(),
+          number_of_terms: parseInt(values.terms),
+          term_start: parseInt(values.term_start),
+          term_end: parseInt(values.term_end || 3), // Default to March if not set
+          remarks: values.remarks
+        });
+        
+        if (response.success) {
+          messageApi.success('Fee record created successfully');
+          setFeeDetailsModalVisible(false);
+          feeDetailsForm.resetFields();
+          setSelectedClass(null);
+          setSelectedStudentForFee(null);
+          setClassStudents([]);
+          loadData();
+        } else {
+          messageApi.error(response.error || 'Failed to create fee record');
+        }
       }
     } catch (error) {
-      console.error('Error creating fee record:', error);
+      console.error('Error processing fee record:', error);
       if (error.message.includes('unique set')) {
         messageApi.error('A fee record already exists for this student and fee type combination.');
       } else {
-        messageApi.error('Failed to create fee record');
+        messageApi.error(`Failed to ${isEditMode ? 'update' : 'create'} fee record`);
       }
     } finally {
       setLoading(false);
@@ -724,38 +754,63 @@ const FeeManagement = () => {
     });
   };
 
-  const handleEditFee = (fee) => {
-    setEditingFee(fee);
-    editFeeForm.setFieldsValue({
-      total_amount: parseFloat(fee.total_amount),
-      scholarship_amount: parseFloat(fee.scholarship_amount),
-      fee_period: fee.fee_period,
-      remarks: fee.remarks,
-      term_start: fee.term_start,
-      term_end: fee.term_end,
-    });
-    setEditFeeModalVisible(true);
-  };
-
-  const handleEditFeeSubmit = async (values) => {
+  const handleEditFee = async (fee) => {
     try {
       setLoading(true);
-      const response = await api.fee.updateFeeDue(editingFee.id, values);
+      setIsEditMode(true);
+      
+      // Fetch the complete fee details from API
+      const response = await api.fee.getFeeDueById(fee.id);
       if (response.success) {
-        messageApi.success('Fee record updated successfully');
-        setEditFeeModalVisible(false);
-        setEditingFee(null);
-        editFeeForm.resetFields();
-        loadData();
+        const feeData = response.data;
+        console.log('Fetched fee data:', feeData); // Debug log
+        setEditingFee(feeData);
+        
+        // Set form values for editing with API data (only editable fields)
+        const formValues = {
+          amount: parseFloat(feeData.total_amount), // Map total_amount to amount field
+          scholarship_amount: parseFloat(feeData.scholarship_amount || 0),
+          period: feeData.fee_period, // Map fee_period to period field
+          fee_type: feeData.fee_type,
+          remarks: feeData.remarks,
+          term_start: feeData.term_start,
+          term_end: feeData.term_end,
+          terms: feeData.number_of_terms, // Map number_of_terms to terms field
+          amount_per_term: parseFloat(feeData.amount_per_term), // Set amount per term
+        };
+        console.log('Setting form values:', formValues); // Debug log
+        feeDetailsForm.setFieldsValue(formValues);
+        
+        // For edit mode, we don't need to set class and student fields
+        // Just set the state for display purposes
+        let classId = fee.classroom_id || fee.class;
+        
+        // If no class info in fee data, try to find it from student data
+        if (!classId) {
+          const student = allStudents.find(s => s.id === feeData.student);
+          if (student && student.profile?.classroom_id) {
+            classId = student.profile.classroom_id;
+          }
+        }
+        
+        console.log('Class ID found:', classId); // Debug log
+        console.log('Student ID:', feeData.student); // Debug log
+        
+        setSelectedClass(classId);
+        setSelectedStudentForFee(feeData.student);
+        
+        setFeeDetailsModalVisible(true);
       } else {
-        messageApi.error(response.error || 'Failed to update fee record');
+        messageApi.error(response.error || 'Failed to fetch fee details');
       }
     } catch (error) {
-      messageApi.error('Failed to update fee record');
+      console.error('Error fetching fee details:', error);
+      messageApi.error('Failed to fetch fee details');
     } finally {
       setLoading(false);
     }
   };
+
 
   const studentColumns = [
     {
@@ -2196,8 +2251,8 @@ const FeeManagement = () => {
       <Modal
         title={
           <Space>
-            <SettingOutlined />
-            Add Fee Details
+            {isEditMode ? <EditOutlined /> : <SettingOutlined />}
+            {isEditMode ? 'Edit Fee Details' : 'Add Fee Details'}
           </Space>
         }
         visible={feeDetailsModalVisible}
@@ -2207,6 +2262,8 @@ const FeeManagement = () => {
           setSelectedClass(null);
           setSelectedStudentForFee(null);
           setClassStudents([]);
+          setIsEditMode(false);
+          setEditingFee(null);
         }}
         width={800}
         footer={null}
@@ -2216,43 +2273,71 @@ const FeeManagement = () => {
           layout="vertical"
           onFinish={handleFeeDetailsSubmit}
         >
+          {/* Show class and student info in edit mode */}
+          {isEditMode && (
+            <div style={{ 
+              background: '#f5f5f5', 
+              padding: '12px 16px', 
+              borderRadius: '6px', 
+              marginBottom: '16px',
+              border: '1px solid #d9d9d9'
+            }}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Text strong>Class: </Text>
+                  <Text>{selectedClass ? classes.find(c => c.id === selectedClass)?.class_name + ' - Section ' + classes.find(c => c.id === selectedClass)?.section : 'N/A'}</Text>
+                </Col>
+                <Col span={12}>
+                  <Text strong>Student: </Text>
+                  <Text>{selectedStudentForFee ? allStudents.find(s => s.id === selectedStudentForFee)?.first_name + ' ' + allStudents.find(s => s.id === selectedStudentForFee)?.last_name : 'N/A'}</Text>
+                </Col>
+              </Row>
+            </div>
+          )}
+          
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Class"
-                name="class_id"
-                rules={[{ required: true, message: 'Please select class' }]}
-              >
-                <Select
-                  placeholder="Select class"
-                  loading={classesLoading}
-                  onChange={handleClassChange}
-                  notFoundContent={classesLoading ? <span>Loading classes...</span> : <span>No classes found</span>}
+            {!isEditMode && (
+              <Col span={12}>
+                <Form.Item
+                  label="Class"
+                  name="class_id"
+                  rules={[{ required: true, message: 'Please select class' }]}
                 >
-                  {classes.map(cls => (
-                    <Option key={cls.id} value={cls.id}>
-                      {cls.class_name} - Section {cls.section}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
+                  <Select
+                    placeholder="Select class"
+                    loading={classesLoading}
+                    onChange={handleClassChange}
+                    notFoundContent={classesLoading ? <span>Loading classes...</span> : <span>No classes found</span>}
+                  >
+                    {classes.map(cls => (
+                      <Option key={cls.id} value={cls.id}>
+                        {cls.class_name} - Section {cls.section}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            )}
+            <Col span={isEditMode ? 24 : 12}>
               <Form.Item
                 label="Student"
                 name="student_id"
-                rules={[{ required: true, message: 'Please select student' }]}
+                rules={[{ required: !isEditMode, message: 'Please select student' }]}
               >
                 <Select
                   placeholder={
-                    selectedClass ? 
-                      (loadingClassStudents ? "Loading students..." : `Select student (${classStudents.length} available)`) : 
-                      "Please select a class first"
+                    isEditMode ? 
+                      "Student (cannot be changed)" :
+                      selectedClass ? 
+                        (loadingClassStudents ? "Loading students..." : `Select student (${classStudents.length} available)`) : 
+                        "Please select a class first"
                   }
                   loading={loadingClassStudents}
-                  disabled={!selectedClass}
+                  disabled={!selectedClass || isEditMode}
                   onChange={handleStudentChange}
                   notFoundContent={
+                    isEditMode ?
+                      <span>Student information</span> :
                     !selectedClass ? 
                       <span>Please select a class first</span> : 
                       loadingClassStudents ? 
@@ -2260,7 +2345,11 @@ const FeeManagement = () => {
                         <span>No students found in this class</span>
                   }
                 >
-                  {loadingClassStudents ? (
+                  {isEditMode ? (
+                    <Option disabled value={selectedStudentForFee}>
+                      Student (cannot be changed)
+                    </Option>
+                  ) : loadingClassStudents ? (
                     <Option disabled>
                       <span style={{ color: '#999' }}>Loading students...</span>
                     </Option>
@@ -2513,7 +2602,7 @@ const FeeManagement = () => {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit" loading={loading}>
-                Add Fee Details
+                {isEditMode ? 'Update Fee Details' : 'Add Fee Details'}
               </Button>
               <Button 
                 onClick={() => {
@@ -2522,6 +2611,8 @@ const FeeManagement = () => {
                   setSelectedClass(null);
                   setSelectedStudentForFee(null);
                   setClassStudents([]);
+                  setIsEditMode(false);
+                  setEditingFee(null);
                 }}
               >
                 Cancel
@@ -2531,136 +2622,6 @@ const FeeManagement = () => {
         </Form>
       </Modal>
 
-      {/* Edit Fee Modal */}
-      <Modal
-        title={
-          <Space>
-            <EditOutlined />
-            Edit Fee Record
-          </Space>
-        }
-        visible={editFeeModalVisible}
-        onCancel={() => {
-          setEditFeeModalVisible(false);
-          setEditingFee(null);
-          editFeeForm.resetFields();
-        }}
-        width={800}
-        footer={null}
-      >
-        <Form
-          form={editFeeForm}
-          layout="vertical"
-          onFinish={handleEditFeeSubmit}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="total_amount"
-                label="Total Amount"
-                rules={[{ required: true, message: 'Please enter amount!' }]}
-              >
-                <Input prefix="₹" type="number" step="0.01" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="scholarship_amount"
-                label="Scholarship Amount"
-                initialValue={0}
-              >
-                <Input prefix="₹" type="number" step="0.01" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="fee_period"
-                label="Fee Period"
-                rules={[{ required: true, message: 'Please select period!' }]}
-              >
-                <Select>
-                  <Option value="monthly">Monthly</Option>
-                  <Option value="quarterly">Quarterly</Option>
-                  <Option value="half yearly">Half Yearly</Option>
-                  <Option value="yearly">Yearly</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="remarks"
-                label="Remarks"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="term_start"
-                label="Term Start Month"
-                rules={[{ required: true, message: 'Please select term start month!' }]}
-              >
-                <Select>
-                  <Option value={1}>January</Option>
-                  <Option value={2}>February</Option>
-                  <Option value={3}>March</Option>
-                  <Option value={4}>April</Option>
-                  <Option value={5}>May</Option>
-                  <Option value={6}>June</Option>
-                  <Option value={7}>July</Option>
-                  <Option value={8}>August</Option>
-                  <Option value={9}>September</Option>
-                  <Option value={10}>October</Option>
-                  <Option value={11}>November</Option>
-                  <Option value={12}>December</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="term_end"
-                label="Term End Month"
-                rules={[{ required: true, message: 'Please select term end month!' }]}
-              >
-                <Select>
-                  <Option value={1}>January</Option>
-                  <Option value={2}>February</Option>
-                  <Option value={3}>March</Option>
-                  <Option value={4}>April</Option>
-                  <Option value={5}>May</Option>
-                  <Option value={6}>June</Option>
-                  <Option value={7}>July</Option>
-                  <Option value={8}>August</Option>
-                  <Option value={9}>September</Option>
-                  <Option value={10}>October</Option>
-                  <Option value={11}>November</Option>
-                  <Option value={12}>December</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                Update Fee Record
-              </Button>
-              <Button
-                onClick={() => {
-                  setEditFeeModalVisible(false);
-                  setEditingFee(null);
-                  editFeeForm.resetFields();
-                }}
-              >
-                Cancel
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
 
       {/* View Fee Modal */}
       <Modal
