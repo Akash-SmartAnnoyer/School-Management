@@ -10,7 +10,7 @@ const ImportModal = ({
   onClose, 
   onImport, 
   title, 
-  sampleFileUrl, 
+  sampleFileUrl, // Can be a URL string or a function that handles download
   requiredFields = [], 
   optionalFields = [],
   brandColor = '#7B83EB',
@@ -109,8 +109,7 @@ const ImportModal = ({
           <Button
             type="primary"
             icon={<DownloadOutlined />}
-            href={sampleFileUrl}
-            download
+            onClick={typeof sampleFileUrl === 'function' ? sampleFileUrl : () => window.open(sampleFileUrl)}
             style={{
               background: brandColor,
               borderColor: brandColor,
