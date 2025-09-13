@@ -99,6 +99,22 @@
   .calendar-header h1 {
     font-size: 24px;
   }
+
+  .ant-picker-calendar {
+    max-height: 300px;
+  }
+
+  .ant-picker-calendar-date {
+    height: 35px !important;
+  }
+
+  .ant-picker-calendar-date-content {
+    height: 15px !important;
+  }
+
+  .ant-picker-calendar-date-value {
+    font-size: 10px;
+  }
 }
 
 .academic-calendar {
@@ -106,7 +122,7 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
-  overflow: hidden;
+  overflow-y: auto;
   margin: 0;
   background: #ffffff;
 }
@@ -115,6 +131,7 @@
 .ant-picker-calendar {
   background: transparent;
   margin-bottom: 24px;
+  max-height: 400px;
 }
 
 .ant-picker-calendar-header {
