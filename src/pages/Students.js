@@ -3423,6 +3423,10 @@ const Students = forwardRef((props, ref) => {
         }
         width={400}
         className="export-modal"
+        style={{
+          maxHeight: 'none',
+          overflowY: 'visible'
+        }}
       >
         <div className="export-modal-content">
           <Form layout="vertical">
@@ -3477,9 +3481,10 @@ const Students = forwardRef((props, ref) => {
                   maxTagCount={3}
                   maxTagTextLength={20}
                   dropdownStyle={{ 
-                    maxHeight: '200px',
+                    maxHeight: '300px',
                     overflow: 'auto'
                   }}
+                  getPopupContainer={(trigger) => trigger.parentElement}
                 />
               </Form.Item>
             )}
@@ -3512,28 +3517,8 @@ const Students = forwardRef((props, ref) => {
 
           .export-modal .ant-modal-body {
             padding: 24px;
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-          }
-
-          .export-modal .ant-modal-body::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
-
-          .export-modal .ant-modal-body::-webkit-scrollbar-track {
-            background: #f5f5f5;
-            border-radius: 3px;
-          }
-
-          .export-modal .ant-modal-body::-webkit-scrollbar-thumb {
-            background: #d9d9d9;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-          }
-
-          .export-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
-            background: #7B83EB;
+            max-height: none;
+            overflow-y: visible;
           }
 
           .export-modal-content {
