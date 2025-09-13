@@ -120,58 +120,107 @@ const FeeManagement = () => {
     try {
       setLoading(true);
       if (activeTab === '1') {
-        // Load student fee tracking data using Get Fee Payments endpoint
+        // Load student fee tracking data using Fee Records API
         try {
-          // Get all payments first
-          const paymentsResponse = await api.fee.getPayments('');
-          if (paymentsResponse.success) {
-            // Group payments by student and calculate totals
-            const studentPayments = {};
+          console.log('Loading student fee tracking...'); // Debug log
+          const feeRecordsResponse = await api.fee.getFeeDues(searchText ? `?search=${searchText}` : '');
+          console.log('Fee records API response:', feeRecordsResponse); // Debug log
+          
+          if (feeRecordsResponse.success) {
+            // Load all students if not already loaded or if we have few students
+            let allStudentsData = allStudents;
+            if (allStudents.length < 50) { // If we have less than 50 students, load all
+              try {
+                const studentsResponse = await api.student.getStudents('?page_size=1000');
+                if (studentsResponse.success) {
+                  allStudentsData = studentsResponse.data.results || studentsResponse.data;
+                }
+              } catch (error) {
+                console.warn('Could not load all students, using paginated data');
+              }
+            }
             
-            paymentsResponse.data.results.forEach(payment => {
-              const studentId = payment.student;
-              if (!studentPayments[studentId]) {
-                studentPayments[studentId] = {
+            // Group fee records by student
+            const studentFeeTracking = {};
+            const feeRecords = feeRecordsResponse.data.results || feeRecordsResponse.data;
+            
+            feeRecords.forEach(fee => {
+              const studentId = fee.student;
+              
+              // Find student details
+              const student = allStudentsData.find(s => s.id === studentId);
+              let studentName = 'Unknown Student';
+              let studentId_display = studentId || 'N/A';
+              
+              if (student) {
+                studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim();
+                studentId_display = student.student_profile?.student_id || student.id;
+              } else {
+                // If student not found, show student ID
+                studentName = `Student ID: ${fee.student}`;
+                studentId_display = fee.student;
+              }
+              
+              if (!studentFeeTracking[studentId]) {
+                studentFeeTracking[studentId] = {
                   id: studentId,
-                  name: payment.student_name,
-                  payments: [],
-                  total_paid: 0,
+                  name: studentName,
+                  student_id: studentId_display,
+                  class: student?.profile?.class || 'N/A',
+                  section: student?.profile?.section || 'N/A',
+                  fee_records: [],
+                  total_amount: 0,
+                  total_scholarship: 0,
+                  total_payable: 0,
                   total_due: 0,
-                  due_months: 0
+                  total_paid: 0,
+                  due_months: 0,
+                  status: 'Unpaid'
                 };
               }
               
-              studentPayments[studentId].payments.push(payment);
-              studentPayments[studentId].total_paid += parseFloat(payment.amount);
+              // Add fee record to student
+              studentFeeTracking[studentId].fee_records.push(fee);
+              studentFeeTracking[studentId].total_amount += parseFloat(fee.total_amount);
+              studentFeeTracking[studentId].total_scholarship += parseFloat(fee.scholarship_amount);
+              studentFeeTracking[studentId].total_payable += parseFloat(fee.payable_amount);
+              studentFeeTracking[studentId].total_due += parseFloat(fee.total_due);
+              
+              // Calculate due months (using the highest due_months from fee records)
+              if (parseFloat(fee.due_months) > studentFeeTracking[studentId].due_months) {
+                studentFeeTracking[studentId].due_months = parseFloat(fee.due_months);
+              }
             });
             
-            // Get fee details to calculate dues
-            const feeDetailsResponse = await api.fee.getFeeDues('');
-            if (feeDetailsResponse.success) {
-              feeDetailsResponse.data.forEach(fee => {
-                const studentId = fee.student_id;
-                if (studentPayments[studentId]) {
-                  const payableAmount = parseFloat(fee.payable_amount);
-                  const paidAmount = studentPayments[studentId].total_paid;
-                  const dueAmount = payableAmount - paidAmount;
-                  
-                  studentPayments[studentId].total_due = dueAmount;
-                  studentPayments[studentId].due_months = Math.ceil(dueAmount / (payableAmount / fee.number_of_terms));
-                  studentPayments[studentId].status = dueAmount > 0 ? 'Unpaid' : 'Paid';
-                  studentPayments[studentId].class = fee.class || 'N/A';
-                  studentPayments[studentId].section = fee.section || 'N/A';
-                  studentPayments[studentId].student_id = fee.student_id || studentId;
-                }
-              });
+            // Get payments to calculate total paid amounts
+            try {
+              const paymentsResponse = await api.fee.getPayments('');
+              if (paymentsResponse.success) {
+                paymentsResponse.data.results.forEach(payment => {
+                  const studentId = payment.student;
+                  if (studentFeeTracking[studentId]) {
+                    studentFeeTracking[studentId].total_paid += parseFloat(payment.amount);
+                  }
+                });
+              }
+            } catch (error) {
+              console.warn('Could not load payments for student tracking');
             }
             
+            // Calculate final status and remaining due
+            Object.values(studentFeeTracking).forEach(student => {
+              student.total_due = student.total_payable - student.total_paid;
+              student.status = student.total_due > 0 ? 'Unpaid' : 'Paid';
+            });
+            
             // Convert to array and apply filters
-            let filteredStudents = Object.values(studentPayments);
+            let filteredStudents = Object.values(studentFeeTracking);
             
             // Apply search filter
             if (searchText) {
               filteredStudents = filteredStudents.filter(student => 
-                student.name.toLowerCase().includes(searchText.toLowerCase())
+                student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                student.student_id.toString().includes(searchText)
               );
             }
             
@@ -182,13 +231,14 @@ const FeeManagement = () => {
               );
             }
             
+            console.log('Student fee tracking data:', filteredStudents); // Debug log
             setStudents(filteredStudents);
           } else {
-            messageApi.error(paymentsResponse.error || 'Failed to load student fees');
+            messageApi.error(feeRecordsResponse.error || 'Failed to load fee records');
           }
         } catch (error) {
-          console.error('Error loading student fees:', error);
-          messageApi.error('Failed to load student fees');
+          console.error('Error loading student fee tracking:', error);
+          messageApi.error('Failed to load student fee tracking');
         }
       } else if (activeTab === '2') {
         // Load payment records using real API
@@ -1042,6 +1092,56 @@ const FeeManagement = () => {
       ),
     },
     {
+      title: 'Total Amount',
+      dataIndex: 'total_amount',
+      key: 'total_amount',
+      render: (amount) => (
+        <Text strong style={{ color: '#1890ff' }}>
+          ₹{parseFloat(amount).toLocaleString()}
+        </Text>
+      ),
+    },
+    {
+      title: 'Scholarship',
+      dataIndex: 'total_scholarship',
+      key: 'total_scholarship',
+      render: (amount) => (
+        <Text style={{ color: '#faad14' }}>
+          ₹{parseFloat(amount).toLocaleString()}
+        </Text>
+      ),
+    },
+    {
+      title: 'Payable',
+      dataIndex: 'total_payable',
+      key: 'total_payable',
+      render: (amount) => (
+        <Text strong style={{ color: '#52c41a' }}>
+          ₹{parseFloat(amount).toLocaleString()}
+        </Text>
+      ),
+    },
+    {
+      title: 'Total Paid',
+      dataIndex: 'total_paid',
+      key: 'total_paid',
+      render: (amount) => (
+        <Text strong style={{ color: '#52c41a' }}>
+          ₹{parseFloat(amount).toLocaleString()}
+        </Text>
+      ),
+    },
+    {
+      title: 'Total Due',
+      dataIndex: 'total_due',
+      key: 'total_due',
+      render: (amount) => (
+        <Text strong style={{ color: amount > 0 ? '#ff4d4f' : '#52c41a' }}>
+          ₹{parseFloat(amount).toLocaleString()}
+        </Text>
+      ),
+    },
+    {
       title: 'Due Months',
       dataIndex: 'due_months',
       key: 'due_months',
@@ -1101,16 +1201,6 @@ const FeeManagement = () => {
       ),
     },
     {
-      title: 'Total Due',
-      dataIndex: 'total_due',
-      key: 'total_due',
-      render: (amount) => (
-        <Text strong style={{ color: amount > 0 ? '#ff4d4f' : '#52c41a' }}>
-          ₹{amount.toLocaleString()}
-        </Text>
-      ),
-    },
-    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
@@ -1124,14 +1214,6 @@ const FeeManagement = () => {
             >
               History
             </Button>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDeleteFeeDetails(record)}
-            />
           </Tooltip>
         </Space>
       ),
@@ -1664,7 +1746,7 @@ const FeeManagement = () => {
                 showTotal: (total) => `Total ${total} students`
               }}
               className="fee-management-table"
-              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+              scroll={{ x: 1400, y: 'calc(100vh - 280px)' }}
             />
           </TabPane>
         <TabPane
