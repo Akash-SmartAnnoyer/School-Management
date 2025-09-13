@@ -588,21 +588,44 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                               <span>Contact Information</span>
                               {editingSection === 'contact' ? (
                                 <Space>
-                                  <Button 
-                                    type="primary" 
-                                    size="small" 
-                                    onClick={() => handleSaveEdit('contact')}
-                                    loading={isSaving}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button 
-                                    size="small" 
-                                    onClick={handleCancelEdit}
-                                    disabled={isSaving}
-                                  >
-                                    Cancel
-                                  </Button>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('contact')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
                                 </Space>
                               ) : (
                                 <Button 
@@ -645,21 +668,44 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                               <span>Academic Profile</span>
                               {editingSection === 'academic' ? (
                                 <Space>
-                                  <Button 
-                                    type="primary" 
-                                    size="small" 
-                                    onClick={() => handleSaveEdit('academic')}
-                                    loading={isSaving}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button 
-                                    size="small" 
-                                    onClick={handleCancelEdit}
-                                    disabled={isSaving}
-                                  >
-                                    Cancel
-                                  </Button>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('academic')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
                                 </Space>
                               ) : (
                                 <Button 
@@ -712,21 +758,44 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                               <span>Parent Information</span>
                               {editingSection === 'parent' ? (
                                 <Space>
-                                  <Button 
-                                    type="primary" 
-                                    size="small" 
-                                    onClick={() => handleSaveEdit('parent')}
-                                    loading={isSaving}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button 
-                                    size="small" 
-                                    onClick={handleCancelEdit}
-                                    disabled={isSaving}
-                                  >
-                                    Cancel
-                                  </Button>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('parent')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
                                 </Space>
                               ) : (
                                 <Button 
@@ -842,21 +911,44 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                               <Typography.Title level={5} style={{ margin: 0 }}>Basic Information</Typography.Title>
                               {editingSection === 'profile' ? (
                                 <Space>
-                                  <Button 
-                                    type="primary" 
-                                    size="small" 
-                                    onClick={() => handleSaveEdit('profile')}
-                                    loading={isSaving}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button 
-                                    size="small" 
-                                    onClick={handleCancelEdit}
-                                    disabled={isSaving}
-                                  >
-                                    Cancel
-                                  </Button>
+                                  <Tooltip title="Save Changes">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CheckCircleOutlined style={{ color: '#52c41a', fontSize: '16px' }} />}
+                                      onClick={() => handleSaveEdit('profile')}
+                                      loading={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#f6ffed',
+                                        border: '1px solid #b7eb8f'
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <Button 
+                                      type="text" 
+                                      size="small" 
+                                      icon={<CloseCircleOutlined style={{ color: '#ff4d4f', fontSize: '16px' }} />}
+                                      onClick={handleCancelEdit}
+                                      disabled={isSaving}
+                                      style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#fff2f0',
+                                        border: '1px solid #ffccc7'
+                                      }}
+                                    />
+                                  </Tooltip>
                                 </Space>
                               ) : (
                                 <Button 
