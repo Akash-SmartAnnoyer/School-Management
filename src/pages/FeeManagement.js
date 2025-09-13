@@ -234,15 +234,41 @@ const FeeManagement = () => {
         // Load fee details
         const response = await api.fee.getFeeDues(searchText ? `?search=${searchText}` : '');
         if (response.success) {
-          // Transform the data to include student names
-          const feeDetails = await Promise.all(response.data.map(async (fee) => {
-            const student = allStudents.find(s => s.id === fee.student_id);
+          // Load all students if not already loaded or if we have few students
+          let allStudentsData = allStudents;
+          if (allStudents.length < 50) { // If we have less than 50 students, load all
+            try {
+              const studentsResponse = await api.student.getStudents('?page_size=1000');
+              if (studentsResponse.success) {
+                allStudentsData = studentsResponse.data.results || studentsResponse.data;
+              }
+            } catch (error) {
+              console.warn('Could not load all students, using paginated data');
+            }
+          }
+          
+          // Transform the data to include student names - use results array from paginated response
+          const feeDetails = (response.data.results || response.data).map((fee) => {
+            // Try to find student in allStudentsData
+            const student = allStudentsData.find(s => s.id === fee.student);
+            let studentName = 'Unknown Student';
+            let studentId = fee.student || 'N/A';
+            
+            if (student) {
+              studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim();
+              studentId = student.student_profile?.student_id || student.id;
+            } else {
+              // If student not found, show student ID
+              studentName = `Student ID: ${fee.student}`;
+              studentId = fee.student;
+            }
+            
             return {
               ...fee,
-              student: student ? `${student.first_name} ${student.last_name}` : 'Unknown Student',
-              student_id: student?.student_profile?.student_id || 'N/A'
+              student: studentName,
+              student_id: studentId
             };
-          }));
+          });
           setFeeDetails(feeDetails);
         } else {
           messageApi.error(response.error || 'Failed to load fee details');
@@ -561,63 +587,45 @@ const FeeManagement = () => {
   const loadStudentsByClass = async (classId) => {
     try {
       setLoadingClassStudents(true);
-      const response = await api.student.getStudentsByClass(classId);
+      const response = await api.class.getClass(classId);
       if (response.success) {
-        const students = response.data.results || response.data || [];
+        const classData = response.data;
+        const students = classData.students || [];
+        
         if (students.length === 0) {
-          // Use default student when no students found
-          const defaultStudent = {
-            id: 88,
-            user_id: 112,
-            first_name: "Dhruv",
-            last_name: "Mehta",
-            name: "Dhruv Mehta",
+          setClassStudents([]);
+          messageApi.info('No students found in this class.');
+        } else {
+          // Transform the students data to match the expected format
+          const transformedStudents = students.map(student => ({
+            id: student.id,
+            user_id: student.user?.id,
+            first_name: student.user?.first_name || student.first_name,
+            last_name: student.user?.last_name || student.last_name,
+            name: `${student.user?.first_name || student.first_name} ${student.user?.last_name || student.last_name}`,
             student_profile: {
-              student_id: "111"
+              student_id: student.student_profile?.student_id || student.id.toString()
             },
             profile: {
               classroom_id: classId,
-              class: "10th Grade - C",
-              section: "C"
+              class: `${classData.class_name} - ${classData.section}`,
+              section: classData.section
             },
-            gender: "M",
+            gender: student.user?.gender || student.gender,
             status: "Active",
-            roll_no: 1,
-            photo: "https://360schoolingdevsa.blob.core.windows.net/360schooling/media/profile_photos/student_v7aVSPn.jpeg?se=2025-07-01T17%3A40%3A18Z&sp=r&sv=2025-05-05&sr=b&sig=jwXnnSTb8kVriV4M9AstxGBhwI9CYYrCXrF5/iZqzRs%3D"
-          };
-          setClassStudents([defaultStudent]);
-          messageApi.info('No students found in this class. Using default student for testing.');
-        } else {
-          setClassStudents(students);
+            roll_no: student.roll_no || 1,
+            photo: student.user?.photo || student.photo
+          }));
+          setClassStudents(transformedStudents);
         }
       } else {
-        messageApi.error(response.error || 'Failed to load students for this class');
+        messageApi.error(response.error || 'Failed to load class details');
         setClassStudents([]);
       }
     } catch (error) {
-      console.error('Error loading students by class:', error);
-      messageApi.error('Failed to load students for this class. Using default student.');
-      // Use default student as fallback
-      const defaultStudent = {
-        id: 88,
-        user_id: 112,
-        first_name: "Dhruv",
-        last_name: "Mehta",
-        name: "Dhruv Mehta",
-        student_profile: {
-          student_id: "111"
-        },
-        profile: {
-          classroom_id: classId,
-          class: "10th Grade - C",
-          section: "C"
-        },
-        gender: "M",
-        status: "Active",
-        roll_no: 1,
-        photo: "https://360schoolingdevsa.blob.core.windows.net/360schooling/media/profile_photos/student_v7aVSPn.jpeg?se=2025-07-01T17%3A40%3A18Z&sp=r&sv=2025-05-05&sr=b&sig=jwXnnSTb8kVriV4M9AstxGBhwI9CYYrCXrF5/iZqzRs%3D"
-      };
-      setClassStudents([defaultStudent]);
+      console.error('Error loading class details:', error);
+      messageApi.error('Failed to load class details');
+      setClassStudents([]);
     } finally {
       setLoadingClassStudents(false);
     }
@@ -1460,13 +1468,15 @@ const FeeManagement = () => {
                   title: 'Student',
                   dataIndex: 'student',
                   key: 'student',
+                  width: 160,
+                  fixed: 'left',
                   render: (text, record) => (
                     <Space>
                       <Avatar icon={<UserOutlined />} />
                       <div>
-                        <Text strong>{text}</Text>
+                        <Text strong style={{ fontSize: '12px' }}>{text}</Text>
                         <br />
-                        <Text type="secondary">ID: {record.student_id}</Text>
+                        <Text type="secondary" style={{ fontSize: '10px' }}>ID: {record.student_id}</Text>
                       </div>
                     </Space>
                   ),
@@ -1475,26 +1485,21 @@ const FeeManagement = () => {
                   title: 'Fee Type',
                   dataIndex: 'fee_type',
                   key: 'fee_type',
+                  width: 100,
                   render: (type) => (
                     <Tag 
                       style={{ 
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '13px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
                         fontWeight: 500,
                         background: '#f5f5f5',
                         color: '#595959',
                         border: '1px solid #f0f0f0',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '24px',
-                        lineHeight: '1',
                         margin: 0
                       }}
                     >
-                      <MoneyCollectOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#7B83EB' }} />
+                      <MoneyCollectOutlined style={{ fontSize: '10px', marginRight: '2px', color: '#7B83EB' }} />
                       {type}
                     </Tag>
                   ),
@@ -1503,54 +1508,86 @@ const FeeManagement = () => {
                   title: 'Total Amount',
                   dataIndex: 'total_amount',
                   key: 'total_amount',
+                  width: 110,
                   render: (amount) => (
-                    <Text strong style={{ color: '#52c41a' }}>
+                    <Text strong style={{ color: '#52c41a', fontSize: '12px' }}>
                       ₹{parseFloat(amount).toLocaleString()}
                     </Text>
                   ),
                 },
                 {
-                  title: 'Scholarship Amount',
+                  title: 'Scholarship',
                   dataIndex: 'scholarship_amount',
                   key: 'scholarship_amount',
+                  width: 100,
                   render: (amount) => (
-                    <Text strong style={{ color: '#faad14' }}>
+                    <Text style={{ color: '#faad14', fontSize: '12px' }}>
                       ₹{parseFloat(amount).toLocaleString()}
                     </Text>
                   ),
                 },
                 {
-                  title: 'Payable Amount',
+                  title: 'Payable',
                   dataIndex: 'payable_amount',
                   key: 'payable_amount',
+                  width: 110,
                   render: (amount) => (
-                    <Text strong style={{ color: '#1890ff' }}>
+                    <Text strong style={{ color: '#1890ff', fontSize: '12px' }}>
                       ₹{parseFloat(amount).toLocaleString()}
                     </Text>
+                  ),
+                },
+                {
+                  title: 'Total Due',
+                  dataIndex: 'total_due',
+                  key: 'total_due',
+                  width: 100,
+                  render: (amount) => (
+                    <Tag color="red" style={{ fontSize: '11px', padding: '2px 6px' }}>
+                      ₹{parseFloat(amount).toLocaleString()}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: 'Due Months',
+                  dataIndex: 'due_months',
+                  key: 'due_months',
+                  width: 90,
+                  render: (months) => (
+                    <Tag color="orange" style={{ fontSize: '11px', padding: '2px 6px' }}>
+                      {months} months
+                    </Tag>
                   ),
                 },
                 {
                   title: 'Period',
                   dataIndex: 'fee_period',
                   key: 'fee_period',
+                  width: 80,
                   render: (period) => (
-                    <Tag color="blue">{period}</Tag>
+                    <Tag color="blue" style={{ fontSize: '11px', padding: '2px 6px' }}>
+                      {period}
+                    </Tag>
                   ),
                 },
                 {
                   title: 'Terms',
                   dataIndex: 'number_of_terms',
                   key: 'number_of_terms',
+                  width: 70,
                   render: (terms) => (
-                    <Tag color="purple">{terms} terms</Tag>
+                    <Tag color="purple" style={{ fontSize: '11px', padding: '2px 6px' }}>
+                      {terms}
+                    </Tag>
                   ),
                 },
                 {
-                  title: 'Amount per Term',
+                  title: 'Per Term',
                   dataIndex: 'amount_per_term',
                   key: 'amount_per_term',
+                  width: 90,
                   render: (amount) => (
-                    <Text strong style={{ color: '#1890ff' }}>
+                    <Text style={{ color: '#1890ff', fontSize: '11px' }}>
                       ₹{parseFloat(amount).toLocaleString()}
                     </Text>
                   ),
@@ -1559,29 +1596,24 @@ const FeeManagement = () => {
                   title: 'Status',
                   dataIndex: 'fee_status',
                   key: 'fee_status',
+                  width: 80,
                   render: (status) => (
                     <Tag 
                       style={{ 
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        fontSize: '13px',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
                         fontWeight: 500,
                         background: status === 'paid' ? '#f6ffed' : '#fff2f0',
                         color: status === 'paid' ? '#52c41a' : '#ff4d4f',
                         border: `1px solid ${status === 'paid' ? '#b7eb8f' : '#ffccc7'}`,
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '24px',
-                        lineHeight: '1',
                         margin: 0
                       }}
                     >
                       {status === 'paid' ? (
-                        <CheckCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#52c41a' }} />
+                        <CheckCircleOutlined style={{ fontSize: '10px', marginRight: '2px', color: '#52c41a' }} />
                       ) : (
-                        <CloseCircleOutlined style={{ fontSize: '14px', marginRight: '4px', color: '#ff4d4f' }} />
+                        <CloseCircleOutlined style={{ fontSize: '10px', marginRight: '2px', color: '#ff4d4f' }} />
                       )} 
                       {status}
                     </Tag>
@@ -1591,10 +1623,11 @@ const FeeManagement = () => {
                   title: 'Remarks',
                   dataIndex: 'remarks',
                   key: 'remarks',
+                  width: 120,
                   render: (text) => (
                     <Tooltip title={text}>
-                      <Text ellipsis style={{ maxWidth: 150 }}>
-                        {text}
+                      <Text ellipsis style={{ maxWidth: 100, fontSize: '11px' }}>
+                        {text || 'N/A'}
                       </Text>
                     </Tooltip>
                   ),
@@ -1602,17 +1635,18 @@ const FeeManagement = () => {
                 {
                   title: 'Actions',
                   key: 'actions',
+                  width: 100,
+                  fixed: 'right',
                   render: (_, record) => (
-                    <Space>
+                    <Space size="small">
                       <Tooltip title="View">
                         <Button
                           type="default"
                           icon={<EyeOutlined />}
                           onClick={() => handleViewFee(record)}
                           size="small"
-                        >
-                          View
-                        </Button>
+                          style={{ fontSize: '10px', padding: '2px 6px' }}
+                        />
                       </Tooltip>
                       <Tooltip title="Edit">
                         <Button
@@ -1620,9 +1654,8 @@ const FeeManagement = () => {
                           icon={<EditOutlined />}
                           onClick={() => handleEditFee(record)}
                           size="small"
-                        >
-                          Edit
-                        </Button>
+                          style={{ fontSize: '10px', padding: '2px 6px' }}
+                        />
                       </Tooltip>
                       <Tooltip title="Delete">
                         <Button
@@ -1630,6 +1663,8 @@ const FeeManagement = () => {
                           danger
                           icon={<DeleteOutlined />}
                           onClick={() => handleDeleteFeeDetails(record)}
+                          size="small"
+                          style={{ fontSize: '10px', padding: '2px 6px' }}
                         />
                       </Tooltip>
                     </Space>
@@ -1645,7 +1680,7 @@ const FeeManagement = () => {
                 showTotal: (total) => `Total ${total} fee details`
               }}
               className="fee-management-table"
-              scroll={{ x: 'max-content', y: 'calc(100vh - 280px)' }}
+              scroll={{ x: 1400, y: 'calc(100vh - 280px)' }}
             />
           </TabPane>
           <TabPane
@@ -2232,10 +2267,7 @@ const FeeManagement = () => {
                   ) : (
                     classStudents.map(student => (
                       <Option key={student.id} value={student.id}>
-                        {student.user ? 
-                          `${student.user.first_name} ${student.user.last_name} - ${student.student_profile?.student_id || student.user.id}` :
-                          `${student.first_name} ${student.last_name} - ${student.student_profile?.student_id || student.id}`
-                        }
+                        {`${student.first_name} ${student.last_name} - ${student.student_profile?.student_id || student.id}`}
                       </Option>
                     ))
                   )}
@@ -2851,20 +2883,22 @@ const FeeManagement = () => {
             color: #7B83EB !important;
             font-weight: 600;
             border-bottom: 1px solid #f0f0f0;
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
             white-space: nowrap;
-            height: 32px;
+            height: 40px;
             line-height: 1.2;
-            font-size: 13px;
+            font-size: 12px;
+            min-width: 100px;
           }
 
           .fee-management-table .ant-table-tbody > tr > td {
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
             white-space: nowrap;
             border-bottom: 1px solid #f0f0f0;
-            height: 32px;
-            line-height: 1.2;
-            font-size: 13px;
+            height: 50px;
+            line-height: 1.3;
+            font-size: 12px;
+            vertical-align: top;
           }
 
           .fee-management-table .ant-table-tbody > tr:last-child > td {
@@ -2872,7 +2906,24 @@ const FeeManagement = () => {
           }
 
           .fee-management-table .ant-table-cell {
-            padding: 4px 12px !important;
+            padding: 8px 12px !important;
+          }
+
+          /* Specific styling for fee details table */
+          .fee-management-table .ant-table-tbody > tr > td .ant-tag {
+            margin: 1px 2px;
+            font-size: 10px;
+            padding: 1px 4px;
+            line-height: 1.2;
+          }
+
+          .fee-management-table .ant-table-tbody > tr > td div {
+            line-height: 1.3;
+          }
+
+          .fee-management-table .ant-table-tbody > tr > td .ant-space {
+            display: flex;
+            align-items: center;
           }
 
           .fee-management-table .ant-table-cell .ant-tag {
