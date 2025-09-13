@@ -107,10 +107,11 @@ const cld = new Cloudinary({
   }
 });
 
-const StudentView = ({ visible, onCancel, student }) => {
+const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { refreshStudents } = useStudents();
   const [editingSection, setEditingSection] = useState(null);
@@ -130,15 +131,73 @@ const StudentView = ({ visible, onCancel, student }) => {
 
   const handleSaveEdit = async (section) => {
     try {
-      // Here you would typically make an API call to update the student
-      await studentAPI.updateStudent(student.id, editedValues);
+      setIsSaving(true);
+      // Prepare the update data based on the section being edited
+      const updateData = {};
+      
+      if (section === 'basic') {
+        updateData.first_name = editedValues.first_name;
+        updateData.last_name = editedValues.last_name;
+        updateData.email = editedValues.email;
+        updateData.phone = editedValues.phone;
+        updateData.gender = editedValues.gender;
+        updateData.dob = editedValues.dob?.format('YYYY-MM-DD');
+      } else if (section === 'contact') {
+        updateData.email = editedValues.email;
+        updateData.phone = editedValues.phone;
+        updateData.parent_address = editedValues.parent_address;
+      } else if (section === 'academic') {
+        updateData.student_profile = {
+          student_id: editedValues.student_id,
+          admission_number: editedValues.admission_number,
+          admission_date: editedValues.admission_date?.format('YYYY-MM-DD'),
+          last_grade_attended: editedValues.last_grade_attended,
+          roll_no: editedValues.roll_no,
+          section: editedValues.section
+        };
+      } else if (section === 'parent') {
+        updateData.student_profile = {
+          father_name: editedValues.father_name,
+          father_occupation: editedValues.father_occupation,
+          mother_name: editedValues.mother_name,
+          mother_occupation: editedValues.mother_occupation,
+          parent_address: editedValues.parent_address,
+          parent_email: editedValues.parent_email,
+          parent_phone: editedValues.parent_phone
+        };
+      } else if (section === 'profile') {
+        updateData.profile = {
+          nationality: editedValues.profile?.nationality,
+          blood_group: editedValues.blood_group
+        };
+      }
+      
+      // Create FormData for the update
+      const formData = new FormData();
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (key === 'profile' || key === 'student_profile') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      
+      await api.student.updateStudent(student.user_id || student.id, formData);
       messageApi.success('Student information updated successfully');
+      
+      // Refresh the student data to show updated information
+      if (onStudentUpdate) {
+        await onStudentUpdate(student.user_id || student.id);
+      }
+      
       refreshStudents();
       setEditingSection(null);
       setEditedValues({});
     } catch (error) {
       console.error('Error updating student:', error);
       messageApi.error('Failed to update student information');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -275,8 +334,15 @@ const StudentView = ({ visible, onCancel, student }) => {
   return (
     <>
       {contextHolder}
-      <Spin spinning={isEditing || isDeleting} tip="Loading..." size="small">
-        <div style={{ width: '100%', textAlign: 'left' }}>
+      <Spin spinning={isEditing || isDeleting || isSaving} tip="Loading..." size="small">
+        <div style={{ 
+          width: '100%', 
+          textAlign: 'left',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
           <div style={{ 
             height: '1.25in',
             backgroundColor: '#f5f5f5',
@@ -286,7 +352,8 @@ const StudentView = ({ visible, onCancel, student }) => {
             gap: '8px',
             width: '100%',
             textAlign: 'left',
-            position: 'relative'
+            position: 'relative',
+            flexShrink: 0
           }}>
             <div style={{ 
               display: 'flex', 
@@ -343,7 +410,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                   </Typography.Title>
                 )}
                 <Typography.Text copyable style={{ color: '#666', fontSize: '14px' }}>
-                  #{student.student_id}
+                  #{student.student_id || student.user_id}
                 </Typography.Text>
               </div>
 
@@ -502,7 +569,9 @@ const StudentView = ({ visible, onCancel, student }) => {
 
           <div style={{ 
             padding: '16px 24px',
-            borderBottom: '1px solid #f0f0f0'
+            borderBottom: '1px solid #f0f0f0',
+            flex: 1,
+            overflow: 'auto'
           }}>
             <Tabs
               defaultActiveKey="details"
@@ -519,10 +588,19 @@ const StudentView = ({ visible, onCancel, student }) => {
                               <span>Contact Information</span>
                               {editingSection === 'contact' ? (
                                 <Space>
-                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('contact')}>
+                                  <Button 
+                                    type="primary" 
+                                    size="small" 
+                                    onClick={() => handleSaveEdit('contact')}
+                                    loading={isSaving}
+                                  >
                                     Save
                                   </Button>
-                                  <Button size="small" onClick={handleCancelEdit}>
+                                  <Button 
+                                    size="small" 
+                                    onClick={handleCancelEdit}
+                                    disabled={isSaving}
+                                  >
                                     Cancel
                                   </Button>
                                 </Space>
@@ -567,10 +645,19 @@ const StudentView = ({ visible, onCancel, student }) => {
                               <span>Academic Profile</span>
                               {editingSection === 'academic' ? (
                                 <Space>
-                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('academic')}>
+                                  <Button 
+                                    type="primary" 
+                                    size="small" 
+                                    onClick={() => handleSaveEdit('academic')}
+                                    loading={isSaving}
+                                  >
                                     Save
                                   </Button>
-                                  <Button size="small" onClick={handleCancelEdit}>
+                                  <Button 
+                                    size="small" 
+                                    onClick={handleCancelEdit}
+                                    disabled={isSaving}
+                                  >
                                     Cancel
                                   </Button>
                                 </Space>
@@ -602,7 +689,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                               {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />, 'class_name', 'academic')}
                             </Col>
                             <Col span={12}>
-                              {renderDetailItem('Roll Number', student.id, <IdcardOutlined />, 'id', 'academic')}
+                              {renderDetailItem('Roll Number', student.roll_no, <IdcardOutlined />, 'roll_no', 'academic')}
                             </Col>
                             <Col span={12}>
                               {renderDetailItem('Last Grade Attended', student.last_grade_attended, <TrophyOutlined />, 'last_grade_attended', 'academic')}
@@ -625,10 +712,19 @@ const StudentView = ({ visible, onCancel, student }) => {
                               <span>Parent Information</span>
                               {editingSection === 'parent' ? (
                                 <Space>
-                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('parent')}>
+                                  <Button 
+                                    type="primary" 
+                                    size="small" 
+                                    onClick={() => handleSaveEdit('parent')}
+                                    loading={isSaving}
+                                  >
                                     Save
                                   </Button>
-                                  <Button size="small" onClick={handleCancelEdit}>
+                                  <Button 
+                                    size="small" 
+                                    onClick={handleCancelEdit}
+                                    disabled={isSaving}
+                                  >
                                     Cancel
                                   </Button>
                                 </Space>
@@ -737,7 +833,7 @@ const StudentView = ({ visible, onCancel, student }) => {
                               {student.first_name} {student.last_name}
                             </Typography.Title>
                             <Typography.Text type="secondary">
-                              #{student.student_id}
+                              #{student.student_id || student.user_id}
                             </Typography.Text>
                           </div>
                           <Divider />
@@ -746,10 +842,19 @@ const StudentView = ({ visible, onCancel, student }) => {
                               <Typography.Title level={5} style={{ margin: 0 }}>Basic Information</Typography.Title>
                               {editingSection === 'profile' ? (
                                 <Space>
-                                  <Button type="primary" size="small" onClick={() => handleSaveEdit('profile')}>
+                                  <Button 
+                                    type="primary" 
+                                    size="small" 
+                                    onClick={() => handleSaveEdit('profile')}
+                                    loading={isSaving}
+                                  >
                                     Save
                                   </Button>
-                                  <Button size="small" onClick={handleCancelEdit}>
+                                  <Button 
+                                    size="small" 
+                                    onClick={handleCancelEdit}
+                                    disabled={isSaving}
+                                  >
                                     Cancel
                                   </Button>
                                 </Space>
@@ -2066,7 +2171,7 @@ const Students = forwardRef((props, ref) => {
     try {
       setTableLoading(true);
       const response = await api.student.getStudent(studentId);
-      if (response.success) {
+      if (response.data) {
         const studentData = response.data;
         const formValues = {
           first_name: studentData.first_name,
@@ -2104,6 +2209,7 @@ const Students = forwardRef((props, ref) => {
         setEditingStudent({
           ...formValues,
           id: studentId,
+          user_id: studentData.user_id,
           isViewMode: true
         });
         setModalVisible(true);
@@ -2528,6 +2634,56 @@ const Students = forwardRef((props, ref) => {
     navigate(`/students/view/${student.user_id}`);
   };
 
+  const handleStudentUpdate = async (studentId) => {
+    try {
+      const response = await api.student.getStudent(studentId);
+      if (response.data) {
+        const studentData = response.data;
+        const formValues = {
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          email: studentData.email,
+          phone: studentData.phone,
+          gender: studentData.gender,
+          dob: studentData.dob ? moment(studentData.dob) : null,
+          blood_group: studentData.profile?.blood_group,
+          profile: {
+            nationality: studentData.profile?.nationality,
+            classroom_id: studentData.student_profile?.classroom,
+            class_name: studentData.profile?.class_name
+          },
+          student_id: studentData.student_profile?.student_id,
+          admission_number: studentData.student_profile?.admission_number,
+          admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
+          last_grade_attended: studentData.student_profile?.last_grade_attended,
+          roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
+          father_name: studentData.student_profile?.father_name,
+          father_occupation: studentData.student_profile?.father_occupation,
+          mother_name: studentData.student_profile?.mother_name,
+          mother_occupation: studentData.student_profile?.mother_occupation,
+          parent_address: studentData.student_profile?.parent_address,
+          parent_email: studentData.student_profile?.parent_email,
+          parent_phone: studentData.student_profile?.parent_phone,
+          allergies: studentData.student_profile?.allergies,
+          remarks: studentData.student_profile?.remarks,
+          fee_details: studentData.student_profile?.fee_details || [],
+          photo: studentData.profile?.photo,
+          status: studentData.status
+        };
+        
+        setEditingStudent({
+          ...formValues,
+          id: studentId,
+          user_id: studentData.user_id,
+          isViewMode: true
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing student data:', error);
+    }
+  };
+
   const handleBulkDelete = async () => {
     try {
       const deletePromises = selectedRowKeys.map(id => api.student.deleteStudent(id));
@@ -2882,6 +3038,7 @@ const Students = forwardRef((props, ref) => {
             visible={modalVisible}
             onCancel={handleCancel}
             student={editingStudent}
+            onStudentUpdate={handleStudentUpdate}
           />
         ) : (
           <StudentForm
