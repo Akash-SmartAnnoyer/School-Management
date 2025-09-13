@@ -102,6 +102,10 @@ const FeeManagement = () => {
   const [viewPaymentModalVisible, setViewPaymentModalVisible] = useState(false);
   const [viewingPayment, setViewingPayment] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedPaymentClass, setSelectedPaymentClass] = useState(null);
+  const [selectedPaymentStudent, setSelectedPaymentStudent] = useState(null);
+  const [paymentClassStudents, setPaymentClassStudents] = useState([]);
+  const [loadingPaymentClassStudents, setLoadingPaymentClassStudents] = useState(false);
 
   // Get unique classes from students
   const uniqueClasses = [...new Set(allStudents.map(student => student.profile?.classroom_id))];
@@ -231,7 +235,9 @@ const FeeManagement = () => {
         }
       } else if (activeTab === '3') {
         // Load fee details
+        console.log('Loading fee details...'); // Debug log
         const response = await api.fee.getFeeDues(searchText ? `?search=${searchText}` : '');
+        console.log('Fee details API response:', response); // Debug log
         if (response.success) {
           // Load all students if not already loaded or if we have few students
           let allStudentsData = allStudents;
@@ -268,6 +274,7 @@ const FeeManagement = () => {
               student_id: studentId
             };
           });
+          console.log('Setting fee details:', feeDetails); // Debug log
           setFeeDetails(feeDetails);
         } else {
           messageApi.error(response.error || 'Failed to load fee details');
@@ -376,33 +383,33 @@ const FeeManagement = () => {
         return;
       }
 
-      // Find the student
-      const student = allStudents.find(s => s.id === feeDue.student_id);
-      if (!student) {
-        messageApi.error('Student not found');
-        return;
-      }
-
       const paymentData = {
-        student: feeDue.student_id,
+        student: values.student_id || feeDue.student_id,
         fee: feeDue.id,
-        payment_date: values.payment_date.format('YYYY-MM-DD'),
-        payment_mode: values.payment_mode.toLowerCase(),
         amount: parseFloat(values.amount),
-        fee_type: feeDue.fee_type,
-        remarks: values.remarks,
-        transaction_id: values.transaction_id,
-        status: values.status
+        date: values.payment_date.format('YYYY-MM-DD'),
+        payment_mode: values.payment_mode.toLowerCase(),
+        remarks: values.remarks
       };
 
+      console.log('Creating payment with data:', paymentData); // Debug log
       const response = await api.fee.createPayment(paymentData);
       
       if (response.success) {
+        console.log('Payment created successfully:', response.data); // Debug log
         messageApi.success('Payment recorded successfully');
         setPaymentModalVisible(false);
         paymentForm.resetFields();
-        loadData(); // Reload both tables
+        setSelectedPaymentClass(null);
+        setSelectedPaymentStudent(null);
+        setPaymentClassStudents([]);
+        // Ensure data refresh happens after modal is closed
+        setTimeout(() => {
+          console.log('Refreshing data after payment creation...'); // Debug log
+          loadData();
+        }, 100);
       } else {
+        console.error('Failed to create payment:', response.error); // Debug log
         messageApi.error(response.error || 'Failed to record payment');
       }
     } catch (error) {
@@ -428,15 +435,20 @@ const FeeManagement = () => {
       const response = await api.fee.getPaymentById(payment.id);
       if (response.success) {
         const paymentDetails = response.data;
+        console.log('Fetched payment data:', paymentDetails); // Debug log
         setEditingPayment(paymentDetails);
-        form.setFieldsValue({
+        
+        // Set form values for editing
+        const formValues = {
           amount: parseFloat(paymentDetails.amount),
           payment_mode: paymentDetails.payment_mode,
           payment_date: moment(paymentDetails.date || paymentDetails.payment_date),
           remarks: paymentDetails.remarks,
           transaction_id: paymentDetails.transaction_id || `TXN${Date.now()}`,
           status: paymentDetails.status || 'successful'
-        });
+        };
+        console.log('Setting payment form values:', formValues); // Debug log
+        form.setFieldsValue(formValues);
         setEditPaymentModalVisible(true);
       } else {
         messageApi.error(response.error || 'Failed to fetch payment details');
@@ -497,22 +509,31 @@ const FeeManagement = () => {
         return;
       }
       
-      const response = await api.fee.updatePayment(editingPayment.id, {
+      const updateData = {
         amount: parseFloat(values.amount),
-        payment_mode: values.payment_mode.toLowerCase(),
+        status: values.status,
         payment_date: values.payment_date.format('YYYY-MM-DD'),
+        payment_mode: values.payment_mode.toLowerCase(),
         remarks: values.remarks,
-        transaction_id: values.transaction_id,
-        status: values.status
-      });
+        transaction_id: values.transaction_id
+      };
+      
+      console.log('Updating payment with data:', updateData); // Debug log
+      const response = await api.fee.updatePayment(editingPayment.id, updateData);
       
       if (response.success) {
+        console.log('Payment updated successfully:', response.data); // Debug log
         messageApi.success(`Payment updated successfully! Amount: ₹${response.data.amount}, Status: ${response.data.status}`);
         setEditPaymentModalVisible(false);
         setEditingPayment(null);
         form.resetFields();
-        loadData();
+        // Ensure data refresh happens after modal is closed
+        setTimeout(() => {
+          console.log('Refreshing data after payment update...'); // Debug log
+          loadData();
+        }, 100);
       } else {
+        console.error('Failed to update payment:', response.error); // Debug log
         messageApi.error(response.error || 'Failed to update payment');
       }
     } catch (error) {
@@ -581,14 +602,20 @@ const FeeManagement = () => {
         });
         
         if (response.success) {
+          console.log('Fee record created successfully:', response.data); // Debug log
           messageApi.success('Fee record created successfully');
           setFeeDetailsModalVisible(false);
           feeDetailsForm.resetFields();
           setSelectedClass(null);
           setSelectedStudentForFee(null);
           setClassStudents([]);
-          loadData();
+          // Ensure data refresh happens after modal is closed
+          setTimeout(() => {
+            console.log('Refreshing data after fee creation...'); // Debug log
+            loadData();
+          }, 100);
         } else {
+          console.error('Failed to create fee record:', response.error); // Debug log
           messageApi.error(response.error || 'Failed to create fee record');
         }
       }
@@ -663,6 +690,67 @@ const FeeManagement = () => {
 
   const handleStudentChange = (studentId) => {
     setSelectedStudentForFee(studentId);
+  };
+
+  const handlePaymentClassChange = async (classId) => {
+    setSelectedPaymentClass(classId);
+    setSelectedPaymentStudent(null);
+    setPaymentClassStudents([]);
+    
+    if (classId) {
+      await loadPaymentStudentsByClass(classId);
+    }
+  };
+
+  const loadPaymentStudentsByClass = async (classId) => {
+    try {
+      setLoadingPaymentClassStudents(true);
+      const response = await api.class.getClass(classId);
+      if (response.success) {
+        const classData = response.data;
+        const students = classData.students || [];
+        
+        if (students.length === 0) {
+          setPaymentClassStudents([]);
+          messageApi.info('No students found in this class.');
+        } else {
+          // Transform the students data to match the expected format
+          const transformedStudents = students.map(student => ({
+            id: student.id,
+            user_id: student.user?.id,
+            first_name: student.user?.first_name || student.first_name,
+            last_name: student.user?.last_name || student.last_name,
+            name: `${student.user?.first_name || student.first_name} ${student.user?.last_name || student.last_name}`,
+            student_profile: {
+              student_id: student.student_profile?.student_id || student.id.toString()
+            },
+            profile: {
+              classroom_id: classId,
+              class: `${classData.class_name} - ${classData.section}`,
+              section: classData.section
+            },
+            gender: student.user?.gender || student.gender,
+            status: "Active",
+            roll_no: student.roll_no || 1,
+            photo: student.user?.photo || student.photo
+          }));
+          setPaymentClassStudents(transformedStudents);
+        }
+      } else {
+        messageApi.error(response.error || 'Failed to load class details');
+        setPaymentClassStudents([]);
+      }
+    } catch (error) {
+      console.error('Error loading class details:', error);
+      messageApi.error('Failed to load class details');
+      setPaymentClassStudents([]);
+    } finally {
+      setLoadingPaymentClassStudents(false);
+    }
+  };
+
+  const handlePaymentStudentChange = (studentId) => {
+    setSelectedPaymentStudent(studentId);
   };
 
   const handleViewFee = async (fee) => {
@@ -2021,6 +2109,9 @@ const FeeManagement = () => {
         onCancel={() => {
           setPaymentModalVisible(false);
           paymentForm.resetFields();
+          setSelectedPaymentClass(null);
+          setSelectedPaymentStudent(null);
+          setPaymentClassStudents([]);
         }}
         width={800}
         footer={null}
@@ -2033,6 +2124,66 @@ const FeeManagement = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
+                label="Class"
+                name="class_id"
+                rules={[{ required: true, message: 'Please select class' }]}
+              >
+                <Select
+                  placeholder="Select class"
+                  loading={classesLoading}
+                  onChange={handlePaymentClassChange}
+                  notFoundContent={classesLoading ? <span>Loading classes...</span> : <span>No classes found</span>}
+                >
+                  {classes.map(cls => (
+                    <Option key={cls.id} value={cls.id}>
+                      {cls.class_name} - Section {cls.section}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Student"
+                name="student_id"
+                rules={[{ required: true, message: 'Please select student' }]}
+              >
+                <Select
+                  placeholder={
+                    selectedPaymentClass ? 
+                      (loadingPaymentClassStudents ? "Loading students..." : `Select student (${paymentClassStudents.length} available)`) : 
+                      "Please select a class first"
+                  }
+                  loading={loadingPaymentClassStudents}
+                  disabled={!selectedPaymentClass}
+                  onChange={handlePaymentStudentChange}
+                  notFoundContent={
+                    !selectedPaymentClass ? 
+                      <span>Please select a class first</span> : 
+                      loadingPaymentClassStudents ? 
+                        <span>Loading students...</span> : 
+                        <span>No students found in this class</span>
+                  }
+                >
+                  {loadingPaymentClassStudents ? (
+                    <Option disabled>
+                      <span style={{ color: '#999' }}>Loading students...</span>
+                    </Option>
+                  ) : (
+                    paymentClassStudents.map(student => (
+                      <Option key={student.id} value={student.id}>
+                        {`${student.first_name} ${student.last_name} - ${student.student_profile?.student_id || student.id}`}
+                      </Option>
+                    ))
+                  )}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
                 label="Fee Due"
                 name="fee_due"
                 rules={[{ required: true, message: 'Please select fee due' }]}
@@ -2041,6 +2192,7 @@ const FeeManagement = () => {
                   showSearch
                   placeholder="Select fee due"
                   optionFilterProp="children"
+                  disabled={!selectedPaymentStudent}
                   onChange={(value) => {
                     const selectedFee = feeDetails.find(fee => fee.id === value);
                     if (selectedFee) {
@@ -2052,7 +2204,7 @@ const FeeManagement = () => {
                   }}
                 >
                   {feeDetails
-                    .filter(fee => fee.fee_status !== 'paid')
+                    .filter(fee => fee.fee_status !== 'paid' && (!selectedPaymentStudent || fee.student === selectedPaymentStudent))
                     .map(fee => (
                       <Option key={fee.id} value={fee.id}>
                         {fee.student} - {fee.fee_type} - ₹{parseFloat(fee.payable_amount).toLocaleString()}
