@@ -92,7 +92,7 @@ export const getTeachersSampleData = () => [
 
 export const getClassesSampleData = () => [
   {
-    'Class Name': 'Class 10',
+    'Class': 'Class 10',
     'Section': 'A',
     'Teacher Name': 'Alice Johnson',
     'Teacher Email': 'alice.johnson@school.com',
@@ -105,7 +105,7 @@ export const getClassesSampleData = () => [
     'Description': 'Advanced Mathematics for Class 10'
   },
   {
-    'Class Name': 'Class 9',
+    'Class': 'Class 9',
     'Section': 'B',
     'Teacher Name': 'Robert Brown',
     'Teacher Email': 'robert.brown@school.com',

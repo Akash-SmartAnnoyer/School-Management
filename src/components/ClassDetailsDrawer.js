@@ -210,7 +210,7 @@ const ClassDetailsDrawer = ({ visible, onClose, classData }) => {
               column={2}
               style={{ marginBottom: '24px' }}
             >
-              <Descriptions.Item label="Class Name" labelStyle={{ fontWeight: 500 }}>{classDetails?.class_name}</Descriptions.Item>
+              <Descriptions.Item label="Class" labelStyle={{ fontWeight: 500 }}>{classDetails?.class_name}</Descriptions.Item>
               <Descriptions.Item label="Section" labelStyle={{ fontWeight: 500 }}>
                 <Tag 
                   style={{ 
