@@ -64,7 +64,7 @@ const Classes = forwardRef((props, ref) => {
     handleCheckAll,
     getVisibleColumns
   } = useColumnSettings([
-    { key: 'class_name', title: 'Class Name', visible: true, order: 0 },
+    { key: 'class_name', title: 'Class', visible: true, order: 0 },
     { key: 'section', title: 'Section', visible: true, order: 1 },
     { key: 'teacher', title: 'Class Teacher', visible: true, order: 2 },
     { key: 'students', title: 'Students', visible: true, order: 3 },
@@ -178,7 +178,7 @@ const Classes = forwardRef((props, ref) => {
 
   const columns = [
     {
-      title: 'Class Name',
+      title: 'Class',
       dataIndex: 'class_name',
       key: 'class_name',
       render: (text, record) => (
@@ -559,7 +559,7 @@ const Classes = forwardRef((props, ref) => {
                 >
                   <Form.Item
                     name="className"
-                    label="Class Name"
+                    label="Class"
                     rules={[{ required: true, message: 'Please enter class name' }]}
                   >
                     <Input prefix={<BookOutlined style={{ color: '#bfbfbf' }} />} />

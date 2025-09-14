@@ -1304,7 +1304,7 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
 
                   <Form.Item
                     name={['profile', 'class_name']}
-                    label="Class Name"
+                    label="Class"
                     rules={[{ required: true, message: 'Please input class name!' }]}
                   >
                     <Input />
