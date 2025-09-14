@@ -1239,26 +1239,6 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                     </Col>
                   </Row>
 
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="roll_no"
-                        label="Roll Number"
-                        rules={[{ required: true, message: 'Please input roll number!' }]}
-                      >
-                        <Input type="number" />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name="section"
-                        label="Section"
-                        rules={[{ required: true, message: 'Please input section!' }]}
-                      >
-                        <Input />
-                      </Form.Item>
-                    </Col>
-                  </Row>
                 </Card>
 
                 <Card 
@@ -1495,17 +1475,17 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                   </Form.Item>
 
                   <Form.Item
-                    name={['profile', 'nationality']}
-                    label="Nationality"
-                    rules={[{ required: true, message: 'Please input nationality!' }]}
+                    name="roll_no"
+                    label="Roll Number"
+                    rules={[{ required: true, message: 'Please input roll number!' }]}
                   >
-                    <Input />
+                    <Input type="number" />
                   </Form.Item>
 
                   <Form.Item
-                    name={['profile', 'class_name']}
-                    label="Class"
-                    rules={[{ required: true, message: 'Please input class name!' }]}
+                    name={['profile', 'nationality']}
+                    label="Nationality"
+                    rules={[{ required: true, message: 'Please input nationality!' }]}
                   >
                     <Input />
                   </Form.Item>
@@ -2242,7 +2222,6 @@ const Students = forwardRef((props, ref) => {
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
-          section: studentData.student_profile?.section,
           father_name: studentData.student_profile?.father_name,
           father_occupation: studentData.student_profile?.father_occupation,
           mother_name: studentData.student_profile?.mother_name,
@@ -2298,7 +2277,6 @@ const Students = forwardRef((props, ref) => {
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
-          section: studentData.student_profile?.section,
           father_name: studentData.student_profile?.father_name,
           father_occupation: studentData.student_profile?.father_occupation,
           mother_name: studentData.student_profile?.mother_name,
@@ -2415,9 +2393,11 @@ const Students = forwardRef((props, ref) => {
         }
         if (values.profile?.classroom_id !== editingStudent.profile?.classroom_id) {
           profileChanges.classroom_id = values.profile?.classroom_id;
-        }
-        if (values.profile?.class_name !== editingStudent.profile?.class_name) {
-          profileChanges.class_name = values.profile?.class_name;
+          // Extract class_name and section from selected class
+          const selectedClass = classes.find(cls => cls.id === values.profile?.classroom_id);
+          if (selectedClass) {
+            profileChanges.class_name = selectedClass.class_name;
+          }
         }
         if (values.blood_group !== editingStudent.blood_group) {
           profileChanges.blood_group = values.blood_group;
@@ -2443,8 +2423,13 @@ const Students = forwardRef((props, ref) => {
         if (values.roll_no !== editingStudent.roll_no) {
           studentProfileChanges.roll_no = values.roll_no;
         }
-        if (values.section !== editingStudent.section) {
-          studentProfileChanges.section = values.section;
+        // Extract section and classroom from selected class if classroom_id changed
+        if (values.profile?.classroom_id !== editingStudent.profile?.classroom_id) {
+          const selectedClass = classes.find(cls => cls.id === values.profile?.classroom_id);
+          if (selectedClass) {
+            studentProfileChanges.section = selectedClass.section;
+            studentProfileChanges.classroom = values.profile?.classroom_id;
+          }
         }
         if (values.father_name !== editingStudent.father_name) {
           studentProfileChanges.father_name = values.father_name;
@@ -2543,6 +2528,11 @@ const Students = forwardRef((props, ref) => {
           return;
         }
       } else {
+        // Extract class_name and section from selected class
+        const selectedClass = classes.find(cls => cls.id === values.profile?.classroom_id);
+        const class_name = selectedClass?.class_name || '';
+        const section = selectedClass?.section || '';
+
         // Format the data for create
         const createData = {
           first_name: values.first_name,
@@ -2557,7 +2547,7 @@ const Students = forwardRef((props, ref) => {
           profile: {
             nationality: values.profile?.nationality,
             classroom_id: values.profile?.classroom_id,
-            class_name: values.profile?.class_name,
+            class_name: class_name,
             blood_group: values.blood_group
           },
           student_profile: {
@@ -2566,7 +2556,8 @@ const Students = forwardRef((props, ref) => {
             admission_date: values.admission_date.format('YYYY-MM-DD'),
             last_grade_attended: values.last_grade_attended,
             roll_no: values.roll_no,
-            section: values.section,
+            section: section,
+            classroom: values.profile?.classroom_id,
             father_name: values.father_name,
             father_occupation: values.father_occupation,
             mother_name: values.mother_name,
@@ -2764,7 +2755,6 @@ const Students = forwardRef((props, ref) => {
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
-          section: studentData.student_profile?.section,
           father_name: studentData.student_profile?.father_name,
           father_occupation: studentData.student_profile?.father_occupation,
           mother_name: studentData.student_profile?.mother_name,
