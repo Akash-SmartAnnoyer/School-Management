@@ -577,7 +577,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     try {
       setLoading(true);
       const [studentsResponse, classesResponse, subjectsResponse, examsResponse, marksResponse] = await Promise.all([
-        api.student.getStudents(),
+        api.student.getAllStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
         api.exam.getExams(),
@@ -585,7 +585,9 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       ]);
       
       if (studentsResponse.success) {
-        setLocalStudents(studentsResponse.data.results || []);
+        const studentsData = studentsResponse.data.results || [];
+        setLocalStudents(studentsData);
+        console.log('Loaded students for marks:', studentsData);
       }
       if (classesResponse.success) {
         setLocalClasses(classesResponse.data.results || []);
@@ -600,7 +602,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         const marksData = marksResponse.data.results || marksResponse.data || [];
         setAllMarks(marksData);
         setMarks(marksData);
-        console.log(`Loaded ${marksData.length} marks entries`);
+        console.log(`Loaded ${marksData.length} marks entries`, marksData);
       }
     } catch (error) {
       messageApi.error('Failed to load initial data');
@@ -713,7 +715,18 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
 
   const getStudentName = (studentId) => {
     const student = localStudents?.find(s => s.id === studentId);
-    return student ? `${student.user?.first_name} ${student.user?.last_name}` : 'Unknown Student';
+    if (!student) return 'Unknown Student';
+    
+    // Handle different student data structures
+    if (student.user?.first_name && student.user?.last_name) {
+      return `${student.user.first_name} ${student.user.last_name}`;
+    } else if (student.first_name && student.last_name) {
+      return `${student.first_name} ${student.last_name}`;
+    } else if (student.name) {
+      return student.name;
+    }
+    
+    return `Student ${studentId}`;
   };
 
   const getSubjectName = (subjectId) => {
