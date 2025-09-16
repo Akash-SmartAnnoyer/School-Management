@@ -1232,9 +1232,25 @@ const StudentForm = ({ visible, onCancel, onSubmit, initialValues, loading }) =>
                       <Form.Item
                         name="last_grade_attended"
                         label="Last Grade Attended"
-                        rules={[{ required: true, message: 'Please input last grade attended!' }]}
+                        rules={[{ required: true, message: 'Please select last grade attended!' }]}
                       >
-                        <Input />
+                        <Select placeholder="Select last grade attended">
+                          <Select.Option value="Nursery">Nursery</Select.Option>
+                          <Select.Option value="LKG">LKG</Select.Option>
+                          <Select.Option value="UKG">UKG</Select.Option>
+                          <Select.Option value="1st Grade">1st Grade</Select.Option>
+                          <Select.Option value="2nd Grade">2nd Grade</Select.Option>
+                          <Select.Option value="3rd Grade">3rd Grade</Select.Option>
+                          <Select.Option value="4th Grade">4th Grade</Select.Option>
+                          <Select.Option value="5th Grade">5th Grade</Select.Option>
+                          <Select.Option value="6th Grade">6th Grade</Select.Option>
+                          <Select.Option value="7th Grade">7th Grade</Select.Option>
+                          <Select.Option value="8th Grade">8th Grade</Select.Option>
+                          <Select.Option value="9th Grade">9th Grade</Select.Option>
+                          <Select.Option value="10th Grade">10th Grade</Select.Option>
+                          <Select.Option value="11th Grade">11th Grade</Select.Option>
+                          <Select.Option value="12th Grade">12th Grade</Select.Option>
+                        </Select>
                       </Form.Item>
                     </Col>
                   </Row>
