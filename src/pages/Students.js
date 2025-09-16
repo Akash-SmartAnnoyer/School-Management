@@ -214,7 +214,7 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      await studentAPI.deleteStudent(student.id);
+      await studentAPI.deleteStudent(student.user_id || student.id);
       messageApi.success('Student deleted successfully');
       refreshStudents(); // Refresh the student list
       onCancel(); // Close the view modal
@@ -3068,7 +3068,7 @@ const Students = forwardRef((props, ref) => {
           </Tooltip>
           <Popconfirm
             title="Are you sure you want to delete this student?"
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(record.user_id || record.id)}
             okText="Yes"
             cancelText="No"
           >
