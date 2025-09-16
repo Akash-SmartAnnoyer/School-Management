@@ -437,7 +437,7 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                 ) : (
                   <>
                     <Typography.Text strong style={{ fontSize: '16px' }}>
-                      {getRomanNumeral(student.profile?.class_name)}-{student.section}
+                      {getRomanNumeral(student.profile?.class_name)}-{student.student_profile?.section}
                     </Typography.Text>
                     <Button 
                       type="text" 
@@ -735,7 +735,7 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                         >
                           <Row gutter={[16, 8]}>
                             <Col span={12}>
-                              {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.section}`, <BookOutlined />, 'class_name', 'academic')}
+                              {renderDetailItem('Class', `${getRomanNumeral(student.profile?.class_name)}-${student.student_profile?.section}`, <BookOutlined />, 'class_name', 'academic')}
                             </Col>
                             <Col span={12}>
                               {renderDetailItem('Roll Number', student.roll_no, <IdcardOutlined />, 'roll_no', 'academic')}
@@ -2217,11 +2217,30 @@ const Students = forwardRef((props, ref) => {
             classroom_id: studentData.student_profile?.classroom,
             class_name: studentData.profile?.class_name
           },
+          student_profile: {
+            student_id: studentData.student_profile?.student_id,
+            admission_number: studentData.student_profile?.admission_number,
+            admission_date: studentData.student_profile?.admission_date,
+            last_grade_attended: studentData.student_profile?.last_grade_attended,
+            roll_no: studentData.student_profile?.roll_no,
+            section: studentData.student_profile?.section,
+            father_name: studentData.student_profile?.father_name,
+            father_occupation: studentData.student_profile?.father_occupation,
+            mother_name: studentData.student_profile?.mother_name,
+            mother_occupation: studentData.student_profile?.mother_occupation,
+            parent_address: studentData.student_profile?.parent_address,
+            parent_email: studentData.student_profile?.parent_email,
+            parent_phone: studentData.student_profile?.parent_phone,
+            allergies: studentData.student_profile?.allergies,
+            remarks: studentData.student_profile?.remarks,
+            classroom: studentData.student_profile?.classroom
+          },
           student_id: studentData.student_profile?.student_id,
           admission_number: studentData.student_profile?.admission_number,
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
           father_name: studentData.student_profile?.father_name,
           father_occupation: studentData.student_profile?.father_occupation,
           mother_name: studentData.student_profile?.mother_name,
@@ -2272,11 +2291,30 @@ const Students = forwardRef((props, ref) => {
             classroom_id: studentData.student_profile?.classroom,
             class_name: studentData.profile?.class_name
           },
+          student_profile: {
+            student_id: studentData.student_profile?.student_id,
+            admission_number: studentData.student_profile?.admission_number,
+            admission_date: studentData.student_profile?.admission_date,
+            last_grade_attended: studentData.student_profile?.last_grade_attended,
+            roll_no: studentData.student_profile?.roll_no,
+            section: studentData.student_profile?.section,
+            father_name: studentData.student_profile?.father_name,
+            father_occupation: studentData.student_profile?.father_occupation,
+            mother_name: studentData.student_profile?.mother_name,
+            mother_occupation: studentData.student_profile?.mother_occupation,
+            parent_address: studentData.student_profile?.parent_address,
+            parent_email: studentData.student_profile?.parent_email,
+            parent_phone: studentData.student_profile?.parent_phone,
+            allergies: studentData.student_profile?.allergies,
+            remarks: studentData.student_profile?.remarks,
+            classroom: studentData.student_profile?.classroom
+          },
           student_id: studentData.student_profile?.student_id,
           admission_number: studentData.student_profile?.admission_number,
           admission_date: studentData.student_profile?.admission_date ? moment(studentData.student_profile.admission_date) : null,
           last_grade_attended: studentData.student_profile?.last_grade_attended,
           roll_no: studentData.student_profile?.roll_no,
+          section: studentData.student_profile?.section,
           father_name: studentData.student_profile?.father_name,
           father_occupation: studentData.student_profile?.father_occupation,
           mother_name: studentData.student_profile?.mother_name,

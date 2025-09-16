@@ -86,7 +86,7 @@ const feeService = {
         student: student.name,
         student_id: student.student_id,
         class: student.class,
-        section: student.section,
+        section: student.student_profile?.section,
         fee_type: student.fee_type,
         amount: paymentData.amount,
         payment_mode: paymentData.payment_mode,

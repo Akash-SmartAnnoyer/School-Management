@@ -154,7 +154,7 @@ const StudentDetailsDrawer = ({ visible, onClose, student }) => {
           {renderDetailItem('Roll Number', student.roll_no)}
         </Col>
         <Col span={12}>
-          {renderDetailItem('Section', student.section)}
+          {renderDetailItem('Section', student.student_profile?.section)}
         </Col>
       </Row>
     </Card>
