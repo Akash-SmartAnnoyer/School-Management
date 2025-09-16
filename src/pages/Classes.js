@@ -94,9 +94,9 @@ const Classes = forwardRef((props, ref) => {
     { key: 'class_name', title: 'Class', visible: true, order: 0 },
     { key: 'section', title: 'Section', visible: true, order: 1 },
     { key: 'teacher', title: 'Class Teacher', visible: true, order: 2 },
-    { key: 'students', title: 'Students', visible: true, order: 3 },
-    { key: 'status', title: 'Status', visible: true, order: 4 },
-    { key: 'actions', title: 'Actions', visible: true, order: 5 }
+    { key: 'capacity', title: 'Capacity', visible: true, order: 3 },
+    { key: 'status', title: 'Status', visible: true, order: 5 },
+    { key: 'actions', title: 'Actions', visible: true, order: 6 }
   ]);
 
   const handleImport = async (file) => {
@@ -249,6 +249,8 @@ const Classes = forwardRef((props, ref) => {
       title: 'Class',
       dataIndex: 'class_name',
       key: 'class_name',
+      width: 120,
+      fixed: 'left',
       render: (text, record) => (
         <Button 
           type="link" 
@@ -281,6 +283,7 @@ const Classes = forwardRef((props, ref) => {
       title: 'Section',
       dataIndex: 'section',
       key: 'section',
+      width: 100,
       render: (section) => (
         <Tag 
           style={{ 
@@ -302,6 +305,8 @@ const Classes = forwardRef((props, ref) => {
       title: 'Teacher',
       dataIndex: 'teacher',
       key: 'teacher',
+      width: 200,
+      ellipsis: true,
       render: (teacher) => {
         if (!teacher) return (
           <Tag 
@@ -345,6 +350,7 @@ const Classes = forwardRef((props, ref) => {
       title: 'Capacity',
       dataIndex: 'capacity',
       key: 'capacity',
+      width: 120,
       render: (capacity) => (
         <Tag 
           style={{ 
@@ -352,10 +358,14 @@ const Classes = forwardRef((props, ref) => {
             borderRadius: '6px',
             fontSize: '13px',
             fontWeight: 500,
-            background: '#f5f5f5',
-            color: '#595959',
-            border: '1px solid #f0f0f0',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            background: '#e6f7ff',
+            color: '#1890ff',
+            border: '1px solid #91d5ff',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            height: '24px',
+            lineHeight: '1'
           }}
         >
           {capacity} students
@@ -366,6 +376,7 @@ const Classes = forwardRef((props, ref) => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 100,
       render: (status) => (
         <Tag 
           style={{ 
