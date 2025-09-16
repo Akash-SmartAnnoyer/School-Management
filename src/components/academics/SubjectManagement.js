@@ -218,7 +218,30 @@ const SubjectManagement = () => {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      width: 300,
       ellipsis: true,
+      render: (text) => {
+        if (!text) return '-';
+        
+        const maxLength = 50;
+        const isLongDescription = text.length > maxLength;
+        
+        if (isLongDescription) {
+          return (
+            <Tooltip 
+              title={text}
+              overlayStyle={{ maxWidth: 400 }}
+              placement="topLeft"
+            >
+              <span style={{ cursor: 'pointer' }}>
+                {text.substring(0, maxLength)}...
+              </span>
+            </Tooltip>
+          );
+        }
+        
+        return text;
+      },
     },
     {
       title: 'Actions',
