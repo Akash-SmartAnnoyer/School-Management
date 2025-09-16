@@ -76,6 +76,7 @@ import {
   GlobalOutlined,
   TrophyOutlined,
   NumberOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 import { uploadImage, getCloudinaryImage } from '../services/imageService';
 import { Cloudinary } from '@cloudinary/url-gen';
@@ -119,8 +120,54 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
   const { refreshStudents } = useStudents();
   const [editingSection, setEditingSection] = useState(null);
   const [editedValues, setEditedValues] = useState({});
+  const [studentMarks, setStudentMarks] = useState([]);
+  const [loadingMarks, setLoadingMarks] = useState(false);
+
+  // Load student marks when component mounts or student changes
+  useEffect(() => {
+    console.log('StudentView useEffect triggered:', { visible, student: !!student, studentProfileId: student?.student_profile?.id });
+    if (visible && student && student.student_profile?.id) {
+      console.log('Calling loadStudentMarks for student profile ID:', student.student_profile.id);
+      loadStudentMarks();
+    }
+  }, [visible, student]);
   
   if (!visible || !student) return null;
+
+  const loadStudentMarks = async () => {
+    console.log('loadStudentMarks called with student:', student);
+    try {
+      setLoadingMarks(true);
+      // Use student_profile.id for marks API (matches "student" field in marks entries)
+      const studentProfileId = student.student_profile?.id;
+      
+      console.log('Student profile ID for marks lookup:', studentProfileId);
+      
+      if (!studentProfileId) {
+        console.warn('No student profile ID found for marks lookup');
+        setStudentMarks([]);
+        return;
+      }
+      
+      console.log('Making API call to get marks for student profile ID:', studentProfileId);
+      const response = await api.marks.getByStudent(studentProfileId);
+      console.log('Marks API response:', response);
+      
+      if (response.success) {
+        const marksData = response.data.results || response.data || [];
+        setStudentMarks(marksData);
+        console.log(`Loaded ${marksData.length} marks for student profile ID ${studentProfileId}`, marksData);
+      } else {
+        console.warn('Marks API response not successful:', response);
+        setStudentMarks([]);
+      }
+    } catch (error) {
+      console.error('Error loading student marks:', error);
+      setStudentMarks([]);
+    } finally {
+      setLoadingMarks(false);
+    }
+  };
 
   const handleEditSection = (section) => {
     setEditingSection(section);
@@ -284,6 +331,117 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
   const getRomanNumeral = (num) => {
     const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
     return romanNumerals[num - 1] || num;
+  };
+
+  const renderAcademicsContent = () => {
+    if (loadingMarks) {
+      return (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <Spin size="large" />
+          <div style={{ marginTop: '16px', color: '#666' }}>Loading academic records...</div>
+        </div>
+      );
+    }
+
+    if (!studentMarks || studentMarks.length === 0) {
+      return (
+        <Empty
+          image="/academic.png"
+          imageStyle={{ height: 60 }}
+          description={
+            <span style={{ color: '#666', fontSize: '14px' }}>
+              No academic records found for this student
+            </span>
+          }
+        />
+      );
+    }
+
+    const marksColumns = [
+      {
+        title: 'Exam',
+        dataIndex: 'exam',
+        key: 'exam',
+        render: (examId) => {
+          // You might need to fetch exam details or pass them as props
+          return `Exam ${examId}`;
+        }
+      },
+      {
+        title: 'Subject',
+        dataIndex: 'subject',
+        key: 'subject',
+        render: (subjectId) => {
+          // You might need to fetch subject details or pass them as props
+          return `Subject ${subjectId}`;
+        }
+      },
+      {
+        title: 'Marks',
+        dataIndex: 'marks',
+        key: 'marks',
+        render: (marks) => (
+          <Tag
+            style={{
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: parseFloat(marks) >= 80 ? '#f6ffed' :
+                         parseFloat(marks) >= 60 ? '#e6f7ff' :
+                         parseFloat(marks) >= 40 ? '#fff7e6' : '#fff1f0',
+              color: parseFloat(marks) >= 80 ? '#389e0d' :
+                     parseFloat(marks) >= 60 ? '#096dd9' :
+                     parseFloat(marks) >= 40 ? '#d46b08' : '#cf1322',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}
+          >
+            {marks}
+          </Tag>
+        )
+      },
+      {
+        title: 'Remarks',
+        dataIndex: 'remarks',
+        key: 'remarks',
+        render: (remarks) => remarks || '-'
+      }
+    ];
+
+    return (
+      <div style={{ padding: '16px' }}>
+        <Card
+          title={
+            <Space>
+              <TrophyOutlined style={{ color: '#7B83EB' }} />
+              <span style={{ color: '#7B83EB' }}>Academic Performance</span>
+            </Space>
+          }
+          extra={
+            <Button 
+              type="link" 
+              icon={<ReloadOutlined />}
+              onClick={loadStudentMarks}
+              loading={loadingMarks}
+            >
+              Refresh
+            </Button>
+          }
+        >
+          <Table
+            dataSource={studentMarks}
+            columns={marksColumns}
+            rowKey="id"
+            pagination={false}
+            size="small"
+            locale={{
+              emptyText: 'No marks recorded yet'
+            }}
+          />
+        </Card>
+      </div>
+    );
   };
 
   const items = [
@@ -1025,7 +1183,7 @@ const StudentView = ({ visible, onCancel, student, onStudentUpdate }) => {
                 {
                   key: 'academics',
                   label: <span style={{ fontWeight: 'bold' }}>Academics</span>,
-                  children: <div style={{ textAlign: 'center', padding: '40px' }}>Coming Soon</div>
+                  children: renderAcademicsContent()
                 },
                 {
                   key: 'sports',
@@ -2234,6 +2392,7 @@ const Students = forwardRef((props, ref) => {
             class_name: studentData.profile?.class_name
           },
           student_profile: {
+            id: studentData.student_profile?.id,
             student_id: studentData.student_profile?.student_id,
             admission_number: studentData.student_profile?.admission_number,
             admission_date: studentData.student_profile?.admission_date,
@@ -2308,6 +2467,7 @@ const Students = forwardRef((props, ref) => {
             class_name: studentData.profile?.class_name
           },
           student_profile: {
+            id: studentData.student_profile?.id,
             student_id: studentData.student_profile?.student_id,
             admission_number: studentData.student_profile?.admission_number,
             admission_date: studentData.student_profile?.admission_date,

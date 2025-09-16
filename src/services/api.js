@@ -1064,7 +1064,7 @@ export const marksAPI = {
   },
 
   getByStudent: async (studentId) => {
-    return makeRequest(`${BASE_URL}/marksentries/student/${studentId}/`, {
+    return makeRequest(`${BASE_URL}/marksentries/${studentId}/`, {
       method: 'GET'
     });
   }

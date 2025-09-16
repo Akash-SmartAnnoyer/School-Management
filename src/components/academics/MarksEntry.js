@@ -230,7 +230,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
                   <InputNumber
                     style={{ width: '100%' }}
                     min={0}
-                    max={exam?.maxMarks || 100}
+                    max={exam?.maximum_marks || 100}
                   />
                 </Form.Item>
               )}
@@ -396,8 +396,8 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
               <InputNumber
                 style={{ width: '100%' }}
                 min={0}
-                max={localExams.find(e => e.id === selectedExam)?.maxMarks || 100}
-                placeholder={`Enter marks (0-${localExams.find(e => e.id === selectedExam)?.maxMarks || 100})`}
+                max={localExams.find(e => e.id === selectedExam)?.maximum_marks || 100}
+                placeholder={`Enter marks (0-${localExams.find(e => e.id === selectedExam)?.maximum_marks || 100})`}
               />
             </Form.Item>
           </Col>
@@ -485,8 +485,8 @@ const BulkMarksEntryForm = ({ visible, onCancel, onSubmit, students, exam, subje
           <InputNumber
             style={{ width: '100%' }}
             min={0}
-            max={exam?.maxMarks || 100}
-            placeholder={`Enter marks (0-${exam?.maxMarks || 100})`}
+            max={exam?.maximum_marks || 100}
+            placeholder={`Enter marks (0-${exam?.maximum_marks || 100})`}
           />
         </Form.Item>
       ),
@@ -576,11 +576,12 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [studentsResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
+      const [studentsResponse, classesResponse, subjectsResponse, examsResponse, marksResponse] = await Promise.all([
         api.student.getStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
-        api.exam.getExams()
+        api.exam.getExams(),
+        api.marks.getAllMarks()
       ]);
       
       if (studentsResponse.success) {
@@ -595,6 +596,12 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       if (examsResponse.success) {
         setLocalExams(examsResponse.data.results || []);
       }
+      if (marksResponse.success) {
+        const marksData = marksResponse.data.results || marksResponse.data || [];
+        setAllMarks(marksData);
+        setMarks(marksData);
+        console.log(`Loaded ${marksData.length} marks entries`);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -602,6 +609,8 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       setLocalClasses([]);
       setLocalSubjects([]);
       setLocalExams([]);
+      setAllMarks([]);
+      setMarks([]);
     } finally {
       setLoading(false);
     }
@@ -753,7 +762,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       key: 'marks',
       render: (marks, record) => {
         const exam = localExams.find(e => e.id === record.exam);
-        const percentage = (marks / (exam?.maxMarks || 100)) * 100;
+        const percentage = (marks / (exam?.maximum_marks || 100)) * 100;
         return (
           <Tag 
             style={{ 
@@ -777,7 +786,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
               lineHeight: '1'
             }}
           >
-            {`${marks}/${exam?.maxMarks || 100}`}
+            {`${marks}/${exam?.maximum_marks || 100}`}
           </Tag>
         );
       },
