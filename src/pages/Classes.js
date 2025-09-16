@@ -480,7 +480,7 @@ const Classes = forwardRef((props, ref) => {
     loadClasses(1, 10, value);
   };
 
-  useEffect(() => { setClassCount(classes.length); }, [classes]);
+  useEffect(() => { setClassCount(totalClasses || classes.length); }, [totalClasses, classes]);
 
   return (
     <div className="classes-page" style={{ 
@@ -514,7 +514,7 @@ const Classes = forwardRef((props, ref) => {
           <Tooltip title="Total Classes">
             <div className="class-count-badge" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#f5f5f5', border: '1px solid #f0f0f0', borderRadius: '20px', cursor: 'default', transition: 'all 0.3s ease' }}>
               <BookOutlined style={{ fontSize: '16px', color: '#49e7f5' }} />
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#49e7f5' }}>{classCount}+</span>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#49e7f5' }}>{classCount}</span>
             </div>
           </Tooltip>
           <Tooltip title="Export Classes">
