@@ -14,11 +14,11 @@ import {
   Tag,
   Tooltip,
   Popconfirm,
+  Popover,
   Input as AntInput,
   Empty,
   Row,
   Col,
-  Popover,
 } from 'antd';
 import {
   PlusOutlined,
@@ -177,7 +177,7 @@ const ExamManagement = () => {
       date: moment(record.exam_date),
       startTime: moment(record.start_time, 'HH:mm:ss'),
       exam_code: record.exam_code,
-      maxMarks: record.maximum_marks,
+      maximum_marks: record.maximum_marks,
       classrooms: record.classrooms
     });
     setExamModalVisible(true);
@@ -262,32 +262,99 @@ const ExamManagement = () => {
       dataIndex: 'subjects',
       key: 'subjects',
       width: 200,
-      render: (subjectIds) => (
-        <Space wrap size={[4, 4]}>
-          {getSubjectNames(subjectIds).map((name, index) => (
+      render: (subjectIds) => {
+        if (!subjectIds || subjectIds.length === 0) {
+          return (
             <Tag 
-              key={index}
               style={{ 
                 padding: '4px 8px',
                 borderRadius: '6px',
                 fontSize: '13px',
                 fontWeight: 500,
-                background: '#e6f7ff',
-                color: '#096dd9',
+                background: '#f5f5f5',
+                color: '#595959',
                 border: '1px solid #f0f0f0',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 height: '24px',
-                lineHeight: '1',
-                margin: 0
+                lineHeight: '1'
               }}
             >
-              {name}
+              No subjects assigned
             </Tag>
-          ))}
-        </Space>
-      ),
+          );
+        }
+        
+        const subjectNames = getSubjectNames(subjectIds);
+        const MAX_VISIBLE_TAGS = 2;
+        const visibleSubjects = subjectNames.slice(0, MAX_VISIBLE_TAGS);
+        const remainingCount = subjectNames.length - MAX_VISIBLE_TAGS;
+        
+        const renderSubjectTag = (name, index) => (
+          <Tag 
+            key={index}
+            style={{ 
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 500,
+              background: '#e6f7ff',
+              color: '#096dd9',
+              border: '1px solid #f0f0f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              height: '24px',
+              lineHeight: '1',
+              margin: 0
+            }}
+          >
+            {name}
+          </Tag>
+        );
+
+        const remainingSubjects = subjectNames.slice(MAX_VISIBLE_TAGS);
+        
+        return (
+          <Space wrap size={[4, 4]}>
+            {visibleSubjects.map(renderSubjectTag)}
+            {remainingCount > 0 && (
+              <Popover
+                content={
+                  <div style={{ maxWidth: '300px' }}>
+                    <Space wrap size={[4, 4]}>
+                      {remainingSubjects.map(renderSubjectTag)}
+                    </Space>
+                  </div>
+                }
+                title="All Subjects"
+                trigger="hover"
+              >
+                <Tag
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    background: '#f0f0f0',
+                    color: '#595959',
+                    border: '1px solid #f0f0f0',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    height: '24px',
+                    lineHeight: '1',
+                    margin: 0
+                  }}
+                >
+                  +{remainingCount} more
+                </Tag>
+              </Popover>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: 'Teacher',
@@ -867,7 +934,7 @@ const ExamManagement = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                name="maxMarks"
+                name="maximum_marks"
                 label="Maximum Marks"
                 rules={[{ required: true, message: 'Please enter maximum marks' }]}
               >
