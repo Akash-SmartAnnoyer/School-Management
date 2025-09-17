@@ -23,7 +23,8 @@ import {
   Divider,
   Popconfirm,
   Radio,
-  Empty
+  Empty,
+  Switch
 } from 'antd';
 import {
   PlusOutlined,
@@ -43,13 +44,16 @@ import {
   StarOutlined,
   SearchOutlined,
   UserOutlined,
-  CommentOutlined
+  CommentOutlined,
+  AppstoreOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons';
 import { useMessage } from '../../contexts/MessageContext';
 import moment from 'moment';
 import api from '../../services/api';
 import { Line } from '@ant-design/plots';
 import './AcademicsShared.css';
+import StudentMarksView from './StudentMarksView';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -108,7 +112,7 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
     try {
       setLoading(true);
       const [studentsResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
-        api.student.getStudents(),
+        api.student.getAllStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
         api.exam.getExams()
@@ -140,15 +144,24 @@ const MarksEntryForm = ({ visible, onCancel, onSubmit, initialValues, students, 
 
   const loadStudentsForClass = async (classId) => {
     try {
-      const response = await api.student.getStudentsByClass(classId);
+      // Use getAllStudents since getStudentsByClass endpoint is not working
+      const response = await api.student.getAllStudents();
       if (response.success) {
+        const allStudents = response.data.results || [];
+        // Filter students by classroom if needed, or just use all students
+        const studentsForClass = classId ? 
+          allStudents.filter(student => student.classroom === classId) : 
+          allStudents;
+        
         setLocalStudents(prevStudents => {
-          const newStudents = response.data.results || [];
+          // Merge with existing students, avoiding duplicates
+          const existingIds = prevStudents.map(s => s.id);
+          const newStudents = studentsForClass.filter(s => !existingIds.includes(s.id));
           return [...prevStudents, ...newStudents];
         });
       }
     } catch (error) {
-      messageApi.error('Failed to load students for class');
+      messageApi.error('Failed to load students');
       console.error('Error loading students:', error);
     }
   };
@@ -546,6 +559,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const [selectedExamForBulk, setSelectedExamForBulk] = useState(null);
   const [selectedSubjectForBulk, setSelectedSubjectForBulk] = useState(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
   const messageApi = useMessage();
 
   const handleEditMarks = (record) => {
@@ -576,15 +590,18 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [studentsResponse, classesResponse, subjectsResponse, examsResponse] = await Promise.all([
-        api.student.getStudents(),
+      const [studentsResponse, classesResponse, subjectsResponse, examsResponse, marksResponse] = await Promise.all([
+        api.student.getAllStudents(),
         api.class.getClasses(),
         api.subject.getSubjects(),
-        api.exam.getExams()
+        api.exam.getExams(),
+        api.marks.getAllMarks()
       ]);
       
       if (studentsResponse.success) {
-        setLocalStudents(studentsResponse.data.results || []);
+        const studentsData = studentsResponse.data.results || [];
+        setLocalStudents(studentsData);
+        console.log('Loaded students for marks:', studentsData);
       }
       if (classesResponse.success) {
         setLocalClasses(classesResponse.data.results || []);
@@ -595,6 +612,12 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       if (examsResponse.success) {
         setLocalExams(examsResponse.data.results || []);
       }
+      if (marksResponse.success) {
+        const marksData = marksResponse.data.results || marksResponse.data || [];
+        setAllMarks(marksData);
+        setMarks(marksData);
+        console.log(`Loaded ${marksData.length} marks entries`, marksData);
+      }
     } catch (error) {
       messageApi.error('Failed to load initial data');
       console.error('Error loading data:', error);
@@ -602,6 +625,8 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
       setLocalClasses([]);
       setLocalSubjects([]);
       setLocalExams([]);
+      setAllMarks([]);
+      setMarks([]);
     } finally {
       setLoading(false);
     }
@@ -609,15 +634,24 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
 
   const loadStudentsForClass = async (classId) => {
     try {
-      const response = await api.student.getStudentsByClass(classId);
+      // Use getAllStudents since getStudentsByClass endpoint is not working
+      const response = await api.student.getAllStudents();
       if (response.success) {
+        const allStudents = response.data.results || [];
+        // Filter students by classroom if needed, or just use all students
+        const studentsForClass = classId ? 
+          allStudents.filter(student => student.classroom === classId) : 
+          allStudents;
+        
         setLocalStudents(prevStudents => {
-          const newStudents = response.data.results || [];
+          // Merge with existing students, avoiding duplicates
+          const existingIds = prevStudents.map(s => s.id);
+          const newStudents = studentsForClass.filter(s => !existingIds.includes(s.id));
           return [...prevStudents, ...newStudents];
         });
       }
     } catch (error) {
-      messageApi.error('Failed to load students for class');
+      messageApi.error('Failed to load students');
       console.error('Error loading students:', error);
     }
   };
@@ -638,7 +672,18 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           remarks: values.remarks || '',
           entry_type: 'single'
         };
-        await api.marks.updateMarks(selectedMarks.id, updateData);
+        
+        const response = await api.marks.updateMarks(selectedMarks.id, updateData);
+        
+        // Optimistic update: Update local state immediately
+        if (response.success) {
+          const updatedMarks = allMarks.map(mark => 
+            mark.id === selectedMarks.id ? { ...mark, ...updateData } : mark
+          );
+          setAllMarks(updatedMarks);
+          setMarks(updatedMarks);
+        }
+        
         messageApi.success('Marks updated successfully');
       } else {
         // Create new marks
@@ -652,12 +697,28 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           remarks: values.remarks || '',
           entry_type: 'single'
         };
-        await api.marks.createMarks(createData);
+        
+        const response = await api.marks.createMarks(createData);
+        
+        // Optimistic update: Add new mark to local state immediately
+        if (response.success && response.data) {
+          const newMark = response.data;
+          const updatedMarks = [...allMarks, newMark];
+          setAllMarks(updatedMarks);
+          setMarks(updatedMarks);
+        }
+        
         messageApi.success('Marks added successfully');
       }
+      
       setModalVisible(false);
       setSelectedMarks(null);
-      loadInitialData(); // Reload the data after successful submission
+      
+      // Still reload data to ensure consistency with server
+      setTimeout(() => {
+        loadInitialData();
+      }, 500);
+      
     } catch (error) {
       messageApi.error(selectedMarks ? 'Failed to update marks' : 'Failed to save marks');
       console.error('Error saving/updating marks:', error);
@@ -669,9 +730,21 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   const handleDeleteMarks = async (id) => {
     try {
       setLoading(true);
-      await api.marks.deleteMarks(id);
+      const response = await api.marks.deleteMarks(id);
+      
+      // Optimistic update: Remove from local state immediately
+      if (response.success) {
+        const updatedMarks = allMarks.filter(mark => mark.id !== id);
+        setAllMarks(updatedMarks);
+        setMarks(updatedMarks);
+      }
+      
       messageApi.success('Marks deleted successfully');
-      loadInitialData();
+      
+      // Still reload data to ensure consistency with server
+      setTimeout(() => {
+        loadInitialData();
+      }, 500);
     } catch (error) {
       messageApi.error('Failed to delete marks');
       console.error('Error deleting marks:', error);
@@ -684,9 +757,19 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
     try {
       setLoading(true);
       await Promise.all(selectedRowKeys.map(id => api.marks.deleteMarks(id)));
+      
+      // Optimistic update: Remove selected marks from local state immediately
+      const updatedMarks = allMarks.filter(mark => !selectedRowKeys.includes(mark.id));
+      setAllMarks(updatedMarks);
+      setMarks(updatedMarks);
+      
       messageApi.success('Selected marks deleted successfully');
       setSelectedRowKeys([]);
-      loadInitialData();
+      
+      // Still reload data to ensure consistency with server
+      setTimeout(() => {
+        loadInitialData();
+      }, 500);
     } catch (error) {
       messageApi.error('Failed to delete selected marks');
       console.error('Error deleting marks:', error);
@@ -871,11 +954,24 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         entries
       };
 
-      await api.marks.createBulkMarks(bulkData);
+      const response = await api.marks.createBulkMarks(bulkData);
+      
+      // Optimistic update: Add new marks to local state immediately
+      if (response.success && response.data) {
+        const newMarks = Array.isArray(response.data) ? response.data : entries;
+        const updatedMarks = [...allMarks, ...newMarks];
+        setAllMarks(updatedMarks);
+        setMarks(updatedMarks);
+      }
+      
       messageApi.success('Bulk marks added successfully');
       setBulkModalVisible(false);
       form.resetFields();
-      loadInitialData();
+      
+      // Still reload data to ensure consistency with server
+      setTimeout(() => {
+        loadInitialData();
+      }, 500);
     } catch (error) {
       messageApi.error('Failed to save bulk marks');
       console.error('Error saving bulk marks:', error);
@@ -905,6 +1001,16 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           Marks Entry
         </Title>
         <Space size="small">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UnorderedListOutlined style={{ color: '#7B83EB' }} />
+            <Switch
+              checked={viewMode === 'cards'}
+              onChange={(checked) => setViewMode(checked ? 'cards' : 'table')}
+              checkedChildren={<AppstoreOutlined />}
+              unCheckedChildren={<UnorderedListOutlined />}
+            />
+            <AppstoreOutlined style={{ color: '#7B83EB' }} />
+          </div>
           <Search
             placeholder="Search marks..."
             allowClear
@@ -934,7 +1040,7 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           >
             Bulk Entry
           </Button>
-          {selectedRowKeys.length > 0 && (
+          {viewMode === 'table' && selectedRowKeys.length > 0 && (
             <Popconfirm
               title="Are you sure you want to delete selected marks?"
               description="This action cannot be undone."
@@ -954,30 +1060,41 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         </Space>
       </div>
 
-      <Table
-        rowSelection={rowSelection}
-        columns={columns}
-        dataSource={filteredMarks}
-        rowKey="id"
-        loading={loading}
-        className="academics-table"
-        scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
-        pagination={{ 
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `Total ${total} marks`
-        }}
-        locale={{
-          emptyText: (
-            <Empty
-              description="No marks found"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              style={{ padding: '20px 0' }}
-            />
-          ),
-        }}
-      />
+      {viewMode === 'table' ? (
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={filteredMarks}
+          rowKey="id"
+          loading={loading}
+          className="academics-table"
+          scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `Total ${total} marks`
+          }}
+          locale={{
+            emptyText: (
+              <Empty
+                description="No marks found"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                style={{ padding: '20px 0' }}
+              />
+            ),
+          }}
+        />
+      ) : (
+        <StudentMarksView
+          marks={filteredMarks}
+          students={localStudents}
+          subjects={localSubjects}
+          exams={localExams}
+          onEditMarks={handleEditMarks}
+          loading={loading}
+        />
+      )}
 
       <style>
         {`
