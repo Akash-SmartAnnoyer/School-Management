@@ -631,43 +631,53 @@ const Academics = () => {
 
   return (
     <div style={{ 
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      padding: '24px',
-      background: '#f0f2f5'
+      minHeight: '100vh',
+      background: '#f0f2f5',
+      padding: '24px'
     }}>
-      <Tabs
-        activeKey={activeTab}
-        onChange={handleTabChange}
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '24px'
-        }}
-      >
-        <Tabs.TabPane tab="Subjects" key="subjects">
-          <SubManagement 
-            subjects={subjects}
-            loading={loading}
-            currentPage={currentPage}
-            totalSubjects={totalSubjects}
-            onPageChange={setCurrentPage}
-            onRefresh={refreshSubjects}
-          />
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Exams" key="exams">
-          <ExamManagement />
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Marks" key="marks">
-          <MarksEntry />
-        </Tabs.TabPane>
-      </Tabs>
+      <div style={{
+        background: '#fff',
+        borderRadius: '8px',
+        minHeight: 'calc(100vh - 48px)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      }}>
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          style={{ height: '100%' }}
+          tabBarStyle={{ 
+            margin: 0, 
+            paddingLeft: '24px', 
+            paddingRight: '24px',
+            paddingTop: '16px',
+            background: '#fff',
+            borderRadius: '8px 8px 0 0'
+          }}
+        >
+          <Tabs.TabPane tab="Subjects" key="subjects">
+            <div style={{ padding: '0 24px 24px' }}>
+              <SubManagement 
+                subjects={subjects}
+                loading={loading}
+                currentPage={currentPage}
+                totalSubjects={totalSubjects}
+                onPageChange={setCurrentPage}
+                onRefresh={refreshSubjects}
+              />
+            </div>
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Exams" key="exams">
+            <div style={{ padding: '0 24px 24px' }}>
+              <ExamManagement />
+            </div>
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Marks" key="marks">
+            <div style={{ padding: '0 24px 24px' }}>
+              <MarksEntry />
+            </div>
+          </Tabs.TabPane>
+        </Tabs>
+      </div>
 
       <MarksEntryForm
         visible={marksEntryVisible}

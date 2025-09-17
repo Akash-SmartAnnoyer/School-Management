@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Card,
   Row,
@@ -15,7 +15,9 @@ import {
   Divider,
   Empty,
   Tooltip,
-  Badge
+  Badge,
+  Pagination,
+  Input
 } from 'antd';
 import {
   UserOutlined,
@@ -27,7 +29,8 @@ import {
   StarOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  EditOutlined
+  EditOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { Line, Column } from '@ant-design/plots';
 
@@ -390,107 +393,126 @@ const StudentCard = ({
       style={{ 
         borderRadius: '12px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        transition: 'all 0.3s ease'
+        transition: 'all 0.3s ease',
+        height: '100%',
+        minHeight: '200px'
       }}
-      bodyStyle={{ padding: '20px' }}
+      bodyStyle={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+      {/* Header Section */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 20 }}>
         <Avatar 
-          size={50} 
+          size={56} 
           icon={<UserOutlined />}
           style={{ 
             backgroundColor: '#7B83EB',
-            marginRight: 16
+            marginRight: 16,
+            flexShrink: 0
           }}
         />
-        <div style={{ flex: 1 }}>
-          <Title level={4} style={{ margin: 0, marginBottom: 4 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Title 
+            level={4} 
+            style={{ 
+              margin: 0, 
+              marginBottom: 6,
+              fontSize: '16px',
+              lineHeight: '1.3',
+              wordBreak: 'break-word'
+            }}
+            title={student.name || `${student.user?.first_name} ${student.user?.last_name}` || 'Student'}
+          >
             {student.name || `${student.user?.first_name} ${student.user?.last_name}` || 'Student'}
           </Title>
-          <Text type="secondary">
-            Roll: {student.rollNumber || student.roll || 'N/A'}
-          </Text>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <Text type="secondary" style={{ fontSize: '13px' }}>
+              Roll: {student.rollNumber || student.roll || 'N/A'}
+            </Text>
+            <Badge 
+              color={performance.color}
+              text={performance.status}
+              style={{ 
+                fontSize: '11px', 
+                fontWeight: 500,
+                textTransform: 'capitalize'
+              }}
+            />
+          </div>
         </div>
-        <Badge 
-          color={performance.color}
-          text={performance.status.toUpperCase()}
-          style={{ fontSize: '12px', fontWeight: 500 }}
-        />
       </div>
 
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={8}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#7B83EB' }}>
-              {totalExams}
-            </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Exams</Text>
-          </div>
-        </Col>
-        <Col span={8}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
-              {averageMarks}
-            </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Avg Marks</Text>
-          </div>
-        </Col>
-        <Col span={8}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#faad14' }}>
-              {uniqueSubjects.length}
-            </div>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Subjects</Text>
-          </div>
-        </Col>
-      </Row>
 
-      <div style={{ marginBottom: 16 }}>
-        <Text strong style={{ marginBottom: 8, display: 'block' }}>Performance</Text>
+      {/* Performance Section */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Text strong style={{ fontSize: '13px' }}>Overall Performance</Text>
+          <Text style={{ fontSize: '12px', color: performance.color, fontWeight: 500 }}>
+            {averagePercentage.toFixed(1)}%
+          </Text>
+        </div>
         <Progress
           percent={averagePercentage}
           strokeColor={performance.color}
           size="small"
-          format={(percent) => `${percent?.toFixed(1)}%`}
+          showInfo={false}
+          strokeWidth={6}
         />
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <Text strong style={{ marginBottom: 8, display: 'block' }}>Recent Subjects</Text>
-        <div>
-          {uniqueSubjects.slice(0, 3).map(subjectId => {
+      {/* Subjects Section */}
+      <div style={{ marginBottom: 20, flex: 1 }}>
+        <Text strong style={{ marginBottom: 8, display: 'block', fontSize: '13px' }}>
+          Subjects ({uniqueSubjects.length})
+        </Text>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          {uniqueSubjects.slice(0, 4).map(subjectId => {
             const subject = subjects.find(s => s.id === subjectId);
             return (
-              <Tag key={subjectId} style={{ marginBottom: 4 }}>
+              <Tag 
+                key={subjectId} 
+                style={{ 
+                  marginBottom: 4,
+                  fontSize: '11px',
+                  padding: '2px 6px',
+                  borderRadius: '4px'
+                }}
+              >
                 {subject?.name || `Subject ${subjectId}`}
               </Tag>
             );
           })}
-          {uniqueSubjects.length > 3 && (
-            <Tag style={{ marginBottom: 4 }}>+{uniqueSubjects.length - 3} more</Tag>
+          {uniqueSubjects.length > 4 && (
+            <Tag 
+              style={{ 
+                marginBottom: 4,
+                fontSize: '11px',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                background: '#f0f0f0',
+                border: '1px dashed #d9d9d9'
+              }}
+            >
+              +{uniqueSubjects.length - 4} more
+            </Tag>
           )}
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px' }}>
+      {/* Actions Section */}
+      <div style={{ marginTop: 'auto' }}>
         <Button
           type="primary"
           icon={<EyeOutlined />}
           onClick={() => onViewProgress({ student, marks })}
-          style={{ flex: 1 }}
+          style={{ 
+            width: '100%',
+            height: '36px',
+            borderRadius: '6px',
+            fontSize: '13px'
+          }}
         >
           View Progress
         </Button>
-        <Tooltip title="Quick Edit Latest Mark">
-          <Button
-            icon={<BarChartOutlined />}
-            onClick={() => {
-              const latestMark = marks[marks.length - 1];
-              if (latestMark) onEditMarks(latestMark);
-            }}
-            disabled={marks.length === 0}
-          />
-        </Tooltip>
       </div>
     </Card>
   );
@@ -506,30 +528,55 @@ const StudentMarksView = ({
 }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [progressModalVisible, setProgressModalVisible] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pageSize, setPageSize] = useState(12); // Default cards per page
 
   // Group marks by student
-  const groupedMarks = marks.reduce((acc, mark) => {
-    const studentId = mark.student;
-    if (!acc[studentId]) {
-      acc[studentId] = [];
-    }
-    acc[studentId].push(mark);
-    return acc;
-  }, {});
+  const groupedMarks = useMemo(() => {
+    return marks.reduce((acc, mark) => {
+      const studentId = mark.student;
+      if (!acc[studentId]) {
+        acc[studentId] = [];
+      }
+      acc[studentId].push(mark);
+      return acc;
+    }, {});
+  }, [marks]);
 
-  // Create student data with their marks
-  const studentData = Object.entries(groupedMarks).map(([studentId, studentMarks]) => {
-    const student = students.find(s => s.id === parseInt(studentId)) || { id: studentId, name: `Student ${studentId}` };
-    return {
-      student,
-      marks: studentMarks
-    };
-  }).sort((a, b) => {
-    // Sort by student name
-    const nameA = a.student.name || `${a.student.user?.first_name} ${a.student.user?.last_name}` || 'Student';
-    const nameB = b.student.name || `${b.student.user?.first_name} ${b.student.user?.last_name}` || 'Student';
-    return nameA.localeCompare(nameB);
-  });
+  // Create student data with their marks and apply search filter
+  const filteredStudentData = useMemo(() => {
+    const allStudentData = Object.entries(groupedMarks).map(([studentId, studentMarks]) => {
+      const student = students.find(s => s.id === parseInt(studentId)) || { id: studentId, name: `Student ${studentId}` };
+      return {
+        student,
+        marks: studentMarks
+      };
+    }).sort((a, b) => {
+      // Sort by student name
+      const nameA = a.student.name || `${a.student.user?.first_name} ${a.student.user?.last_name}` || 'Student';
+      const nameB = b.student.name || `${b.student.user?.first_name} ${b.student.user?.last_name}` || 'Student';
+      return nameA.localeCompare(nameB);
+    });
+
+    // Apply search filter
+    if (!searchTerm) return allStudentData;
+    
+    return allStudentData.filter(({ student }) => {
+      const studentName = (student.name || `${student.user?.first_name} ${student.user?.last_name}` || 'Student').toLowerCase();
+      const rollNumber = (student.rollNumber || student.roll || '').toString().toLowerCase();
+      const search = searchTerm.toLowerCase();
+      
+      return studentName.includes(search) || rollNumber.includes(search);
+    });
+  }, [groupedMarks, students, searchTerm]);
+
+  // Paginate the filtered data
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredStudentData.slice(startIndex, endIndex);
+  }, [filteredStudentData, currentPage, pageSize]);
 
   const handleViewProgress = (data) => {
     setSelectedStudent(data);
@@ -541,6 +588,18 @@ const StudentMarksView = ({
     setSelectedStudent(null);
   };
 
+  const handlePageChange = (page, size) => {
+    setCurrentPage(page);
+    if (size !== pageSize) {
+      setPageSize(size);
+    }
+  };
+
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
@@ -549,7 +608,7 @@ const StudentMarksView = ({
     );
   }
 
-  if (studentData.length === 0) {
+  if (filteredStudentData.length === 0 && !searchTerm) {
     return (
       <Empty
         description="No student marks found"
@@ -565,30 +624,95 @@ const StudentMarksView = ({
 
   return (
     <div>
+      {/* Header with Search */}
       <div style={{ marginBottom: 24 }}>
-        <Title level={3} style={{ marginBottom: 8 }}>
-          <TrophyOutlined style={{ marginRight: 8, color: '#7B83EB' }} />
-          Student Performance Overview
-        </Title>
-        <Text type="secondary">
-          Click on any student card to view their detailed progress report
-        </Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div>
+            <Title level={3} style={{ marginBottom: 8, margin: 0 }}>
+              <TrophyOutlined style={{ marginRight: 8, color: '#7B83EB' }} />
+              Student Performance Overview
+            </Title>
+            <Text type="secondary">
+              {filteredStudentData.length} student{filteredStudentData.length !== 1 ? 's' : ''} • Click on any card to view detailed progress
+            </Text>
+          </div>
+          <Input.Search
+            placeholder="Search students by name or roll number..."
+            allowClear
+            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ 
+              width: 300,
+              marginLeft: 16
+            }}
+            prefix={<SearchOutlined style={{ color: '#7B83EB' }} />}
+          />
+        </div>
       </div>
 
-      <Row gutter={[16, 16]}>
-        {studentData.map(({ student, marks }) => (
-          <Col xs={24} sm={12} md={8} lg={6} key={student.id}>
-            <StudentCard
-              student={student}
-              marks={marks}
-              subjects={subjects}
-              exams={exams}
-              onViewProgress={handleViewProgress}
-              onEditMarks={onEditMarks}
-            />
-          </Col>
-        ))}
-      </Row>
+      {/* No Results Message */}
+      {filteredStudentData.length === 0 && searchTerm && (
+        <Empty
+          description={`No students found matching "${searchTerm}"`}
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          style={{ padding: '50px' }}
+        >
+          <Button onClick={() => handleSearch('')}>Clear Search</Button>
+        </Empty>
+      )}
+
+      {/* Student Cards Grid */}
+      {filteredStudentData.length > 0 && (
+        <>
+          <Row gutter={[20, 20]} style={{ marginBottom: 24 }}>
+            {paginatedData.map(({ student, marks }) => (
+              <Col 
+                xs={24} 
+                sm={12} 
+                md={12} 
+                lg={8} 
+                xl={6} 
+                xxl={4} 
+                key={student.id}
+              >
+                <StudentCard
+                  student={student}
+                  marks={marks}
+                  subjects={subjects}
+                  exams={exams}
+                  onViewProgress={handleViewProgress}
+                  onEditMarks={onEditMarks}
+                />
+              </Col>
+            ))}
+          </Row>
+
+          {/* Pagination */}
+          {filteredStudentData.length > pageSize && (
+            <div style={{ textAlign: 'center', marginTop: 32 }}>
+              <Pagination
+                current={currentPage}
+                total={filteredStudentData.length}
+                pageSize={pageSize}
+                onChange={handlePageChange}
+                onShowSizeChange={handlePageChange}
+                showSizeChanger
+                showQuickJumper
+                showTotal={(total, range) => 
+                  `${range[0]}-${range[1]} of ${total} students`
+                }
+                pageSizeOptions={['8', '12', '16', '24', '32']}
+                style={{
+                  padding: '16px',
+                  background: '#fafafa',
+                  borderRadius: '8px',
+                  border: '1px solid #f0f0f0'
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
 
       <StudentProgressModal
         visible={progressModalVisible}

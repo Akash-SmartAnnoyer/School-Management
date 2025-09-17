@@ -994,9 +994,16 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
   };
 
   return (
-    <div className="academics-page">
-      <div className="academics-header">
-        <Title level={3} className="page-title">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '24px',
+        paddingBottom: '16px',
+        borderBottom: '1px solid #f0f0f0'
+      }}>
+        <Title level={3} style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/test.png" alt="Marks" style={{ width: '40px', height: '40px' }} />
           Marks Entry
         </Title>
@@ -1067,20 +1074,20 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
           dataSource={filteredMarks}
           rowKey="id"
           loading={loading}
-          className="academics-table"
-          scroll={{ x: 'max-content', y: 'calc(100vh - 380px)' }}
+          scroll={{ x: 'max-content' }}
           pagination={{ 
-            pageSize: 10,
+            pageSize: 15,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `Total ${total} marks`
+            showTotal: (total) => `Total ${total} marks`,
+            style: { marginTop: '16px' }
           }}
           locale={{
             emptyText: (
               <Empty
                 description="No marks found"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                style={{ padding: '20px 0' }}
+                style={{ padding: '40px 0' }}
               />
             ),
           }}
@@ -1096,180 +1103,6 @@ const MarksEntry = ({ students = [], classes = [], subjects = [], examTypes = []
         />
       )}
 
-      <style>
-        {`
-          .academics-table {
-            flex: 1;
-            background: #ffffff;
-            border-radius: 8px;
-            border: 1px solid #f0f0f0;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .academics-table .ant-table {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .academics-table .ant-table-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .academics-table .ant-table-body {
-            flex: 1;
-            overflow-y: auto !important;
-            overflow-x: auto !important;
-          }
-
-          .academics-table .ant-spin-nested-loading {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .academics-table .ant-spin-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-          }
-
-          .academics-table .ant-table-placeholder {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-          }
-
-          .academics-table .ant-table-pagination {
-            margin: 0 !important;
-            padding: 8px !important;
-            background: #ffffff;
-            border-top: 1px solid #f0f0f0;
-          }
-
-          .academics-table .ant-table-thead > tr > th {
-            background: rgba(123, 131, 235, 0.1) !important;
-            color: #7B83EB !important;
-            font-weight: 600;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 8px 12px !important;
-            white-space: nowrap;
-            height: 40px;
-            line-height: 1.2;
-            font-size: 13px;
-          }
-
-          .academics-table .ant-table-tbody > tr > td {
-            padding: 8px 12px !important;
-            white-space: nowrap;
-            border-bottom: 1px solid #f0f0f0;
-            height: 40px;
-            line-height: 1.2;
-            font-size: 13px;
-          }
-
-          .academics-table .ant-table-tbody > tr:last-child > td {
-            border-bottom: none;
-          }
-
-          .academics-table .ant-table-cell {
-            padding: 8px 12px !important;
-          }
-
-          .academics-table .ant-table-cell .ant-tag {
-            margin: 0;
-            padding: 4px 8px;
-            font-size: 13px;
-            height: 24px;
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-          }
-
-          .academics-table .ant-table-cell .ant-btn {
-            padding: 0 4px;
-            height: 24px;
-            font-size: 12px;
-          }
-
-          .academics-table .ant-pagination-item {
-            min-width: 32px;
-            height: 32px;
-            line-height: 30px;
-            font-size: 13px;
-            margin: 0 4px;
-          }
-
-          .academics-table .ant-pagination-prev .ant-pagination-item-link,
-          .academics-table .ant-pagination-next .ant-pagination-item-link {
-            min-width: 32px;
-            height: 32px;
-            line-height: 30px;
-            font-size: 13px;
-          }
-
-          .academics-table .ant-pagination-options {
-            margin-left: 8px;
-          }
-
-          .academics-table .ant-pagination-options-size-changer {
-            margin-right: 0;
-          }
-
-          .academics-table .ant-select-selector {
-            height: 32px !important;
-            line-height: 30px !important;
-            padding: 0 8px !important;
-          }
-
-          .academics-table .ant-select-selection-item {
-            line-height: 30px !important;
-            font-size: 13px;
-          }
-
-          .academics-table .ant-pagination-item-active {
-            background: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-
-          .academics-table .ant-pagination-item-active a {
-            color: white !important;
-          }
-
-          .academics-table .ant-pagination-item:hover {
-            border-color: #7B83EB !important;
-          }
-
-          .academics-table .ant-pagination-prev:hover .ant-pagination-item-link,
-          .academics-table .ant-pagination-next:hover .ant-pagination-item-link {
-            border-color: #7B83EB !important;
-            color: #7B83EB !important;
-          }
-
-          .academics-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-          .academics-table .ant-checkbox:hover .ant-checkbox-inner,
-          .academics-table .ant-checkbox-input:focus + .ant-checkbox-inner {
-            border-color: #7B83EB !important;
-          }
-
-          .academics-table .ant-checkbox-checked .ant-checkbox-inner {
-            background-color: #7B83EB !important;
-            border-color: #7B83EB !important;
-          }
-
-          .academics-table .ant-checkbox-indeterminate .ant-checkbox-inner::after {
-            background-color: #7B83EB !important;
-          }
-        `}
-      </style>
 
       <MarksEntryForm
         visible={modalVisible}
