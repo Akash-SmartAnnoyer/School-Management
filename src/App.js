@@ -268,12 +268,12 @@ function MainLayout() {
       icon: <CalendarOutlined style={styles.menuIcon} />, 
       path: '/attendance' 
     },
-    { 
-      key: '7', 
-      label: <span style={styles.menuItem}>Teacher Attendance</span>, 
-      icon: <CalendarOutlined style={styles.menuIcon} />, 
-      path: '/teacher-attendance' 
-    },
+    // { 
+    //   key: '7', 
+    //   label: <span style={styles.menuItem}>Teacher Attendance</span>, 
+    //   icon: <CalendarOutlined style={styles.menuIcon} />, 
+    //   path: '/teacher-attendance' 
+    // },
     { 
       key: '9', 
       label: <span style={styles.menuItem}>Academics</span>, 
