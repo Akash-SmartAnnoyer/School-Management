@@ -33,8 +33,16 @@ const AcademicCalendar = () => {
     
     loadEvents();
 
+    // Listen for custom event from header button
+    const handleHeaderAddEvent = () => {
+      handleAddEvent();
+    };
+
+    window.addEventListener('academicCalendarAddEvent', handleHeaderAddEvent);
+
     return () => {
       mountedRef.current = false;
+      window.removeEventListener('academicCalendarAddEvent', handleHeaderAddEvent);
     };
   }, []);
 
@@ -174,28 +182,6 @@ const AcademicCalendar = () => {
   return (
     <div className="academic-calendar">
       <Card 
-        title={
-          <Space>
-            {/* <CalendarOutlined style={{ fontSize: '20px', color: '#7B83EB' }} /> */}
-            <img src="/study-time.png" alt="Calendar" style={{ width: '40px', height: '40px' }} />
-            <Title level={4} style={{ margin: 0 }}>Academic Calendar</Title>
-          </Space>
-        }
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddEvent}
-            style={{
-              background: '#7B83EB',
-              borderColor: '#7B83EB',
-              borderRadius: '6px',
-              boxShadow: '0 2px 6px rgba(123, 131, 235, 0.2)'
-            }}
-          >
-            Add Event
-          </Button>
-        }
         style={{ 
           borderRadius: '12px',
           boxShadow: '0 4px 16px rgba(159, 179, 223, 0.2)',

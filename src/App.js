@@ -105,6 +105,7 @@ function MainLayout() {
   const [isStudentsPage, setIsStudentsPage] = useState(false);
   const [isTeachersPage, setIsTeachersPage] = useState(false);
   const [isClassesPage, setIsClassesPage] = useState(false);
+  const [isAcademicCalendarPage, setIsAcademicCalendarPage] = useState(false);
   const [isStudentFormVisible, setIsStudentFormVisible] = useState(false);
   const studentsRef = useRef();
   const teachersRef = useRef(null);
@@ -115,6 +116,7 @@ function MainLayout() {
     setIsStudentsPage(path.startsWith('/students'));
     setIsTeachersPage(path === '/teachers');
     setIsClassesPage(path === '/classes');
+    setIsAcademicCalendarPage(path === '/academic-calendar');
     // Reset form visibility when path changes
     setIsStudentFormVisible(path.includes('/students/add') || path.includes('/students/edit/'));
   }, [location]);
@@ -512,6 +514,17 @@ function MainLayout() {
     } else {
       // If we're not on the classes page, navigate there first
       navigate('/classes');
+    }
+  };
+
+  const handleAddEvent = () => {
+    if (isAcademicCalendarPage) {
+      // If we're on the academic calendar page, trigger the add event form
+      // We'll need to pass a ref to the AcademicCalendar component
+      window.dispatchEvent(new CustomEvent('academicCalendarAddEvent'));
+    } else {
+      // If we're not on the academic calendar page, navigate to it
+      navigate('/academic-calendar');
     }
   };
 
@@ -1009,7 +1022,7 @@ function MainLayout() {
                 ) : location.pathname === '/academic-calendar' ? (
                   <>
                     <img 
-                      src="/calendar.png" 
+                      src="/study-time.png" 
                       alt="Academic Calendar" 
                       style={{ 
                         width: '24px', 
@@ -1212,6 +1225,35 @@ function MainLayout() {
                 size="small"
               >
                 Create Class
+              </Button>
+            )}
+            {isAcademicCalendarPage && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAddEvent}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  background: '#7B83EB',
+                  borderColor: '#7B83EB',
+                  boxShadow: '0 2px 6px rgba(159, 179, 223, 0.15)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(159, 179, 223, 0.25)';
+                  e.currentTarget.style.background = '#8ba1d1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(159, 179, 223, 0.15)';
+                  e.currentTarget.style.background = '#7B83EB';
+                }}
+                size="small"
+              >
+                Add Event
               </Button>
             )}
             <Button
